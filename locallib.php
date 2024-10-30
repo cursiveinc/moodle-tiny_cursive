@@ -52,16 +52,16 @@ function get_user_attempts_data($userid, $courseid, $moduleid, $orderby = 'id', 
     }
 
     $sql = "SELECT uf.id AS fileid, u.id AS usrid,uw.id AS uniqueid, u.firstname, u.lastname,u.email,uf.courseid,
-                    uf.id AS attemptid,uf.timemodified, uf.cmid AS cmid,
-                    uf.filename, uw.total_time_seconds AS total_time_seconds,
-                    uw.key_count AS key_count, uw.keys_per_minute AS keys_per_minute,
-                    uw.character_count AS character_count,
-                    uw.characters_per_minute AS characters_per_minute,
-                    uw.word_count AS word_count, uw.words_per_minute AS words_per_minute,
-                    uw.backspace_percent AS backspace_percent, uw.score AS score,
-                    uw.copy_behavior AS copy_behavior
+                   uf.id AS attemptid,uf.timemodified, uf.cmid AS cmid,
+                   uf.filename, uw.total_time_seconds AS total_time_seconds,
+                   uw.key_count AS key_count, uw.keys_per_minute AS keys_per_minute,
+                   uw.character_count AS character_count,
+                   uw.characters_per_minute AS characters_per_minute,
+                   uw.word_count AS word_count, uw.words_per_minute AS words_per_minute,
+                   uw.backspace_percent AS backspace_percent, uw.score AS score,
+                   uw.copy_behavior AS copy_behavior
               FROM  {tiny_cursive_files} uf
-        INNER JOIN {user} u ON uf.userid = u.id
+              JOIN {user} u ON uf.userid = u.id
          LEFT JOIN {tiny_cursive_user_writing} uw ON uw.file_id = uf.id
              WHERE uf.userid != 1 ";
 
@@ -133,22 +133,22 @@ function get_user_writing_data(
 
     $params = [];
     $select = "SELECT uf.id AS fileid, u.id AS usrid, uw.id AS uniqueid,
-                u.firstname, u.email, uf.courseid, uf.resourceid AS attemptid, uf.timemodified,
-                uf.cmid AS cmid, uf.filename,
-                uw.total_time_seconds AS total_time_seconds,
-                uw.key_count AS key_count,
-                uw.keys_per_minute AS keys_per_minute,
-                uw.character_count AS character_count,
-                uw.characters_per_minute AS characters_per_minute,
-                uw.word_count AS word_count,
-                uw.words_per_minute AS words_per_minute,
-                uw.backspace_percent AS backspace_percent,
-                uw.score AS score,
-                uw.copy_behavior AS copy_behavior
-             FROM {tiny_cursive_files} uf
-             INNER JOIN {user} u ON uf.userid = u.id
-             LEFT JOIN {tiny_cursive_user_writing} uw ON uw.file_id = uf.id
-             WHERE uf.userid != ?";
+                      u.firstname, u.email, uf.courseid, uf.resourceid AS attemptid, uf.timemodified,
+                      uf.cmid AS cmid, uf.filename,
+                      uw.total_time_seconds AS total_time_seconds,
+                      uw.key_count AS key_count,
+                      uw.keys_per_minute AS keys_per_minute,
+                      uw.character_count AS character_count,
+                      uw.characters_per_minute AS characters_per_minute,
+                      uw.word_count AS word_count,
+                      uw.words_per_minute AS words_per_minute,
+                      uw.backspace_percent AS backspace_percent,
+                      uw.score AS score,
+                      uw.copy_behavior AS copy_behavior
+                 FROM {tiny_cursive_files} uf
+                 JOIN {user} u ON uf.userid = u.id
+            LEFT JOIN {tiny_cursive_user_writing} uw ON uw.file_id = uf.id
+                WHERE uf.userid != ?";
 
     $params[] = 1; // Exclude user ID 1.
 
@@ -198,7 +198,7 @@ function get_user_profile_data($userid, $courseid = 0) {
     $attempts = [];
     $attempts = "SELECT sum(uw.total_time_seconds) AS total_time,sum(uw.word_count) AS word_count
                    FROM {tiny_cursive_user_writing} uw
-             INNER JOIN {tiny_cursive_files} uf
+                   JOIN {tiny_cursive_files} uf
                         ON uw.file_id = uf.id
                   WHERE uf.userid = :userid";
     if ($courseid != 0) {
@@ -227,7 +227,7 @@ function get_user_submissions_data($resourceid, $modulename, $cmid, $courseid = 
                    uf.modulename, uf.userid, uw.file_id, uf.filename,
                    diff.meta AS effort_ratio
               FROM {tiny_cursive_user_writing} uw
-        INNER JOIN {tiny_cursive_files} uf ON uw.file_id = uf.id
+              JOIN {tiny_cursive_files} uf ON uw.file_id = uf.id
          LEFT JOIN {tiny_cursive_writing_diff} diff ON uw.file_id = diff.file_id
              WHERE uf.userid = :resourceid
                    AND uf.cmid = :cmid

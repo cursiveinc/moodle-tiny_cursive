@@ -740,7 +740,7 @@ class cursive_json_func_data extends external_api {
                                  uw.backspace_percent,uw.score,uw.copy_behavior,uf.resourceid,
                                  uf.modulename,uf.userid, uf.filename
                            FROM {tiny_cursive_user_writing} uw
-                     INNER JOIN {tiny_cursive_files} uf ON uw.file_id = uf.id
+                           JOIN {tiny_cursive_files} uf ON uw.file_id = uf.id
                           WHERE uf.resourceid = :id
                                 AND uf.cmid = :cmid
                                 AND uf.modulename = :modulename";
@@ -846,7 +846,7 @@ class cursive_json_func_data extends external_api {
                             uf.modulename, uf.userid, uf.filename, uw.file_id,
                             diff.meta AS effort_ratio
                       FROM {tiny_cursive_user_writing} uw
-                INNER JOIN {tiny_cursive_files} uf ON uw.file_id = uf.id
+                      JOIN {tiny_cursive_files} uf ON uw.file_id = uf.id
                  LEFT JOIN {tiny_cursive_writing_diff} diff ON uw.file_id = diff.file_id
                      WHERE uf.resourceid = :id
                            AND uf.cmid = :cmid
@@ -978,7 +978,7 @@ class cursive_json_func_data extends external_api {
                                 uw.backspace_percent,uw.score,uw.copy_behavior,uf.resourceid ,
                                 uf.modulename,uf.userid, uf.filename
                            FROM {tiny_cursive_user_writing} uw
-                     INNER JOIN {tiny_cursive_files} uf ON uw.file_id =uf.id
+                           JOIN {tiny_cursive_files} uf ON uw.file_id =uf.id
                           WHERE uf.resourceid = :id
                                 AND uf.cmid = :cmid
                                 AND uf.modulenam e= :modulename";
@@ -1011,7 +1011,7 @@ class cursive_json_func_data extends external_api {
                                 uw.backspace_percent,uw.score,uw.copy_behavior,uf.resourceid ,
                                 uf.modulename,uf.userid, uf.filename
                            FROM {tiny_cursive_user_writing} uw
-                     INNER JOIN {tiny_cursive_files} uf ON uw.file_id =uf.id
+                           JOIN {tiny_cursive_files} uf ON uw.file_id =uf.id
                           WHERE uf.resourceid = :id
                                 AND uf.cmid = :cmid
                                 AND uf.modulename = :modulename ";
@@ -1183,7 +1183,7 @@ class cursive_json_func_data extends external_api {
                             uf.modulename, uf.userid, uw.file_id, uf.filename,
                             diff.meta AS effort_ratio
                        FROM {tiny_cursive_user_writing} uw
-                 INNER JOIN {tiny_cursive_files} uf ON uw.file_id = uf.id
+                       JOIN {tiny_cursive_files} uf ON uw.file_id = uf.id
                   LEFT JOIN {tiny_cursive_writing_diff} diff ON uw.file_id = diff.file_id
                       WHERE uf.userid = :id
                             AND uf.cmid = :cmid
@@ -1358,7 +1358,7 @@ class cursive_json_func_data extends external_api {
                             u.firstname, u.lastname, u.email,  qa.cmid AS cmid ,qa.courseid,qa.filename,uw.word_count,
                             uw.words_per_minute , uw.total_time_seconds ,uw.backspace_percent
                        FROM {user} u
-                 INNER JOIN {tiny_cursive_files} qa ON u.id = qa.userid
+                       JOIN {tiny_cursive_files} qa ON u.id = qa.userid
                   LEFT JOIN {tiny_cursive_user_writing} uw ON qa.id = uw.file_id
                       WHERE qa.userid! = 1";
 

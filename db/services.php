@@ -189,15 +189,6 @@ $functions = [
         'ajax' => true,
         'capabilities' => 'tiny/cursive:view',
     ],
-    'cursive_write_local_to_json' => [
-        'classname' => 'cursive_json_func_data',
-        'methodname' => 'write_local_to_json',
-        'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
-        'description' => 'Store User writing as json',
-        'type' => 'write',
-        'ajax' => true,
-        'capabilities' => 'tiny/cursive:view',
-    ],
 ];
 
 // We define the services to install as pre-build services.
@@ -224,7 +215,6 @@ $services = [
             'cursive_store_writing_differences',
             'cursive_get_writing_differences',
             'cursive_generate_webtoken',
-            'cursive_write_local_to_json',
         ],
         'shortname' => 'cursive_json_service',
         'downloadfiles' => 1, // Allow file downloads.

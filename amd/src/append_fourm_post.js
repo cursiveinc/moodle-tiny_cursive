@@ -62,16 +62,16 @@ define(["core/ajax", "core/str", "core/templates", "./replay", "./analytic_butto
         getToken: function (score_setting, showcomment) {
             const articles = document.querySelectorAll('#page-mod-forum-discuss article');
             articles.forEach(function (entry) {
-                    const replyButton = document.querySelectorAll('a[data-region="post-action"][title="Reply"]');
-                    if (replyButton.length > 0) {
-                        replyButton.forEach(button => {
-                            button.addEventListener('click', function (event) {
-                                event.preventDefault();
-                                const url = button.getAttribute('href');
-                                window.location.href = url;
-                            });
+                const replyButton = document.querySelectorAll('a[data-region="post-action"][title="Reply"]');
+                if (replyButton.length > 0) {
+                    replyButton.forEach(button => {
+                        button.addEventListener('click', function (event) {
+                            event.preventDefault();
+                            const url = button.getAttribute('href');
+                            window.location.href = url;
                         });
-                    }
+                    });
+                }
 
                 const ids = document.getElementById(entry.id).getAttribute('data-post-id');
                 const anchorTag = document.querySelector('a.nav-link.active.active_tree_node[href*="mod/forum/view.php?id="]');

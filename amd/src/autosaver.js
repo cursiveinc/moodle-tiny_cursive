@@ -24,92 +24,33 @@ import { call } from 'core/ajax';
 import { create } from 'core/modal_factory';
 import { get_string as getString } from 'core/str';
 import { save, cancel, hidden } from 'core/modal_events';
-import user from 'tiny_cursive/user';
 
 export const register = (editor) => {
+    const postOne = (methodname, args) => call([{
+        methodname,
+        args,
+    }])[0];
+    var is_student, intervention;
 
-    var is_student, intervention, quizSubmit, assignSubmit;
-    document.addEventListener('DOMContentLoaded', function () {
+    var bodyElement = document.querySelector('#body');
+    if (bodyElement) {
+        is_student = !bodyElement.classList.contains('teacher_admin'); // true or false
+        intervention = bodyElement.classList.contains('intervention'); // true or false
+    } else {
+        console.error('#body element not found');
+    }
 
-        quizSubmit = document.querySelector('#mod_quiz-next-nav');
-        assignSubmit = document.querySelector('#id_submitbutton');
-
-        assignSubmit.addEventListener('click', clickHandler.assign_submit_button);
-        quizSubmit.addEventListener('click', clickHandler.quiz_submit_button);
-
-        var bodyElement = document.querySelector('#body');
-        if (bodyElement) {
-            is_student = !bodyElement.classList.contains('teacher_admin'); // true or false
-            intervention = bodyElement.classList.contains('intervention'); // true or false
-        } else {
-            console.error('#body element not found');
-        }
-    });
-
-    var userid = null;
-    var host = null;
-    var courseid = null;
-    var filename = "";
-    var ed = "";
-    var event = "";
-    var recourceId = 0;
-    var modulename = "";
-    var editorid = editor?.id;
-    let classes = document.body.className.split(' ');
-    var cmid = 0;
-    var questionid = 0;
-    var syncInterval = 10000; // Sync Every 10s.
-
-    const postOne = async (methodname, args) => {
-        try {
-            const response = await call([{
-                methodname,
-                args,
-            }])[0];
-            return response;
-        } catch (error) {
-            console.error('Error in postOne:', error);
-            throw error;
-        }
-    };
-
-    // Common async handler function
-    const handleClick = async (e, element) => {
-        e.preventDefault();
-        if (filename) {
-            try {
-                const res = await SyncData();
-                console.log(res);
-                // Remove event listener, then trigger a click
-                element.removeEventListener('click', clickHandler[element.id]);
-                element.click();
-            } catch (error) {
-                console.error('Error in SyncData:', error);
-            }
-        } else {
-            // Remove event listener, then trigger a click
-            element.removeEventListener('click', clickHandler[element.id]);
-            element.click();
-        }
-    };
-
-    const clickHandler = {
-        assign_submit_button: (e) => handleClick(e, assignSubmit),
-        quiz_submit_button: (e) => handleClick(e, quizSubmit)
-    };
-
-    
     const getModal = (e) => {
         return create({
             type: 'SAVE_CANCEL',
             title: getString('tiny_cursive', 'tiny_cursive'),
-            body: '<textarea  class="form-control inputUrl" value="" id="inputUrl" placeholder="sourceurl"></textarea>',
-
+            body: '<textarea class="form-control inputUrl" value="" id="inputUrl" placeholder="sourceurl"></textarea>',
             removeOnClose: true,
         })
             .done(modal => {
-                modal.getRoot().append('<style>.close{ display: none ! important; }</style>');
+                modal.getRoot().append('<style>.close { display: none !important; }</style>');
                 modal.show();
+
                 var lastEvent = '';
                 modal.getRoot().on(save, function () {
                     var number = document.getElementById("inputUrl").value;
@@ -119,194 +60,116 @@ export const register = (editor) => {
                     } else {
                         editor.execCommand('Paste');
                     }
+
                     let ur = e.srcElement.baseURI;
                     let recourceId = 0;
                     let parm = new URL(ur);
                     let modulename = "";
                     let editorid = editor?.id;
-                    let classes = document.body.className.split(' ');
-                    let courseid = parseInt(classes.find((classname) => { return classname.startsWith('course-') }).split('-')[1]); // Getting cmid from body classlist.
-                    let cmid = parseInt(classes.find((classname) => { return classname.startsWith('cmid-') }).split('-')[1]); // Getting cmid from body classlist.
+                    let bodyClasses = document.body.className.split(' ');
 
-
-                    if (ur.includes("attempt.php") || ur.includes("forum") || ur.includes("assign")) { } else {
-                        return false;
-                    }
+                    let courseid = parseInt(bodyClasses.find(classname => classname.startsWith('course-')).split('-')[1]);
+                    let cmid = parseInt(bodyClasses.find(classname => classname.startsWith('cmid-')).split('-')[1]);
 
                     if (!ur.includes("forum") && !ur.includes("assign")) {
                         recourceId = parm.searchParams.get('attempt');
                     }
 
-                    if (recourceId === null) {
-                        recourceId = 0;
-                    }
+                    recourceId = recourceId === null ? 0 : recourceId;
+
                     if (ur.includes("forum")) {
                         modulename = "forum";
-                    }
-                    if (ur.includes("assign")) {
+                    } else if (ur.includes("assign")) {
                         modulename = "assign";
-                    }
-                    if (ur.includes("attempt")) {
+                    } else if (ur.includes("attempt")) {
                         modulename = "quiz";
                     }
-                    if (cmid === null) { cmid = 0; }
 
                     postOne('cursive_user_comments', {
                         modulename: modulename,
-                        cmid: cmid,
+                        cmid: cmid || 0,
                         resourceid: recourceId,
                         courseid: courseid,
                         usercomment: number,
                         timemodified: "1121232",
-                        editorid: editorid ? editorid : ""
+                        editorid: editorid || ""
                     });
+
                     lastEvent = 'save';
                     modal.destroy();
                 });
-                modal.getRoot().on(cancel, function () {
 
+                modal.getRoot().on(cancel, function () {
                     editor.execCommand('Undo');
                     lastEvent = 'cancel';
                 });
+
                 modal.getRoot().on(hidden, function () {
-                    if (lastEvent != 'cancel' && lastEvent != 'save') { editor.execCommand('Undo'); }
+                    if (lastEvent !== 'cancel' && lastEvent !== 'save') {
+                        editor.execCommand('Undo');
+                    }
                 });
+
                 return modal;
             });
     };
+
     const sendKeyEvent = (event, ed) => {
         let ur = ed.srcElement.baseURI;
         let parm = new URL(ur);
-        ed = ed;
-        event = event;
-        let bodyid = document.querySelector('body').id;
+        let recourceId = 0;
+        let modulename = "";
+        let editorid = editor?.id;
+        let bodyClasses = document.body.className.split(' ');
 
-        if (bodyid == 'page-mod-quiz-attempt' || bodyid == 'page-mod-quiz-summary' || bodyid == 'page-mod-assign-editsubmission' || bodyid == 'page-mod-forum-view' || bodyid == 'page-mod-forum-post') {
-            cmid = parseInt(classes.find((classname) => { return classname.startsWith('cmid-') }).split('-')[1]); // Getting cmid from body classlist.
-        }
+        let cmid = parseInt(bodyClasses.find(classname => classname.startsWith('cmid-')).split('-')[1]);
 
-        if (ur.includes("attempt.php") || ur.includes("forum") || ur.includes("assign")) { } else {
-            return false;
-        }
-        if (ur.includes("forum") || ur.includes("assign")) {
+        if (ur.includes("attempt.php") || ur.includes("forum") || ur.includes("assign")) {
+            if (!ur.includes("forum") && !ur.includes("assign")) {
+                recourceId = parm.searchParams.get('attempt');
+            }
 
-        } else {
+            recourceId = recourceId === null ? 0 : recourceId;
 
-            recourceId = parm.searchParams.get('attempt');
-        }
-        if (recourceId === null) {
+            if (ur.includes("forum")) {
+                modulename = "forum";
+            } else if (ur.includes("assign")) {
+                modulename = "assign";
+            } else if (ur.includes("attempt")) {
+                modulename = "quiz";
+            }
 
-            recourceId = 0;
-        }
-
-        if (ur.includes("forum")) {
-            modulename = "forum";
-        }
-        if (ur.includes("assign")) {
-            modulename = "assign";
-        }
-        if (ur.includes("attempt")) {
-            modulename = "quiz";
-        }
-        // console.log(courseid,userid,host);
-        filename = `${userid}_${recourceId}_${cmid}_${modulename}_attempt`;
-        // console.log(filename);
-        if (modulename === 'quiz') {
-            questionid = editorid.split(':')[1].split('_')[0];
-            filename = `${userid}_${recourceId}_${cmid}_${questionid}_${modulename}_attempt`;
-            // console.log(editorid);
-        }
-        // console.log(filename,cmid,classes);
-        if (localStorage.getItem(filename)) {
-
-            let data = JSON.parse(localStorage.getItem(filename));
-            data.push({
-                resourceId: recourceId,
+            postOne('cursive_json', {
                 key: ed.key,
-                keyCode: ed.keyCode,
                 event: event,
-                courseId: courseid,
-                unixTimestamp: Date.now(),
-                clientId: host,
-                personId: userid
-            });
-            localStorage.setItem(filename, JSON.stringify(data));
-        } else {
-            let data = [];
-            data.push({
+                keyCode: ed.keyCode,
                 resourceId: recourceId,
-                key: ed.key,
-                keyCode: ed.keyCode,
-                event: event,
-                courseId: courseid,
-                unixTimestamp: Date.now(),
-                clientId: host,
-                personId: userid
+                cmid: cmid,
+                modulename: modulename,
+                editorid: editorid || ""
             });
-            localStorage.setItem(filename, JSON.stringify(data));
         }
-
-        // postOne('cursive_json', {
-        //     key: ed.key,
-        //     event: event,
-        //     keyCode: ed.keyCode,
-        //     resourceId: recourceId,
-        //     cmid: cmid,
-        //     modulename: modulename,
-        //     editorid: editorid ? editorid : ""
-        // });
     };
+
     editor.on('keyUp', (editor) => {
         sendKeyEvent("keyUp", editor);
     });
+
     editor.on('Paste', async (e) => {
         if (is_student && intervention) {
             getModal(e);
         }
     });
+
     editor.on('Redo', async (e) => {
         if (is_student && intervention) {
             getModal(e);
         }
     });
+
     editor.on('keyDown', (editor) => {
         sendKeyEvent("keyDown", editor);
     });
-    editor.on('init', () => {
-        let userdata = user.getUserId();
-        userid = userdata.userid;
-        host = userdata.host;
-        courseid = userdata.courseid;
-    });
 
-    async function SyncData() {
-
-        let data = localStorage.getItem(filename);
-
-        if (!data || data.length === 0) {
-            return;
-        } else {
-            localStorage.removeItem(filename);
-            try {
-                return await postOne('cursive_write_local_to_json', {
-                    key: ed.key,
-                    event: event,
-                    keyCode: ed.keyCode,
-                    resourceId: recourceId,
-                    cmid: cmid,
-                    modulename: modulename,
-                    editorid: editorid,
-                    json_data: data,
-                });
-            } catch (error) {
-                console.error('Error submitting data:', error);
-            }
-        }
-    }
-
-    window.addEventListener('unload', (e) => {
-        SyncData();
-    });
-
-    setInterval(SyncData, syncInterval);
+    editor.on('init', () => { });
 };

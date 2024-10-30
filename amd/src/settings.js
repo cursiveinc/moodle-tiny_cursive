@@ -33,18 +33,15 @@ define(["core/str"], function (str) {
     },
 
     getToken: function (showcomments, user_role) {
-      document.addEventListener("DOMContentLoaded", function () {
-        var body = document.createElement("div");
-        body.id = "body";
-        body.className = "body";
-        document.body.appendChild(body);
+      var body = document.createElement("div");
+      body.id = "body";
+      body.className = "body";
+      document.body.appendChild(body);
 
-        body.className = user_role;
-
-        if (showcomments == 1) {
-          body.className = 'intervention ' + user_role;
-        }
-      });
+      body.className = user_role;
+      if (showcomments == 1) {
+        body.className = 'intervention ' + user_role;
+      }
     },
   };
 
