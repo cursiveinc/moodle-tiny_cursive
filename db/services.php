@@ -223,6 +223,14 @@ $functions = [
         'type' => 'read',
         'ajax' => true,
         'capabilities' => 'tiny/cursive:editsettings',
+    ],'cursive_get_lesson_submission_data' => [
+        'classname' => 'cursive_json_func_data',
+        'methodname' => 'get_lesson_submission_data',
+        'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
+        'description' => 'get lesson data',
+        'type' => 'read',
+        'ajax' => true,
+        'capabilities' => 'tiny/cursive:editsettings',
     ],
 ];
 

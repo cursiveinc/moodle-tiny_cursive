@@ -120,7 +120,7 @@ export const register = (editor, interval, userId) => {
                         let cmid = M.cfg.contextInstanceId;
     
                         // eslint-disable-next-line
-                        if (ur.includes("attempt.php") || ur.includes("forum") || ur.includes("assign")) { } else {
+                        if (ur.includes("attempt.php") || ur.includes("forum") || ur.includes("assign") || ur.includes("lesson")) { } else {
                             return false;
                         }
                         if (ur.includes("forum") && !ur.includes("assign")) {
@@ -142,6 +142,10 @@ export const register = (editor, interval, userId) => {
                         }
                         if (ur.includes("attempt")) {
                             modulename = "quiz";
+                        }
+                        if(ur.includes("lesson")) {
+                            modulename = "lesson";
+                            resourceId = cmid;
                         }
                         if (cmid === null) {
                             cmid = 0;
@@ -181,7 +185,7 @@ export const register = (editor, interval, userId) => {
         ed = eds;
         event = events;
         // eslint-disable-next-line
-        if (ur.includes("attempt.php") || ur.includes("forum") || ur.includes("assign")) { } else {
+        if (ur.includes("attempt.php") || ur.includes("forum") || ur.includes("assign") || ur.includes('lesson')) { } else {
             return false;
         }
         // eslint-disable-next-line
@@ -205,6 +209,10 @@ export const register = (editor, interval, userId) => {
         }
         if (ur.includes("attempt")) {
             modulename = "quiz";
+        }
+        if(ur.includes("lesson")) {
+            modulename = "lesson";
+            resourceId = cmid;
         }
 
         filename = `${userid}_${resourceId}_${cmid}_${modulename}_attempt`;

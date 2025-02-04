@@ -2374,4 +2374,57 @@ class cursive_json_func_data extends external_api {
         ]);
     }
 
+    /**
+     * Returns the parameters for the get_lesson_submission_data function
+     * 
+     * @return external_function_parameters The parameters structure containing:
+     *         - id (int): Optional lesson ID parameter 
+     *         - modulename (string): Optional module name parameter
+     *         - cmid (int): Optional course module ID parameter
+     */
+    public static function get_lesson_submission_data_parameters() {        return new external_function_parameters(
+                [
+                    'id' => new external_value(PARAM_INT, 'id', VALUE_DEFAULT, null),
+                    'modulename' => new external_value(PARAM_TEXT, 'modulename', VALUE_DEFAULT, ''),
+                    'cmid' => new external_value(PARAM_INT, 'cmid', VALUE_DEFAULT, 0),
+                ],
+            );
+    }
+
+    /**
+     * Gets submission data for a lesson
+     * 
+     * @param int $id The lesson ID
+     * @param string $modulename The name of the module
+     * @param int $cmid The course module ID
+     * @return string JSON encoded submission data
+     */
+    public static function get_lesson_submission_data($id, $modulename, $cmid) {
+            $params = self::validate_parameters(
+                    self::get_user_list_submission_stats_parameters(),
+                    [
+                        'id' => $id,
+                        'modulename' => $modulename,
+                        'cmid' => $cmid,
+                    ],
+            );
+
+            $context = context_module::instance($params['cmid']);
+            self::validate_context($context);
+            require_capability("tiny/cursive:view", $context);
+
+            $rec = tiny_cursive_get_user_submissions_data($params['id'], $params['modulename'], $params['cmid']);
+
+            return json_encode($rec);
+    }
+
+    /**
+     * Returns description of get_lesson_submission_data return value
+     * 
+     * @return external_value Returns a text parameter containing lesson submission data
+     */
+    public static function get_lesson_submission_data_returns() {
+        return new external_value(PARAM_TEXT, 'Lesson data');
+    }
+
 }
