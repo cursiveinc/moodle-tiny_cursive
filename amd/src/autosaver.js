@@ -98,7 +98,21 @@ export const register = (editor, interval, userId) => {
                 removeOnClose: true,
             })
                 .done(modal => {
-                    modal.getRoot().append('<style>.close{ display: none ! important; }</style>');
+                    modal.getRoot().append(`
+                        <style>
+                                .close { 
+                                    display: none ! important; 
+                                } 
+                                body.tox-fullscreen .modal-dialog {
+                                    max-width: 500px;
+                                    max-height:300px;
+                                    padding:1rem;
+                                } 
+                                body.tox-fullscreen .modal-dialog .modal-header {
+                                    height: auto;
+                                    padding: 1rem
+                                }
+                         </style>`);
                     modal.show();
                     var lastEvent = '';
                     // eslint-disable-next-line
