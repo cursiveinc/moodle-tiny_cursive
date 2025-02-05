@@ -70,19 +70,17 @@ export const init = (scoreSetting, showcomment) => {
             userid = parseInt(new URLSearchParams(href.split('?')[1]).get('userid'));
             if (!userid) {
                 $emailLink.closest('tr').find('td:eq(1)').after("<td></td>"); // For aligning the table column
-            }
+            } else {
 
-            let args = { id: userid, modulename: "lesson", cmid: cmid };
-            let methodname = 'cursive_get_lesson_submission_data';
-            let com = getData([{ methodname, args }]);
-            com[0].done(function (json) {
-                var data = JSON.parse(json);
-
-                var filepath = '';
-                if (data.res.filename) {
-                    filepath = data.res.filename;
-                }
-                if (filepath) {
+                let args = { id: userid, modulename: "lesson", cmid: cmid };
+                let methodname = 'cursive_get_lesson_submission_data';
+                let com = getData([{ methodname, args }]);
+                com[0].done(function (json) {
+                    var data = JSON.parse(json);
+                    var filepath = '';
+                    if (data.res.filename) {
+                        filepath = data.res.filename;
+                    }
 
                     let analyticButtonDiv = document.createElement('div');
                     let analyticsColumn = document.createElement('td');
@@ -107,12 +105,12 @@ export const init = (scoreSetting, showcomment) => {
                     myEvents.checkDiff(userid, data.res.file_id, '', replayInstances);
                     myEvents.replyWriting(userid, filepath, '', replayInstances);
                     myEvents.quality(userid, templates, context, '', replayInstances, cmid);
-                }
 
-            });
-            com[0].fail((error) => {
-                window.console.error('Error getting cursive config:', error);
-            });
+                });
+                com[0].fail((error) => {
+                    window.console.error('Error getting cursive config:', error);
+                });
+            }
         }
     });
 }
