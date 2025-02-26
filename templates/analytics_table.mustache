@@ -24,7 +24,7 @@
     }
 }}
 
-<table class="table table-borderless table-responsive">
+<table class="tiny_cursive_table tiny_cursive_table-borderless  table-responsive">
     {{#tabledata.total_time_seconds}}
     <tbody>
         <tr>
@@ -123,6 +123,6 @@
     {{/tabledata.total_time_seconds}}
 </table>
 {{^tabledata.total_time_seconds}}
-    <p class="text-center p-5 bg-light rounded m-5 text-primary tiny_cursive_nopayload">
+    <p class="bg-light tiny_cursive_nopayload">
         {{#str}}nopaylod, tiny_cursive {{/str}}</p>
 {{/tabledata.total_time_seconds}}

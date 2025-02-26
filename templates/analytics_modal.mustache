@@ -82,7 +82,7 @@ Example context (json):
                 </div> -->
             </div>
             <div id="content{{userid}}" class="tiny_cursive">
-                <table class="table table-borderless table-responsive">
+                <table class="tiny_cursive_table tiny_cursive_table-borderless  table-responsive">
                     {{#tabledata.total_time_seconds}}
                     <tbody>
                         <tr>
@@ -201,8 +201,7 @@ Example context (json):
                     {{/tabledata.total_time_seconds}}
                 </table>
                 {{^tabledata.total_time_seconds}}
-                <p class="text-center p-5 bg-light rounded m-5 text-primary"
-                    style="vertical-align: middle;text-transform: uppercase;font-weight: 500;">{{#str}} nopaylod,
+                <p class="tiny_cursive_nopayload bg-light">{{#str}} nopaylod,
                     tiny_cursive {{/str}}</p>
                 {{/tabledata.total_time_seconds}}
             </div>

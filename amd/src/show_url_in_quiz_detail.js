@@ -66,7 +66,7 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
             let attemptId = parm.searchParams.get('attempt');
             let cmid = M.cfg.contextInstanceId;
             var userid = '';
-            var tableRow = $('table.generaltable.generalbox.quizreviewsummary tbody tr');
+            var tableRow = $('tiny_cursive_table .generaltable.generalbox.quizreviewsummary tbody tr');
             tableRow.each(function() {
                 var href = $(this).find('a[href*="/user/view.php"]').attr('href');
                 if (href) {
