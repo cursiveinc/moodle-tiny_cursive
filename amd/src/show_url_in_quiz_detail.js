@@ -66,7 +66,7 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
             let attemptId = parm.searchParams.get('attempt');
             let cmid = M.cfg.contextInstanceId;
             var userid = '';
-            var tableRow = $('tiny_cursive_table .generaltable.generalbox.quizreviewsummary tbody tr');
+            var tableRow = $('table.generaltable.generalbox.quizreviewsummary tbody tr');
             tableRow.each(function() {
                 var href = $(this).find('a[href*="/user/view.php"]').attr('href');
                 if (href) {
@@ -91,7 +91,7 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
                 let com = AJAX.call([{methodname, args}]);
                 com[0].done(function(json) {
                     var data = JSON.parse(json);
-
+  
                     if (data.data.filename) {
 
                         var content = $('.que.essay .editquestion a[href*="question/bank/editquestion/question.php"][href*="&id='
