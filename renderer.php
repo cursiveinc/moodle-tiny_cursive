@@ -170,11 +170,16 @@ class tiny_cursive_renderer extends plugin_renderer_base {
         if (is_siteadmin($USER->id) || $courseid == '' || !isset($courseid) || $courseid == null) {
             $options[] = html_writer::tag('option', 'All Courses', $allcoursesattributes);
         }
+
         foreach ($courses as $course) {
-            $courseurl = new moodle_url($baseurl, ['userid' => $userid, 'courseid' => $course->id]);
-            $courseattributes = (isset($courseid) && $courseid == $course->id) ? ['value' => $courseurl, 'selected' => 'selected'] :
-                ['value' => $courseurl];
-            $options[] = html_writer::tag('option', $course->fullname, $courseattributes);
+            $cursive = get_config('tiny_cursive', "cursive-$course->id");
+
+            if ($cursive == '1' || $cursive === false) {
+                $courseurl = new moodle_url($baseurl, ['userid' => $userid, 'courseid' => $course->id]);
+                $courseattributes = (isset($courseid) && $courseid == $course->id) ? ['value' => $courseurl, 'selected' => 'selected'] :
+                    ['value' => $courseurl];
+                $options[] = html_writer::tag('option', $course->fullname, $courseattributes);
+            }
         }
 
         $select = html_writer::tag('select', implode('', $options), [
@@ -232,14 +237,17 @@ class tiny_cursive_renderer extends plugin_renderer_base {
             );
             $userdata[] = $row;
         }
-
+        $title = $courseid ? get_course($courseid)->fullname : fullname($user);
+        if (has_capability('tiny/cursive:editsettings', context_system::instance())) {
+            $title = fullname($user);
+        }
         echo $this->output->render_from_template(
             'tiny_cursive/writing_report',
             [
                 'total_word' => $userprofile->word_count ?? 0,
                 'total_time' => $totaltime,
                 'avg_min' => $avgwords,
-                'username' => fullname($user),
+                'username' => $title,
                 'userdata' => $userdata,
                 'options' => $select,
             ],

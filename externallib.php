@@ -69,7 +69,7 @@ class cursive_json_func_data extends external_api {
      */
     public static function get_user_list($page, $courseid) {
 
-        global $CFG, $DB;
+        global $DB;
 
         // Validate parameters.
         $params = self::validate_parameters(
@@ -354,64 +354,7 @@ class cursive_json_func_data extends external_api {
         );
     }
 
-    /**
-     * cursive_reports_func
-     *
-     * @param int $courseid Course ID
-     * @param string|null $quizname Quiz name
-     * @param string $username Username
-     * @return string
-     * @throws coding_exception
-     * @throws invalid_parameter_exception
-     * @throws moodle_exception
-     */
-    public static function cursive_reports_func(
-        $courseid = 0,
-        $quizname = null,
-        $username = 'keyUp',
-    ) {
-        global $DB, $CFG;
-        require_once($CFG->libdir . '/accesslib.php');
-        // Include accesslib.php for capability checks.
-        $params = self::validate_parameters(
-            self::cursive_reports_func_parameters(),
-            [
-                'courseid' => $courseid,
-                'quizname' => $quizname,
-                'username' => $username,
-            ],
-        );
-
-        // Ensure the user has the capability to view the cursive reports.
-        if ($params['courseid']) {
-            $course = $DB->get_record('course', [
-                'id' => $params['courseid'],
-            ], '*', MUST_EXIST);
-            $cm = $DB->get_record('course_modules', ['course' => $params['courseid']]);
-            $context = context_module::instance($cm->id);
-            self::validate_context($context);
-            require_capability("tiny/cursive:write", $context);
-
-        }
-
-        // You can add additional logic here if needed.
-
-        return "cursive reports";
-    }
-
-
-
-    /**
-     * cursive_reports_func_returns
-     *
-     * @return external_value
-     */
-    public static function cursive_reports_func_returns() {
-        return new external_value(PARAM_TEXT, 'result');
-    }
-
     // User comments store.
-
     /**
      * cursive_user_comments_func_parameters
      *
@@ -1142,7 +1085,7 @@ class cursive_json_func_data extends external_api {
      * @throws moodle_exception
      */
     public static function get_assign_grade_comment($id, $modulename, $cmid) {
-        global $DB, $CFG;
+        global $DB;
 
         $params = self::validate_parameters(
             self::get_assign_grade_comment_parameters(),
@@ -1264,7 +1207,7 @@ class cursive_json_func_data extends external_api {
      * @throws moodle_exception
      */
     public static function get_user_list_submission_stats($id, $modulename, $cmid) {
-        global $DB;
+
         $params = self::validate_parameters(
             self::get_user_list_submission_stats_parameters(),
             [

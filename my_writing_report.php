@@ -22,7 +22,7 @@
  * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-use tiny_cursive\forms\filter_report_form;
+
 require(__DIR__ . '/../../../../../config.php');
 global $CFG, $DB, $USER, $PAGE;
 require_once($CFG->dirroot . '/mod/quiz/lib.php');

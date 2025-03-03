@@ -92,10 +92,7 @@ class wrreport_form extends moodleform {
         $mdetail = [];
         $mdetail[0] = get_string('allmodule', 'tiny_cursive');
         if ($courseid) {
-            $sql = "SELECT id, instance
-                      FROM {course_modules}
-                     WHERE course = :courseid ";
-            $modules = $DB->get_records_sql($sql, ['courseid' => $courseid]);
+            $modules = $DB->get_records('course_modules', ['course' => $courseid],'','id, instance');
             foreach ($modules as $cm) {
                 $modinfo = get_fast_modinfo($courseid);
                 $cm = $modinfo->get_cm($cm->id);

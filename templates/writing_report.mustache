@@ -18,10 +18,23 @@ along with Moodle. If not, see
 {{!
 @template tiny_cursive/writing_report
 
-TODO describe template writing_report
+Template to display a student's writing report and analytics.
 
 Example context (json):
 {
+    "username": "John Smith",
+    "total_word": "1250", 
+    "total_time": "2h 15m",
+    "avg_min": "45",
+    "options": "<select>...</select>",
+    "userdata": [
+        {
+            "modulename": "Essay 1",
+            "lastmodified": "2023-12-01",
+            "analytics": "<button>View</button>",
+            "download": "<button>Download</button>"
+        }
+    ]
 }
 }}
 

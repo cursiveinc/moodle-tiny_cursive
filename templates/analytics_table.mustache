@@ -17,10 +17,19 @@
 {{!
     @template tiny_cursive/analytics_table
 
-    TODO describe template analytics_table
+    Template to display analytics data in a table format for the tiny_cursive plugin.
+    Shows metrics like authorship, effort ratio, time writing, words per minute, total words and backspace usage.
 
     Example context (json):
     {
+        "tabledata": {
+            "total_time_seconds": 300,
+            "effort_ratio": 75,
+            "words_per_minute": 30,
+            "word_count": 150,
+            "backspace_percent": 10
+        },
+        "formattime": "5:00"
     }
 }}
 

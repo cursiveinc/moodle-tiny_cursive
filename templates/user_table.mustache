@@ -18,10 +18,22 @@ along with Moodle. If not, see
 {{!
 @template tiny_cursive/user_table
 
-TODO describe template user_table
+Template for displaying a table of user data with cursive writing analytics.
 
 Example context (json):
 {
+    "data": [
+        {
+            "firstname": "User's first name",
+            "timemodified": "Time last modified",
+            "attemptid": "Unique attempt ID",
+            "icon": "Icon class",
+            "color": "Icon color style",
+            "total_time_seconds": "Total time in seconds",
+            "words_per_minute": "Words per minute",
+            "backspace_percent": "Backspace percentage"
+        }
+    ]
 }
 }}
 

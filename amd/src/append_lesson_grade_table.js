@@ -14,7 +14,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * TODO describe module append_lesson_grade_table
+ * Module to append analytics and grade table data for lesson submissions
+ * Handles the display of analytics, replay functionality and grade information
+ * for lesson submissions in the Moodle gradebook interface
  *
  * @module     tiny_cursive/append_lesson_grade_table
  * @copyright  2025  CTI <info@cursivetechnology.com>
