@@ -26,10 +26,9 @@
 require(__DIR__ . '/../../../../../config.php');
 require_once($CFG->dirroot . '/mod/quiz/lib.php');
 require_once($CFG->dirroot . '/mod/quiz/locallib.php');
-
 require_once(__DIR__ . '/locallib.php');
 
-global $CFG, $DB, $USER, $PAGE, $OUTPUT;
+global $CFG, $DB, $PAGE, $OUTPUT;
 require_login(null, false);
 
 if (isguestuser()) {
@@ -75,7 +74,6 @@ if ($courseid) {
 }
 $linktext = get_string('tiny_cursive', 'tiny_cursive');
 
-$PAGE->requires->jquery_plugin('jquery');
 $PAGE->requires->js_call_amd('tiny_cursive/cursive_writing_reports', 'init', []);
 // $PAGE->set_context($systemcontext);
 $PAGE->set_context($systemcontext);
