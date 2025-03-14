@@ -22,14 +22,13 @@
  * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-use tiny_cursive\classes\forms\wrreport_form;
+
 require(__DIR__ . '/../../../../../config.php');
 require_once($CFG->dirroot . '/mod/quiz/lib.php');
 require_once($CFG->dirroot . '/mod/quiz/locallib.php');
-
 require_once(__DIR__ . '/locallib.php');
 
-global $CFG, $DB, $USER, $PAGE, $OUTPUT;
+global $CFG, $DB, $PAGE, $OUTPUT;
 require_login(null, false);
 
 if (isguestuser()) {
@@ -45,6 +44,7 @@ $userid = optional_param('userid', 0, PARAM_INT);
 $courseid = optional_param('courseid', 0, PARAM_INT);
 if ($courseid) {
     $cmid = tiny_cursive_get_cmid($courseid);
+    $course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
     $context = context_module::instance($cmid);
 } else {
     $context = context_system::instance();
@@ -61,26 +61,31 @@ $page = optional_param('page', 0, PARAM_INT);
 $limit = 10;
 $perpage = $page * $limit;
 $user = $DB->get_record('user', ['id' => $userid], '*', MUST_EXIST);
-$systemcontext = context_system::instance();
 $struser = get_string('student_writing_statics', 'tiny_cursive');
 
 if ($courseid) {
+    $systemcontext = context_course::instance($courseid);
+    $PAGE->set_course($course);
     $linkurl = $CFG->wwwroot . '/lib/editor/tiny/plugins/cursive/writing_report.php?userid=' . $userid . '&courseid=' . $courseid;
 
 } else {
+    $systemcontext = context_system::instance();
     $linkurl = $CFG->wwwroot . '/lib/editor/tiny/plugins/cursive/writing_report.php?userid=' . $userid;
 }
 $linktext = get_string('tiny_cursive', 'tiny_cursive');
 
-$PAGE->requires->jquery_plugin('jquery');
 $PAGE->requires->js_call_amd('tiny_cursive/cursive_writing_reports', 'init', []);
+// $PAGE->set_context($systemcontext);
 $PAGE->set_context($systemcontext);
 $PAGE->set_url($linkurl);
 $PAGE->set_title($linktext);
-$PAGE->set_pagelayout('mypublic');
-$PAGE->set_pagetype('user-profile');
-$PAGE->set_url('/user/profile.php', ['id' => $userid]);
-$PAGE->navbar->add($struser);
+// $PAGE->set_pagelayout('mypublic');
+// $PAGE->set_pagetype('user-profile');
+// $PAGE->set_url('/user/profile.php', ['id' => $userid]);
+// $PAGE->navbar->add($struser);
+
+
+$PAGE->set_pagelayout('course'); // This is important for the navigation
 
 echo $OUTPUT->header();
 

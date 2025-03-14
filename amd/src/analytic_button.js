@@ -14,7 +14,8 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * TODO describe module analytic_button
+ * Module that creates an analytics button with an icon and text.
+ * The button displays analytics information for a specific user and question.
  *
  * @module     tiny_cursive/analytic_button
  * @copyright  2024 CTI <info@cursivetechnology.com>

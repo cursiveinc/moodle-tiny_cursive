@@ -27,7 +27,7 @@ require(__DIR__ . '/../../../../../config.php');
 require_once($CFG->dirroot . '/mod/quiz/lib.php');
 require_once($CFG->dirroot . '/mod/quiz/locallib.php');
 require_once(__DIR__ . '/locallib.php');
-global $CFG, $DB, $USER, $PAGE, $SESSION, $OUTPUT;
+global $CFG, $DB, $USER, $PAGE, $OUTPUT;
 
 require_login(); // Teacher and admin can see this page.
 $courseid = optional_param('courseid', 0, PARAM_INT);
@@ -67,14 +67,11 @@ $PAGE->set_title($linktext);
 $PAGE->set_title($linktext);
 $PAGE->set_url($linkurl);
 $PAGE->set_heading(get_string('tiny_cursive', 'tiny_cursive'));
-$PAGE->requires->jquery_plugin('jquery');
-$PAGE->requires->jquery_plugin('ui');
 $PAGE->requires->js_call_amd('tiny_cursive/cursive_writing_reports', 'init', []);
 
-if ($courseid) {
-    $context = context_course::instance($courseid);
-    require_capability('mod/quiz:viewreports', $context);
-}
+$struser = get_string('student_writing_statics', 'tiny_cursive');
+$PAGE->set_url('/course/view.php', ['id' => $courseid]);
+$PAGE->navbar->add($struser);
 
 echo $OUTPUT->header();
 

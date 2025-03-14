@@ -18,10 +18,17 @@ along with Moodle. If not, see
 {{!
 @template tiny_cursive/analytics_modal
 
-TODO describe template analytics_modal
+This template displays an analytics modal for the tiny_cursive plugin that shows writing analytics data like authorship, effort ratio, and time spent writing.
 
 Example context (json):
 {
+    "tabledata": {
+        "total_time_seconds": "300",
+        "effort_ratio": "75",
+        "formattime": "5:00"
+    },
+    "userid": "123",
+    "quizid": "456"
 }
 }}
 

@@ -14,7 +14,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * TODO describe module analytic_events
+ * Module for handling analytics events in the Tiny Cursive plugin.
+ * Provides functionality for displaying analytics data, replaying writing, 
+ * checking differences and showing quality metrics.
  *
  * @module     tiny_cursive/analytic_events
  * @copyright  2024 CTI <your@email.com>

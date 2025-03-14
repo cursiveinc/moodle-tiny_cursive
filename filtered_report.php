@@ -37,7 +37,7 @@ $courseid = optional_param('coursename', 0, PARAM_INT);
 $systemcontext = context_system::instance();
 $PAGE->set_context($systemcontext);
 
-$cm = $DB->get_record('course_modules', ['course' => $courseid]);
+$cm = $DB->get_record('course_modules', ['course' => $courseid], '*', IGNORE_MULTIPLE);
 $context = context_module::instance($cm->id);
 $haseditcapability = has_capability('tiny/cursive:view', $context);
 

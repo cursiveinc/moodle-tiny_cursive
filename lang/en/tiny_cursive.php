@@ -153,5 +153,5 @@ $string['word_len_mean'] = "Average Word Length";
 $string['word_len_mean_des'] = "Average word length is calculated by dividing the estimated word count by the total number of characters. Word length varies based on your vocabulary, the audience that you’re writing for, and the subject. Longer word lengths have an impact on readability and grade-level readability estimates.";
 $string['words_per_minute'] = 'Writing Speed';
 $string['words_per_minute_desc'] = 'Words per Minute';
-$string['wractivityreport'] = 'Writing Activity Report';
-$string['writing'] = 'Writing Report';
+$string['wractivityreport'] = 'Writing Activitiy Report';
+$string['writing'] = 'Writing Statistics';

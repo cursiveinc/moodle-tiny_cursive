@@ -53,15 +53,6 @@ $functions = [
         'ajax' => true,
         'capabilities' => 'tiny/cursive:view',
     ],
-    'cursive_reports' => [
-        'classname' => 'cursive_json_func_data',
-        'methodname' => 'cursive_reports_func',
-        'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
-        'description' => 'generate Reports for download',
-        'type' => 'write',
-        'ajax' => true,
-        'capabilities' => 'tiny/cursive:write',
-    ],
     'cursive_approve_token' => [
         'classname' => 'cursive_json_func_data',
         'methodname' => 'cursive_approve_token_func',
@@ -241,7 +232,6 @@ $services = [
     'Cursive Json Service' => [
         'functions' => [
             'cursive_json',
-            'cursive_reports',
             'cursive_get_quizlist',
             'cursive_get_module_list',
             'cursive_user_comments',

@@ -663,3 +663,10 @@
     background: #1e7a34;
     transform: scale(1.05);
 }
+
+.tiny_cursive_chartIcon {
+    font-size:36px;
+    color:black;
+    padding-left:25px;
+    font-size:x-large;
+}

@@ -24,6 +24,7 @@
  */
 
 namespace tiny_cursive\forms;
+use context_course;
 use moodleform;
 
 /**
@@ -110,10 +111,7 @@ class user_report_form extends moodleform {
         $mdetail = [];
         $mdetail[0] = get_string('allmodule', 'tiny_cursive');
         if ($courseid) {
-            $sql = "SELECT id, instance
-                      FROM {course_modules}
-                      WHERE course = :courseid";
-            $modules = $DB->get_records_sql($sql, ['courseid' => $courseid]);
+            $modules = $DB->get_records('course_modules', ['course' => $courseid],'','id, instance');
             foreach ($modules as $cm) {
                 $modinfo = get_fast_modinfo($courseid);
                 $cm = $modinfo->get_cm($cm->id);
@@ -137,16 +135,10 @@ class user_report_form extends moodleform {
         $udetail[0] = get_string('alluser', 'tiny_cursive');
 
         if (!empty($courseid)) {
-            $sql = "SELECT ue.id, u.id AS userid, u.*
-                      FROM {enrol} e
-                      JOIN {user_enrolments} ue ON e.id = ue.enrolid
-                      JOIN {user} u ON u.id = ue.userid
-                     WHERE e.courseid = :courseid
-                           AND u.id != 1";
-            $users = $DB->get_records_sql($sql, ['courseid' => $courseid]);
-
+            // Use get_enrolled_users() function instead of raw SQL for better maintainability and security
+            $users = get_enrolled_users(context_course::instance($courseid), '', 0, 'u.*', null, 0, 0, true);
             foreach ($users as $user) {
-                $udetail[$user->userid] = fullname($user);
+                $udetail[$user->id] = fullname($user);
             }
         }
 
