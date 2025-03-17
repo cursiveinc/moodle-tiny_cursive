@@ -54,9 +54,9 @@ export default class Replay {
                 }
                 this.startReplay();
             } else {
-                // eslint-disable-next-line Avoid nesting promises.
+                // eslint-disable-next-line
                 templates.render('tiny_cursive/no_submission').then(html => {
-                    // eslint-disable-next-line  Avoid nesting promises.
+                    // eslint-disable-next-line
                     Str.get_string('warningpayload', 'tiny_cursive').then(str => {
                         let updatedHtml = html.replace('No Submission', str);
                         $('.tiny_cursive').html(updatedHtml);
