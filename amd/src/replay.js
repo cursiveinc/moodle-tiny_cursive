@@ -65,6 +65,7 @@ export default class Replay {
                         var str = results[1];
                         var updatedHtml = html.replace('No Submission', str);
                         $('.tiny_cursive').html(updatedHtml);
+                        return true;
                     })
                     .catch(function(error) {
                         window.console.error(error);
@@ -76,7 +77,7 @@ export default class Replay {
             return true;
         })
         .catch(error => {
-            
+
             try {
                // eslint-disable-next-line
                 Promise.all([
@@ -88,6 +89,7 @@ export default class Replay {
                     var str = results[1];
                     var updatedHtml = html.replace('No Submission', str);
                     $('.tiny_cursive').html(updatedHtml);
+                    return true;
                 })
                 .catch(function(error) {
                     window.console.error(error);
