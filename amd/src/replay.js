@@ -22,7 +22,7 @@
 
 import {call as fetchJson} from 'core/ajax';
 import templates from 'core/templates';
-import $, { error } from 'jquery';
+import $ from 'jquery';
 import * as Str from 'core/str';
 export default class Replay {
     controllerId = '';
@@ -60,6 +60,7 @@ export default class Replay {
                     Str.get_string('warningpayload', 'tiny_cursive').then(str => {
                         let updatedHtml = html.replace('No Submission', str);
                         $('.tiny_cursive').html(updatedHtml);
+                        return true;
                     });
                 }).catch(error => window.console.error(error));
             }
@@ -71,6 +72,7 @@ export default class Replay {
                 Str.get_string('warningpayload', 'tiny_cursive').then(str => {
                     let updatedHtml = html.replace('No Submission', str);
                     $('.tiny_cursive').html(updatedHtml);
+                    return true;
                 });
             }).catch(error => window.console.error(error));
             window.console.error('Error loading JSON file: ' + error.message);

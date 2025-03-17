@@ -99,8 +99,9 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
                         if (data.usercomment != 'comments' && parseInt(showcomment)) {
                             content.parent().parent().parent().find('.qtext').append('<div class="mb-2">');
                             var tt = "";
-                            str.get_string('refer','tiny_cursive').then(str => {
+                            str.get_string('refer', 'tiny_cursive').then(str => {
                                 tt = '<h4>' + str + '</h4><div class = "tiny_cursive-quiz-references rounded" >';
+                                return true;
                             }).catch(error => window.console.error(error));
 
                             data.usercomment.forEach(element => {

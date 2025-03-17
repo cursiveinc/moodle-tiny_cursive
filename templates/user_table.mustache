@@ -22,18 +22,6 @@ Template for displaying a table of user data with cursive writing analytics.
 
 Example context (json):
 {
-    "data": [
-        {
-            "firstname": "User's first name",
-            "timemodified": "Time last modified",
-            "attemptid": "Unique attempt ID",
-            "icon": "Icon class",
-            "color": "Icon color style",
-            "total_time_seconds": "Total time in seconds",
-            "words_per_minute": "Words per minute",
-            "backspace_percent": "Backspace percentage"
-        }
-    ]
 }
 }}
 
@@ -53,11 +41,12 @@ Example context (json):
     <td>{{firstname}}</td>
 
     <td>{{timemodified}}</td>
-    <td><a style="display:'block';" data-id="{{attemptid}}" href="#" class="popup_item"><i class="fa fa-area-chart tiny_cursive_chartIcon" " aria-hidden="true"
-          ></i></a>
-
+    <td>
+      <a style="display: block;" data-id="{{attemptid}}" href="#" class="popup_item">
+        <i class="fa fa-area-chart tiny_cursive_chartIcon" aria-hidden="true"></i>
+      </a>
+      <!-- stylelint-disable-next-line -->
       <div class="modal" id="score{{attemptid}}" role="dialog">
-        <div class="modal-dialog">
           <!-- Modal content-->
           <div class="modal-content">
             <div class="modal-header">

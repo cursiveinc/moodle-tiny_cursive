@@ -84,10 +84,11 @@ define(["jquery", "core/ajax", "core/str"], function($, AJAX, str) {
             } else {
               messageAlert = `<span class='text-danger' role='alert'>${fail}</span>`;
             }
-          $("#cursivetoken_").html(messageAlert);
-          setTimeout(() => {
-            $("#cursivetoken_").empty();
-          }, 3000);
+            $("#cursivetoken_").html(messageAlert);
+            setTimeout(() => {
+              $("#cursivetoken_").empty();
+            }, 3000);
+            return true;
          }).catch(error => window.console.error(error));
         });
         promise1[0].fail(function(textStatus) {
@@ -102,6 +103,7 @@ define(["jquery", "core/ajax", "core/str"], function($, AJAX, str) {
           setTimeout(function() {
             $("#cursivetoken_").empty();
           }, 3000);
+          return true;
         }).catch(error => window.console.error(error));
         });
       });
@@ -133,6 +135,7 @@ define(["jquery", "core/ajax", "core/str"], function($, AJAX, str) {
             setTimeout(() => {
               $("#cursivedisable_").empty();
             }, 3000);
+            return true;
           }).catch(error => window.console.error(error));
         });
         promise1[0].fail(function(textStatus) {
@@ -147,6 +150,7 @@ define(["jquery", "core/ajax", "core/str"], function($, AJAX, str) {
           setTimeout(function() {
             $("#cursivedisable_").empty();
           }, 3000);
+          return true;
         }).catch(error => window.console.error(error));
         });
       });

@@ -63,6 +63,7 @@ export const init = (scoreSetting, showcomment) => {
         headcolumn.each(function() {
             $(this).find('th:eq(1)').after(`<th class="header">${strs}</th>`);
         });
+        return true;
     }).catch(e => window.console.error(e));
 
     emailLink.each(function() {
@@ -115,4 +116,4 @@ export const init = (scoreSetting, showcomment) => {
             }
         }
     });
-}
+};

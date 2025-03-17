@@ -75,7 +75,7 @@ export default class AnalyticEvents {
         Str.get_string('nopaylod', 'tiny_cursive').then(str => {
             nodata.textContent = str;
             return true;
-        });
+        }).catch(error => window.console.log(error));
         $('body').on('click', '#diff' + userid + questionid, function(e) {
             $('#rep' + userid + questionid).prop('disabled', false);
             $('#quality' + userid + questionid).prop('disabled', false);
@@ -111,10 +111,14 @@ export default class AnalyticEvents {
                         var pasteCountDiv = $('<div></div>');
                         Str.get_string('pastecount', 'tiny_cursive').then(str => {
                             pasteCountDiv.append('<div><strong>' + str + ' :</strong> ' + responsedata.commentscount + '</div>');
+                            return true; 
                         }).catch(error => window.console.log(error));
 
                         var commentsDiv = $('<div class="border-bottom"></div>');
-                        Str.get_string('comments', 'tiny_cursive').then(str => commentsDiv.append('<strong>' + str + '</strong>'));
+                        Str.get_string('comments', 'tiny_cursive').then(str => {
+                            commentsDiv.append('<strong>' + str + '</strong>');
+                            return true;
+                        }).catch( error => window.console.error(error));
 
                         var commentsList = $('<div></div>');
 

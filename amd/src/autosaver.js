@@ -168,7 +168,7 @@ export const register = (editor, interval, userId) => {
                         if (cmid === null) {
                             cmid = 0;
                         }
-    
+
                         postOne('cursive_user_comments', {
                             modulename: modulename,
                             cmid: cmid,
@@ -182,7 +182,7 @@ export const register = (editor, interval, userId) => {
                         modal.destroy();
                     });
                     modal.getRoot().on(cancel, function() {
-    
+
                         editor.execCommand('Undo');
                         lastEvent = 'cancel';
                     });
@@ -194,7 +194,7 @@ export const register = (editor, interval, userId) => {
                     return modal;
                 });
         }).catch(error => window.console.error(error));
-        
+
     };
     // eslint-disable-next-line
     const sendKeyEvent = (events, eds) => {
@@ -206,7 +206,7 @@ export const register = (editor, interval, userId) => {
         if (ur.includes("attempt.php") || ur.includes("forum") || ur.includes("assign") || ur.includes('lesson')) { } else {
             return false;
         }
-        // eslint-disable-next-line
+
         if (ur.includes("forum") && !ur.includes("assign")) {
            resourceId = parm.searchParams.get('edit');
         } else {
@@ -228,7 +228,7 @@ export const register = (editor, interval, userId) => {
         if (ur.includes("attempt")) {
             modulename = "quiz";
         }
-        if(ur.includes("lesson")) {
+        if (ur.includes("lesson")) {
             modulename = "lesson";
             resourceId = cmid;
         }
