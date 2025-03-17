@@ -65,6 +65,7 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
                     usersTable.appendSubmissionDetail(scoreSetting, showcomment);
                 });
         },
+        // eslint-disable-next-line
         appendSubmissionDetail: function(scoreSetting, showcomment) {
             $(document).ready(function($) {
 

@@ -91,7 +91,7 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
                 let com = AJAX.call([{methodname, args}]);
                 com[0].done(function(json) {
                     var data = JSON.parse(json);
-  
+
                     if (data.data.filename) {
 
                         var content = $('.que.essay .editquestion a[href*="question/bank/editquestion/question.php"][href*="&id='
@@ -100,9 +100,9 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
                             content.parent().parent().parent().find('.qtext').append('<div class="mb-2">');
                             var tt = "";
                             str.get_string('refer','tiny_cursive').then(str => {
-                                tt = '<h4>'+str+'</h4><div class = "tiny_cursive-quiz-references rounded" >';
-                            });
-                            
+                                tt = '<h4>' + str + '</h4><div class = "tiny_cursive-quiz-references rounded" >';
+                            }).catch(error => window.console.error(error));
+
                             data.usercomment.forEach(element => {
                                 tt += '<div class = "text-primary p-3" style="border-bottom:1px solid rgba(0, 0, 0, 0.1)">'
                                     + element.usercomment + '</div>';

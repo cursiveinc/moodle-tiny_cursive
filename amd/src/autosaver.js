@@ -92,9 +92,12 @@ export const register = (editor, interval, userId) => {
 
             return create({
                 type: 'SAVE_CANCEL',
-                title: `<div><div style='color:dark;font-weight:500;line-height:0.5'>${title}</div><span style='color: gray;font-weight: 400;line-height: 1.2;font-size: 14px;display: inline-block;margin-top: .5rem;'>${titledes}</span></div>`,
-                body: `<textarea  class="form-control inputUrl" value="" id="inputUrl" placeholder="${placeholder}"></textarea>`,
-    
+                title: `<div><div style='color:dark;font-weight:500;line-height:0.5'>${title}</div><span style='color:
+                        gray;font-weight: 400;line-height: 1.2;font-size: 14px;display: inline-block;
+                        margin-top: .5rem;'>${titledes}</span></div>`,
+                body: `<textarea  class="form-control inputUrl" value="" id="inputUrl" placeholder="${placeholder}">
+                       </textarea>`,
+
                 removeOnClose: true,
             })
                 .done(modal => {
@@ -133,7 +136,7 @@ export const register = (editor, interval, userId) => {
                         let editorid = editor?.id;
                         let courseid = M.cfg.courseId;
                         let cmid = M.cfg.contextInstanceId;
-    
+
                         // eslint-disable-next-line
                         if (ur.includes("attempt.php") || ur.includes("forum") || ur.includes("assign") || ur.includes("lesson")) { } else {
                             return false;
@@ -144,7 +147,7 @@ export const register = (editor, interval, userId) => {
                         if (!ur.includes("forum") && !ur.includes("assign")) {
                             resourceId = parm.searchParams.get('attempt');
                         }
-    
+
                         if (resourceId === null) {
                             resourceId = 0;
                         }
@@ -158,7 +161,7 @@ export const register = (editor, interval, userId) => {
                         if (ur.includes("attempt")) {
                             modulename = "quiz";
                         }
-                        if(ur.includes("lesson")) {
+                        if (ur.includes("lesson")) {
                             modulename = "lesson";
                             resourceId = cmid;
                         }
@@ -190,7 +193,7 @@ export const register = (editor, interval, userId) => {
                     });
                     return modal;
                 });
-        });
+        }).catch(error => window.console.error(error));
         
     };
     // eslint-disable-next-line
@@ -304,7 +307,7 @@ export const register = (editor, interval, userId) => {
             return;
         } else {
             localStorage.removeItem(filename);
-            let originalText = editor.getContent({ format: 'text' });
+            let originalText = editor.getContent({format: 'text'});
             try {
                 // eslint-disable-next-line
                 return await postOne('cursive_write_local_to_json', {

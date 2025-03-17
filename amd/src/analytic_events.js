@@ -15,7 +15,7 @@
 
 /**
  * Module for handling analytics events in the Tiny Cursive plugin.
- * Provides functionality for displaying analytics data, replaying writing, 
+ * Provides functionality for displaying analytics data, replaying writing,
  * checking differences and showing quality metrics.
  *
  * @module     tiny_cursive/analytic_events
@@ -25,7 +25,7 @@
 
 import myModal from "./analytic_modal";
 import {call as getContent} from "core/ajax";
-import $ from 'jquery';
+import $, { error } from 'jquery';
 import * as Str from 'core/str';
 import Chart from 'core/chartjs';
 
@@ -71,9 +71,11 @@ export default class AnalyticEvents {
 
     checkDiff(userid, fileid, questionid = '', replayInstances = null) {
         const nodata = document.createElement('p');
-        nodata.classList.add('tiny_cursive_nopayload','bg-light');
-        Str.get_string('nopaylod','tiny_cursive').then(str => nodata.textContent = str);
-
+        nodata.classList.add('tiny_cursive_nopayload', 'bg-light');
+        Str.get_string('nopaylod', 'tiny_cursive').then(str => {
+            nodata.textContent = str;
+            return true;
+        });
         $('body').on('click', '#diff' + userid + questionid, function(e) {
             $('#rep' + userid + questionid).prop('disabled', false);
             $('#quality' + userid + questionid).prop('disabled', false);
@@ -97,10 +99,10 @@ export default class AnalyticEvents {
                 if (responsedata) {
                     let submittedText = atob(responsedata.submitted_text);
 
-                    // Fetch the dynamic strings
+                    // Fetch the dynamic strings.
                     Str.get_strings([
-                        { key: 'original_text', component: 'tiny_cursive' },
-                        { key: 'editspastesai', component: 'tiny_cursive' }
+                        {key: 'original_text', component: 'tiny_cursive'},
+                        {key: 'editspastesai', component: 'tiny_cursive'}
                     ]).done(strings => {
                         const originalTextString = strings[0];
                         const editsPastesAIString = strings[1];
@@ -108,21 +110,20 @@ export default class AnalyticEvents {
                         const commentBox = $('<div class="p-2 border rounded mb-2">');
                         var pasteCountDiv = $('<div></div>');
                         Str.get_string('pastecount', 'tiny_cursive').then(str => {
-                            pasteCountDiv.append('<div><strong>'+str+' :</strong> ' + responsedata.commentscount + '</div>');
-                        });
-                    
+                            pasteCountDiv.append('<div><strong>' + str + ' :</strong> ' + responsedata.commentscount + '</div>');
+                        }).catch(error => window.console.log(error));
+
                         var commentsDiv = $('<div class="border-bottom"></div>');
                         Str.get_string('comments', 'tiny_cursive').then(str => commentsDiv.append('<strong>' + str + '</strong>'));
-                    
+
                         var commentsList = $('<div></div>');
-                    
+
                         let comments = responsedata.comments;
                         for (let index in comments) {
                             var commentDiv = $('<div class="shadow-sm p-1 my-1"></div>').text(comments[index].usercomment);
                             commentsList.append(commentDiv);
                         }
                         commentBox.append(pasteCountDiv).append(commentsDiv).append(commentsList);
-                        
 
                         const $legend = $('<div class="d-flex p-2 border rounded mb-2">');
 
@@ -146,8 +147,8 @@ export default class AnalyticEvents {
                             $('<div>').attr('id', 'tiny_cursive-reconstructed_text').html(JSON.parse(submittedText))
                         );
 
-                        contents.append(commentBox,$legend, textBlock2);
-                        $('#content' + userid).html(contents); // Update content
+                        contents.append(commentBox, $legend, textBlock2);
+                        $('#content' + userid).html(contents); // Update content.
                     }).fail(error => {
                         window.console.error("Failed to load language strings:", error);
                         $('#content' + userid).html(nodata);
@@ -191,7 +192,9 @@ export default class AnalyticEvents {
         nodata.style.verticalAlign = 'middle';
         nodata.style.textTransform = 'uppercase';
         nodata.style.fontWeight = '500';
-        Str.get_string('nopaylod','tiny_cursive').then(str => nodata.textContent = str);
+        Str.get_string('nopaylod', 'tiny_cursive').then(str => {
+            nodata.textContent = str;
+        }).catch(error => window.console.error(error));
 
         $('body').on('click', '#quality' + userid + questionid, function(e) {
 
@@ -245,7 +248,7 @@ export default class AnalyticEvents {
                             if (!metricsData) {
                                 $('#content' + userid).html(nodata);
                             }
-                            //  metricsData.p_burst_cnt,'P-burst Count', metricsData.total_active_time, 'Total Active Time',
+                            //  MetricsData.p_burst_cnt,'P-burst Count', metricsData.total_active_time, 'Total Active Time',
                             var originalData = [
                                 metricsData.word_len_mean, metricsData.edits, metricsData.p_burst_mean,
                                 metricsData.q_count, metricsData.sentence_count,

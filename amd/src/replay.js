@@ -22,7 +22,7 @@
 
 import {call as fetchJson} from 'core/ajax';
 import templates from 'core/templates';
-import $ from 'jquery';
+import $, { error } from 'jquery';
 import * as Str from 'core/str';
 export default class Replay {
     controllerId = '';
@@ -61,9 +61,7 @@ export default class Replay {
                         let updatedHtml = html.replace('No Submission', str);
                         $('.tiny_cursive').html(updatedHtml);
                     });
-
-
-                });
+                }).catch(error => window.console.error(error));
             }
             return true;
         })
@@ -74,7 +72,7 @@ export default class Replay {
                     let updatedHtml = html.replace('No Submission', str);
                     $('.tiny_cursive').html(updatedHtml);
                 });
-            });
+            }).catch(error => window.console.error(error));
             window.console.error('Error loading JSON file: ' + error.message);
         });
     }

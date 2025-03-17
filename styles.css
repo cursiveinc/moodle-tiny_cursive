@@ -2,12 +2,12 @@
 
 .tiny_cursive-analytics-btn {
     background-color: #306ab3;
-    color: white;
     border-radius: 8vw;
     /* stylelint-disable-next-line declaration-no-important */
     text-decoration: none !important;
     display: inline-flex;
     align-items: center;
+    /* stylelint-disable-next-line declaration-no-important */
     color: white !important;
 }
 
@@ -29,54 +29,56 @@
     padding: 2px 5px;
     margin: 3px;
 }
+
 .tiny_cursive-analytics-icon svg {
     vertical-align: middle;
 }
+
 .tiny_cursive_table {
     width: 100%;
     margin-bottom: 1rem;
     color: #212529;
     border-collapse: collapse;
-  }
-  
-  .tiny_cursive_table th,
-  .tiny_cursive_table td {
+}
+
+.tiny_cursive_table th,
+.tiny_cursive_table td {
     padding: 0.75rem;
     vertical-align: top;
     border-top: 1px solid #dee2e6;
-  }
-  
-  .tiny_cursive_table thead th {
+}
+
+.tiny_cursive_table thead th {
     vertical-align: bottom;
     border-bottom: 2px solid #dee2e6;
-  }
-  
-  .tiny_cursive_table tbody + tbody {
+}
+
+.tiny_cursive_table tbody+tbody {
     border-top: 2px solid #dee2e6;
-  }
-  
-  .tiny_cursive_table-borderless th,
-  .tiny_cursive_table-borderless td,
-  .tiny_cursive_table-borderless thead th,
-  .tiny_cursive_table-borderless tbody + tbody {
+}
+
+.tiny_cursive_table-borderless th,
+.tiny_cursive_table-borderless td,
+.tiny_cursive_table-borderless thead th,
+.tiny_cursive_table-borderless tbody+tbody {
     border: 0;
-  }
-  
-  .tiny_cursive_table-responsive {
+}
+
+.tiny_cursive_table-responsive {
     display: block;
     width: 100%;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-  }
-  
-  @media (max-width: 575.98px) {
+}
+
+@media (max-width: 575.98px) {
     .tiny_cursive_table-responsive {
-      display: block;
-      width: 100%;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
+        display: block;
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
     }
-  }
+}
 
 
 .tiny_cursive-analytics-header {
@@ -591,12 +593,14 @@
     text-align: center;
     color: #306ab3;
 }
+
 .tiny_cursive-writing-report-body {
     padding: 20px;
     max-width: 1200px;
     margin: 20px auto;
     color: #333;
 }
+
 .tiny_cursive-writing-report select {
     font-size: 16px;
 }
@@ -623,6 +627,7 @@
     padding: 12px;
     border-bottom: 1px solid #ccc;
 }
+
 .tiny_cursive-writing-report table tr:nth-child(even) {
     background: #f9f9f9;
 }
@@ -665,8 +670,8 @@
 }
 
 .tiny_cursive_chartIcon {
-    font-size:36px;
-    color:black;
-    padding-left:25px;
-    font-size:x-large;
+    /* Font-size: 36px; */
+    color: black;
+    padding-left: 25px;
+    font-size: x-large;
 }

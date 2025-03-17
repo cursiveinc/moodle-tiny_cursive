@@ -20,18 +20,18 @@
  * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
  */
 
-define(["jquery", "core/ajax", "core/str"], function ($, AJAX, str) {
+define(["jquery", "core/ajax", "core/str"], function($, AJAX, str) {
   var usersTable = {
-    init: function (page) {
+    init: function(page) {
       str
-        .get_strings([{ key: "field_require", component: "tiny_cursive" }])
-        .done(function () {
+        .get_strings([{key: "field_require", component: "tiny_cursive"}])
+        .done(function() {
           usersTable.getToken(page);
           usersTable.generateToken();
         });
     },
-    getToken: function () {
-      $("#approve_token").click(function () {
+    getToken: function() {
+      $("#approve_token").click(function() {
         var token = $("#id_s_tiny_cursive_secretkey").val();
         var promise1 = AJAX.call([
           {
@@ -41,7 +41,7 @@ define(["jquery", "core/ajax", "core/str"], function ($, AJAX, str) {
             },
           },
         ]);
-        promise1[0].done(function (json) {
+        promise1[0].done(function(json) {
           var data = JSON.parse(json);
           var messageAlert = "";
           if (data.status == true) {
@@ -63,7 +63,7 @@ define(["jquery", "core/ajax", "core/str"], function ($, AJAX, str) {
     generateToken() {
       var generateToken = $("#generate_cursivetoken");
       var cursiveDisable = $("#cursivedisable");
-      generateToken.on("click", function (e) {
+      generateToken.on("click", function(e) {
         e.preventDefault();
         var promise1 = AJAX.call([
           {
@@ -71,12 +71,12 @@ define(["jquery", "core/ajax", "core/str"], function ($, AJAX, str) {
             args: [],
           },
         ]);
-        promise1[0].done(function (data) {
+        promise1[0].done(function(data) {
           var messageAlert = "";
           str.get_strings([
             {key: "webservtokengensucc", component: "tiny_cursive"},
             {key: "webservtokengenfail", component: "tiny_cursive"}
-          ]).then(function ([success, fail]) {
+          ]).then(function([success, fail]) {
 
             if (data.token) {
               $("#id_s_tiny_cursive_cursivetoken").val(data.token);
@@ -88,25 +88,25 @@ define(["jquery", "core/ajax", "core/str"], function ($, AJAX, str) {
           setTimeout(() => {
             $("#cursivetoken_").empty();
           }, 3000);
+         }).catch(error => window.console.error(error));
         });
-        });
-        promise1[0].fail(function (textStatus) {
+        promise1[0].fail(function(textStatus) {
           var errorMessage = "<span class='text-danger' role='alert'>";
           str
             .get_string("webservtokenerror", "tiny_cursive")
-            .then((str) => { 
-              errorMessage += str +" " + textStatus.error + "</span>";
+            .then((str) => {
+              errorMessage += str + " " + textStatus.error + "</span>";
 
           $("#cursivetoken_").html(errorMessage);
           // Clear the error message after 3 seconds.
-          setTimeout(function () {
+          setTimeout(function() {
             $("#cursivetoken_").empty();
           }, 3000);
-        });
+        }).catch(error => window.console.error(error));
         });
       });
 
-      cursiveDisable.on("click", function (e) {
+      cursiveDisable.on("click", function(e) {
         e.preventDefault();
 
         var promise1 = AJAX.call([
@@ -117,37 +117,37 @@ define(["jquery", "core/ajax", "core/str"], function ($, AJAX, str) {
             },
           },
         ]);
-        promise1[0].done(function (data) {
+        promise1[0].done(function(data) {
           var messageAlert = "";
           str.get_strings([
             {key: "cursive:succ", component: "tiny_cursive"},
             {key: "cursive:fail", component: "tiny_cursive"}
-          ]).then(function ([success, fail]) {
+          ]).then(function([success, fail]) {
             if (data) {
               messageAlert = `<span class='text-success' role='alert'>${success}</span>`;
             } else {
               messageAlert = `<span class='text-danger' role='alert'>${fail}</span>`;
             }
 
-          $("#cursivedisable_").html(messageAlert);
-          setTimeout(() => {
-            $("#cursivedisable_").empty();
-          }, 3000);
+            $("#cursivedisable_").html(messageAlert);
+            setTimeout(() => {
+              $("#cursivedisable_").empty();
+            }, 3000);
+          }).catch(error => window.console.error(error));
         });
-        });
-        promise1[0].fail(function (textStatus) {
+        promise1[0].fail(function(textStatus) {
           var errorMessage = "<span class='text-danger' role='alert'>";
           str
             .get_string("cursive:status", "tiny_cursive")
-            .then((str) => { 
-              errorMessage += str +" " + textStatus.error + "</span>";
+            .then((str) => {
+              errorMessage += str + " " + textStatus.error + "</span>";
 
           $("#cursivedisable_").html(errorMessage);
           // Clear the error message after 3 seconds.
-          setTimeout(function () {
+          setTimeout(function() {
             $("#cursivedisable_").empty();
           }, 3000);
-        });
+        }).catch(error => window.console.error(error));
         });
       });
     },
