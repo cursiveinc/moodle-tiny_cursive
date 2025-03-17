@@ -25,7 +25,7 @@
 
 import myModal from "./analytic_modal";
 import {call as getContent} from "core/ajax";
-import $, { error } from 'jquery';
+import $ from 'jquery';
 import * as Str from 'core/str';
 import Chart from 'core/chartjs';
 
@@ -111,14 +111,14 @@ export default class AnalyticEvents {
                         var pasteCountDiv = $('<div></div>');
                         Str.get_string('pastecount', 'tiny_cursive').then(str => {
                             pasteCountDiv.append('<div><strong>' + str + ' :</strong> ' + responsedata.commentscount + '</div>');
-                            return true; 
+                            return true;
                         }).catch(error => window.console.log(error));
 
                         var commentsDiv = $('<div class="border-bottom"></div>');
                         Str.get_string('comments', 'tiny_cursive').then(str => {
                             commentsDiv.append('<strong>' + str + '</strong>');
                             return true;
-                        }).catch( error => window.console.error(error));
+                        }).catch(error => window.console.error(error));
 
                         var commentsList = $('<div></div>');
 
@@ -198,6 +198,7 @@ export default class AnalyticEvents {
         nodata.style.fontWeight = '500';
         Str.get_string('nopaylod', 'tiny_cursive').then(str => {
             nodata.textContent = str;
+            return true;
         }).catch(error => window.console.error(error));
 
         $('body').on('click', '#quality' + userid + questionid, function(e) {

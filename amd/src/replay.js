@@ -54,14 +54,14 @@ export default class Replay {
                 }
                 this.startReplay();
             } else {
-                // eslint-disable-next-line
+                // eslint-disable-next-line Avoid nesting promises.
                 templates.render('tiny_cursive/no_submission').then(html => {
-
+                    // eslint-disable-next-line  Avoid nesting promises.
                     Str.get_string('warningpayload', 'tiny_cursive').then(str => {
                         let updatedHtml = html.replace('No Submission', str);
                         $('.tiny_cursive').html(updatedHtml);
                         return true;
-                    });
+                    }).catch(error => window.console.error(error));
                 }).catch(error => window.console.error(error));
             }
             return true;
@@ -73,7 +73,7 @@ export default class Replay {
                     let updatedHtml = html.replace('No Submission', str);
                     $('.tiny_cursive').html(updatedHtml);
                     return true;
-                });
+                }).catch(error => window.console.error(error));
             }).catch(error => window.console.error(error));
             window.console.error('Error loading JSON file: ' + error.message);
         });
