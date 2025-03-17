@@ -54,27 +54,47 @@ export default class Replay {
                 }
                 this.startReplay();
             } else {
-                // eslint-disable-next-line promise/no-nesting
-                templates.render('tiny_cursive/no_submission').then(html => {
-                    // eslint-disable-next-line promise/no-nesting
-                    Str.get_string('warningpayload', 'tiny_cursive').then(str => {
-                        let updatedHtml = html.replace('No Submission', str);
+                try {
+                    // Using Promise.all to run both promises in parallel
+                    Promise.all([
+                        templates.render('tiny_cursive/no_submission'),
+                        Str.get_string('warningpayload', 'tiny_cursive')
+                    ])
+                    .then(function(results) {
+                        var html = results[0];
+                        var str = results[1];
+                        var updatedHtml = html.replace('No Submission', str);
                         $('.tiny_cursive').html(updatedHtml);
-                        return true;
-                    }).catch(error => window.console.error(error));
-                }).catch(error => window.console.error(error));
+                    })
+                    .catch(function(error) {
+                        window.console.error(error);
+                    });
+                } catch (error) {
+                    window.console.error(error);
+                }
             }
             return true;
         })
         .catch(error => {
             // eslint-disable-next-line
-            templates.render('tiny_cursive/no_submission').then(html => {
-                Str.get_string('warningpayload', 'tiny_cursive').then(str => {
-                    let updatedHtml = html.replace('No Submission', str);
+            try {
+                // Using Promise.all to run both promises in parallel
+                Promise.all([
+                    templates.render('tiny_cursive/no_submission'),
+                    Str.get_string('warningpayload', 'tiny_cursive')
+                ])
+                .then(function(results) {
+                    var html = results[0];
+                    var str = results[1];
+                    var updatedHtml = html.replace('No Submission', str);
                     $('.tiny_cursive').html(updatedHtml);
-                    return true;
-                }).catch(error => window.console.error(error));
-            }).catch(error => window.console.error(error));
+                })
+                .catch(function(error) {
+                    window.console.error(error);
+                });
+            } catch (error) {
+                window.console.error(error);
+            }
             window.console.error('Error loading JSON file: ' + error.message);
         });
     }
