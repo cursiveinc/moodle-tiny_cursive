@@ -55,7 +55,7 @@ export default class Replay {
                 this.startReplay();
             } else {
                 try {
-                    // Using Promise.all to run both promises in parallel
+                    // eslint-disable-next-line
                     Promise.all([
                         templates.render('tiny_cursive/no_submission'),
                         Str.get_string('warningpayload', 'tiny_cursive')
@@ -76,9 +76,9 @@ export default class Replay {
             return true;
         })
         .catch(error => {
-            // eslint-disable-next-line
+            
             try {
-                // Using Promise.all to run both promises in parallel
+               // eslint-disable-next-line
                 Promise.all([
                     templates.render('tiny_cursive/no_submission'),
                     Str.get_string('warningpayload', 'tiny_cursive')
