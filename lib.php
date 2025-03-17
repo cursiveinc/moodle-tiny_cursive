@@ -88,7 +88,8 @@ function tiny_cursive_extend_navigation_course(\navigation_node $navigation, \st
 
     $url = new moodle_url($CFG->wwwroot . '/lib/editor/tiny/plugins/cursive/tiny_cursive_report.php', ['courseid' => $course->id]);
     $cmid = tiny_cursive_get_cmid($course->id);
-    if ($cmid && get_config('tiny_cursive', "cursive-$course->id")) {
+    $cursive = tiny_cursive_status($course->id);
+    if ($cmid && $cursive) {
         $context = context_module::instance($cmid);
         $hascap = has_capability("tiny/cursive:editsettings", $context);
         if ($hascap) {
@@ -260,4 +261,21 @@ function tiny_cursive_file_urlcreate($context, $user) {
         }
     }
     return false;
+}
+
+/**
+ * Get the status of tiny_cursive for a specific course
+ *
+ * @param int $courseid The ID of the course to check
+ * @return bool Returns true if tiny_cursive is enabled for the course, false otherwise
+ * @throws dml_exception
+ */
+function tiny_cursive_status($courseid) {
+
+    $cursivestatus = get_config('tiny_cursive', "cursive-$courseid");
+    if ($cursivestatus === false || $cursivestatus === '1') {
+        return true;
+    } else {
+        return false;
+    }
 }

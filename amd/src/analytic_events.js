@@ -28,6 +28,7 @@ import {call as getContent} from "core/ajax";
 import $ from 'jquery';
 import * as Str from 'core/str';
 import Chart from 'core/chartjs';
+
 export default class AnalyticEvents {
 
     createModal(userid, context, questionid = '', authIcon) {
@@ -40,7 +41,7 @@ export default class AnalyticEvents {
                 modal.show();
                 return true;
             }).catch(error => {
-                window.window.console.error("Failed to create modal:", error);
+                window.console.error("Failed to create modal:", error);
             });
         });
     }
@@ -71,7 +72,7 @@ export default class AnalyticEvents {
     checkDiff(userid, fileid, questionid = '', replayInstances = null) {
         const nodata = document.createElement('p');
         nodata.classList.add('tiny_cursive_nopayload','bg-light');
-        nodata.textContent = "no data received yet";
+        Str.get_string('nopaylod','tiny_cursive').then(str => nodata.textContent = str);
 
         $('body').on('click', '#diff' + userid + questionid, function(e) {
             $('#rep' + userid + questionid).prop('disabled', false);
@@ -106,10 +107,12 @@ export default class AnalyticEvents {
 
                         const commentBox = $('<div class="p-2 border rounded mb-2">');
                         var pasteCountDiv = $('<div></div>');
-                        pasteCountDiv.append('<div><strong>Paste Count :</strong> ' + responsedata.commentscount + '</div>');
+                        Str.get_string('pastecount', 'tiny_cursive').then(str => {
+                            pasteCountDiv.append('<div><strong>'+str+' :</strong> ' + responsedata.commentscount + '</div>');
+                        });
                     
                         var commentsDiv = $('<div class="border-bottom"></div>');
-                        commentsDiv.append('<strong>Comments :</strong>');
+                        Str.get_string('comments', 'tiny_cursive').then(str => commentsDiv.append('<strong>' + str + '</strong>'));
                     
                         var commentsList = $('<div></div>');
                     
@@ -188,7 +191,7 @@ export default class AnalyticEvents {
         nodata.style.verticalAlign = 'middle';
         nodata.style.textTransform = 'uppercase';
         nodata.style.fontWeight = '500';
-        nodata.textContent = "no data received yet";
+        Str.get_string('nopaylod','tiny_cursive').then(str => nodata.textContent = str);
 
         $('body').on('click', '#quality' + userid + questionid, function(e) {
 

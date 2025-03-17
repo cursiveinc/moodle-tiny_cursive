@@ -50,14 +50,11 @@ class hook_callbacks {
     public static function before_footer_html_generation(before_footer_html_generation $hook) {
         global $PAGE, $COURSE, $USER, $CFG;
         require_once($CFG->dirroot . '/lib/editor/tiny/plugins/cursive/locallib.php');
-        $cursiveStatus = null;
+        require_once($CFG->dirroot . '/lib/editor/tiny/plugins/cursive/lib.php');
+        $cursivestatus = tiny_cursive_status($COURSE->id);
         $capcheck = null;
-        $config = get_config('tiny_cursive', "cursive-$COURSE->id");
-        if ($config === false || $config !== "0" ) {
-            $cursiveStatus = true;
-        }
 
-        if (!empty($COURSE) && !during_initial_install() && $cursiveStatus) {
+        if (!empty($COURSE) && !during_initial_install() && $cursivestatus) {
 
             $cmid = isset($COURSE->id) ? tiny_cursive_get_cmid($COURSE->id) : 0;
             $confidencethreshold = get_config('tiny_cursive', 'confidence_threshold');
@@ -72,7 +69,7 @@ class hook_callbacks {
 
             $PAGE->requires->js_call_amd('tiny_cursive/settings', 'init', [$showcomments, $userrole]);
 
-            if($cmid) {
+            if ($cmid) {
                 $context = context_module::instance($cmid);
                 $capcheck = has_capability('tiny/cursive:writingreport', $context, $USER->id);
             }

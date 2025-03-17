@@ -31,10 +31,6 @@ global $CFG, $PAGE, $OUTPUT;
 $PAGE->requires->js_call_amd('tiny_cursive/token_approve', 'init', [1]);
 $param = optional_param('section', null, PARAM_TEXT);
 
-// if ($param === "tiny_cursive_settings") {
-//     tiny_cursive_check_subscriptions();
-// }
-
 if (is_siteadmin()) {
     $settings->add(
         new admin_setting_heading(
@@ -49,8 +45,8 @@ if (is_siteadmin()) {
             'tiny_cursive/secretkey',
             get_string('secretkey', 'tiny_cursive'),
             get_string('secretkey_desc', 'tiny_cursive') . '' .
-            "<br/><a id='approve_token' href='#' class='btn btn-primary'>  " . get_string('test_token', 'tiny_cursive') . " </a>
-            <span id='token_message'></span>",
+            "<br/><a id='approve_token' href='#' class='btn btn-primary'>  " .
+            get_string('test_token', 'tiny_cursive') . " </a><span id='token_message'></span>",
             "", PARAM_TEXT
         )
     );
@@ -112,135 +108,13 @@ if (is_siteadmin()) {
         )
     );
 
-    // $settings->add(
-    //     new admin_setting_heading(
-    //         'cursive_settings_footer',
-    //         get_string('sectionadvance', 'tiny_cursive'),
-    //         get_string('sectionadvance_desc', 'tiny_cursive')
-    //     )
-    // );
-
-    // if (get_config('tiny_cursive', 'has_subscription')) {
-    //     $settings->add(
-    //     new admin_setting_configselect(
-    //         'tiny_cursive/qualityaccess',
-    //         get_string('quality_access', "tiny_cursive"),
-    //         get_string('quality_access_des', 'tiny_cursive'),
-    //         false,
-    //         [
-    //             true => get_string('enabled', 'tiny_cursive'),
-    //             false => get_string('disabled', 'tiny_cursive'),
-    //         ]
-    //     )
-    //     );
-
-    //     $settings->add(
-    //     new admin_setting_configtext(
-    //         'tiny_cursive/word_len_mean',
-    //         get_string('word_len_mean', 'tiny_cursive'),
-    //         get_string('word_len_mean_des', 'tiny_cursive'),
-    //         4.66,
-    //         PARAM_TEXT
-    //     ));
-
-    //     $settings->add(
-    //         new admin_setting_configtext(
-    //             'tiny_cursive/edits',
-    //             get_string('edits', 'tiny_cursive'),
-    //             get_string('edits_des', 'tiny_cursive'),
-    //             178.13,
-    //             PARAM_TEXT
-    //         ));
-
-    //     $settings->add(
-    //     new admin_setting_configtext(
-    //         'tiny_cursive/p_burst_cnt',
-    //         get_string('p_burst_cnt', 'tiny_cursive'),
-    //         get_string('p_burst_cnt_des', 'tiny_cursive'),
-    //         22.7,
-    //         PARAM_TEXT
-    //     )
-    //     );
-
-    //     $settings->add(
-    //     new admin_setting_configtext(
-    //         'tiny_cursive/p_burst_mean',
-    //         get_string('p_burst_mean', 'tiny_cursive'),
-    //         get_string('p_burst_mean_des', 'tiny_cursive'),
-    //         82.14,
-    //         PARAM_TEXT
-    //     )
-    //     );
-
-    //     $settings->add(
-    //     new admin_setting_configtext(
-    //         'tiny_cursive/q_count',
-    //         get_string('q_count', 'tiny_cursive'),
-    //         get_string('q_count_des', 'tiny_cursive'),
-    //         1043.92,
-    //         PARAM_TEXT
-    //     )
-    //     );
-
-    //     $settings->add(
-    //     new admin_setting_configtext(
-    //         'tiny_cursive/sentence_count',
-    //         get_string('sentence_count', 'tiny_cursive'),
-    //         get_string('sentence_count_des', 'tiny_cursive'),
-    //         13.36,
-    //         PARAM_TEXT
-    //     )
-    //     );
-
-    //     $settings->add(
-    //     new admin_setting_configtext(
-    //         'tiny_cursive/total_active_time',
-    //         get_string('total_active_time', 'tiny_cursive'),
-    //         get_string('total_active_time_des', 'tiny_cursive'),
-    //         21.58,
-    //         PARAM_TEXT
-    //     )
-    //     );
-
-    //     $settings->add(
-    //     new admin_setting_configtext(
-    //         'tiny_cursive/verbosity',
-    //         get_string('verbosity', 'tiny_cursive'),
-    //         get_string('verbosity_des', 'tiny_cursive'),
-    //         1617.83,
-    //         PARAM_TEXT
-    //     )
-    //     );
-
-    //     $settings->add(
-    //     new admin_setting_configtext(
-    //         'tiny_cursive/word_count',
-    //         get_string('word_count', 'tiny_cursive'),
-    //         get_string('word_count_des', 'tiny_cursive'),
-    //         190.67,
-    //         PARAM_TEXT
-    //     )
-    //     );
-
-    //     $settings->add(
-    //     new admin_setting_configtext(
-    //         'tiny_cursive/sent_word_count_mean',
-    //         get_string('sent_word_count_mean', 'tiny_cursive'),
-    //         get_string('sent_word_count_mean_des', 'tiny_cursive'),
-    //         14.27170659,
-    //         PARAM_TEXT
-    //     )
-    //     );
-    // } else {
-    //     $img = $OUTPUT->image_url('subscribe', 'tiny_cursive');
-    //     $template = $OUTPUT->render_from_template('tiny_cursive/upgrade_to_pro', ['img' => $img]);
-
-    //     $settings->add(
-    //         new admin_setting_heading(
-    //             'tiny_cursive/image_section',
-    //             '',
-    //             $template
-    //         )
-    //     );
-    // }
+    $settings->add(
+        new admin_setting_configempty(
+            'tiny_cursive/cursivedisable',
+            get_string('cursivedisable', 'tiny_cursive'),
+            "<a href='#cursivedisable' class='btn btn-primary mb-1' id='cursivedisable' >".
+            get_string('disable', 'tiny_cursive')."</a><br><span id='cursivedisable_'></span><br>".
+            get_string('cursivedisable_des', 'tiny_cursive'),
+        )
+    );
 }

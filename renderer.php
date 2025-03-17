@@ -176,8 +176,8 @@ class tiny_cursive_renderer extends plugin_renderer_base {
 
             if ($cursive == '1' || $cursive === false) {
                 $courseurl = new moodle_url($baseurl, ['userid' => $userid, 'courseid' => $course->id]);
-                $courseattributes = (isset($courseid) && $courseid == $course->id) ? ['value' => $courseurl, 'selected' => 'selected'] :
-                    ['value' => $courseurl];
+                $courseattributes = (isset($courseid) && $courseid == $course->id) ? ['value' => $courseurl,
+                'selected' => 'selected'] : ['value' => $courseurl];
                 $options[] = html_writer::tag('option', $course->fullname, $courseattributes);
             }
         }
@@ -210,7 +210,8 @@ class tiny_cursive_renderer extends plugin_renderer_base {
                 }
             }
 
-            $getmodulename = $cm ? get_coursemodule_from_id($cm->modname, $user->cmid, 0, false, MUST_EXIST) : null;
+            $getmodulename = $cm ? get_coursemodule_from_id($cm->modname,
+            $user->cmid, 0, false, MUST_EXIST) : null;
 
             $filepath = $user->filename;
             $row = [];

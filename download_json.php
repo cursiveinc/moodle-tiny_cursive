@@ -40,54 +40,45 @@ if ($cmid <= 0 || $userid <= 0) {
 $context = context_module::instance($cmid);
 require_capability('tiny/cursive:writingreport', $context);
 
-// header('X-Content-Type-Options: nosniff');
-// header('X-Frame-Options: DENY');
-// header("Content-Description: File Transfer");
-// header("Content-Type: application/json");
-// header("Content-Disposition: attachment; filename=\"" . basename($fname) . "\"");
-// header('Content-Security-Policy: default-src \'none\';');
-// header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
-// flush();
-
 $filerow = $DB->get_record('tiny_cursive_files', ['filename' => $fname]);
 if (!$fname || !$filerow || !$filerow->content) {
     redirect(get_local_referer(false), get_string('filenotfound', 'tiny_cursive'));
 }
 
-// Convert JSON to CSV
-$jsonData = json_decode($filerow->content, true);
+// Convert JSON to CSV.
+$jsondata = json_decode($filerow->content, true);
 if (json_last_error() !== JSON_ERROR_NONE) {
     redirect(get_local_referer(false), get_string('filenotfound', 'tiny_cursive'));
 }
 
-$csvFileName = $filerow->modulename." "."writing statistics_".rand(0,9).".csv";
+$csvfilename = $filerow->modulename." "."writing statistics_".rand(0, 9).".csv";
 
-// Set headers for CSV download
+// Set headers for CSV download.
 header('X-Content-Type-Options: nosniff');
 header('X-Frame-Options: DENY');
 header("Content-Description: File Transfer");
 header('Content-Type: text/csv; charset=utf-8');
-header('Content-Disposition: attachment; filename="' . $csvFileName . '"');
+header('Content-Disposition: attachment; filename="' . $csvfilename . '"');
 header('Content-Security-Policy: default-src \'none\';');
 header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
 header('Pragma: no-cache');
 header('Expires: 0');
 
-// Create output stream
+// Create output stream.
 $output = fopen('php://output', 'w');
 
-// If data is array of arrays
-if (is_array($jsonData) && is_array(reset($jsonData))) {
-    // Write headers
-    fputcsv($output, array_keys(reset($jsonData)));
-    // Write data rows
-    foreach ($jsonData as $row) {
+// If data is array of arrays.
+if (is_array($jsondata) && is_array(reset($jsondata))) {
+    // Write headers.
+    fputcsv($output, array_keys(reset($jsondata)));
+    // Write data rows.
+    foreach ($jsondata as $row) {
         fputcsv($output, $row);
     }
 } else {
-    // Single row - write headers and single row
-    fputcsv($output, array_keys($jsonData));
-    fputcsv($output, array_values($jsonData));
+    // Single row - write headers and single row.
+    fputcsv($output, array_keys($jsondata));
+    fputcsv($output, array_values($jsondata));
 }
 
 fclose($output);

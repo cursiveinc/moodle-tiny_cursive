@@ -100,48 +100,6 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
                         filepath = data.data.filename;
                     }
 
-                    // if (data.usercomment != 'comments' && parseInt(showcomment)) {
-
-                    //     let container = $('<div>');
-                    //     let row = $('<div>').addClass('row');
-                    //     let chatbox = $('<div>').addClass('tiny_cursive-chatbox tiny_cursive-chatbox22 tiny_cursive-chatbox--tray');
-
-                    //     let chatboxTitle = $('<div>').addClass('tiny_cursive-chatbox__title');
-                    //     let titleH5 = $('<h5 class="text-white">').text("References");
-
-
-                    //     chatboxTitle.append(titleH5);
-                    //     let cbody = $('<div>').addClass('tiny_cursive-chatbox__body');
-                    //     chatbox.append(chatboxTitle, cbody);
-                    //     row.append(chatbox);
-                    //     container.append(row);
-                    //     $('div[data-region="grade-actions-panel"]').before(container);
-
-                    //     var $chatbox = $('.tiny_cursive-chatbox'),
-                    //         $chatboxTitle = $('.tiny_cursive-chatbox__title'),
-                    //         $chatboxTitleClose = $('.tiny_cursive-chatbox__title__close');
-                    //     $chatboxTitle.on('click', function() {
-                    //         $chatbox.toggleClass('tiny_cursive-chatbox--tray');
-                    //     });
-                    //     $chatboxTitleClose.on('click', function(e) {
-                    //         e.stopPropagation();
-                    //         $chatbox.addClass('tiny_cursive-chatbox--closed');
-                    //     });
-                    //     $chatbox.on('transitionend', function() {
-                    //         if ($chatbox.hasClass('tiny_cursive-chatbox--closed')) {
-                    //             $chatbox.remove();
-                    //         }
-                    //     });
-
-                    //     $(document).ready(function() {
-                    //         $('div[data-region="grade-panel"]').append('<div class="dropdown">');
-                    //         data.usercomment.forEach(element => {
-                    //             cbody.append('<div class="border p-2 shadow-sm">' + element.usercomment + '</div>');
-
-                    //         });
-                    //     });
-                    // }
-
                     let analyticButtonDiv = document.createElement('div');
                     analyticButtonDiv.append(analyticButton(userid));
                     analyticButtonDiv.classList.add('text-center', 'mt-2');

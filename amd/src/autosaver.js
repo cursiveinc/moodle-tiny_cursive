@@ -121,7 +121,8 @@ export const register = (editor, interval, userId) => {
                         if (number === "" || number === null || number === undefined) {
                             editor.execCommand('Undo');
                             // eslint-disable-next-line
-                            alert("You cannot paste text without providing source");
+                            getString('pastewarning', 'tiny_cursive').then(str => alert(str));
+
                         } else {
                             editor.execCommand('Paste');
                         }

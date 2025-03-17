@@ -23,6 +23,7 @@
 import {call as fetchJson} from 'core/ajax';
 import templates from 'core/templates';
 import $ from 'jquery';
+import * as Str from 'core/str';
 export default class Replay {
     controllerId = '';
     constructor(elementId, filePath, speed = 1, loop = false, controllerId) {
@@ -55,8 +56,13 @@ export default class Replay {
             } else {
                 // eslint-disable-next-line
                 templates.render('tiny_cursive/no_submission').then(html => {
-                    let updatedHtml = html.replace('No Submission', "Something Went Wrong! or File Not Found!");
-                    $('.tiny_cursive').html(updatedHtml);
+
+                    Str.get_string('warningpayload', 'tiny_cursive').then(str => {
+                        let updatedHtml = html.replace('No Submission', str);
+                        $('.tiny_cursive').html(updatedHtml);
+                    });
+
+
                 });
             }
             return true;
@@ -64,8 +70,10 @@ export default class Replay {
         .catch(error => {
             // eslint-disable-next-line
             templates.render('tiny_cursive/no_submission').then(html => {
-                let updatedHtml = html.replace('No Submission', "Something Went Wrong! or File Not Found!");
-                $('.tiny_cursive').html(updatedHtml);
+                Str.get_string('warningpayload', 'tiny_cursive').then(str => {
+                    let updatedHtml = html.replace('No Submission', str);
+                    $('.tiny_cursive').html(updatedHtml);
+                });
             });
             window.console.error('Error loading JSON file: ' + error.message);
         });

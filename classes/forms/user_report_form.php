@@ -111,7 +111,7 @@ class user_report_form extends moodleform {
         $mdetail = [];
         $mdetail[0] = get_string('allmodule', 'tiny_cursive');
         if ($courseid) {
-            $modules = $DB->get_records('course_modules', ['course' => $courseid],'','id, instance');
+            $modules = $DB->get_records('course_modules', ['course' => $courseid], '', 'id, instance');
             foreach ($modules as $cm) {
                 $modinfo = get_fast_modinfo($courseid);
                 $cm = $modinfo->get_cm($cm->id);
@@ -135,7 +135,7 @@ class user_report_form extends moodleform {
         $udetail[0] = get_string('alluser', 'tiny_cursive');
 
         if (!empty($courseid)) {
-            // Use get_enrolled_users() function instead of raw SQL for better maintainability and security
+            // Use get_enrolled_users() function instead of raw SQL for better maintainability and security.
             $users = get_enrolled_users(context_course::instance($courseid), '', 0, 'u.*', null, 0, 0, true);
             foreach ($users as $user) {
                 $udetail[$user->id] = fullname($user);
