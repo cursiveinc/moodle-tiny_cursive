@@ -95,8 +95,7 @@ export const register = (editor, interval, userId) => {
                 title: `<div><div style='color:dark;font-weight:500;line-height:0.5'>${title}</div><span style='color:
                         gray;font-weight: 400;line-height: 1.2;font-size: 14px;display: inline-block;
                         margin-top: .5rem;'>${titledes}</span></div>`,
-                body: `<textarea  class="form-control inputUrl" value="" id="inputUrl" placeholder="${placeholder}">
-                       </textarea>`,
+                body: `<textarea  class="form-control inputUrl" value="" id="inputUrl" placeholder="${placeholder}"></textarea>`,
 
                 removeOnClose: true,
             })
@@ -120,7 +119,7 @@ export const register = (editor, interval, userId) => {
                     var lastEvent = '';
                     // eslint-disable-next-line
                     modal.getRoot().on(save, function() {
-                        var number = document.getElementById("inputUrl").value;
+                        var number = document.getElementById("inputUrl").value.trim();
                         if (number === "" || number === null || number === undefined) {
                             editor.execCommand('Undo');
                             // eslint-disable-next-line

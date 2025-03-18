@@ -113,7 +113,9 @@ if (is_siteadmin()) {
             'tiny_cursive/cursivedisable',
             get_string('cursivedisable', 'tiny_cursive'),
             "<a href='#cursivedisable' class='btn btn-primary mb-1' id='cursivedisable' >".
-            get_string('disable', 'tiny_cursive')."</a><br><span id='cursivedisable_'></span><br>".
+            get_string('disable', 'tiny_cursive')."</a>
+            <a href='#cursiveenable' class='btn btn-primary mb-1' id='cursiveenable'>". get_string('enable', 'tiny_cursive')."
+            </a><br><span id='cursivedisable_'></span><br>".
             get_string('cursivedisable_des', 'tiny_cursive'),
         )
     );

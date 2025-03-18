@@ -2400,11 +2400,18 @@ class cursive_json_func_data extends external_api {
      */
     public static function disable_cursive($disable) {
 
-        $courses = get_courses();
-        foreach ($courses as $course) {
-            set_config("cursive-{$course->id}", false, 'tiny_cursive');
+        try {
+            $courses = get_courses();
+            $value = !$disable;
+            foreach ($courses as $course) {
+                set_config("cursive-{$course->id}", $value, 'tiny_cursive');
+            }
+            return true;
+        } catch (Exception $e) {
+                // Log error and return false if config update fails.
+                debugging('Error disabling cursive: ' . $e->getMessage(), DEBUG_DEVELOPER);
+                return false;
         }
-        return true;
     }
     /**
      * Returns description of disable_cursive return value

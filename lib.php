@@ -272,10 +272,6 @@ function tiny_cursive_file_urlcreate($context, $user) {
  */
 function tiny_cursive_status($courseid) {
 
-    $cursivestatus = get_config('tiny_cursive', "cursive-$courseid");
-    if ($cursivestatus === false || $cursivestatus === '1') {
-        return true;
-    } else {
-        return false;
-    }
+    return get_config('tiny_cursive', "cursive-$courseid");
+
 }
