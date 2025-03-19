@@ -100,10 +100,7 @@ class tiny_cursive_data {
         $udetail2['id'] = 0;
         $udetail2['name'] = get_string('allmodule', 'tiny_cursive');
         $allusers->userlist[] = $udetail2;
-        $sql = "SELECT id, instance
-                  FROM {course_modules}
-                 WHERE course = :courseid";
-        $modules = $DB->get_records_sql($sql, ['courseid' => $courseid]);
+        $modules = $DB->get_records('course_modules', ['course' => $courseid], '', 'id, instance');
         foreach ($modules as $cm) {
             $modinfo = get_fast_modinfo($courseid);
             $cm = $modinfo->get_cm($cm->id);

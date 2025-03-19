@@ -61,11 +61,11 @@ class upload_student_json_cron extends scheduled_task {
         $cursivetoken = get_config('tiny_cursive', 'cursivetoken');
 
         if (!$cursivetoken) {
-            $sql = "SELECT *
-                      FROM {external_tokens}
-                     WHERE userid = ? AND externalserviceid = ?
-                           ORDER BY id DESC LIMIT 1";
-            $token = $DB->get_record_sql($sql, [$adminuser->id, $service->id]);
+            // Use get_record() instead of get_record_sql() for simpler queries.
+            $token = $DB->get_record('external_tokens',
+                        ['userid' => $adminuser->id, 'externalserviceid' => $service->id],
+                        '*',
+                        IGNORE_MULTIPLE);
         }
 
         $wstoken = $cursivetoken ?? $token->token;
@@ -79,25 +79,6 @@ class upload_student_json_cron extends scheduled_task {
         foreach ($filerecords as $filerecord) {
 
             $answer = $filerecord->original_content ?? "";
-            // if ($filerecord->modulename == 'quiz') {
-            //     $answer = tiny_cursive_get_user_essay_quiz_responses(
-            //         $filerecord->userid,
-            //         $filerecord->courseid,
-            //         $filerecord->resourceid,
-            //         $filerecord->modulename,
-            //         $filerecord->cmid,
-            //         $filerecord->questionid
-            //     );
-            // } else if ($filerecord->modulename == 'assign') {
-            //     $answer = tiny_cursive_get_user_onlinetext_assignments(
-            //         $filerecord->userid,
-            //         $filerecord->courseid,
-            //         $filerecord->modulename,
-            //         $filerecord->cmid
-            //     );
-            // } else if ($filerecord->modulename == 'forum') {
-            //     $answer = tiny_cursive_get_user_forum_posts($filerecord->userid, $filerecord->courseid, $filerecord->resourceid);
-            // }
 
             $uploaded = tiny_cursive_upload_multipart_record($filerecord, $filerecord->filename, $wstoken, $answer);
             if ($uploaded) {

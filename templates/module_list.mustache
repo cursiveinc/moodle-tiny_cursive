@@ -16,14 +16,25 @@
 }}
 {{!
     @template tiny_cursive/module_list
-  
-    TODO describe template module_list
-  
+
+    Template to display a dropdown list of modules for the tiny_cursive plugin.
+
     Example context (json):
     {
+        "tabledata": {
+            "userlist": [
+                {
+                    "id": "1", 
+                    "name": "Module 1"
+                },
+                {
+                    "id": "2",
+                    "name": "Module 2" 
+                }
+            ]
+        }
     }
-  }}
-
+}}
 <select>
     <option value="">{{#str}}selectmodule, tiny_cursive{{/str}}</option>
     {{#tabledata.userlist}}

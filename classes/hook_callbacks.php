@@ -50,8 +50,11 @@ class hook_callbacks {
     public static function before_footer_html_generation(before_footer_html_generation $hook) {
         global $PAGE, $COURSE, $USER, $CFG;
         require_once($CFG->dirroot . '/lib/editor/tiny/plugins/cursive/locallib.php');
+        require_once($CFG->dirroot . '/lib/editor/tiny/plugins/cursive/lib.php');
+        $cursivestatus = tiny_cursive_status($COURSE->id);
+        $capcheck = null;
 
-        if (!empty($COURSE) && !during_initial_install() && get_config('tiny_cursive', "cursive-$COURSE->id")) {
+        if (!empty($COURSE) && !during_initial_install() && $cursivestatus) {
 
             $cmid = isset($COURSE->id) ? tiny_cursive_get_cmid($COURSE->id) : 0;
             $confidencethreshold = get_config('tiny_cursive', 'confidence_threshold');
@@ -66,8 +69,10 @@ class hook_callbacks {
 
             $PAGE->requires->js_call_amd('tiny_cursive/settings', 'init', [$showcomments, $userrole]);
 
-            $context = context_module::instance($cmid);
-            $capcheck = has_capability('tiny/cursive:writingreport', $context, $USER->id);
+            if ($cmid) {
+                $context = context_module::instance($cmid);
+                $capcheck = has_capability('tiny/cursive:writingreport', $context, $USER->id);
+            }
 
             if ($capcheck) {
                 switch ($PAGE->bodyid) {
@@ -111,6 +116,13 @@ class hook_callbacks {
                             [$confidencethreshold, $showcomments],
                         );
                         break;
+                    case 'page-mod-lesson-essay':
+                        $PAGE->requires->js_call_amd(
+                            'tiny_cursive/append_lesson_grade_table',
+                            'init',
+                            [$confidencethreshold, $showcomments],
+                        );
+                        break;
                 }
             }
 
@@ -135,11 +147,7 @@ class hook_callbacks {
             '1' => get_string('enabled', 'tiny_cursive'),
         ]);
         $default = get_config('tiny_cursive', "cursive-$COURSE->id");
-        if ($default === false) {
-            $mform->setDefault('cursive_status', '1');
-        } else {
-            $mform->setDefault('cursive_status', $default);
-        }
+        $mform->setDefault('cursive_status', $default);
     }
 
     /**

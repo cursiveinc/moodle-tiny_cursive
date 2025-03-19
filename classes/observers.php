@@ -51,7 +51,7 @@ class observers {
             "modulename" => 'forum',
             'resourceid' => 0,
             'courseid' => $eventdata['courseid'],
-            'cmid' => $eventdata['contextinstanceid']
+            'cmid' => $eventdata['contextinstanceid'],
         ];
         $recs = $DB->get_records($table, $conditions);
         if ($recs) {
@@ -92,7 +92,7 @@ class observers {
             "modulename" => 'forum',
             'resourceid' => 0,
             'courseid' => $eventdata['courseid'],
-            'cmid' => $eventdata['contextinstanceid']
+            'cmid' => $eventdata['contextinstanceid'],
         ];
         $recs = $DB->get_records($table, $conditions);
         if ($recs) {
@@ -159,7 +159,7 @@ class observers {
             "modulename" => 'forum',
             'resourceid' => 0,
             'courseid' => $eventdata['courseid'],
-            'cmid' => $eventdata['contextinstanceid']
+            'cmid' => $eventdata['contextinstanceid'],
         ];
         $recs = $DB->get_records($table, $conditions);
         if ($recs) {

@@ -59,6 +59,7 @@ export default class MyModal extends Modal {
         });
         root.find('.modal-dialog').css({
             'max-width': '800px',
+            'background-color': 'transparent'
         });
 
         // Ensure modal closes on 'analytic-close' button click.
