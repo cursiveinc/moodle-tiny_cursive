@@ -89,12 +89,12 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
 
                         let analyticButtonDiv = document.createElement('div');
                         analyticButtonDiv.append(analyticButton(ids));
-                        analyticButtonDiv.classList.add('text-center', 'mt-2');
+                        analyticButtonDiv.classList.add('text-center', 'my-3');
                         analyticButtonDiv.dataset.region = "analytic-div" + ids;
 
-                        $("#" + entry.id).find('#post-content-' + ids).append(analyticButtonDiv);
                         if (data.usercomment != 'comments' && parseInt(showcomment)) {
 
+                           str.get_string('refer','tiny_cursive').then(str =>{
                             let comments = "";
                             data.usercomment.forEach(element => {
                                 // Create the anchor element
@@ -103,9 +103,10 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
                             });
 
                             $("#" + entry.id).find('#post-content-' + ids).prepend($('<div>')
-                                .addClass('tiny_cursive-quiz-references rounded').append(comments));
-
+                                .addClass('tiny_cursive-quiz-references rounded mb-2').append(comments)).prepend($('<h4>').append(str));
+                            } );
                         }
+                        $("#" + entry.id).find('#post-content-' + ids).prepend(analyticButtonDiv);
 
                         let myEvents = new AnalyticEvents();
                         var context = {
