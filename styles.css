@@ -466,7 +466,6 @@
     max-height: 200px;
     /* stylelint-disable-next-line declaration-no-important */
     overflow-y: auto !important;
-    margin: 2rem 0;
 }
 
 .tiny_cursive_nosub {

@@ -98,7 +98,7 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
                             let comments = "";
                             data.usercomment.forEach(element => {
                                 // Create the anchor element
-                                comments += '<div class="border-bottom p-3 text-primary" style="font-weight:600;">'
+                                comments += '<div class="border-bottom p-3" style="font-weight:600;color:#0f6cbf">'
                                     + element.usercomment + '</div>';
                             });
 

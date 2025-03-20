@@ -74,7 +74,6 @@ export default class Replay {
                     window.console.error(error);
                 }
             }
-            return true;
         })
         .catch(error => {
 
