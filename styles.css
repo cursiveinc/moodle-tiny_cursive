@@ -413,8 +413,8 @@
 }
 
 .tiny_cursive_added {
-    background-color: #7ad957;
-    color: #22543d;
+    background-color: #FFF2CC;
+    color: rgb(0, 41, 0);
     font-weight: bold;
     padding: 2px 4px;
     border-radius: 4px;
