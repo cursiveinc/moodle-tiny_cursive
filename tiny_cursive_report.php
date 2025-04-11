@@ -61,7 +61,7 @@ $systemcontext = context_system::instance();
 $linktext = get_string('tiny_cursive', 'tiny_cursive');
 
 $PAGE->requires->js_call_amd('tiny_cursive/key_logger', 'init', [1]);
-$PAGE->requires->css("/css/style.css");
+
 $PAGE->set_context($systemcontext);
 $PAGE->set_title($linktext);
 $PAGE->set_title($linktext);

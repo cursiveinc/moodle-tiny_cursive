@@ -153,7 +153,7 @@ function tiny_cursive_myprofile_navigation(core_user\output\myprofile\tree $tree
 /**
  * Uploads a file record using multipart form data
  *
- * @param object $filerecord The file record object containing metadata
+ * @param stdClass $filerecord The file record object containing metadata
  * @param string $filenamewithfullpath Full path to the file to upload
  * @param string $wstoken Web service token for authentication
  * @param string $answertext Original submission text
@@ -175,7 +175,7 @@ function tiny_cursive_upload_multipart_record($filerecord, $filenamewithfullpath
         $jsoncontent = json_decode($filerecord->content, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new Exception("Invalid JSON content in file.");
+            throw new moodle_exception('invalidjson', 'tiny_cursive');
         }
             file_put_contents($tempfilepath, json_encode($jsoncontent));
             $filetosend = new CURLFILE($tempfilepath, 'application/json', 'uploaded.json');
@@ -183,7 +183,7 @@ function tiny_cursive_upload_multipart_record($filerecord, $filenamewithfullpath
             // Ensure the temporary file does not exceed the size limit.
         if (filesize($tempfilepath) > 16 * 1024 * 1024) {
             unlink($tempfilepath);
-            throw new Exception("File exceeds the 16MB size limit.");
+            throw new moodle_exception('filesizelimit','tiny_cursive');
         }
 
         echo $remoteurl;
@@ -223,7 +223,7 @@ function tiny_cursive_upload_multipart_record($filerecord, $filenamewithfullpath
         if (isset($tempfilepath) && file_exists($tempfilepath)) {
             unlink($tempfilepath);
         }
-    } catch (Exception $e) {
+    } catch (moodle_exception $e) {
         echo $e->getMessage();
     }
 
@@ -266,7 +266,7 @@ function tiny_cursive_file_urlcreate($context, $user) {
 /**
  * Get the status of tiny_cursive for a specific course
  *
- * @param int $courseid The ID of the course to check
+ * @param int courseid The ID of the course to check
  * @return bool Returns true if tiny_cursive is enabled for the course, false otherwise
  * @throws dml_exception
  */
@@ -274,4 +274,51 @@ function tiny_cursive_status($courseid) {
 
     return get_config('tiny_cursive', "cursive-$courseid");
 
+}
+
+/**
+ * Verifies a token by sending it to a remote server for approval
+ *
+ * @param string $token The authentication token to verify
+ * @param string $moodleurl The URL of the Moodle installation
+ * @param string $remoteurl The URL of the remote verification server
+ * @return string The response from the remote server
+ * @throws moodle_exception If token verification fails
+ */
+function cursive_approve_token($token, $moodleurl, $remoteurl) {
+    try {
+        // Use Moodle's cURL library.
+        $curl = new curl();
+        $options = [
+            'CURLOPT_RETURNTRANSFER' => true,
+            'CURLOPT_HTTPHEADER' => [
+                'Authorization: Bearer ' . $token,
+                'X-Moodle-Url: ' . $moodleurl,
+                'Content-Type: multipart/form-data',
+                'Accept: application/json',
+            ],
+        ];
+
+        // Prepare POST fields.
+        $postfields = [
+            'token' => $token,
+            'moodle_url' => $moodleurl,
+        ];
+
+        // Execute the request.
+        $result = $curl->post($remoteurl, $postfields, $options);
+
+        // Check for cURL errors.
+        if ($result === false) {
+            throw new moodle_exception('curlerror', 'tiny_cursive', '', null, $curl->error);
+        }
+    } catch (moodle_exception $e) {
+        // Log the exception.
+        debugging("Error in cursive_approve_token_func: " . $e->getMessage());
+
+        // Return a Moodle exception.
+        throw new moodle_exception('errorverifyingtoken', 'tiny_cursive', '', null, $e->getMessage());
+    }
+
+    return $result;
 }

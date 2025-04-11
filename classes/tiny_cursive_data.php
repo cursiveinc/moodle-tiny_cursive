@@ -26,6 +26,8 @@
 
 namespace tiny_cursive;
 
+use context_course;
+
 defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot . '/mod/quiz/lib.php');
 require_once($CFG->dirroot . '/mod/quiz/locallib.php');
@@ -58,19 +60,19 @@ class tiny_cursive_data {
         $udetail = [];
         $udetail2 = [];
         $courseid = (int)$params['courseid'];
-        $sql = "SELECT ue.id as enrolid,u.id as id,u.firstname,u.lastname FROM {enrol} e
-                  JOIN {user_enrolments} ue ON e.id = ue.enrolid
-                  JOIN {user} u ON u.id = ue.userid
-                 WHERE e.courseid = :courseid
-                       AND u.id != 1";
-        $users = $DB->get_records_sql($sql, ['courseid' => $courseid]);
+        $admin = get_admin();
+        $users = get_enrolled_users(context_course::instance($courseid), '', 0, );
+
         $udetail2['id'] = 0;
         $udetail2['name'] = 'All Users';
         $allusers->userlist[] = $udetail2;
         foreach ($users as $user) {
+            if ($user->id == $admin->id) {
+                continue;
+            }
             $udetail['id'] = $user->id;
 
-            $udetail['name'] = $user->firstname . ' ' . $user->lastname;
+            $udetail['name'] = fullname($user);
 
             $allusers->userlist[] = $udetail;
 

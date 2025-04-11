@@ -33,11 +33,9 @@ require_login(null, false);
 
 if (isguestuser()) {
     redirect($CFG->wwwroot);
-    die;
 }
 if (\core\session\manager::is_loggedinas()) {
     redirect($CFG->wwwroot . '/user/index.php');
-    die;
 }
 
 $userid = optional_param('userid', 0, PARAM_INT);

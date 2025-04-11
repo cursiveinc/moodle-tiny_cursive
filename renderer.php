@@ -29,16 +29,16 @@
 class tiny_cursive_renderer extends plugin_renderer_base {
 
     /**
-     * Generates a timer report table with user attempt data
+     * Generates a timer report table with user attempt data.
      *
      * @param array $users Array containing user attempt data and count
      * @param int $courseid ID of the course
      * @param int $page Current page number for pagination
-     * @param int $limit Number of records per page
+     * @param int $limit Number of records per page 
      * @param string $baseurl Base URL for pagination links
      * @return void
      * @throws coding_exception
-     * @throws dml_exception
+     * @throws dml_exception 
      * @throws moodle_exception
      */
     public function timer_report($users, $courseid, $page = 0, $limit = 5, $baseurl = '') {
@@ -111,7 +111,7 @@ class tiny_cursive_renderer extends plugin_renderer_base {
      * Generates a user writing report with analytics and download options
      *
      * @param array $users Array containing user attempt data and count
-     * @param object $userprofile User profile data including word count and time stats
+     * @param stdClass $userprofile User profile data including word count and time stats
      * @param int $userid ID of the user
      * @param int $page Current page number for pagination
      * @param int $limit Number of records per page

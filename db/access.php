@@ -59,4 +59,11 @@ $capabilities = [
             'editingteacher' => CAP_ALLOW,
         ],
     ],
+    'tiny/cursive:use' => [
+        'captype' => 'read',
+        'contextlevel' => CONTEXT_USER,
+        'archetypes' => [
+            'user' => CAP_ALLOW,
+        ],
+    ],
 ];
