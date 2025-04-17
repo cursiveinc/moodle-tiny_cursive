@@ -15,15 +15,15 @@
 
 /**
  * @module     tiny_cursive/autosaver
- * @category TinyMCE Editor
+ * @category   TinyMCE Editor
  * @copyright  CTI <info@cursivetechnology.com>
- * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
+ * @author     Brain Station 23 <sales@brainstation-23.com>
  */
 
-import {call} from 'core/ajax';
-import {create} from 'core/modal_factory';
-import {get_string as getString} from 'core/str';
-import {save, cancel, hidden} from 'core/modal_events';
+import { call } from 'core/ajax';
+import { create } from 'core/modal_factory';
+import { get_string as getString } from 'core/str';
+import { save, cancel, hidden } from 'core/modal_events';
 import jQuery from 'jquery';
 
 export const register = (editor, interval, userId) => {
@@ -45,7 +45,7 @@ export const register = (editor, interval, userId) => {
     let assignSubmit = jQuery('#id_submitbutton');
     var syncInterval = interval ? interval * 1000 : 10000; // Default: Sync Every 10s.
 
-    const postOne = async(methodname, args) => {
+    const postOne = async (methodname, args) => {
         try {
             const response = await call([{
                 methodname,
@@ -58,7 +58,7 @@ export const register = (editor, interval, userId) => {
         }
     };
 
-    assignSubmit.on('click', async function(e) {
+    assignSubmit.on('click', async function (e) {
         e.preventDefault();
         if (filename) {
             // eslint-disable-next-line
@@ -70,7 +70,7 @@ export const register = (editor, interval, userId) => {
         }
     });
 
-    quizSubmit.on('click', async function(e) {
+    quizSubmit.on('click', async function (e) {
         e.preventDefault();
         if (filename) {
             // eslint-disable-next-line
@@ -88,7 +88,7 @@ export const register = (editor, interval, userId) => {
             getString('tiny_cursive_srcurl', 'tiny_cursive'),
             getString('tiny_cursive_srcurl_des', 'tiny_cursive'),
             getString('tiny_cursive_placeholder', 'tiny_cursive')
-        ]).then(function([title, titledes, placeholder]) {
+        ]).then(function ([title, titledes, placeholder]) {
 
             return create({
                 type: 'SAVE_CANCEL',
@@ -118,7 +118,7 @@ export const register = (editor, interval, userId) => {
                     modal.show();
                     var lastEvent = '';
                     // eslint-disable-next-line
-                    modal.getRoot().on(save, function() {
+                    modal.getRoot().on(save, function () {
                         var number = document.getElementById("inputUrl").value.trim();
                         if (number === "" || number === null || number === undefined) {
                             editor.execCommand('Undo');
@@ -142,7 +142,7 @@ export const register = (editor, interval, userId) => {
                         }
                         if (ur.includes("forum") && !ur.includes("assign")) {
                             resourceId = parm.searchParams.get('edit');
-                         }
+                        }
                         if (!ur.includes("forum") && !ur.includes("assign")) {
                             resourceId = parm.searchParams.get('attempt');
                         }
@@ -180,12 +180,12 @@ export const register = (editor, interval, userId) => {
                         lastEvent = 'save';
                         modal.destroy();
                     });
-                    modal.getRoot().on(cancel, function() {
+                    modal.getRoot().on(cancel, function () {
 
                         editor.execCommand('Undo');
                         lastEvent = 'cancel';
                     });
-                    modal.getRoot().on(hidden, function() {
+                    modal.getRoot().on(hidden, function () {
                         if (lastEvent != 'cancel' && lastEvent != 'save') {
                             editor.execCommand('Undo');
                         }
@@ -207,7 +207,7 @@ export const register = (editor, interval, userId) => {
         }
 
         if (ur.includes("forum") && !ur.includes("assign")) {
-           resourceId = parm.searchParams.get('edit');
+            resourceId = parm.searchParams.get('edit');
         } else {
 
             resourceId = parm.searchParams.get('attempt');
@@ -273,12 +273,12 @@ export const register = (editor, interval, userId) => {
     editor.on('keyUp', (editor) => {
         sendKeyEvent("keyUp", editor);
     });
-    editor.on('Paste', async(e) => {
+    editor.on('Paste', async (e) => {
         if (isStudent && intervention) {
             getModal(e);
         }
     });
-    editor.on('Redo', async(e) => {
+    editor.on('Redo', async (e) => {
         if (isStudent && intervention) {
             getModal(e);
         }
@@ -288,6 +288,10 @@ export const register = (editor, interval, userId) => {
     });
     // eslint-disable-next-line
     editor.on('init', () => {
+
+    });
+    editor.on('SkinLoaded', () => {
+        customTooltip();
     });
 
     /**
@@ -306,7 +310,7 @@ export const register = (editor, interval, userId) => {
             return;
         } else {
             localStorage.removeItem(filename);
-            let originalText = editor.getContent({format: 'text'});
+            let originalText = editor.getContent({ format: 'text' });
             try {
                 // eslint-disable-next-line
                 return await postOne('cursive_write_local_to_json', {
@@ -324,6 +328,134 @@ export const register = (editor, interval, userId) => {
                 window.console.error('Error submitting data:', error);
             }
         }
+    }
+
+    /**
+     * Sets up custom tooltip functionality for the Cursive icon
+     * Initializes tooltip text, positions the icon in the menubar,
+     * and sets up mouse event handlers for showing/hiding the tooltip
+     * @function customTooltip
+     */
+    function customTooltip() {
+        try {
+            const tooltipText = getTooltipText();
+            const menubarDiv = document.querySelector('div[role="menubar"].tox-menubar');
+            const cursiveStateIcon = document.querySelector('#tiny_cursive_StateIcon');
+            const cursiveIcon = cursiveStateIcon.parentElement.parentElement;
+            const paths = cursiveStateIcon.querySelectorAll('path');
+            const currentParent = cursiveIcon.parentElement;
+            const menubarParent = menubarDiv.parentElement;
+
+            cursiveIcon.setAttribute('class', 'tiny_cursive_StateButton');
+            cursiveIcon.style.display = 'inline-block';
+
+            tooltipText.then((text) => {
+                setTooltip(text, cursiveIcon);
+            });
+
+            cursiveState(cursiveIcon, menubarDiv, paths, currentParent, menubarParent);
+
+            jQuery('#tiny_cursive_StateIcon').on('mouseenter', function () {
+                jQuery(this).css('position', 'relative');
+                jQuery('.tiny_cursive_tooltip').css(tooltipCss());
+            });
+
+            jQuery('#tiny_cursive_StateIcon').on('mouseleave', function () {
+                jQuery('.tiny_cursive_tooltip').css('display', 'none');
+            });
+        } catch (error) {
+            window.console.error('Error setting up custom tooltip:', error);
+        }
+    }
+
+    /**
+     * Retrieves tooltip text strings from language files
+     * @async
+     * @function getTooltipText
+     * @returns {Promise<Object>} Object containing buttonTitle and buttonDes strings
+     */
+    async function getTooltipText() {
+        const [
+            buttonTitle,
+            buttonDes,
+        ] = await Promise.all([
+            getString('cursive:state:active', 'tiny_cursive'),
+            getString('cursive:state:active:des', 'tiny_cursive'),
+        ]);
+        return { buttonTitle, buttonDes };
+    }
+
+    /**
+     * Updates the Cursive icon state and positions it in the menubar
+     * @param {HTMLElement} cursiveIcon - The Cursive icon element to modify
+     * @param {HTMLElement} menubarDiv - The menubar div element
+     * @param {HTMLElement} currentParent - Current parent element of the icon
+     * @param {HTMLElement} menubarParent - Parent element of the menubar
+     */
+    function cursiveState(cursiveIcon, menubarDiv, currentParent, menubarParent) {
+        if (currentParent && menubarParent) {
+            const rightWrapper = document.createElement('div');
+
+            rightWrapper.style.marginLeft = 'auto';
+            rightWrapper.style.display = 'flex';
+            rightWrapper.style.alignItems = 'center';
+
+            rightWrapper.appendChild(cursiveIcon);
+            menubarDiv.appendChild(rightWrapper);
+        }
+    }
+
+    /**
+     * Returns CSS styles object for tooltip positioning and appearance
+     * @function tooltipCss
+     * @returns {Object} Object containing CSS properties and values for tooltip styling
+     */
+    function tooltipCss() {
+        return {
+            display: 'block',
+            position: 'absolute',
+            transform: 'translateX(-100%)',
+            backgroundColor: 'white',
+            color: 'black',
+            border: '1px solid #ccc',
+            marginBottom: '6px',
+            padding: '10px',
+            textAlign: 'justify',
+            minWidth: '200px',
+            borderRadius: '1px',
+            pointerEvents: 'none',
+            zIndex: 10000
+        };
+    }
+
+    /**
+     * Sets up tooltip content and styling for the Cursive icon
+     * @param {Object} text - Object containing tooltip text strings
+     * @param {string} text.buttonTitle - Title text for the tooltip
+     * @param {string} text.buttonDes - Description text for the tooltip
+     * @param {HTMLElement} cursiveIcon - The Cursive icon element to attach tooltip to
+     */
+    function setTooltip(text, cursiveIcon) {
+
+        const tooltipSpan = document.createElement('span');
+        const description = document.createElement('span');
+        const linebreak = document.createElement('br');
+        const tooltipTitle = document.createElement('strong');
+
+        tooltipSpan.style.display = 'none';
+        cursiveIcon.style.width = "auto";
+
+        tooltipTitle.textContent = text.buttonTitle;
+        tooltipTitle.style.fontSize = '16px';
+        tooltipTitle.style.fontWeight = 'bold';
+        description.textContent = text.buttonDes;
+        description.style.fontSize = '14px';
+
+        tooltipSpan.setAttribute('class', 'tiny_cursive_tooltip shadow');
+        tooltipSpan.appendChild(tooltipTitle);
+        tooltipSpan.appendChild(linebreak);
+        tooltipSpan.appendChild(description);
+        cursiveIcon.appendChild(tooltipSpan);
     }
 
     window.addEventListener('unload', () => {
