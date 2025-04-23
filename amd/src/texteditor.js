@@ -17,7 +17,7 @@
  * Tiny Loader for Moodle
  *
  * @module      tiny_cursive/texteditor
- * @copyright   2022 Andrew Lyons <andrew@nicols.co.uk>
+ * @copyright   2022 CTI <info@cursivetechnology.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 

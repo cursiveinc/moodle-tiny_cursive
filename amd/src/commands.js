@@ -14,20 +14,32 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * @module     tiny_cursive/common
- * @category   TinyMCE Editor
+ * Tiny cursive commands
+ *
+ * @module     tiny_cursive/commands
  * @copyright  2025 CTI <info@cursivetechnology.com>
  * @author     Brain Station 23 <sales@brainstation-23.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 
-const component = 'tiny_cursive';
+import {buttonName, icon, iconUrl, iconGrayUrl} from 'tiny_cursive/common';
 
-export default {
-    component,
-    pluginName: `${component}/plugin`,
-    buttonName: 'cursive_status',
-    icon: 'cursive',
-    iconUrl: M.util.image_url('cursive', 'tiny_cursive'),
-    iconGrayUrl: M.util.image_url('cursive_gray', 'tiny_cursive')
+export const getSetup = async() => {
+
+    return (editor, hasApiKey) => {
+
+        const cursiveIcon = document.createElement('img');
+
+        cursiveIcon.src = hasApiKey ? iconUrl: iconGrayUrl;
+        cursiveIcon.id = "tiny_cursive_StateIcon";
+
+        editor.ui.registry.addIcon(icon, cursiveIcon.outerHTML);
+        editor.ui.registry.addButton(buttonName, {
+            icon,
+            onAction: () => {
+            },
+        });
+
+    };
 };

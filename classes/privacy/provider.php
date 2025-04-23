@@ -37,8 +37,8 @@ use context;
 /**
  * Privacy Subsystem implementation for tiny_cursive.
  *
- * @package    tiny_cursive
- * @copyright  2022 Andrew Nicols <andrew@nicols.co.uk>
+ * @copyright  Cursive Technology, Inc. <info@cursivetechnology.com>
+ * @author     Brain Station 23 <sales@brainstation-23.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class provider implements
@@ -61,14 +61,23 @@ class provider implements
         // There isn't much point giving details about the pageid, etc.
         $collection->add_database_table('tiny_cursive_files', [
             'userid' => 'privacy:metadata:database:tiny_cursive:userid',
+            'content' => 'privacy:metadata:database:tiny_cursive:content',
+            'original_content' => 'privacy:metadata:database:tiny_cursive:original_content',
             'timemodified' => 'privacy:metadata:database:tiny_cursive:timemodified',
         ], 'privacy:metadata:database:tiny_cursive');
 
         $collection->add_database_table('tiny_cursive_comments', [
             'userid' => 'privacy:metadata:database:tiny_cursive_comments:userid',
-            'commenttext' => 'privacy:metadata:database:tiny_cursive_comments:commenttext',
+            'usercomment' => 'privacy:metadata:database:tiny_cursive_comments:commenttext',
             'timemodified' => 'privacy:metadata:database:tiny_cursive_comments:timemodified',
         ], 'privacy:metadata:database:tiny_cursive_comments');
+
+        $collection->add_external_location_link('tiny_cursive_files', [
+            'userid' => 'privacy:metadata:database:tiny_cursive:userid',
+            'content' => 'privacy:metadata:database:tiny_cursive:content',
+            'original_content' => 'privacy:metadata:database:tiny_cursive:original_content',
+            'timemodified' => 'privacy:metadata:database:tiny_cursive:timemodified',
+        ], 'privacy:metadata:database:tiny_cursive');
 
         return $collection;
     }
@@ -136,8 +145,8 @@ class provider implements
                   FROM {tiny_cursive_files}
                  WHERE userid = :userid AND contextid {$contextsql}";
 
-        $autosaves = $DB->get_recordset_sql($sql, $contextparams);
-        self::export_autosaves($user, $autosaves);
+        $userfiledata = $DB->get_recordset_sql($sql, $contextparams);
+        self::export_autosaves($user, $userfiledata);
 
         // Additionally export all eventual records in the given user's context regardless the actual owner.
         // We still consider them to be the user's personal data even when edited by someone else.
@@ -152,6 +161,15 @@ class provider implements
 
         $autosaves = $DB->get_recordset_sql($sql, $contextparams);
         self::export_autosaves($user, $autosaves);
+
+        $sql = "SELECT eas.*
+                  FROM {tiny_cursive_user_writing} eas
+                  JOIN {tiny_cursive_files} tcf ON tcf.id = eas.file_id
+                  JOIN {context} c ON c.id = tcf.cmid
+                 WHERE c.id {$contextsql} AND c.contextlevel = :contextuser AND c.instanceid = :userid";
+
+        $writingdata = $DB->get_recordset_sql($sql, $contextparams);
+        self::export_autosaves($user, $writingdata);
     }
 
     /**

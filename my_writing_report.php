@@ -27,22 +27,29 @@ require(__DIR__ . '/../../../../../config.php');
 global $CFG, $DB, $USER, $PAGE;
 require_once($CFG->dirroot . '/mod/quiz/lib.php');
 require_once($CFG->dirroot . '/mod/quiz/locallib.php');
+require_once(__DIR__ . '/../../../../../user/lib.php');
 require_once(__DIR__ . '/locallib.php');
 
 require_login();
 
 if (isguestuser()) {
     redirect(new moodle_url('/'));
-    die;
 }
 if (\core\session\manager::is_loggedinas()) {
     redirect(new moodle_url('/user/index.php'));
-    die;
 }
 
 $userid = optional_param('userid', 0, PARAM_INT);
 if (optional_param('id', 0, PARAM_INT)) {
     $userid = optional_param('id', 0, PARAM_INT);
+}
+
+$user = $DB->get_record('user', ['id' => $userid],'*', MUST_EXIST);
+if(!$user) {
+    throw new moodle_exception('invaliduser', 'error');
+}
+if (!user_can_view_profile($user)) {
+    throw new moodle_exception('cannotviewprofile', 'error');
 }
 
 $orderby = optional_param('orderby', 'id', PARAM_TEXT);
@@ -57,22 +64,17 @@ if (optional_param('course', 0, PARAM_INT) && !is_siteadmin($USER->id) && option
 $limit = 5;
 $isvalid = false;
 
-$context = context_system::instance();
-$haseditcapability = has_capability('tiny/cursive:view', $context);
+$haseditcapability = has_capability('tiny/cursive:view', context_system::instance());
 
 if (!$haseditcapability && $userid != $USER->id) {
     return redirect(new moodle_url('/course/index.php'), get_string('warning', 'tiny_cursive'));
 }
 
 
-
 $PAGE->requires->js_call_amd('tiny_cursive/key_logger', 'init', [1]);
-$PAGE->requires->jquery_plugin('jquery');
 $PAGE->requires->js_call_amd('tiny_cursive/cursive_writing_reports', 'init', []);
 
 $perpage = $page * $limit;
-$user = $DB->get_record('user', ['id' => $userid], '*', MUST_EXIST);
-$systemcontext = context_system::instance();
 
 if ($courseid) {
     $linkurl =
@@ -81,7 +83,7 @@ if ($courseid) {
     $linkurl = $CFG->wwwroot . '/lib/editor/tiny/plugins/cursive/my_writing_report.php?userid=' . $userid;
 }
 $linktext = get_string('tiny_cursive', 'tiny_cursive');
-$PAGE->set_context($systemcontext);
+$PAGE->set_context(context_system::instance());
 $PAGE->set_url($linkurl);
 $PAGE->set_title($linktext);
 $PAGE->set_pagelayout('mypublic');

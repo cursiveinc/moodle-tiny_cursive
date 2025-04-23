@@ -103,7 +103,8 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
                             });
 
                             $("#" + entry.id).find('#post-content-' + ids).prepend($('<div>')
-                                .addClass('tiny_cursive-quiz-references rounded mb-2').append(comments)).prepend($('<h4>').append(str));
+                                .addClass('tiny_cursive-quiz-references rounded mb-2')
+                                        .append(comments)).prepend($('<h4>').append(str));
                             } );
                         }
                         $("#" + entry.id).find('#post-content-' + ids).prepend(analyticButtonDiv);

@@ -37,7 +37,7 @@ use core_course\hook\after_form_submission;
  *
  * @package tiny_cursive
  * @copyright  CTI <info@cursivetechnology.com>
- * @author eLearningstack
+ * @author Brain Station 23 <sales@brainstation-23.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class hook_callbacks {
