@@ -38,8 +38,8 @@ export const configure = (instanceConfig) => {
         });
     };
     return {
-        contextmenu:addContextmenuItem(instanceConfig.contextmenu, buttonName),
+        contextmenu: addContextmenuItem(instanceConfig.contextmenu, buttonName),
         toolbar: configureToolbar(instanceConfig.toolbar),
-        menu: addMenubarItem(instanceConfig.menu,'menubar',buttonName),
+        menu: addMenubarItem(instanceConfig.menu, 'menubar', buttonName),
     };
 };

@@ -38,6 +38,7 @@ export const getSetup = async() => {
         editor.ui.registry.addButton(buttonName, {
             icon,
             onAction: () => {
+                return;
             },
         });
     };
