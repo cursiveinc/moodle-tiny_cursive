@@ -439,7 +439,7 @@ class cursive_json_func_data extends external_api {
         try {
             $DB->insert_record('tiny_cursive_comments', $dataobject);
             return true;
-        } catch (Exception $e) {
+        } catch (moodle_exception $e) {
             echo $e;
             return false;
         }
@@ -480,6 +480,7 @@ class cursive_json_func_data extends external_api {
     public static function cursive_approve_token_func($token) {
         global $CFG;
         require_once("$CFG->libdir/filelib.php");
+        require_once($CFG->dirroot . '/lib/editor/tiny/plugins/cursive/lib.php');
         $params = self::validate_parameters(
             self::cursive_approve_token_func_parameters(),
             [
@@ -494,39 +495,7 @@ class cursive_json_func_data extends external_api {
         $remoteurl = get_config('tiny_cursive', 'python_server') . '/verify-token';
         $moodleurl = $CFG->wwwroot;
 
-        try {
-            // Use Moodle's cURL library.
-            $curl = new curl();
-            $options = [
-                'CURLOPT_RETURNTRANSFER' => true,
-                'CURLOPT_HTTPHEADER' => [
-                    'Authorization: Bearer ' . $params['token'],
-                    'X-Moodle-Url: ' . $moodleurl,
-                    'Content-Type: multipart/form-data',
-                    'Accept: application/json',
-                ],
-            ];
-
-            // Prepare POST fields.
-            $postfields = [
-                'token' => $params['token'],
-                'moodle_url' => $moodleurl,
-            ];
-
-            // Execute the request.
-            $result = $curl->post($remoteurl, $postfields, $options);
-
-            // Check for cURL errors.
-            if ($result === false) {
-                throw new moodle_exception('curlerror', 'tiny_cursive', '', null, $curl->error);
-            }
-        } catch (Exception $e) {
-            // Log the exception.
-            debugging("Error in cursive_approve_token_func: " . $e->getMessage());
-
-            // Return a Moodle exception.
-            throw new moodle_exception('errorverifyingtoken', 'tiny_cursive', '', null, $e->getMessage());
-        }
+        $result = cursive_approve_token($params['token'], $moodleurl, $remoteurl);
 
         return $result;
     }
@@ -772,8 +741,7 @@ class cursive_json_func_data extends external_api {
         require_capability('tiny/cursive:view', $context);
 
         $conditions = ["resourceid" => $params['id'], 'modulename' => "forum"];
-        $table = 'tiny_cursive_comments';
-        $recs = $DB->get_records($table, $conditions);
+        $recs = $DB->get_records('tiny_cursive_comments', $conditions);
 
         $attempts = "SELECT uw.total_time_seconds, uw.word_count, uw.words_per_minute,
                             uw.backspace_percent, uw.score, uw.copy_behavior, uf.resourceid,
@@ -911,10 +879,10 @@ class cursive_json_func_data extends external_api {
                                 uw.backspace_percent,uw.score,uw.copy_behavior,uf.resourceid ,
                                 uf.modulename,uf.userid, uf.filename
                            FROM {tiny_cursive_user_writing} uw
-                     INNER JOIN {tiny_cursive_files} uf ON uw.file_id =uf.id
+                           JOIN {tiny_cursive_files} uf ON uw.file_id =uf.id
                           WHERE uf.resourceid = :id
                                 AND uf.cmid = :cmid
-                                AND uf.modulenam e= :modulename";
+                                AND uf.modulename = :modulename";
             $data = $DB->get_record_sql(
                 $attempts,
                 ['id' => $params['id'], 'cmid' => $params['cmid'], 'modulename' => $params['modulename']],
@@ -943,7 +911,7 @@ class cursive_json_func_data extends external_api {
                                 uw.backspace_percent,uw.score,uw.copy_behavior,uf.resourceid ,
                                 uf.modulename,uf.userid, uf.filename
                            FROM {tiny_cursive_user_writing} uw
-                     INNER JOIN {tiny_cursive_files} uf ON uw.file_id =uf.id
+                           JOIN {tiny_cursive_files} uf ON uw.file_id =uf.id
                           WHERE uf.resourceid = :id
                                 AND uf.cmid = :cmid
                                 AND uf.modulename = :modulename ";
@@ -1034,8 +1002,7 @@ class cursive_json_func_data extends external_api {
         $recassignsubmission = $DB->get_record('assign_submission', ['id' => $params['id']], '*', false);
         $userid = $recassignsubmission->userid;
         $conditions = ["userid" => $userid, 'modulename' => $params['modulename'], 'cmid' => $params['cmid']];
-        $table = 'tiny_cursive_comments';
-        $recs = $DB->get_records($table, $conditions);
+        $recs = $DB->get_records('tiny_cursive_comments', $conditions);
         $usercomment = [];
         if ($recs) {
             foreach ($recs as $rec) {
@@ -1270,10 +1237,7 @@ class cursive_json_func_data extends external_api {
         $userid = $USER->id;
         $params = [];
 
-        $sql = "SELECT *
-                  FROM {course_modules}
-                 WHERE course = :course LIMIT 1";
-        $cm = $DB->get_record_sql($sql, ['course' => $vparams['id']]);
+        $cm = $DB->get_record('course_modules', ['course' => $vparams['id']],'*',IGNORE_MULTIPLE);
         $context = context_module::instance($cm->id);
         self::validate_context($context);
         require_capability('tiny/cursive:view', $context);
@@ -1282,7 +1246,7 @@ class cursive_json_func_data extends external_api {
                             u.firstname, u.lastname, u.email,  qa.cmid AS cmid ,qa.courseid,qa.filename,uw.word_count,
                             uw.words_per_minute , uw.total_time_seconds ,uw.backspace_percent
                        FROM {user} u
-                 INNER JOIN {tiny_cursive_files} qa ON u.id = qa.userid
+                       JOIN {tiny_cursive_files} qa ON u.id = qa.userid
                   LEFT JOIN {tiny_cursive_user_writing} uw ON qa.id = uw.file_id
                       WHERE qa.userid! = 1";
 
@@ -1320,7 +1284,7 @@ class cursive_json_func_data extends external_api {
     /**
      * Method store_user_writing_parameters
      *
-     * @return object [explicite description]
+     * @return stdClass [explicite description]
      */
     public static function store_user_writing_parameters() {
         return new external_function_parameters(self::storing_user_writing_param());
@@ -1459,7 +1423,7 @@ class cursive_json_func_data extends external_api {
      *
      * @param $filepath $filepath [explicite description]
      *
-     * @return object [explicite description]
+     * @return stdClass array of parameters for storing data
      */
     public static function cursive_get_reply_json($filepath) {
         global $DB;
@@ -1490,7 +1454,7 @@ class cursive_json_func_data extends external_api {
             }
 
             $data->data = $content;
-        } catch (Exception $e) {
+        } catch (moodle_exception $e) {
             $data->data = $e->getMessage();
         }
         return $data;
@@ -1511,7 +1475,7 @@ class cursive_json_func_data extends external_api {
     /**
      * Method storing_user_writing_param
      *
-     * @return array [explicite description]
+     * @return array array of parameters for storing data
      */
     public static function storing_user_writing_param() {
         return [
@@ -1531,7 +1495,6 @@ class cursive_json_func_data extends external_api {
         ];
 
     }
-
     /**
      * Method store_user_writing_parameters
      *
@@ -1660,7 +1623,7 @@ class cursive_json_func_data extends external_api {
                 'status' => get_string('success', 'tiny_cursive'),
                 'message' => get_string('data_save', 'tiny_cursive'),
             ];
-        } catch (Exception $e) {
+        } catch (moodle_exception $e) {
             // Handle the exception.
             return [
                 'status' => get_string('failed', 'tiny_cursive'),
@@ -1991,9 +1954,14 @@ class cursive_json_func_data extends external_api {
         self::validate_context($context);
         require_capability("tiny/cursive:writingreport", $context);
 
+        $remoteurl = get_config('tiny_cursive', 'python_server') . '/verify-token';
+        $moodleurl = $CFG->wwwroot;
+
         $config = tiny_cursive_status($params['courseid']);
         $syncinterval = get_config('tiny_cursive', "syncinterval");
-        return ['status' => $config, 'sync_interval' => $syncinterval, 'userid' => $USER->id];
+        $apikey = cursive_approve_token(get_config('tiny_cursive','secretkey'), $moodleurl, $remoteurl);
+        $apikey = json_decode($apikey);
+        return ['status' => $config, 'sync_interval' => $syncinterval, 'userid' => $USER->id, 'apikey_status' => isset($apikey->status) ? true : false];
     }
 
     /**
@@ -2006,6 +1974,7 @@ class cursive_json_func_data extends external_api {
             'status' => new external_value(PARAM_BOOL, 'config'),
             'sync_interval' => new external_value(PARAM_INT, 'Data Sync interval'),
             'userid' => new external_value(PARAM_INT, 'userid'),
+            'apikey_status' => new external_value(PARAM_BOOL,'api key status'),
         ]);
     }
 
@@ -2244,9 +2213,9 @@ class cursive_json_func_data extends external_api {
 
             if ($subscription) {
                 $sql = "SELECT qm.*, uw.quality_access
-                      FROM {tiny_cursive_quality_metrics} qm
-                 LEFT JOIN {tiny_cursive_user_writing} uw ON qm.file_id = uw.file_id
-                     WHERE qm.file_id = :fileid";
+                          FROM {tiny_cursive_quality_metrics} qm
+                     LEFT JOIN {tiny_cursive_user_writing} uw ON qm.file_id = uw.file_id
+                         WHERE qm.file_id = :fileid";
                 $data = $DB->get_record_sql($sql, ['fileid' => $params['file_id']]);
 
                 foreach ($defaults as $key => &$default) {
@@ -2407,7 +2376,7 @@ class cursive_json_func_data extends external_api {
                 set_config("cursive-{$course->id}", $value, 'tiny_cursive');
             }
             return true;
-        } catch (Exception $e) {
+        } catch (moodle_exception $e) {
                 // Log error and return false if config update fails.
                 debugging('Error disabling cursive: ' . $e->getMessage(), DEBUG_DEVELOPER);
                 return false;

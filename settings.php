@@ -32,6 +32,7 @@ $PAGE->requires->js_call_amd('tiny_cursive/token_approve', 'init', [1]);
 $param = optional_param('section', null, PARAM_TEXT);
 
 if (is_siteadmin()) {
+    $settings = new admin_settingpage('tiny_cursive', get_string('pluginname', 'tiny_cursive'));
     $settings->add(
         new admin_setting_heading(
             'cursive_settings',

@@ -107,7 +107,6 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
                                     tt += '<div class = " p-3" style="border-bottom:1px solid rgba(0, 0, 0, 0.1); color: #0f6cbf">'
                                         + element.usercomment + '</div>';
                                 });
-    
                                 content.parent().parent().parent().find('.qtext').append(tt + '</div></div>');
                             }).catch(error => window.console.error(error));
                         }

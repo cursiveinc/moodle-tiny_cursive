@@ -14,20 +14,32 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * @module     tiny_cursive/common
- * @category   TinyMCE Editor
+ * Tiny cursive configuration
+ *
+ * @module     tiny_cursive/configuration
  * @copyright  2025 CTI <info@cursivetechnology.com>
  * @author     Brain Station 23 <sales@brainstation-23.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+import {buttonName} from 'tiny_cursive/common';
+import {addMenubarItem, addContextmenuItem} from 'editor_tiny/utils';
 
-const component = 'tiny_cursive';
+export const configure = (instanceConfig) => {
 
-export default {
-    component,
-    pluginName: `${component}/plugin`,
-    buttonName: 'cursive_status',
-    icon: 'cursive',
-    iconUrl: M.util.image_url('cursive', 'tiny_cursive'),
-    iconGrayUrl: M.util.image_url('cursive_gray', 'tiny_cursive')
+    const configureToolbar = (toolbar) => {
+
+        return toolbar.map((section) => {
+
+            if (section.name === 'content') {
+                section.items.unshift(buttonName);
+            }
+            return section;
+        });
+    };
+    return {
+        contextmenu:addContextmenuItem(instanceConfig.contextmenu, buttonName),
+        toolbar: configureToolbar(instanceConfig.toolbar),
+        menu: addMenubarItem(instanceConfig.menu,'menubar',buttonName),
+    };
 };

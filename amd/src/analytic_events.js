@@ -19,7 +19,7 @@
  * checking differences and showing quality metrics.
  *
  * @module     tiny_cursive/analytic_events
- * @copyright  2024 CTI <your@email.com>
+ * @copyright  2024 CTI <info@cursivetechnology.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
