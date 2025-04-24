@@ -94,7 +94,7 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
 
                         if (data.usercomment != 'comments' && parseInt(showcomment)) {
 
-                           str.get_string('refer','tiny_cursive').then(str =>{
+                           str.get_string('refer', 'tiny_cursive').then(str =>{
                             let comments = "";
                             data.usercomment.forEach(element => {
                                 // Create the anchor element
@@ -105,7 +105,10 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
                             $("#" + entry.id).find('#post-content-' + ids).prepend($('<div>')
                                 .addClass('tiny_cursive-quiz-references rounded mb-2')
                                         .append(comments)).prepend($('<h4>').append(str));
-                            } );
+                            return comments;
+                            }).catch(error => {
+                                window.console.error(error);
+                            });
                         }
                         $("#" + entry.id).find('#post-content-' + ids).prepend(analyticButtonDiv);
 

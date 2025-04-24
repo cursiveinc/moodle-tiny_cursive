@@ -45,7 +45,7 @@ export const register = (editor, interval, userId) => {
     let assignSubmit = jQuery('#id_submitbutton');
     var syncInterval = interval ? interval * 1000 : 10000; // Default: Sync Every 10s.
 
-    const postOne = async (methodname, args) => {
+    const postOne = async(methodname, args) => {
         try {
             const response = await call([{
                 methodname,
@@ -273,12 +273,12 @@ export const register = (editor, interval, userId) => {
     editor.on('keyUp', (editor) => {
         sendKeyEvent("keyUp", editor);
     });
-    editor.on('Paste', async (e) => {
+    editor.on('Paste', async(e) => {
         if (isStudent && intervention) {
             getModal(e);
         }
     });
-    editor.on('Redo', async (e) => {
+    editor.on('Redo', async(e) => {
         if (isStudent && intervention) {
             getModal(e);
         }
@@ -310,7 +310,7 @@ export const register = (editor, interval, userId) => {
             return;
         } else {
             localStorage.removeItem(filename);
-            let originalText = editor.getContent({ format: 'text' });
+            let originalText = editor.getContent({format: 'text'});
             try {
                 // eslint-disable-next-line
                 return await postOne('cursive_write_local_to_json', {
@@ -351,6 +351,9 @@ export const register = (editor, interval, userId) => {
 
             tooltipText.then((text) => {
                 setTooltip(text, cursiveIcon);
+                return text;
+            }).catch(error => {
+                window.console.error(error);
             });
 
             cursiveState(cursiveIcon, menubarDiv, paths, currentParent, menubarParent);
@@ -382,7 +385,7 @@ export const register = (editor, interval, userId) => {
             getString('cursive:state:active', 'tiny_cursive'),
             getString('cursive:state:active:des', 'tiny_cursive'),
         ]);
-        return { buttonTitle, buttonDes };
+        return {buttonTitle, buttonDes};
     }
 
     /**

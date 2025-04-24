@@ -121,7 +121,7 @@ if ($courseid != 0) {
                 $res->backspace_percent,
                 $res->score,
                 $res->copybehavior,
-                $res->effort
+                $res->effort,
             ];
             $exportcsv->add_data($userrow);
         }
