@@ -19,7 +19,7 @@
  *
  * @package tiny_cursive
  * @copyright  CTI <info@cursivetechnology.com>
- * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
+ * @author Brain Station 23 <elearning@brainstation-23.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -31,59 +31,24 @@ require_login();
 $resourceid = optional_param('resourceid', 0, PARAM_INT);
 $userid = optional_param('user_id', 0, PARAM_INT);
 $cmid = optional_param('cmid', 0, PARAM_INT);
-$fname = optional_param('fname', '', PARAM_TEXT);
+$fname = clean_param(optional_param('fname', '', PARAM_FILE), PARAM_FILE);
 
-$filename = '';
-$dirname = $CFG->tempdir . '/userdata/';
-if ($fname) {
-    $filename = $dirname . $fname;
-    if (!file_exists($filename)) {
-        $filerow = $DB->get_record('tiny_cursive_files', ['filename' => $fname]);
-        if ($filerow->content) {
-            filestream($filerow->content, $fname);
-        } else {
-            $url = new moodle_url('/lib/editor/tiny/plugins/cursive/writing_report.php?userid=' . $userid);
-            return redirect($url, get_string('filenotfound', 'tiny_cursive'));
-        }
-    }
-} else {
-    $filename = $dirname . $userid . '_' . $resourceid . '_' . $cmid . '_attempt' . '.json';
+if ($cmid <= 0 || $userid <= 0) {
+    throw new moodle_exception('invalidparameters', 'tiny_cursive');
 }
 
 $context = context_module::instance($cmid);
-$haseditcapability = has_capability('tiny/cursive:view', $context);
+require_capability('tiny/cursive:writingreport', $context);
 
-if (!$haseditcapability) {
-    return redirect(new moodle_url('/course/index.php'), get_string('warning', 'tiny_cursive'));
+header("Content-Description: File Transfer");
+header("Content-Type: application/octet-stream");
+header("Content-Disposition: attachment; filename=\"" . basename($fname) . "\"");
+flush();
+
+$filerow = $DB->get_record('tiny_cursive_files', ['filename' => $fname]);
+if (!$fname || !$filerow || !$filerow->content) {
+    redirect(get_local_referer(false), get_string('filenotfound', 'tiny_cursive'));
 }
 
-if ($haseditcapability) {
-    filestream($filename, $filename);
-} else {
-    $url = new moodle_url('/course/index.php');
-    return redirect($url, get_string('warning', 'tiny_cursive'));
-}
-
-/**
- * Method filestream
- *
- * @param $file $file [explicite description]
- * @param $fname $fname [explicite description]
- *
- * @return void
- */
-function filestream($file, $fname) {
-    header("Content-Description: File Transfer");
-    header("Content-Type: application/octet-stream");
-    header("Content-Disposition: attachment; filename=\"" . basename($fname) . "\"");
-    flush();
-
-    if (file_exists($file)) {
-        $inp = file_get_contents($file);
-    } else {
-        $inp = base64_decode($file);
-    }
-
-    echo $inp;
-    die();
-}
+echo base64_decode($filerow->content);
+die();

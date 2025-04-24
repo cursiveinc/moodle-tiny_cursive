@@ -19,7 +19,7 @@
  *
  * @package tiny_cursive
  * @copyright  CTI <info@cursivetechnology.com>
- * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
+ * @author Brain Station 23 <elearning@brainstation-23.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -41,7 +41,6 @@ function xmldb_tiny_cursive_install() {
  */
 function enable_webservice() {
     set_config('enablewebservices', 1);
-    set_config('enablewsdocumentation', 1);
 }
 
 /**
@@ -51,6 +50,5 @@ function enable_webservice() {
  * @param string $protocol The protocol to enable ('rest', 'soap', etc.)
  */
 function enable_webservice_protocol($protocol) {
-    global $DB;
     set_config('webserviceprotocols', 'rest');
 }

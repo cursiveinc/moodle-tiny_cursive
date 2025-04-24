@@ -46,7 +46,7 @@ export default class MyModal extends Modal {
 
 
         // Hide the default modal header.
-        root.find('.modal-header').hide();
+        root.find('.modal-header').remove();
 
         root.find('.modal-content').css({
             'border-radius': '30px'

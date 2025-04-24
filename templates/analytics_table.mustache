@@ -18,7 +18,7 @@ along with Moodle. If not, see
 {{!
 @template tiny_cursive/analytics_table
 
-TODO describe template analytics_modal
+TODO describe template analytics_table
 
 Example context (json):
 {
@@ -60,7 +60,7 @@ Example context (json):
                 <div> {{#str}}effort_ratio, tiny_cursive {{/str}} <p>{{#str}}effort_ratio_desc, tiny_cursive {{/str}}</p>
                 </div>
             </td>
-            <td>{{tabledata.effort_ratio}}</td>
+            <td>{{tabledata.effort_ratio}}{{#tabledata.effort_ratio}}%{{/tabledata.effort_ratio}}</td>
         </tr>
         <tr>
             <td>
@@ -89,7 +89,7 @@ Example context (json):
                 <div>{{#str}}words_per_minute, tiny_cursive {{/str}} <p>{{#str}}words_per_minute, tiny_cursive {{/str}}</p>
                 </div>
             </td>
-            <td> {{tabledata.words_per_minute}}</td>
+            <td> {{tabledata.words_per_minute}} {{#tabledata.words_per_minute}}WPM{{/tabledata.words_per_minute}}</td>
         </tr>
         <tr>
             <td>
@@ -99,7 +99,7 @@ Example context (json):
                             d="M15.7895 22.1053C15.7895 22.5416 15.4364 22.8947 15 22.8947H7.10526C6.66889 22.8947 6.31579 22.5416 6.31579 22.1053C6.31579 21.6689 6.66889 21.3158 7.10526 21.3158H15C15.4364 21.3158 15.7895 21.6689 15.7895 22.1053ZM22.8947 11.8421H7.10526C6.66889 11.8421 6.31579 12.1952 6.31579 12.6316C6.31579 13.068 6.66889 13.4211 7.10526 13.4211H22.8947C23.3311 13.4211 23.6842 13.068 23.6842 12.6316C23.6842 12.1952 23.3311 11.8421 22.8947 11.8421ZM22.8947 7.10526H7.10526C6.66889 7.10526 6.31579 7.45836 6.31579 7.89474C6.31579 8.33111 6.66889 8.68421 7.10526 8.68421H22.8947C23.3311 8.68421 23.6842 8.33111 23.6842 7.89474C23.6842 7.45836 23.3311 7.10526 22.8947 7.10526ZM22.8947 16.5789H7.10526C6.66889 16.5789 6.31579 16.932 6.31579 17.3684C6.31579 17.8048 6.66889 18.1579 7.10526 18.1579H22.8947C23.3311 18.1579 23.6842 17.8048 23.6842 17.3684C23.6842 16.932 23.3311 16.5789 22.8947 16.5789ZM30 3.94737V26.0526C30 28.2299 28.2291 30 26.0526 30H3.94737C1.77092 30 0 28.2299 0 26.0526V3.94737C0 1.77014 1.77092 0 3.94737 0H26.0526C28.2291 0 30 1.77014 30 3.94737ZM28.4211 3.94737C28.4211 2.64134 27.3587 1.57895 26.0526 1.57895H3.94737C2.64134 1.57895 1.57895 2.64134 1.57895 3.94737V26.0526C1.57895 27.3587 2.64134 28.4211 3.94737 28.4211H26.0526C27.3587 28.4211 28.4211 27.3587 28.4211 26.0526V3.94737Z"
                             fill="black" />
                     </svg></div>
-                <div>{{#str}}total_word, tiny_cursive {{/str}} <p>{{#str}}total_words_desc, tiny_cursive {{/str}}</p>
+                <div>{{#str}}total_words, tiny_cursive {{/str}} <p>{{#str}}total_words_desc, tiny_cursive {{/str}}</p>
                 </div>
             </td>
             <td>{{tabledata.word_count}}</td>

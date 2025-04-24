@@ -121,7 +121,7 @@ Example context (json):
                                         <div> {{#str}}effort_ratio, tiny_cursive {{/str}} <p>{{#str}}effort_ratio_desc, tiny_cursive {{/str}}</p>
                                         </div>
                                     </td>
-                                    <td>{{tabledata.effort_ratio}}</td>
+                                    <td>{{tabledata.effort_ratio}}{{#tabledata.effort_ratio}}%{{/tabledata.effort_ratio}}</td>
                                 </tr>
                                 <tr>
                                     <td>
@@ -154,7 +154,7 @@ Example context (json):
                                         <div>{{#str}}words_per_minute, tiny_cursive {{/str}} <p>{{#str}}words_per_minute_desc, tiny_cursive {{/str}}</p>
                                         </div>
                                     </td>
-                                    <td> {{tabledata.words_per_minute}}</td>
+                                    <td> {{tabledata.words_per_minute}} {{#tabledata.words_per_minute}}WPM{{/tabledata.words_per_minute}}</td>
                                 </tr>
                                 <tr>
                                     <td>
@@ -184,7 +184,7 @@ Example context (json):
                                                         fill="black"/>
                                             </svg>
                                         </div>
-                                        <div> {{#str}}backspace, tiny_cursive {{/str}} <p>{{#str}}backspace, tiny_cursive {{/str}}</p>
+                                        <div> {{#str}}backspace, tiny_cursive {{/str}} <p>{{#str}}backspace_desc, tiny_cursive {{/str}}</p>
                                         </div>
                                     </td>
                                     <td>{{tabledata.backspace_percent}}%</td>

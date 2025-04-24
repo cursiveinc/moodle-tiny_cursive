@@ -17,14 +17,15 @@
  * @module     tiny_cursive/replay
  * @category TinyMCE Editor
  * @copyright  CTI <info@cursivetechnology.com>
- * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
+ * @author Brain Station 23 <elearning@brainstation-23.com>
  */
 
 import { call as fetchJson } from 'core/ajax';
 import templates from 'core/templates';
 export default class Replay {
+    controllerId = '';
     constructor(elementId, filePath, speed = 1, loop = false, controllerId) {
-
+        this.controllerId = controllerId;
         this.replayInProgress = false;
         this.speed = speed;
         this.loop = loop;
@@ -45,16 +46,16 @@ export default class Replay {
                     this.logData = val;
 
                     if ("data" in this.logData) {
-                        this.logData = this.logData['data'];
+                        this.logData = this.logData.data;
                     }
                     if ("payload" in this.logData) {
-                        this.logData = this.logData['payload'];
+                        this.logData = this.logData.payload;
                     }
                     this.startReplay();
                 } else {
                     templates.render('tiny_cursive/no_submission').then(html => {
                         let updatedHtml = html.replace('No Submission', "Something Went Wrong! or File Not Found!");
-                        $('.tiny_cursive').html(updatedHtml);
+                        document.querySelector('.tiny_cursive').innerHTML = updatedHtml;
                     });
                 }
             })
@@ -110,7 +111,7 @@ export default class Replay {
             clearTimeout(this.replayTimeout);
         }
         this.replayInProgress = true;
-        let uid = controllerId.split('_')[1];
+        let uid = this.controllerId.split('_')[1];
         let element = document.getElementById('rep' + uid);
         let isactive = element.classList.contains('active');
         if (!isactive) {
@@ -192,7 +193,9 @@ export default class Replay {
                 return textOutput.slice(0, lastSpace);
             }
             default:
-                return !["Shift", "Ctrl", "Alt", "ArrowDown", "ArrowUp", "Control", "ArrowRight", "ArrowLeft"]
+                return !["Shift", "Ctrl", "Alt", "ArrowDown", "ArrowUp", "Control", "ArrowRight",
+                    "ArrowLeft", "Meta", "CapsLock", "Tab", "Escape", "Delete", "PageUp", "PageDown",
+                    "Insert", "Home", "End", "NumLock"]
                     .includes(key) ? textOutput + key : textOutput;
         }
     }

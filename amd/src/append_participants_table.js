@@ -17,12 +17,12 @@
  * @module     tiny_cursive/append_participants_table
  * @category TinyMCE Editor
  * @copyright  CTI <info@cursivetechnology.com>
- * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
+ * @author Brain Station 23 <elearning@brainstation-23.com>
  */
 
 define(["core/config", "core/str"], function (mdlcfg, Str) {
     var usersTable = {
-        init: async function (page) {
+        init: async function(page) {
             await usersTable.appendTable(page);
         },
         appendTable: async function () {
@@ -30,14 +30,7 @@ define(["core/config", "core/str"], function (mdlcfg, Str) {
             // Get the first row in the table header
 
             let h_tr = document.querySelector('thead tr');
-            const bodyElement = document.querySelector('body');
-            const bodyid = bodyElement.className;
-            let classes = bodyid.split(' ');
-
-            // Extract course ID
-            let courseid = parseInt(classes.find((classname) => {
-                return classname.startsWith('course-');
-            }).split('-')[1]);
+            let courseid = M.cfg.courseId;
 
             // Fetch string for stats header
             let statsString = await Str.get_string('stats', 'tiny_cursive');

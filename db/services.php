@@ -19,7 +19,7 @@
  *
  * @package tiny_cursive
  * @copyright  CTI <info@cursivetechnology.com>
- * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
+ * @author Brain Station 23 <elearning@brainstation-23.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -189,6 +189,24 @@ $functions = [
         'ajax' => true,
         'capabilities' => 'tiny/cursive:view',
     ],
+    'cursive_write_local_to_json' => [
+        'classname' => 'cursive_json_func_data',
+        'methodname' => 'write_local_to_json',
+        'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
+        'description' => 'Store User writing as json',
+        'type' => 'write',
+        'ajax' => true,
+        'capabilities' => 'tiny/cursive:view',
+    ],
+    'cursive_get_config' => [
+        'classname' => 'cursive_json_func_data',
+        'methodname' => 'cursive_get_config',
+        'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
+        'description' => 'get user configuration',
+        'type' => 'write',
+        'ajax' => true,
+        'capabilities' => 'tiny/cursive:writingreport',
+    ],
 ];
 
 // We define the services to install as pre-build services.
@@ -215,6 +233,8 @@ $services = [
             'cursive_store_writing_differences',
             'cursive_get_writing_differences',
             'cursive_generate_webtoken',
+            'cursive_write_local_to_json',
+            'cursive_get_config'
         ],
         'shortname' => 'cursive_json_service',
         'downloadfiles' => 1, // Allow file downloads.

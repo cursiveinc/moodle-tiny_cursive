@@ -139,8 +139,8 @@ class userreportform extends moodleform {
         if (!empty($courseid)) {
             $sql = "SELECT ue.id, u.id AS userid, u.firstname, u.lastname
                       FROM {enrol} e
-                INNER JOIN {user_enrolments} ue ON e.id = ue.enrolid
-                INNER JOIN {user} u ON u.id = ue.userid
+                      JOIN {user_enrolments} ue ON e.id = ue.enrolid
+                      JOIN {user} u ON u.id = ue.userid
                      WHERE e.courseid = :courseid
                            AND u.id != 1";
             $users = $DB->get_records_sql($sql, ['courseid' => $courseid]);

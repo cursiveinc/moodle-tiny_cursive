@@ -19,7 +19,7 @@
  *
  * @package tiny_cursive
  * @copyright  CTI <info@cursivetechnology.com>
- * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
+ * @author Brain Station 23 <elearning@brainstation-23.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -92,6 +92,16 @@ if (is_siteadmin()) {
             get_string('generate', 'tiny_cursive') . " </a>" . ' ' .
             get_string('webservicetoken_des', 'tiny_cursive') . "<br><span id='cursivetoken_'></span>",
             '',
+            PARAM_TEXT
+        )
+    );
+
+    $settings->add(
+        new admin_setting_configtext(
+            'tiny_cursive/syncinterval',
+            get_string('syncinterval', 'tiny_cursive'),
+            get_string('syncinterval_des', 'tiny_cursive'),
+            10,
             PARAM_TEXT
         )
     );

@@ -17,7 +17,7 @@
  * @module     tiny_cursive/cursive_writing_reports
  * @category TinyMCE Editor
  * @copyright  CTI <info@cursivetechnology.com>
- * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
+ * @author Brain Station 23 <elearning@brainstation-23.com>
  */
 
 define(["core/ajax", "core/str", "core/templates", "./replay", './analytic_button', "./analytic_events"], function (
@@ -33,11 +33,11 @@ define(["core/ajax", "core/str", "core/templates", "./replay", './analytic_butto
     window.video_playback = function (mid, filepath) {
         if (filepath !== '') {
             const replay = new Replay(
-                elementId = 'content' + mid,
-                filePath = filepath,
-                speed = 10,
-                loop = false,
-                controllerId = 'player_' + mid
+                'content' + mid,
+                filepath,
+                10,
+                false,
+                'player_' + mid
             );
             replayInstances[mid] = replay;
         } else {
@@ -52,9 +52,6 @@ define(["core/ajax", "core/str", "core/templates", "./replay", './analytic_butto
         init: function (page) {
             str.get_strings([{ key: "field_require", component: "tiny_cursive" }])
                 .done(function () {
-                    document.addEventListener("DOMContentLoaded", function () {
-                        // Placeholder for any action on document ready
-                    });
                     usersTable.getusers(page);
                 });
 
@@ -64,7 +61,7 @@ define(["core/ajax", "core/str", "core/templates", "./replay", './analytic_butto
                     let score_setting = await str.get_string('confidence_threshold', 'tiny_cursive');
                     analyticsEvents(score_setting);
                 } catch (error) {
-                    console.error('Error fetching string:', error);
+                    window.console.error('Error fetching string:', error);
                 }
             })();
 

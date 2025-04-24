@@ -19,7 +19,7 @@
  *
  * @package tiny_cursive
  * @copyright  CTI <info@cursivetechnology.com>
- * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
+ * @author Brain Station 23 <elearning@brainstation-23.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -29,6 +29,16 @@ $callbacks = [
     [
         'hook' => \core\hook\output\before_footer_html_generation::class,
         'callback' => \tiny_cursive\hook_callbacks::class . '::before_footer_html_generation',
+        'priority' => 0,
+    ],
+    [
+        'hook' => \core_course\hook\after_form_definition::class,
+        'callback' => \tiny_cursive\hook_callbacks::class . '::after_form_definition',
+        'priority' => 0,
+    ],
+    [
+        'hook' => \core_course\hook\after_form_submission::class,
+        'callback' => \tiny_cursive\hook_callbacks::class . '::after_form_submission',
         'priority' => 0,
     ],
 ];

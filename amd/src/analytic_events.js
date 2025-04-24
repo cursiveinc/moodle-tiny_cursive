@@ -35,10 +35,10 @@ export default class AnalyticEvents {
                 // Create Moodle modal
                 MyModal.create({ templateContext: context }).then(modal => {
                     const content = document.querySelector('#content' + userid + ' .table tbody tr:first-child td:nth-child(2)');
-                    if (content) content.innerHTML = authIcon;
+                    if (content) content.innerHTML = authIcon.outerHTML;
                     modal.show();
                 }).catch(error => {
-                    console.error("Failed to create modal:", error);
+                    window.console.error("Failed to create modal:", error);
                 });
             });
         }
@@ -47,9 +47,9 @@ export default class AnalyticEvents {
     analytics(userid, templates, context, questionid = '', replayInstances = null, authIcon) {
         document.body.addEventListener('click', function (e) {
             if (e.target && e.target.id === 'analytic' + userid + questionid) {
-                
+
                 const repElement = document.getElementById('rep' + userid + questionid);
-                if (repElement.getAttribute('disabled') === 'true') repElement.setAttribute('disabled','false');
+                if (repElement.getAttribute('disabled') === 'true') repElement.setAttribute('disabled', 'false');
 
                 e.preventDefault();
 
@@ -75,9 +75,9 @@ export default class AnalyticEvents {
                     const content = document.getElementById('content' + userid);
                     if (content) content.innerHTML = html;
                     const firstCell = document.querySelector('#content' + userid + ' .table tbody tr:first-child td:nth-child(2)');
-                    if (firstCell) firstCell.innerHTML = authIcon;
+                    if (firstCell) firstCell.innerHTML = authIcon.outerHTML;
                 }).catch(function (error) {
-                    console.error("Failed to render template:", error);
+                    window.console.error("Failed to render template:", error);
                 });
             }
         });
@@ -95,7 +95,7 @@ export default class AnalyticEvents {
             if (e.target && e.target.id === 'diff' + userid + questionid) {
 
                 const repElement = document.getElementById('rep' + userid + questionid);
-                if (repElement.getAttribute('disabled') === 'true') repElement.setAttribute('disabled','false');
+                if (repElement.getAttribute('disabled') === 'true') repElement.setAttribute('disabled', 'false');
 
                 e.preventDefault();
 
@@ -128,8 +128,8 @@ export default class AnalyticEvents {
                     args: { fileid: fileid },
                 }])[0].done(response => {
                     let responsedata = JSON.parse(response.data);
-                    if (responsedata[0]) {
-                        let submitted_text = atob(responsedata[0].submitted_text);
+                    if (responsedata) {
+                        let submittedText = atob(responsedata.submitted_text);
 
                         // Fetch the dynamic strings
                         Str.get_strings([
@@ -139,6 +139,31 @@ export default class AnalyticEvents {
                             const originalTextString = strings[0];
                             const editsPastesAIString = strings[1];
 
+                            const commentBox = document.createElement('div');
+                            commentBox.className = 'p-2 border rounded mb-2';
+
+                            const pasteCountDiv = document.createElement('div');
+                            pasteCountDiv.innerHTML = `<div><strong>Paste Count :</strong> ${responsedata.commentscount}</div>`;
+
+                            const commentsDiv = document.createElement('div');
+                            commentsDiv.className = 'border-bottom';
+                            commentsDiv.innerHTML = '<strong>Comments :</strong>';
+
+                            const commentsList = document.createElement('div');
+
+                            const comments = responsedata.comments;
+                            for (let index in comments) {
+                                const commentDiv = document.createElement('div');
+                                commentDiv.className = 'shadow-sm p-1 my-1';
+                                commentDiv.textContent = comments[index].usercomment;
+                                commentsList.appendChild(commentDiv);
+                            }
+
+                            commentBox.appendChild(pasteCountDiv);
+                            commentBox.appendChild(commentsDiv);
+                            commentBox.appendChild(commentsList);
+
+                            
                             const legend = document.createElement('div');
                             legend.className = 'd-flex p-2 border rounded mb-2';
 
@@ -170,15 +195,16 @@ export default class AnalyticEvents {
                             contents.className = 'tiny_cursive-comparison-content';
                             let textBlock2 = document.createElement('div');
                             textBlock2.className = 'tiny_cursive-text-block';
-                            textBlock2.innerHTML = `<div id="tiny_cursive-reconstructed_text">${JSON.parse(submitted_text)}</div>`;
-
+                            textBlock2.innerHTML = `<div id="tiny_cursive-reconstructed_text">${JSON.parse(submittedText)}</div>`;
+                            
+                            contents.appendChild(commentBox);
                             contents.appendChild(legend);
                             contents.appendChild(textBlock2);
 
                             const content = document.getElementById('content' + userid);
                             if (content) content.innerHTML = contents.outerHTML;
                         }).catch(error => {
-                            console.error("Failed to load language strings:", error);
+                            window.console.error("Failed to load language strings:", error);
                             const content = document.getElementById('content' + userid);
                             if (content) content.innerHTML = nodata.outerHTML;
                         });
@@ -200,7 +226,7 @@ export default class AnalyticEvents {
             if (e.target && e.target.id === 'rep' + userid + questionid) {
                 let replyBtn = document.getElementById('rep' + userid + questionid);
 
-                if(replyBtn.getAttribute('disabled') == 'true') return;
+                if (replyBtn.getAttribute('disabled') == 'true') return;
                 replyBtn.setAttribute('disabled', 'true');
 
                 e.preventDefault();

@@ -17,7 +17,7 @@
  * @module     tiny_cursive/show_url_in_submission_grade
  * @category TinyMCE Editor
  * @copyright  CTI <info@cursivetechnology.com>
- * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
+ * @author Brain Station 23 <elearning@brainstation-23.com>
  */
 
 define([
@@ -40,11 +40,11 @@ define([
     window.video_playback = function (mid, filepath) {
         if (filepath !== '') {
             const replay = new Replay(
-                elementId = 'content' + mid,
-                filePath = filepath,
-                speed = 10,
-                loop = false,
-                controllerId = 'player_' + mid
+                'content' + mid,
+                filepath,
+                10,
+                false,
+                'player_' + mid
             );
             replayInstances[mid] = replay;
         }
@@ -94,7 +94,7 @@ define([
             const sub_url = window.location.href;
             const parm = new URL(sub_url);
             const userid = parm.searchParams.get('userid');
-            const cmid = parm.searchParams.get('id');
+            var cmid = parm.searchParams.get('id');
 
             const args = { id: userid, modulename: "assign", cmid: cmid };
             const methodname = 'cursive_get_assign_grade_comment';
@@ -205,7 +205,7 @@ define([
 
                 const authIcon = myEvents.authorshipStatus(data.data.first_file, data.data.score, score_setting);
                 myEvents.createModal(userid, context, '', authIcon);
-                myEvents.analytics(userid, templates, context, '', replayInstances, '', authIcon);
+                myEvents.analytics(userid, templates, context, '', replayInstances, authIcon);
                 myEvents.checkDiff(userid, data.data.file_id, '', replayInstances);
                 myEvents.replyWriting(userid, filepath, '', replayInstances);
             });

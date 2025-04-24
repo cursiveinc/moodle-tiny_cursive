@@ -17,7 +17,7 @@
  * @module     tiny_cursive/filter_writing_report
  * @category TinyMCE Editor
  * @copyright  CTI <info@cursivetechnology.com>
- * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
+ * @author Brain Station 23 <elearning@brainstation-23.com>
  */
 
 define(["core/ajax", "core/templates"], function (AJAX, templates) {

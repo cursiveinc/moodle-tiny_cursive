@@ -51,8 +51,10 @@ function get_user_attempts_data($userid, $courseid, $moduleid, $orderby = 'id', 
             break;
     }
 
-    $sql = "SELECT uf.id AS fileid, u.id AS usrid,uw.id AS uniqueid, u.firstname, u.lastname,u.email,uf.courseid,
-                   uf.id AS attemptid,uf.timemodified, uf.cmid AS cmid,
+    $sql = "SELECT uf.id AS fileid, u.id AS usrid, uw.id AS uniqueid,
+                   u.firstname, u.lastname, u.email, uf.courseid,
+                   u.firstnamephonetic, u.lastnamephonetic, u.middlename, u.alternatename,
+                   uf.id AS attemptid, uf.timemodified, uf.cmid AS cmid,
                    uf.filename, uw.total_time_seconds AS total_time_seconds,
                    uw.key_count AS key_count, uw.keys_per_minute AS keys_per_minute,
                    uw.character_count AS character_count,
@@ -60,14 +62,16 @@ function get_user_attempts_data($userid, $courseid, $moduleid, $orderby = 'id', 
                    uw.word_count AS word_count, uw.words_per_minute AS words_per_minute,
                    uw.backspace_percent AS backspace_percent, uw.score AS score,
                    uw.copy_behavior AS copy_behavior
-              FROM  {tiny_cursive_files} uf
+              FROM {tiny_cursive_files} uf
               JOIN {user} u ON uf.userid = u.id
          LEFT JOIN {tiny_cursive_user_writing} uw ON uw.file_id = uf.id
-             WHERE uf.userid != 1 ";
+             WHERE uf.userid <> :userid1";
+
+    $params['userid1'] = 1;
 
     if ($userid != 0) {
-        $sql .= " AND uf.userid = :userid";
-        $params['userid'] = $userid;
+        $sql .= " AND uf.userid = :userid2";
+        $params['userid2'] = $userid;
     }
 
     if ($courseid != 0) {
@@ -76,34 +80,35 @@ function get_user_attempts_data($userid, $courseid, $moduleid, $orderby = 'id', 
     }
 
     if ($moduleid != 0) {
-        $sql .= " AND uf.cmid = :moduleid";
-        $params['moduleid'] = $moduleid;
+        $sql .= " AND uf.cmid = :cmid";
+        $params['cmid'] = $moduleid;
     }
-    $params['odby'] = $odby;
-    $params['order'] = $order;
 
     $sql .= " GROUP BY uf.id, u.id, uw.id, u.firstname, u.lastname, u.email,
-                  uf.courseid, uf.timemodified, uf.cmid, uf.filename,
-                  uw.total_time_seconds, uw.key_count, uw.keys_per_minute,
-                  uw.character_count, uw.characters_per_minute, uw.word_count,
-                  uw.words_per_minute, uw.backspace_percent, uw.score, uw.copy_behavior
-          ORDER BY :odby :order";
+                       uf.courseid, uf.timemodified, uf.cmid, uf.filename,
+                       uw.total_time_seconds, uw.key_count, uw.keys_per_minute,
+                       uw.character_count, uw.characters_per_minute, uw.word_count,
+                       uw.words_per_minute, uw.backspace_percent, uw.score, uw.copy_behavior
+              ORDER BY $odby $order";
 
-    // Calculate the total count for pagination.
     $countsql = "SELECT COUNT(*)
-                   FROM ($sql) subquery";
+                        FROM ($sql) subquery";
     $totalcount = $DB->count_records_sql($countsql, $params);
 
-    // Add LIMIT and OFFSET for pagination.
-    $offset = ($page * $limit);
-    $sql .= " LIMIT $limit OFFSET $offset";
-
+    if ($limit) {
+        $sql .= " LIMIT " . $limit;
+        if ($page) {
+            $offset = $page * $limit;
+            $sql .= " OFFSET " . $offset;
+        }
+    }
     try {
         $res = $DB->get_records_sql($sql, $params);
     } catch (Exception $e) {
         debugging("Error executing query: " . $e->getMessage());
         throw new moodle_exception('errorreadingfromdatabase', 'error', '', null, $e->getMessage());
     }
+
     return ['count' => $totalcount, 'data' => $res];
 }
 
@@ -248,23 +253,23 @@ function get_user_submissions_data($resourceid, $modulename, $cmid, $courseid = 
 
     // Execute the SQL query using Moodle's database abstraction layer.
     $data = $DB->get_record_sql($sql, $params);
+    if (isset($data->effort_ratio)) {
+        $data->effort_ratio = intval(floatval($data->effort_ratio) * 100);
+    }
     $data = (array)$data;
 
     if (!isset($data['filename'])) {
-        $sql = 'SELECT id as fileid, userid, filename
+        $sql = 'SELECT id as fileid, userid, filename, content
                   FROM {tiny_cursive_files}
                  WHERE userid = :userid
-                   AND cmid = :cmid
-                   AND modulename = :modulename';
+                       AND cmid = :cmid
+                       AND modulename = :modulename';
         $filename = $DB->get_record_sql($sql, ['userid' => $resourceid, 'cmid' => $cmid, 'modulename' => $modulename]);
 
         if ($filename) {
-            $filep = $CFG->tempdir . '/userdata/' . $filename->filename;
-            $data['filename'] = $filep;
+            $data['filename'] = $filename->filename;
             $data['file_id'] = $filename->fileid ?? '';
         }
-    } else {
-        $data['filename'] = $CFG->tempdir . '/userdata/' . $data['filename'];
     }
 
     if ($data['filename']) {
@@ -297,7 +302,8 @@ function tiny_cursive_get_cmid($courseid) {
               FROM {course_modules} cm
          LEFT JOIN {modules} m ON m.id = cm.module
          LEFT JOIN {course} c ON c.id = cm.course
-             WHERE cm.course = :courseid LIMIT 1";
+             WHERE cm.course = :courseid
+                   AND cm.deletioninprogress = 0 LIMIT 1";
 
     $params = ['courseid' => $courseid];
     $cm = $DB->get_record_sql($sql, $params);
@@ -322,3 +328,4 @@ function create_token_for_user() {
 
     return $token;
 }
+

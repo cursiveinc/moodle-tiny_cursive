@@ -17,7 +17,7 @@
  * @module     tiny_cursive/token_approve
  * @category TinyMCE Editor
  * @copyright  CTI <info@cursivetechnology.com>
- * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
+ * @author Brain Station 23 <elearning@brainstation-23.com>
  */
 
 define(["core/ajax", "core/str"], function (AJAX, str) {
@@ -59,9 +59,7 @@ define(["core/ajax", "core/str"], function (AJAX, str) {
     generateToken() {
       const generateTokenButton = document.querySelector('#generate_cursivetoken');
       generateTokenButton.addEventListener('click', function (e) {
-        console.log("Button clicked");
         e.preventDefault();
-
         // Call AJAX with the required methodname and arguments
         const promise = AJAX.call([{
           methodname: "cursive_generate_webtoken",

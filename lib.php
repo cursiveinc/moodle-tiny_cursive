@@ -90,11 +90,10 @@ function tiny_cursive_extend_navigation_course(\navigation_node $navigation, \st
 
     $url = new moodle_url($CFG->wwwroot . '/lib/editor/tiny/plugins/cursive/tiny_cursive_report.php', ['courseid' => $course->id]);
     $cmid = tiny_cursive_get_cmid($course->id);
-    if ($cmid) {
+    if ($cmid && get_config('tiny_cursive', "cursive-$course->id")) {
         $context = context_module::instance($cmid);
-        $iseditingteacher = has_capability("tiny/cursive:view", $context);
-
-        if (get_admin()->id == $USER->id || $iseditingteacher) {
+        $hascap = has_capability("tiny/cursive:editsettings", $context);
+        if ($hascap) {
             $navigation->add(
                 get_string('wractivityreport', 'tiny_cursive'),
                 $url,
@@ -160,6 +159,8 @@ function tiny_cursive_myprofile_navigation(core_user\output\myprofile\tree $tree
  * @throws dml_exception
  */
 function tiny_cursive_upload_multipart_record($filerecord, $filenamewithfullpath, $wstoken, $answertext) {
+    global $CFG;
+    require_once($CFG->dirroot . '/lib/filelib.php');
     $moodleurl = get_config('tiny_cursive', 'host_url');
     $result = '';
     try {
@@ -167,62 +168,55 @@ function tiny_cursive_upload_multipart_record($filerecord, $filenamewithfullpath
         $remoteurl = get_config('tiny_cursive', 'python_server') . "/upload_file";
         $filetosend = '';
 
-        // Check if file exists or create one from base64 content.
-        if (file_exists($filenamewithfullpath)) {
-            // Check if file size is within the limit.
-            if (filesize($filenamewithfullpath) > 16 * 1024 * 1024) {
-                throw new Exception("File exceeds the 16MB size limit.");
-            }
-            // Use the file directly.
-            $filetosend = new CURLFILE($filenamewithfullpath);
-        } else {
-            // Save base64 decoded content to a temporary JSON file.
-            $tempfilepath = tempnam(sys_get_temp_dir(), 'upload');
-            $filecontent = base64_decode($filerecord->content);
-            $jsoncontent = json_decode($filecontent, true);
+        $tempfilepath = tempnam(sys_get_temp_dir(), 'upload');
 
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                throw new Exception("Invalid JSON content in file.");
-            }
+        $jsoncontent = json_decode(base64_decode($filerecord->content), true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new Exception("Invalid JSON content in file.");
+        }
             file_put_contents($tempfilepath, json_encode($jsoncontent));
             $filetosend = new CURLFILE($tempfilepath, 'application/json', 'uploaded.json');
 
-            // Ensure the temporary file does not exceed the size limit.
-            if (filesize($tempfilepath) > 16 * 1024 * 1024) {
-                unlink($tempfilepath);
-                throw new Exception("File exceeds the 16MB size limit.");
-            }
+                // Ensure the temporary file does not exceed the size limit.
+        if (filesize($tempfilepath) > 16 * 1024 * 1024) {
+            unlink($tempfilepath);
+            throw new Exception("File exceeds the 16MB size limit.");
         }
 
         echo $remoteurl;
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $remoteurl);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, [
+
+        $curl = new curl();
+        $postdata = [
             'file' => $filetosend,
             'resource_id' => $filerecord->id,
             'person_id' => $filerecord->userid,
             'ws_token' => $wstoken,
             'originalsubmission' => $answertext,
-        ]);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        ];
+
+        $headers = [
             'Authorization: Bearer ' . $token,
-            'X-Moodle-Url:' . $moodleurl,
+            'X-Moodle-Url: ' . $moodleurl,
             'Content-Type: multipart/form-data',
+        ];
+
+        $result = $curl->post($remoteurl, $postdata, [
+            'CURLOPT_HTTPHEADER' => $headers,
+            'CURLOPT_RETURNTRANSFER' => true,
         ]);
 
-        $result = curl_exec($ch);
-        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $httpcode = $curl->get_info()['http_code'];
 
         if ($result === false) {
             echo "File not found: " . $filenamewithfullpath . "\n";
-            echo "cURL Error: " . curl_error($ch) . "\n";
+            echo "cURL Error: " . $curl->error . "\n";
         } else {
-            echo "HTTP Status Code: " . $httpcode . "\n";
+            echo "\nHTTP Status Code: " . $httpcode . "\n";
             echo "File Id: " . $filerecord->id . "\n";
+            echo "response: " . $result . "\n";
         }
 
-        curl_close($ch);
         // Remove the temporary file if it was created.
         if (isset($tempfilepath) && file_exists($tempfilepath)) {
             unlink($tempfilepath);
@@ -265,103 +259,4 @@ function tiny_cursive_file_urlcreate($context, $user) {
         }
     }
     return false;
-}
-
-/**
- * Method tiny_cursive_get_user_essay_quiz_responses
- *
- * @param $userid [explicite description]
- * @param $courseid [explicite description]
- * @param $resourceid [explicite description]
- * @param $modulename [explicite description]
- * @param $cmid [explicite description]
- * @param $questionid [explicite description]
- *
- * @return string
- */
-function tiny_cursive_get_user_essay_quiz_responses($userid, $courseid, $resourceid, $modulename, $cmid, $questionid) {
-    global $DB;
-    $sql = "SELECT q.name AS question_name, qna.questionsummary, qna.responsesummary
-          FROM {question_attempt_steps} qas
-               JOIN {question_attempts} qna ON qas.questionattemptid = qna.id
-               JOIN {quiz_attempts} qa ON qna.questionusageid = qa.uniqueid
-               JOIN {quiz} qz ON qa.quiz = qz.id
-               JOIN {question} q ON qna.questionid = q.id
-               JOIN {course_modules} cm ON qz.id = cm.instance AND cm.module = (
-                   SELECT id FROM {modules} WHERE name = 'quiz'
-               )
-         WHERE qa.userid = :userid
-               AND qz.course = :courseid
-               AND qa.id = :resourceid
-               AND cm.id = :cmid
-               AND q.id = :questionid
-               AND q.qtype = 'essay'
-               AND qas.state = 'complete'
-         ORDER BY qa.attempt, qna.id, qas.sequencenumber";
-
-    $result = $DB->get_record_sql(
-        $sql,
-        [
-            'userid' => $userid,
-            'courseid' => $courseid,
-            'resourceid' => $resourceid,
-            'modulename' => $modulename,
-            'cmid' => $cmid,
-            'questionid' => $questionid,
-        ]
-    );
-    return $result->responsesummary;
-}
-
-/**
- * Method tiny_cursive_get_user_onlinetext_assignments
- *
- * @param $userid [explicite description]
- * @param $courseid [explicite description]
- * @param $modulename [explicite description]
- * @param $cmid [explicite description]
- *
- * @return string
- */
-function tiny_cursive_get_user_onlinetext_assignments($userid, $courseid, $modulename, $cmid) {
-    global $DB;
-
-    $sql = "SELECT cm.instance as assignmentid, ontext.onlinetext, :modulename AS modulename
-          FROM {assign_submission} asub
-               JOIN {assign} a ON asub.assignment = a.id
-               JOIN {assignsubmission_onlinetext} ontext ON asub.id = ontext.submission
-               JOIN {course_modules} cm ON a.id = cm.instance AND cm.module = (
-                   SELECT id FROM {modules} WHERE name = 'assign'
-               )
-         WHERE asub.userid = :userid
-               AND a.course = :courseid
-               AND asub.status = 'submitted'
-               AND cm.id = :cmid";
-
-    $result =
-        $DB->get_record_sql($sql, ['userid' => $userid, 'courseid' => $courseid, 'modulename' => $modulename, 'cmid' => $cmid]);
-    return $result->onlinetext;
-}
-
-/**
- * get_user_forum_posts
- *
- * @param $userid
- * @param $courseid
- * @param $resourceid
- * @return string
- */
-function tiny_cursive_get_user_forum_posts($userid, $courseid, $resourceid) {
-    global $DB;
-
-    $sql = "SELECT fp.id AS postid, fp.subject, fp.message
-                  FROM {forum_posts} fp
-                       JOIN {forum_discussions} fd ON fp.discussion = fd.id
-                       JOIN {forum} f ON fd.forum = f.id
-                 WHERE fp.userid = :userid
-                       AND fd.course = :courseid
-                       AND fp.id = :resourceid";
-
-    $result = $DB->get_record_sql($sql, ['userid' => $userid, 'courseid' => $courseid, 'resourceid' => $resourceid]);
-    return $result->message;
 }

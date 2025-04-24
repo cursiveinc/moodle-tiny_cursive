@@ -12,6 +12,7 @@
         <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Set to 1 when current question requires previous one to be answered first."/>
         <FIELD NAME="filename" TYPE="char" LENGTH="255" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="How many marks this question contributes to quiz.sumgrades."/>
         <FIELD NAME="content" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Encoded Files data for backup uses"/>
+        <FIELD NAME="original_content" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="original text content"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Last modified time."/>
         <FIELD NAME="uploaded" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="File upladed to api."/>
         <FIELD NAME="questionid" TYPE="int" LENGTH="20" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
@@ -50,6 +51,7 @@
         <FIELD NAME="backspace_percent" TYPE="float" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Last modified time."/>
         <FIELD NAME="score" TYPE="float" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="User score to show icons."/>
         <FIELD NAME="copy_behavior" TYPE="float" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="User score to show icons."/>
+        <FIELD NAME="quality_access" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Access to Quality Metrics option"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>

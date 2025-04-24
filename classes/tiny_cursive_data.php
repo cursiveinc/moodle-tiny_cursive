@@ -19,7 +19,7 @@
  *
  * @package tiny_cursive
  * @copyright  CTI <info@cursivetechnology.com>
- * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
+ * @author Brain Station 23 <elearning@brainstation-23.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -42,7 +42,7 @@ use stdClass;
  *
  * @package tiny_cursive
  * @copyright  CTI <info@cursivetechnology.com>
- * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
+ * @author Brain Station 23 <elearning@brainstation-23.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class tiny_cursive_data {
@@ -62,8 +62,8 @@ class tiny_cursive_data {
         $udetail2 = [];
         $courseid = (int)$params['courseid'];
         $sql = "SELECT ue.id as enrolid,u.id as id,u.firstname,u.lastname FROM {enrol} e
-            INNER JOIN {user_enrolments} ue ON e.id = ue.enrolid
-            INNER JOIN {user} u ON u.id = ue.userid
+                  JOIN {user_enrolments} ue ON e.id = ue.enrolid
+                  JOIN {user} u ON u.id = ue.userid
                  WHERE e.courseid = :courseid
                        AND u.id != 1";
         $users = $DB->get_records_sql($sql, ['courseid' => $courseid]);

@@ -19,22 +19,10 @@
  *
  * @package tiny_cursive
  * @copyright  CTI <info@cursivetechnology.com>
- * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
+ * @author Brain Station 23 <elearning@brainstation-23.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die;
-
-require_login();
-
-/**
- * Tiny cursive plugin.
- *
- * @package tiny_cursive
- * @copyright  CTI <info@cursivetechnology.com>
- * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
 class tiny_cursive_renderer extends plugin_renderer_base {
     /**
      * timer_report
@@ -63,7 +51,7 @@ class tiny_cursive_renderer extends plugin_renderer_base {
             get_string('module_name', 'tiny_cursive'),
             get_string('last_modified', 'tiny_cursive'),
             get_string('analytics', 'tiny_cursive'),
-            '',
+            get_string("download", 'tiny_cursive'),
         ];
 
         foreach ($data as $user) {
@@ -83,11 +71,10 @@ class tiny_cursive_renderer extends plugin_renderer_base {
             $cm = $modinfo->get_cm($user->cmid);
             $getmodulename = get_coursemodule_from_id($cm?->modname, $user->cmid, 0, false, MUST_EXIST);
 
-            $filep = $CFG->tempdir . '/userdata/' . $user->filename;
-            $filepath = $filep;
+            $filepath = $user->filename;
             $row = [];
             $row[] = $user->fileid;
-            $row[] = $user->firstname . ' ' . $user->lastname ?? '';
+            $row[] = fullname($user);
             $row[] = $user->email;
             $row[] = $getmodulename->name;
             $row[] = date("l jS \of F Y h:i:s A", $user->timemodified);
@@ -133,8 +120,8 @@ class tiny_cursive_renderer extends plugin_renderer_base {
         global $CFG, $DB, $USER;
         require_once($CFG->dirroot . "/lib/editor/tiny/plugins/cursive/lib.php");
         $courseid = optional_param('courseid', 0, PARAM_INT);
-
-        echo get_string('total_word', 'tiny_cursive') . " $userprofile->word_count</br>";
+        $wordcount = $userprofile->word_count ?? 0;
+        echo get_string('total_word', 'tiny_cursive') . " $wordcount</br>";
         if (isset($userprofile->total_time) && $userprofile->total_time > 0) {
 
             $seconds = $userprofile->total_time;
@@ -150,16 +137,16 @@ class tiny_cursive_renderer extends plugin_renderer_base {
 
         } else {
             // Handle the case when there is no time data.
-            echo get_string('total_time', 'tiny_cursive') . " 0h:0m:0s</br>";
+            echo get_string('total_time', 'tiny_cursive') . ": 0</br>";
             $avgwords = 0;
         }
 
         echo get_string('average_min', 'tiny_cursive') . " " . $avgwords . "</br></br>";
         $sql = "SELECT c.fullname, c.id, u.id AS userid, u.firstname, u.lastname
                   FROM {course} c
-            INNER JOIN {enrol} en ON en.courseid = c.id
-            INNER JOIN {user_enrolments} ue ON ue.enrolid = en.id
-            INNER JOIN {user} u ON u.id = ue.userid
+                  JOIN {enrol} en ON en.courseid = c.id
+                  JOIN {user_enrolments} ue ON ue.enrolid = en.id
+                  JOIN {user} u ON u.id = ue.userid
                  WHERE ue.userid = :userid";
 
         if (is_siteadmin($USER->id)) {
@@ -232,8 +219,7 @@ class tiny_cursive_renderer extends plugin_renderer_base {
 
             $getmodulename = $cm ? get_coursemodule_from_id($cm->modname, $user->cmid, 0, false, MUST_EXIST) : null;
 
-            $filep = $CFG->tempdir . '/userdata/' . $user->filename;
-            $filepath = $filep;
+            $filepath = $user->filename;
             $row   = [];
             $row[] = $getmodulename ? $getmodulename->name : '';
             $row[] = date("l jS \of F Y h:i:s A", $user->timemodified);

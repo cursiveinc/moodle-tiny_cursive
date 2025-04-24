@@ -17,7 +17,7 @@
  * @module     tiny_cursive/show_url_in_quiz_detail
  * @category TinyMCE Editor
  * @copyright  CTI <info@cursivetechnology.com>
- * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
+ * @author Brain Station 23 <elearning@brainstation-23.com>
  */
 
 define([
@@ -40,11 +40,11 @@ define([
     window.video_playback = function (mid, filepath, questionid) {
         if (filepath !== '') {
             const replay = new Replay(
-                elementId = 'content' + mid,
-                filePath = filepath,
-                speed = 10,
-                loop = false,
-                controllerId = 'player_' + mid + questionid
+                'content' + mid,
+                filepath,
+                10,
+                false,
+                'player_' + mid + questionid
             );
             replayInstances[mid] = replay;
         } else {
@@ -72,17 +72,7 @@ define([
             let sub_url = window.location.href;
             let parm = new URL(sub_url);
             let attempt_id = parm.searchParams.get('attempt');
-
-            let cmid = parm.searchParams.get('cmid');
-            if (!cmid) {
-                let firstHrefElement = document.querySelector('a[href*="question/bank/editquestion/question.php"]');
-                if (firstHrefElement) {
-                    let firstHref = firstHrefElement.getAttribute('href');
-                    if (firstHref && firstHref.length > 0) {
-                        cmid = firstHref.match(/cmid=(\d+)/)[1];
-                    }
-                }
-            }
+            let cmid = M.cfg.contextInstanceId;
 
             let userid = '';
             let tableRow = document.querySelectorAll('table.generaltable.generalbox.quizreviewsummary tbody tr');

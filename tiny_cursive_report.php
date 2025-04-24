@@ -19,7 +19,7 @@
  *
  * @package tiny_cursive
  * @copyright  CTI <info@cursivetechnology.com>
- * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
+ * @author Brain Station 23 <elearning@brainstation-23.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -38,7 +38,7 @@ $moduleid = optional_param('moduleid', 0, PARAM_INT);
 $orderby = optional_param('orderby', 'id', PARAM_TEXT);
 $order = optional_param('order', 'ASC', PARAM_TEXT);
 $page = optional_param('page', 0, PARAM_INT);
-$limit = 5;
+$limit = 10;
 $perpage = $page * $limit;
 
 if ($courseid) {
