@@ -20,10 +20,10 @@
  * @author     Brain Station 23 <sales@brainstation-23.com>
  */
 
-import { call } from 'core/ajax';
-import { create } from 'core/modal_factory';
-import { get_string as getString } from 'core/str';
-import { save, cancel, hidden } from 'core/modal_events';
+import {call} from 'core/ajax';
+import {create} from 'core/modal_factory';
+import {get_string as getString} from 'core/str';
+import {save, cancel, hidden} from 'core/modal_events';
 import jQuery from 'jquery';
 
 export const register = (editor, interval, userId) => {
@@ -45,7 +45,7 @@ export const register = (editor, interval, userId) => {
     let assignSubmit = jQuery('#id_submitbutton');
     var syncInterval = interval ? interval * 1000 : 10000; // Default: Sync Every 10s.
 
-    const postOne = async (methodname, args) => {
+    const postOne = async(methodname, args) => {
         try {
             const response = await call([{
                 methodname,
@@ -58,7 +58,7 @@ export const register = (editor, interval, userId) => {
         }
     };
 
-    assignSubmit.on('click', async function (e) {
+    assignSubmit.on('click', async function(e) {
         e.preventDefault();
         if (filename) {
             // eslint-disable-next-line
@@ -70,7 +70,7 @@ export const register = (editor, interval, userId) => {
         }
     });
 
-    quizSubmit.on('click', async function (e) {
+    quizSubmit.on('click', async function(e) {
         e.preventDefault();
         if (filename) {
             // eslint-disable-next-line
@@ -88,7 +88,7 @@ export const register = (editor, interval, userId) => {
             getString('tiny_cursive_srcurl', 'tiny_cursive'),
             getString('tiny_cursive_srcurl_des', 'tiny_cursive'),
             getString('tiny_cursive_placeholder', 'tiny_cursive')
-        ]).then(function ([title, titledes, placeholder]) {
+        ]).then(function([title, titledes, placeholder]) {
 
             return create({
                 type: 'SAVE_CANCEL',
@@ -118,7 +118,7 @@ export const register = (editor, interval, userId) => {
                     modal.show();
                     var lastEvent = '';
                     // eslint-disable-next-line
-                    modal.getRoot().on(save, function () {
+                    modal.getRoot().on(save, function() {
                         var number = document.getElementById("inputUrl").value.trim();
                         if (number === "" || number === null || number === undefined) {
                             editor.execCommand('Undo');
@@ -180,12 +180,12 @@ export const register = (editor, interval, userId) => {
                         lastEvent = 'save';
                         modal.destroy();
                     });
-                    modal.getRoot().on(cancel, function () {
+                    modal.getRoot().on(cancel, function() {
 
                         editor.execCommand('Undo');
                         lastEvent = 'cancel';
                     });
-                    modal.getRoot().on(hidden, function () {
+                    modal.getRoot().on(hidden, function() {
                         if (lastEvent != 'cancel' && lastEvent != 'save') {
                             editor.execCommand('Undo');
                         }
@@ -273,12 +273,12 @@ export const register = (editor, interval, userId) => {
     editor.on('keyUp', (editor) => {
         sendKeyEvent("keyUp", editor);
     });
-    editor.on('Paste', async (e) => {
+    editor.on('Paste', async(e) => {
         if (isStudent && intervention) {
             getModal(e);
         }
     });
-    editor.on('Redo', async (e) => {
+    editor.on('Redo', async(e) => {
         if (isStudent && intervention) {
             getModal(e);
         }
@@ -310,7 +310,7 @@ export const register = (editor, interval, userId) => {
             return;
         } else {
             localStorage.removeItem(filename);
-            let originalText = editor.getContent({ format: 'text' });
+            let originalText = editor.getContent({format: 'text'});
             try {
                 // eslint-disable-next-line
                 return await postOne('cursive_write_local_to_json', {
@@ -351,16 +351,19 @@ export const register = (editor, interval, userId) => {
 
             tooltipText.then((text) => {
                 setTooltip(text, cursiveIcon);
+                return text;
+            }).catch(error => {
+                window.console.error(error);
             });
 
             cursiveState(cursiveIcon, menubarDiv, paths, currentParent, menubarParent);
 
-            jQuery('#tiny_cursive_StateIcon').on('mouseenter', function () {
+            jQuery('#tiny_cursive_StateIcon').on('mouseenter', function() {
                 jQuery(this).css('position', 'relative');
                 jQuery('.tiny_cursive_tooltip').css(tooltipCss());
             });
 
-            jQuery('#tiny_cursive_StateIcon').on('mouseleave', function () {
+            jQuery('#tiny_cursive_StateIcon').on('mouseleave', function() {
                 jQuery('.tiny_cursive_tooltip').css('display', 'none');
             });
         } catch (error) {
@@ -382,7 +385,7 @@ export const register = (editor, interval, userId) => {
             getString('cursive:state:active', 'tiny_cursive'),
             getString('cursive:state:active:des', 'tiny_cursive'),
         ]);
-        return { buttonTitle, buttonDes };
+        return {buttonTitle, buttonDes};
     }
 
     /**

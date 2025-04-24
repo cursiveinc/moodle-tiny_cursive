@@ -31,15 +31,14 @@ export const getSetup = async() => {
 
         const cursiveIcon = document.createElement('img');
 
-        cursiveIcon.src = hasApiKey ? iconUrl: iconGrayUrl;
+        cursiveIcon.src = hasApiKey ? iconUrl : iconGrayUrl;
         cursiveIcon.id = "tiny_cursive_StateIcon";
-
         editor.ui.registry.addIcon(icon, cursiveIcon.outerHTML);
         editor.ui.registry.addButton(buttonName, {
             icon,
             onAction: () => {
+                return;
             },
         });
-
     };
 };

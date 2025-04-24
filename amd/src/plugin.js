@@ -59,8 +59,7 @@ export default new Promise((resolve, reject) => {
 
                 return pluginMetadata;
             });
-            resolve([pluginName, Configuration]);
-
+            return resolve([pluginName, Configuration]);
         })
         .catch((error) => {
             reject(error);

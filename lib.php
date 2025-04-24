@@ -146,7 +146,8 @@ function tiny_cursive_myprofile_navigation(core_user\output\myprofile\tree $tree
         '/lib/editor/tiny/plugins/cursive/my_writing_report.php',
         ['id' => $user->id, 'course' => isset($course->id) ? $course->id : "", 'mode' => 'cursive']
     );
-    $node = new core_user\output\myprofile\node('reports', 'cursive', get_string('writing', 'tiny_cursive'), null, $url);
+    $node = new core_user\output\myprofile\node('reports', 'cursive',
+    get_string('student_writing_statics', 'tiny_cursive'), null, $url);
     $tree->add_node($node);
 }
 
@@ -183,7 +184,7 @@ function tiny_cursive_upload_multipart_record($filerecord, $filenamewithfullpath
             // Ensure the temporary file does not exceed the size limit.
         if (filesize($tempfilepath) > 16 * 1024 * 1024) {
             unlink($tempfilepath);
-            throw new moodle_exception('filesizelimit','tiny_cursive');
+            throw new moodle_exception('filesizelimit', 'tiny_cursive');
         }
 
         echo $remoteurl;
@@ -266,7 +267,7 @@ function tiny_cursive_file_urlcreate($context, $user) {
 /**
  * Get the status of tiny_cursive for a specific course
  *
- * @param int courseid The ID of the course to check
+ * @param int $courseid The ID of the course to check
  * @return bool Returns true if tiny_cursive is enabled for the course, false otherwise
  * @throws dml_exception
  */

@@ -44,8 +44,8 @@ if (optional_param('id', 0, PARAM_INT)) {
     $userid = optional_param('id', 0, PARAM_INT);
 }
 
-$user = $DB->get_record('user', ['id' => $userid],'*', MUST_EXIST);
-if(!$user) {
+$user = $DB->get_record('user', ['id' => $userid], '*', MUST_EXIST);
+if (!$user) {
     throw new moodle_exception('invaliduser', 'error');
 }
 if (!user_can_view_profile($user)) {
@@ -63,6 +63,7 @@ if (optional_param('course', 0, PARAM_INT) && !is_siteadmin($USER->id) && option
 
 $limit = 5;
 $isvalid = false;
+$perpage = $page * $limit;
 
 $haseditcapability = has_capability('tiny/cursive:view', context_system::instance());
 
@@ -70,11 +71,8 @@ if (!$haseditcapability && $userid != $USER->id) {
     return redirect(new moodle_url('/course/index.php'), get_string('warning', 'tiny_cursive'));
 }
 
-
 $PAGE->requires->js_call_amd('tiny_cursive/key_logger', 'init', [1]);
 $PAGE->requires->js_call_amd('tiny_cursive/cursive_writing_reports', 'init', []);
-
-$perpage = $page * $limit;
 
 if ($courseid) {
     $linkurl =
