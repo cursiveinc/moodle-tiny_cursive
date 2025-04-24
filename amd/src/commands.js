@@ -33,7 +33,6 @@ export const getSetup = async() => {
 
         cursiveIcon.src = hasApiKey ? iconUrl : iconGrayUrl;
         cursiveIcon.id = "tiny_cursive_StateIcon";
-
         editor.ui.registry.addIcon(icon, cursiveIcon.outerHTML);
         editor.ui.registry.addButton(buttonName, {
             icon,
