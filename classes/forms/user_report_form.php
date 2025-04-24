@@ -54,7 +54,7 @@ class user_report_form extends moodleform {
         }
 
         $mform->addRule('courseid', null, 'required', null, 'client');
-        $mform->addElement('select', 'moduleid', get_string('modulename', 'tiny_cursive'), $modules, $attributes);
+        $mform->addElement('select', 'moduleid', get_string('module_name', 'tiny_cursive'), $modules, $attributes);
         $mform->setType('moduleid', PARAM_TEXT);
         $mform->addElement('select', 'userid', get_string('userename', 'tiny_cursive'), $users, $attributes);
         $mform->setType('userid', PARAM_TEXT);

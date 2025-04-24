@@ -64,7 +64,7 @@ class tiny_cursive_data {
         $users = get_enrolled_users(context_course::instance($courseid), '', 0, );
 
         $udetail2['id'] = 0;
-        $udetail2['name'] = 'All Users';
+        $udetail2['name'] = get_string('alluser', 'tiny_cursive');
         $allusers->userlist[] = $udetail2;
         foreach ($users as $user) {
             if ($user->id == $admin->id) {
