@@ -58,6 +58,7 @@ $headers = [
     get_string('backspace_percent', 'tiny_cursive'),
     get_string('score', 'tiny_cursive'),
     get_string('copybehavior', 'tiny_cursive'),
+    get_string('effort_ratio', 'tiny_cursive'),
 ];
 $exportcsv = new csv_export_writer('comma');
 $exportcsv->set_filename("Writing Analysis Report");
@@ -77,10 +78,12 @@ if ($courseid != 0) {
                         CAST(AVG(COALESCE(uw.words_per_minute,0)) AS DECIMAL(10,2)) as words_per_minute,
                         CAST(AVG(COALESCE(uw.backspace_percent,0)) AS DECIMAL(10,2)) as backspace_percent,
                         CAST(AVG(COALESCE(uw.score,0)) AS DECIMAL(10,2)) as score,
-                        " . $DB->sql_cast_char2int('SUM(COALESCE(uw.copy_behavior,0))') . " as copybehavior
+                        " . $DB->sql_cast_char2int('SUM(COALESCE(uw.copy_behavior,0))') . " as copybehavior,
+                        CAST(AVG(COALESCE(wd.meta,0)) AS DECIMAL(10,2)) as effort
                   FROM {tiny_cursive_files} uf
                   JOIN {user} u ON u.id = uf.userid
              LEFT JOIN {tiny_cursive_user_writing} uw ON uw.file_id = uf.id
+             LEFT JOIN {tiny_cursive_writing_diff} wd ON wd.file_id = uf.id
                  WHERE uf.userid != :adminid";
 
 
@@ -118,6 +121,7 @@ if ($courseid != 0) {
                 $res->backspace_percent,
                 $res->score,
                 $res->copybehavior,
+                $res->effort
             ];
             $exportcsv->add_data($userrow);
         }
