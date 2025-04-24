@@ -44,9 +44,9 @@
     $limit = 10
 ) {
     global $DB;
-    $allowed_columns = ['id', 'name', 'email', 'date'];
+    $allowedcolumns = ['id', 'name', 'email', 'date'];
 
-    if (!in_array($orderby, $allowed_columns, true)) {
+    if (!in_array($orderby, $allowedcolumns, true)) {
         $orderby = 'id';
     }
 
@@ -90,7 +90,7 @@
                        uw.total_time_seconds, uw.key_count, uw.keys_per_minute,
                        uw.character_count, uw.characters_per_minute, uw.word_count,
                        uw.words_per_minute, uw.backspace_percent, uw.score, uw.copy_behavior ";
-        
+
     switch ($orderby) {
         case 'name':
             $sql .= 'ORDER BY u.firstname ASC';

@@ -45,22 +45,22 @@ require_capability('tiny/cursive:view', $context);
 global $CFG, $DB, $OUTPUT;
 $report = [];
 $headers = [
-    'FullName',
-    'Email',
-    'CourseID',
-    'total_time_seconds',
-    'key_count',
-    'keys_per_minute',
-    'character_count',
-    'characters_per_minute	',
-    'word_count',
-    'words_per_minute',
-    'backspace_percent',
-    'score',
-    'copybehavior',
+    get_string('fullname', 'tiny_cursive'),
+    get_string('email', 'tiny_cursive'),
+    get_string('courseid', 'tiny_cursive'),
+    get_string('total_time_seconds', 'tiny_cursive'),
+    get_string('key_count', 'tiny_cursive'),
+    get_string('keys_per_minute', 'tiny_cursive'),
+    get_string('character_count', 'tiny_cursive'),
+    get_string('characters_per_minute', 'tiny_cursive'),
+    get_string('word_count', 'tiny_cursive'),
+    get_string('words_per_minute', 'tiny_cursive'),
+    get_string('backspace_percent', 'tiny_cursive'),
+    get_string('score', 'tiny_cursive'),
+    get_string('copybehavior', 'tiny_cursive'),
 ];
 $exportcsv = new csv_export_writer('comma');
-$exportcsv->set_filename("ExportUsersData");
+$exportcsv->set_filename("Writing Analysis Report");
 $exportcsv->add_data($headers); // Add Header Row.
 $params = [];
 if ($courseid != 0) {
@@ -83,7 +83,8 @@ if ($courseid != 0) {
              LEFT JOIN {tiny_cursive_user_writing} uw ON uw.file_id = uf.id
                  WHERE uf.userid != :adminid";
 
-    $params['adminid'] = 1;
+
+    $params['adminid'] = get_admin()->id;
 
     if ($userid != 0) {
         $attempts .= " AND uf.userid = :userid";

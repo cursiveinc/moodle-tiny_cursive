@@ -20,10 +20,10 @@
  * @author     Brain Station 23 <sales@brainstation-23.com>
  */
 
-import { call } from 'core/ajax';
-import { create } from 'core/modal_factory';
-import { get_string as getString } from 'core/str';
-import { save, cancel, hidden } from 'core/modal_events';
+import {call} from 'core/ajax';
+import {create} from 'core/modal_factory';
+import {get_string as getString} from 'core/str';
+import {save, cancel, hidden} from 'core/modal_events';
 import jQuery from 'jquery';
 
 export const register = (editor, interval, userId) => {
@@ -58,7 +58,7 @@ export const register = (editor, interval, userId) => {
         }
     };
 
-    assignSubmit.on('click', async function (e) {
+    assignSubmit.on('click', async function(e) {
         e.preventDefault();
         if (filename) {
             // eslint-disable-next-line
@@ -70,7 +70,7 @@ export const register = (editor, interval, userId) => {
         }
     });
 
-    quizSubmit.on('click', async function (e) {
+    quizSubmit.on('click', async function(e) {
         e.preventDefault();
         if (filename) {
             // eslint-disable-next-line
@@ -88,7 +88,7 @@ export const register = (editor, interval, userId) => {
             getString('tiny_cursive_srcurl', 'tiny_cursive'),
             getString('tiny_cursive_srcurl_des', 'tiny_cursive'),
             getString('tiny_cursive_placeholder', 'tiny_cursive')
-        ]).then(function ([title, titledes, placeholder]) {
+        ]).then(function([title, titledes, placeholder]) {
 
             return create({
                 type: 'SAVE_CANCEL',
@@ -118,7 +118,7 @@ export const register = (editor, interval, userId) => {
                     modal.show();
                     var lastEvent = '';
                     // eslint-disable-next-line
-                    modal.getRoot().on(save, function () {
+                    modal.getRoot().on(save, function() {
                         var number = document.getElementById("inputUrl").value.trim();
                         if (number === "" || number === null || number === undefined) {
                             editor.execCommand('Undo');
@@ -180,12 +180,12 @@ export const register = (editor, interval, userId) => {
                         lastEvent = 'save';
                         modal.destroy();
                     });
-                    modal.getRoot().on(cancel, function () {
+                    modal.getRoot().on(cancel, function() {
 
                         editor.execCommand('Undo');
                         lastEvent = 'cancel';
                     });
-                    modal.getRoot().on(hidden, function () {
+                    modal.getRoot().on(hidden, function() {
                         if (lastEvent != 'cancel' && lastEvent != 'save') {
                             editor.execCommand('Undo');
                         }
@@ -355,12 +355,12 @@ export const register = (editor, interval, userId) => {
 
             cursiveState(cursiveIcon, menubarDiv, paths, currentParent, menubarParent);
 
-            jQuery('#tiny_cursive_StateIcon').on('mouseenter', function () {
+            jQuery('#tiny_cursive_StateIcon').on('mouseenter', function() {
                 jQuery(this).css('position', 'relative');
                 jQuery('.tiny_cursive_tooltip').css(tooltipCss());
             });
 
-            jQuery('#tiny_cursive_StateIcon').on('mouseleave', function () {
+            jQuery('#tiny_cursive_StateIcon').on('mouseleave', function() {
                 jQuery('.tiny_cursive_tooltip').css('display', 'none');
             });
         } catch (error) {
