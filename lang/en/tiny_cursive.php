@@ -25,6 +25,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+$string['allcourses'] = "All Courses";
 $string['allmodule'] = 'All Modules';
 $string['alluser'] = 'All Users';
 $string['analytics'] = 'Analytics';
@@ -99,7 +100,6 @@ $string['keys_per_minute'] = 'Keys per minute';
 $string['last_modified'] = 'Last modified';
 $string['learn_more'] = 'Learn More';
 $string['module_name'] = 'Module Name';
-$string['modulename'] = 'Module Name';
 $string['moodle_host'] = 'Moodle Host';
 $string['no_submission'] = 'No Submission';
 $string['nopaylod'] = 'No payload data received yet';
