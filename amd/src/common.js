@@ -26,8 +26,4 @@ const component = 'tiny_cursive';
 export default {
     component,
     pluginName: `${component}/plugin`,
-    buttonName: 'cursive_status',
-    icon: 'cursive',
-    iconUrl: M.util.image_url('cursive', 'tiny_cursive'),
-    iconGrayUrl: M.util.image_url('cursive_gray', 'tiny_cursive')
 };

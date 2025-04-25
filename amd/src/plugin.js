@@ -25,8 +25,6 @@ import {getPluginMetadata} from 'editor_tiny/utils';
 import {component, pluginName} from './common';
 import * as Autosaver from './autosaver';
 import getConfig from 'core/ajax';
-import * as Commands from './commands';
-import * as Configuration from './configuration';
 
 export default new Promise((resolve, reject) => {
     const page = [
@@ -38,10 +36,9 @@ export default new Promise((resolve, reject) => {
 
     Promise.all([
         getTinyMCE(),
-        Commands.getSetup(),
         getPluginMetadata(component, pluginName),
     ])
-        .then(([tinyMCE, setupCommands, pluginMetadata]) => {
+        .then(([tinyMCE, pluginMetadata]) => {
             tinyMCE.PluginManager.add(pluginName, (editor) => {
 
                 getConfig.call([{
@@ -50,7 +47,6 @@ export default new Promise((resolve, reject) => {
                 }])[0].done((data) => {
                     if (data.status && page.includes(document.body.id)) {
 
-                        setupCommands(editor, data.apikey_status);
                         Autosaver.register(editor, data.sync_interval, data.userid);
                     }
                 }).fail((error) => {
@@ -59,7 +55,7 @@ export default new Promise((resolve, reject) => {
 
                 return pluginMetadata;
             });
-            return resolve([pluginName, Configuration]);
+            return resolve(pluginName);
         })
         .catch((error) => {
             reject(error);

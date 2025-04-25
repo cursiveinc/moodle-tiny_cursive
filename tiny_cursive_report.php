@@ -27,63 +27,67 @@ require(__DIR__ . '/../../../../../config.php');
 require_once($CFG->dirroot . '/mod/quiz/lib.php');
 require_once($CFG->dirroot . '/mod/quiz/locallib.php');
 require_once(__DIR__ . '/locallib.php');
-global $CFG, $DB, $USER, $PAGE, $OUTPUT;
+
+global $CFG, $DB, $PAGE, $OUTPUT;
 
 require_login(); // Teacher and admin can see this page.
-$courseid = optional_param('courseid', 0, PARAM_INT);
-$userid = optional_param('userid', 0, PARAM_INT);
+$courseid = required_param('courseid',  PARAM_INT);
+$userid   = optional_param('userid', 0, PARAM_INT);
 $moduleid = optional_param('moduleid', 0, PARAM_INT);
-$orderby = optional_param('orderby', 'id', PARAM_TEXT);
-$order = optional_param('order', 'ASC', PARAM_TEXT);
-$page = optional_param('page', 0, PARAM_INT);
-$limit = 5;
+$orderby  = optional_param('orderby', 'id', PARAM_TEXT);
+$order    = optional_param('order', 'ASC', PARAM_TEXT);
+$page     = optional_param('page', 0, PARAM_INT);
 
-$perpage = $page * $limit;
+$limit    = 5;
+$cmid     = 0;
+$perpage  = $page * $limit;
 
-if ($courseid) {
-    $cmid = tiny_cursive_get_cmid($courseid);
+$params   = [
+    'sesskey'             => sesskey(),
+    '_qf__userreportform' => 1,
+    'courseid'            => $courseid,
+    'moduleid'            => $moduleid,
+    'userid'              => $userid,
+    'orderby'             => $orderby,
+    'submitbutton'        => 'Submit',
+];
+$url     = new moodle_url('/lib/editor/tiny/plugins/cursive/tiny_cursive_report.php', $params);
+
+if ($courseid && $courseid != 0) {
+    $cmid    = tiny_cursive_get_cmid($courseid);
     $context = context_module::instance($cmid);
+
+    $struser = get_string('student_writing_statics', 'tiny_cursive');
+    $course  = get_course($courseid);
+
+    $PAGE->navbar->add($course->shortname, new moodle_url('/course/view.php', ['id' => $courseid]));
+    $PAGE->navbar->add($struser, $url);
 } else {
     $context = context_system::instance();
 }
 
-$haseditcapability = has_capability('tiny/cursive:view', $context);
-
-if (!$haseditcapability) {
-    return redirect(new moodle_url('/course/index.php'), get_string('warning', 'tiny_cursive'));
-}
-
-$linkurl = '/lib/editor/tiny/plugins/cursive/tiny_cursive_report.php';
-$linkurl .= '?sesskey=' . $USER->sesskey . '&_qf__userreportform=1&courseid=' .
-    $courseid . '&moduleid=' . $moduleid . '&userid=' . $userid .
-    '&orderby=' . $orderby . '&submitbutton=Submit';
-$systemcontext = context_system::instance();
-$linktext = get_string('tiny_cursive', 'tiny_cursive');
+require_capability('tiny/cursive:view', $context);
 
 $PAGE->requires->js_call_amd('tiny_cursive/key_logger', 'init', [1]);
-
-$PAGE->set_context($systemcontext);
-$PAGE->set_title($linktext);
-$PAGE->set_title($linktext);
-$PAGE->set_url($linkurl);
-$PAGE->set_heading(get_string('tiny_cursive', 'tiny_cursive'));
 $PAGE->requires->js_call_amd('tiny_cursive/cursive_writing_reports', 'init', []);
 
-$struser = get_string('student_writing_statics', 'tiny_cursive');
-$PAGE->set_url('/course/view.php', ['id' => $courseid]);
-$PAGE->navbar->add($struser);
+$PAGE->set_context(context_system::instance());
+$PAGE->set_title(get_string('tiny_cursive', 'tiny_cursive'));
+$PAGE->set_url($url);
+$PAGE->set_heading(get_string('tiny_cursive', 'tiny_cursive'));
+
 
 echo $OUTPUT->header();
 
 $mform = new user_report_form(null, [
     'courseid' => $courseid,
-    'userid' => $userid,
+    'userid'   => $userid,
     'moduleid' => $moduleid,
-    'orderby' => $orderby,
+    'orderby'  => $orderby,
 ], '', '', []);
 
 $mform->display();
-$renderer = $PAGE->get_renderer('tiny_cursive');
+$renderer     = $PAGE->get_renderer('tiny_cursive');
 
 if ($formdata = $mform->get_data()) {
     if ($formdata->courseid) {
@@ -106,7 +110,7 @@ if ($formdata = $mform->get_data()) {
         $courseid,
         $page,
         $limit,
-        $linkurl,
+        $url,
         $moduleid,
         $userid);
 } else {
@@ -125,7 +129,7 @@ if ($formdata = $mform->get_data()) {
         $courseid,
         $page,
         $limit,
-        $linkurl,
+        $url,
         $moduleid,
         $userid);
 }

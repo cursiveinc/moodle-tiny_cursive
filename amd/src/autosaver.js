@@ -213,7 +213,6 @@ export const register = (editor, interval, userId) => {
             resourceId = parm.searchParams.get('attempt');
         }
         if (resourceId === null) {
-
             resourceId = 0;
         }
 
@@ -290,9 +289,6 @@ export const register = (editor, interval, userId) => {
     editor.on('init', () => {
 
     });
-    editor.on('SkinLoaded', () => {
-        customTooltip();
-    });
 
     /**
      * Synchronizes data from localStorage to server
@@ -328,137 +324,6 @@ export const register = (editor, interval, userId) => {
                 window.console.error('Error submitting data:', error);
             }
         }
-    }
-
-    /**
-     * Sets up custom tooltip functionality for the Cursive icon
-     * Initializes tooltip text, positions the icon in the menubar,
-     * and sets up mouse event handlers for showing/hiding the tooltip
-     * @function customTooltip
-     */
-    function customTooltip() {
-        try {
-            const tooltipText = getTooltipText();
-            const menubarDiv = document.querySelector('div[role="menubar"].tox-menubar');
-            const cursiveStateIcon = document.querySelector('#tiny_cursive_StateIcon');
-            const cursiveIcon = cursiveStateIcon.parentElement.parentElement;
-            const paths = cursiveStateIcon.querySelectorAll('path');
-            const currentParent = cursiveIcon.parentElement;
-            const menubarParent = menubarDiv.parentElement;
-
-            cursiveIcon.setAttribute('class', 'tiny_cursive_StateButton');
-            cursiveIcon.style.display = 'inline-block';
-
-            tooltipText.then((text) => {
-                setTooltip(text, cursiveIcon);
-                return text;
-            }).catch(error => {
-                window.console.error(error);
-            });
-
-            cursiveState(cursiveIcon, menubarDiv, paths, currentParent, menubarParent);
-
-            jQuery('#tiny_cursive_StateIcon').on('mouseenter', function() {
-                jQuery(this).css('position', 'relative');
-                jQuery('.tiny_cursive_tooltip').css(tooltipCss());
-            });
-
-            jQuery('#tiny_cursive_StateIcon').on('mouseleave', function() {
-                jQuery('.tiny_cursive_tooltip').css('display', 'none');
-            });
-        } catch (error) {
-            window.console.error('Error setting up custom tooltip:', error);
-        }
-    }
-
-    /**
-     * Retrieves tooltip text strings from language files
-     * @async
-     * @function getTooltipText
-     * @returns {Promise<Object>} Object containing buttonTitle and buttonDes strings
-     */
-    async function getTooltipText() {
-        const [
-            buttonTitle,
-            buttonDes,
-        ] = await Promise.all([
-            getString('cursive:state:active', 'tiny_cursive'),
-            getString('cursive:state:active:des', 'tiny_cursive'),
-        ]);
-        return {buttonTitle, buttonDes};
-    }
-
-    /**
-     * Updates the Cursive icon state and positions it in the menubar
-     * @param {HTMLElement} cursiveIcon - The Cursive icon element to modify
-     * @param {HTMLElement} menubarDiv - The menubar div element
-     * @param {HTMLElement} currentParent - Current parent element of the icon
-     * @param {HTMLElement} menubarParent - Parent element of the menubar
-     */
-    function cursiveState(cursiveIcon, menubarDiv, currentParent, menubarParent) {
-        if (currentParent && menubarParent) {
-            const rightWrapper = document.createElement('div');
-
-            rightWrapper.style.marginLeft = 'auto';
-            rightWrapper.style.display = 'flex';
-            rightWrapper.style.alignItems = 'center';
-
-            rightWrapper.appendChild(cursiveIcon);
-            menubarDiv.appendChild(rightWrapper);
-        }
-    }
-
-    /**
-     * Returns CSS styles object for tooltip positioning and appearance
-     * @function tooltipCss
-     * @returns {Object} Object containing CSS properties and values for tooltip styling
-     */
-    function tooltipCss() {
-        return {
-            display: 'block',
-            position: 'absolute',
-            transform: 'translateX(-100%)',
-            backgroundColor: 'white',
-            color: 'black',
-            border: '1px solid #ccc',
-            marginBottom: '6px',
-            padding: '10px',
-            textAlign: 'justify',
-            minWidth: '200px',
-            borderRadius: '1px',
-            pointerEvents: 'none',
-            zIndex: 10000
-        };
-    }
-
-    /**
-     * Sets up tooltip content and styling for the Cursive icon
-     * @param {Object} text - Object containing tooltip text strings
-     * @param {string} text.buttonTitle - Title text for the tooltip
-     * @param {string} text.buttonDes - Description text for the tooltip
-     * @param {HTMLElement} cursiveIcon - The Cursive icon element to attach tooltip to
-     */
-    function setTooltip(text, cursiveIcon) {
-
-        const tooltipSpan = document.createElement('span');
-        const description = document.createElement('span');
-        const linebreak = document.createElement('br');
-        const tooltipTitle = document.createElement('strong');
-
-        tooltipSpan.style.display = 'none';
-        cursiveIcon.style.width = "auto";
-
-        tooltipTitle.textContent = text.buttonTitle;
-        tooltipTitle.style.fontSize = '16px';
-        tooltipTitle.style.fontWeight = 'bold';
-        description.textContent = text.buttonDes;
-        description.style.fontSize = '14px';
-
-        tooltipSpan.setAttribute('class', 'tiny_cursive_tooltip shadow');
-        tooltipSpan.appendChild(tooltipTitle);
-        tooltipSpan.appendChild(linebreak);
-        tooltipSpan.appendChild(description);
-        cursiveIcon.appendChild(tooltipSpan);
     }
 
     window.addEventListener('unload', () => {
