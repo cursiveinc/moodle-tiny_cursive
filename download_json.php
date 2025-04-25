@@ -29,24 +29,24 @@ global $DB, $CFG;
 require_login();
 
 $resourceid = optional_param('resourceid', 0, PARAM_INT);
-$userid = optional_param('user_id', 0, PARAM_INT);
-$cmid = optional_param('cmid', 0, PARAM_INT);
-$fname = clean_param(optional_param('fname', '', PARAM_FILE), PARAM_FILE);
+$userid     = optional_param('user_id', 0, PARAM_INT);
+$cmid       = optional_param('cmid', 0, PARAM_INT);
+$fname      = clean_param(optional_param('fname', '', PARAM_FILE), PARAM_FILE);
 
 if ($cmid <= 0 || $userid <= 0) {
     throw new moodle_exception('invalidparameters', 'tiny_cursive');
 }
 
-$context = context_module::instance($cmid);
+$context    = context_module::instance($cmid);
 require_capability('tiny/cursive:writingreport', $context);
 
-$filerow = $DB->get_record('tiny_cursive_files', ['filename' => $fname]);
+$filerow    = $DB->get_record('tiny_cursive_files', ['filename' => $fname]);
 if (!$fname || !$filerow || !$filerow->content) {
     redirect(get_local_referer(false), get_string('filenotfound', 'tiny_cursive'));
 }
 
 // Convert JSON to CSV.
-$jsondata = json_decode($filerow->content, true);
+$jsondata   = json_decode($filerow->content, true);
 if (json_last_error() !== JSON_ERROR_NONE) {
     redirect(get_local_referer(false), get_string('filenotfound', 'tiny_cursive'));
 }
@@ -65,7 +65,7 @@ header('Pragma: no-cache');
 header('Expires: 0');
 
 // Create output stream.
-$output = fopen('php://output', 'w');
+$output     = fopen('php://output', 'w');
 
 // If data is array of arrays.
 if (is_array($jsondata) && is_array(reset($jsondata))) {

@@ -71,9 +71,9 @@ class hook_callbacks {
 
             if ($cmid) {
                 $context = context_module::instance($cmid);
-                $capcheck = has_capability('tiny/cursive:writingreport', $context, $USER->id);
             }
 
+            $capcheck = has_capability('tiny/cursive:writingreport', $context, $USER->id);
             if ($capcheck) {
                 switch ($PAGE->bodyid) {
                     case 'page-mod-forum-discuss':
@@ -146,6 +146,7 @@ class hook_callbacks {
             '0' => get_string('disabled', 'tiny_cursive'),
             '1' => get_string('enabled', 'tiny_cursive'),
         ]);
+
         $default = get_config('tiny_cursive', "cursive-$COURSE->id");
         $mform->setDefault('cursive_status', $default);
     }
@@ -156,9 +157,11 @@ class hook_callbacks {
      * @param after_form_submission $hook The hook instance containing the form submission data
      */
     public static function after_form_submission(after_form_submission $hook) {
+
         $courseid = $hook->get_data()->id;
-        $status = $hook->get_data()->cursive_status ?? false;
-        $name = "cursive-$courseid";
+        $status   = $hook->get_data()->cursive_status ?? false;
+        $name     = "cursive-$courseid";
+
         set_config($name, $status, 'tiny_cursive');
     }
 

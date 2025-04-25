@@ -24,25 +24,27 @@
  */
 
 require(__DIR__ . '/../../../../../config.php');
-require_login();
+
 require_once($CFG->libdir . "/csvlib.class.php");
 require_once(__DIR__.'/locallib.php');
 require_once(__DIR__.'/lib.php');
 
+require_login();
+global $CFG, $DB;
+
 $courseid = optional_param('courseid', 0, PARAM_INT);
-$userid = optional_param('userid', 0, PARAM_INT);
+$userid   = optional_param('userid', 0, PARAM_INT);
 $moduleid = optional_param('moduleid', 0, PARAM_INT);
-// Use csv_export_writer.
+
 if ($moduleid != 0) {
     $context = context_module::instance($moduleid);
 } else {
-    $cmid = tiny_cursive_get_cmid($courseid);
+    $cmid    = tiny_cursive_get_cmid($courseid);
     $context = context_module::instance($cmid);
 }
 
 require_capability('tiny/cursive:view', $context);
 
-global $CFG, $DB, $OUTPUT;
 $report = [];
 $headers = [
     get_string('fullname', 'tiny_cursive'),
@@ -60,12 +62,13 @@ $headers = [
     get_string('copybehavior', 'tiny_cursive'),
     get_string('effort_ratio', 'tiny_cursive'),
 ];
+
 $exportcsv = new csv_export_writer('comma');
 $exportcsv->set_filename("Writing Analysis Report");
 $exportcsv->add_data($headers); // Add Header Row.
 $params = [];
-if ($courseid != 0) {
 
+if ($courseid != 0) {
     $attempts = "SELECT uf.id as fileid, u.id as usrid,
                         " . $DB->sql_concat('u.firstname', "' '", 'u.lastname') . " as fullname,
                         u.email, uf.courseid,
@@ -87,11 +90,11 @@ if ($courseid != 0) {
                  WHERE uf.userid != :adminid";
 
 
-    $params['adminid'] = get_admin()->id;
+    $params['adminid']  = get_admin()->id;
 
     if ($userid != 0) {
         $attempts .= " AND uf.userid = :userid";
-        $params['userid'] = $userid;
+        $params['userid']   = $userid;
     }
     if ($courseid != 0) {
         $attempts .= " AND uf.courseid = :courseid";
@@ -102,6 +105,7 @@ if ($courseid != 0) {
         $attempts .= " AND uf.cmid = :moduleid";
         $params['moduleid'] = $moduleid;
     }
+
     $attempts .= " GROUP BY uf.id, u.id, u.email, uf.courseid";
     $ress = $DB->get_records_sql($attempts, $params);
 

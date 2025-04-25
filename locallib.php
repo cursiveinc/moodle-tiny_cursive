@@ -27,7 +27,7 @@
  *
  * @param int $userid The user ID to get attempts for
  * @param int $courseid The course ID to filter by
- * @param int $moduleid The module ID to filter by
+ * @param int|null $moduleid The module ID to filter by
  * @param string $orderby Field to order results by (id, name, email, date)
  * @param string $order Sort order (ASC or DESC)
  * @param int $page Page number for pagination
@@ -347,7 +347,7 @@ function tiny_cursive_create_token_for_user() {
  * Renders a table displaying user data with export functionality
  *
  * @param array $users Array of user data to display in the table
- * @param stdClass $renderer The renderer object used to display the table
+ * @param renderer_base $renderer The renderer object used to display the table
  * @param int $courseid The course ID to filter results
  * @param int $page Current page number for pagination
  * @param int $limit Number of records per page
