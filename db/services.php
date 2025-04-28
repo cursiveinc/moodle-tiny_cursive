@@ -204,7 +204,7 @@ $functions = [
         'description' => 'get user configuration',
         'type' => 'read',
         'ajax' => true,
-        'capabilities' => 'tiny/cursive:editsettings',
+        'capabilities' => 'tiny/cursive:view',
     ], 'cursive_get_lesson_submission_data' => [
         'classname' => 'cursive_json_func_data',
         'methodname' => 'get_lesson_submission_data',
@@ -212,7 +212,7 @@ $functions = [
         'description' => 'get lesson data',
         'type' => 'read',
         'ajax' => true,
-        'capabilities' => 'tiny/cursive:editsettings',
+        'capabilities' => 'tiny/cursive:view',
     ], 'cursive_disable_all_course' => [
         'classname' => 'cursive_json_func_data',
         'methodname' => 'disable_cursive',
@@ -220,7 +220,15 @@ $functions = [
         'description' => 'disable cursive for all courses',
         'type' => 'read',
         'ajax' => true,
-        'capabilities' => 'tiny/cursive:editsettings',
+        'capabilities' => 'tiny/cursive:view',
+    ], 'cursive_get_oublog_submission_data' => [
+        'classname' => 'cursive_json_func_data',
+        'methodname' => 'get_oublog_submission_data',
+        'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
+        'description' => 'get oublog data',
+        'type' => 'read',
+        'ajax' => true,
+        'capabilities' => 'tiny/cursive:view',
     ],
 ];
 
