@@ -47,9 +47,10 @@ class observers {
 
         $eventdata  = $event->get_data();
         $table      = 'tiny_cursive_comments';
+        $modulename = self::get_modules_name($eventdata);
         $conditions = [
             "userid"     => $eventdata['userid'],
-            "modulename" => 'forum',
+            "modulename" => $modulename,
             'resourceid' => 0,
             'courseid'   => $eventdata['courseid'],
             'cmid'       => $eventdata['contextinstanceid'],
@@ -90,10 +91,11 @@ class observers {
             }
         }
 
-        $table = 'tiny_cursive_files';
+        $table      = 'tiny_cursive_files';
+        $modulename = self::get_modules_name($eventdata);
         $conditions = [
             "userid"     => $eventdata['userid'],
-            "modulename" => 'forum',
+            "modulename" => $modulename,
             'resourceid' => 0,
             'courseid'   => $eventdata['courseid'],
             'cmid'       => $eventdata['contextinstanceid'],
@@ -128,6 +130,18 @@ class observers {
      * @throws \dml_exception
      */
     public static function observer_login(\mod_forum\event\post_created $event) {
+        self::update_comment($event);
+        self::update_cursive_files($event);
+    }
+
+    /**
+     * Tiny cursive plugin oublog created observer.
+     *
+     * @param \mod_oublog\event\post_created $event The event object
+     * @return void
+     * @throws \dml_exception
+     */
+    public static function oublog_created(\mod_oublog\event\post_created $event) {
         self::update_comment($event);
         self::update_cursive_files($event);
     }
@@ -214,4 +228,16 @@ class observers {
             $DB->delete_records('tiny_cursive_quality_metrics', ['file_id' => $file->id]);
         }
     }
+
+    /**
+     * Get the module name from event data.
+     *
+     * @param array $eventdata The event data containing component information
+     * @return string The module name extracted from the component
+     */
+    public static function get_modules_name($eventdata) {
+        // Use array destructuring to get module name directly from component
+        [, $modulename] = explode('_', $eventdata['component'], 2);
+        return $modulename;
+    } 
 }

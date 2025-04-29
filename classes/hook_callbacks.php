@@ -123,6 +123,12 @@ class hook_callbacks {
                             [$confidencethreshold, $showcomments],
                         );
                         break;
+                    case 'page-mod-oublog-viewpost':
+                        $PAGE->requires->js_call_amd(
+                            'tiny_cursive/append_oublogs_post',
+                            'init',
+                            [$confidencethreshold, $showcomments],
+                        );
                 }
             }
 

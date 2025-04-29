@@ -32,7 +32,8 @@ export default new Promise((resolve, reject) => {
         'page-mod-quiz-attempt',
         'page-mod-forum-view',
         'page-mod-forum-post',
-        'page-mod-lesson-view'];
+        'page-mod-lesson-view',
+        'page-mod-oublog-editpost'];
 
     Promise.all([
         getTinyMCE(),
