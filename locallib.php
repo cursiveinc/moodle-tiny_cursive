@@ -27,7 +27,7 @@
  *
  * @param int $userid The user ID to get attempts for
  * @param int $courseid The course ID to filter by
- * @param int $moduleid The module ID to filter by
+ * @param int|null $moduleid The module ID to filter by
  * @param string $orderby Field to order results by (id, name, email, date)
  * @param string $order Sort order (ASC or DESC)
  * @param int $page Page number for pagination
@@ -44,21 +44,13 @@
     $limit = 10
 ) {
     global $DB;
+    $allowedcolumns = ['id', 'name', 'email', 'date'];
+
+    if (!in_array($orderby, $allowedcolumns, true)) {
+        $orderby = 'id';
+    }
 
     $params = [];
-    $odby = 'u.id';
-
-    switch ($orderby) {
-        case 'name':
-            $odby = 'u.firstname';
-            break;
-        case 'email':
-            $odby = 'u.email';
-            break;
-        case 'date':
-            $odby = 'uf.timemodified';
-            break;
-    }
 
     $sql = "SELECT uf.id AS fileid, u.id AS usrid, uw.id AS uniqueid,
                    u.firstname, u.lastname, u.email, uf.courseid,
@@ -76,7 +68,7 @@
          LEFT JOIN {tiny_cursive_user_writing} uw ON uw.file_id = uf.id
              WHERE uf.userid <> :userid1";
 
-    $params['userid1'] = 1;
+    $params['userid1'] = guest_user()->id;
 
     if ($userid != 0) {
         $sql .= " AND uf.userid = :userid2";
@@ -97,8 +89,22 @@
                        uf.courseid, uf.timemodified, uf.cmid, uf.filename,
                        uw.total_time_seconds, uw.key_count, uw.keys_per_minute,
                        uw.character_count, uw.characters_per_minute, uw.word_count,
-                       uw.words_per_minute, uw.backspace_percent, uw.score, uw.copy_behavior
-              ORDER BY $odby $order";
+                       uw.words_per_minute, uw.backspace_percent, uw.score, uw.copy_behavior ";
+
+    switch ($orderby) {
+        case 'name':
+            $sql .= 'ORDER BY u.firstname ASC';
+            break;
+        case 'email':
+            $sql .= 'ORDER BY u.email ASC';
+            break;
+        case 'date':
+            $sql .= 'ORDER BY uf.timemodified ASC';
+            break;
+        default:
+            $sql .= 'ORDER BY u.id ASC';
+            break;
+    }
 
     $countsql = "SELECT COUNT(*)
                         FROM ($sql) subquery";
@@ -113,9 +119,8 @@
     }
     try {
         $res = $DB->get_records_sql($sql, $params);
-    } catch (Exception $e) {
-        debugging("Error executing query: " . $e->getMessage());
-        throw new moodle_exception('errorreadingfromdatabase', 'error', '', null, $e->getMessage());
+    } catch (moodle_exception $e) {
+        throw new moodle_exception('dmlreadexception', 'error', '', null, $e->getMessage());
     }
 
     return ['count' => $totalcount, 'data' => $res];
@@ -164,7 +169,7 @@ function tiny_cursive_get_user_writing_data(
            LEFT JOIN {tiny_cursive_user_writing} uw ON uw.file_id = uf.id
                WHERE uf.userid != ?";
 
-    $params[] = 1; // Exclude user ID 1.
+    $params[] = guest_user()->id; // Exclude user ID 1.
 
     if ($userid != 0) {
         $select .= " AND uf.userid = ?";
@@ -232,10 +237,10 @@ function tiny_cursive_get_user_profile_data($userid, $courseid = 0) {
  * @return array[] Array containing submission data and file information
  * @throws dml_exception
  */
-function tiny_cursive_get_user_submissions_data($resourceid, $modulename, $cmid, $courseid = 0) {
+function tiny_cursive_get_user_submissions_data($userid, $modulename, $cmid, $courseid = 0, $oublogpostid = 0) {
     global $CFG, $DB;
     require_once($CFG->dirroot . "/lib/editor/tiny/plugins/cursive/lib.php");
-    $userid = $resourceid;
+
     $sql = "SELECT uw.total_time_seconds, uw.word_count, uw.words_per_minute,
                    uw.backspace_percent, uw.score, uw.copy_behavior, uf.resourceid,
                    uf.modulename, uf.userid, uw.file_id, uf.filename,
@@ -243,13 +248,13 @@ function tiny_cursive_get_user_submissions_data($resourceid, $modulename, $cmid,
               FROM {tiny_cursive_user_writing} uw
               JOIN {tiny_cursive_files} uf ON uw.file_id = uf.id
          LEFT JOIN {tiny_cursive_writing_diff} diff ON uw.file_id = diff.file_id
-             WHERE uf.userid = :resourceid
+             WHERE uf.userid = :userid
                    AND uf.cmid = :cmid
                    AND uf.modulename = :modulename";
 
     // Array to hold SQL parameters.
     $params = [
-        'resourceid' => $resourceid,
+        'userid' => $userid,
         'cmid' => $cmid,
         'modulename' => $modulename,
     ];
@@ -258,6 +263,10 @@ function tiny_cursive_get_user_submissions_data($resourceid, $modulename, $cmid,
     if ($courseid != 0) {
         $sql .= " AND uf.courseid = :courseid";
         $params['courseid'] = $courseid;
+    }
+    if($oublogpostid != 0) {
+        $sql .= " AND uf.resourceid = :oublogid";
+        $params['oublogid'] = $oublogpostid;
     }
 
     // Execute the SQL query using Moodle's database abstraction layer.
@@ -268,12 +277,23 @@ function tiny_cursive_get_user_submissions_data($resourceid, $modulename, $cmid,
     $data = (array)$data;
 
     if (!isset($data['filename'])) {
+        $params = [
+            'userid' => $userid,
+            'cmid' => $cmid,
+            'modulename' => $modulename,
+        ];
         $sql = 'SELECT id as fileid, userid, filename, content
                   FROM {tiny_cursive_files}
                  WHERE userid = :userid
-                   AND cmid = :cmid
-                   AND modulename = :modulename';
-        $filename = $DB->get_record_sql($sql, ['userid' => $resourceid, 'cmid' => $cmid, 'modulename' => $modulename]);
+                       AND cmid = :cmid
+                       AND modulename = :modulename';
+
+        if($oublogpostid != 0) {
+            $sql .= " AND resourceid = :oublogid";
+            $params['oublogid'] = $oublogpostid;
+        }
+
+        $filename = $DB->get_record_sql($sql, $params);
 
         if ($filename) {
             $data['filename'] = $filename->filename;
@@ -313,14 +333,8 @@ function tiny_cursive_get_user_submissions_data($resourceid, $modulename, $cmid,
 function tiny_cursive_get_cmid($courseid) {
     global $DB;
 
-    $sql = "SELECT cm.id
-              FROM {course_modules} cm
-         LEFT JOIN {modules} m ON m.id = cm.module
-         LEFT JOIN {course} c ON c.id = cm.course
-             WHERE cm.course = :courseid
-                   AND cm.deletioninprogress = 0 LIMIT 1";
-    $params = ['courseid' => $courseid];
-    $cm = $DB->get_record_sql($sql, $params);
+    $cm = $DB->get_record('course_modules', ['course' => $courseid, 'deletioninprogress' => 0],
+         'id', IGNORE_MULTIPLE);
     $cmid = isset($cm->id) ? $cm->id : 0;
 
     return $cmid;
@@ -348,7 +362,7 @@ function tiny_cursive_create_token_for_user() {
  * Renders a table displaying user data with export functionality
  *
  * @param array $users Array of user data to display in the table
- * @param object $renderer The renderer object used to display the table
+ * @param renderer_base $renderer The renderer object used to display the table
  * @param int $courseid The course ID to filter results
  * @param int $page Current page number for pagination
  * @param int $limit Number of records per page

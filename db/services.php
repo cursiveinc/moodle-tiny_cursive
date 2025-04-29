@@ -26,15 +26,6 @@
 defined('MOODLE_INTERNAL') || die();
 
 $functions = [
-    'cursive_json' => [
-        'classname' => 'cursive_json_func_data',
-        'methodname' => 'cursive_json_func',
-        'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
-        'description' => 'generate JSON',
-        'type' => 'write',
-        'ajax' => true,
-        'capabilities' => 'tiny/cursive:write',
-    ],
     'cursive_get_user_list' => [
         'classname' => 'cursive_json_func_data',
         'methodname' => 'get_user_list',
@@ -52,15 +43,6 @@ $functions = [
         'type' => 'read',
         'ajax' => true,
         'capabilities' => 'tiny/cursive:view',
-    ],
-    'cursive_reports' => [
-        'classname' => 'cursive_json_func_data',
-        'methodname' => 'cursive_reports_func',
-        'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
-        'description' => 'generate Reports for download',
-        'type' => 'write',
-        'ajax' => true,
-        'capabilities' => 'tiny/cursive:write',
     ],
     'cursive_approve_token' => [
         'classname' => 'cursive_json_func_data',
@@ -222,7 +204,31 @@ $functions = [
         'description' => 'get user configuration',
         'type' => 'read',
         'ajax' => true,
-        'capabilities' => 'tiny/cursive:editsettings',
+        'capabilities' => 'tiny/cursive:view',
+    ], 'cursive_get_lesson_submission_data' => [
+        'classname' => 'cursive_json_func_data',
+        'methodname' => 'get_lesson_submission_data',
+        'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
+        'description' => 'get lesson data',
+        'type' => 'read',
+        'ajax' => true,
+        'capabilities' => 'tiny/cursive:view',
+    ], 'cursive_disable_all_course' => [
+        'classname' => 'cursive_json_func_data',
+        'methodname' => 'disable_cursive',
+        'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
+        'description' => 'disable cursive for all courses',
+        'type' => 'read',
+        'ajax' => true,
+        'capabilities' => 'tiny/cursive:view',
+    ], 'cursive_get_oublog_submission_data' => [
+        'classname' => 'cursive_json_func_data',
+        'methodname' => 'get_oublog_submission_data',
+        'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
+        'description' => 'get oublog data',
+        'type' => 'read',
+        'ajax' => true,
+        'capabilities' => 'tiny/cursive:view',
     ],
 ];
 
@@ -232,8 +238,6 @@ $functions = [
 $services = [
     'Cursive Json Service' => [
         'functions' => [
-            'cursive_json',
-            'cursive_reports',
             'cursive_get_quizlist',
             'cursive_get_module_list',
             'cursive_user_comments',

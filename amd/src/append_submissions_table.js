@@ -82,9 +82,9 @@ define([
                         '<i class="icon fa fa-minus fa-fw " aria-hidden="true"></i></div></th>');
                     $('tbody').find("tr").get().forEach(function(tr) {
                         let tdUser = $(tr).find("td").get()[0];
-                        let userid = $(tdUser).find("input[type='checkbox']").get()[0].value;
+                        let userid = $(tdUser).find("input[type='checkbox']")?.get()[0]?.value;
                         let cmid = parm.searchParams.get('id');
-                        // Create the table cell element and append the anchor
+                        // Create the table cell element and append the anchor.
                         const tableCell = document.createElement('td');
                         tableCell.appendChild(analyticButton(userid));
                         $(tr).find('td').eq(3).after(tableCell);

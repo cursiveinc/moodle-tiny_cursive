@@ -14,10 +14,12 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * TODO describe module analytic_events
+ * Module for handling analytics events in the Tiny Cursive plugin.
+ * Provides functionality for displaying analytics data, replaying writing,
+ * checking differences and showing quality metrics.
  *
  * @module     tiny_cursive/analytic_events
- * @copyright  2024 CTI <your@email.com>
+ * @copyright  2024 CTI <info@cursivetechnology.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -26,6 +28,7 @@ import {call as getContent} from "core/ajax";
 import $ from 'jquery';
 import * as Str from 'core/str';
 import Chart from 'core/chartjs';
+
 export default class AnalyticEvents {
 
     createModal(userid, context, questionid = '', authIcon) {
@@ -34,11 +37,11 @@ export default class AnalyticEvents {
 
             // Create Moodle modal
             myModal.create({templateContext: context}).then(modal => {
-                $('#content' + userid + ' .table tbody tr:first-child td:nth-child(2)').html(authIcon);
+                $('#content' + userid + ' .tiny_cursive_table  tbody tr:first-child td:nth-child(2)').html(authIcon);
                 modal.show();
                 return true;
             }).catch(error => {
-                window.window.console.error("Failed to create modal:", error);
+                window.console.error("Failed to create modal:", error);
             });
         });
     }
@@ -58,7 +61,7 @@ export default class AnalyticEvents {
 
             templates.render('tiny_cursive/analytics_table', context).then(function(html) {
                 $('#content' + userid).html(html);
-                $('#content' + userid + ' .table tbody tr:first-child td:nth-child(2)').html(authIcon);
+                $('#content' + userid + ' .tiny_cursive_table  tbody tr:first-child td:nth-child(2)').html(authIcon);
                 return true;
             }).fail(function(error) {
                 window.console.error("Failed to render template:", error);
@@ -68,12 +71,11 @@ export default class AnalyticEvents {
 
     checkDiff(userid, fileid, questionid = '', replayInstances = null) {
         const nodata = document.createElement('p');
-        nodata.classList.add('text-center', 'p-5', 'bg-light', 'rounded', 'm-5', 'text-primary');
-        nodata.style.verticalAlign = 'middle';
-        nodata.style.textTransform = 'uppercase';
-        nodata.style.fontWeight = '500';
-        nodata.textContent = "no data received yet";
-
+        nodata.classList.add('tiny_cursive_nopayload', 'bg-light');
+        Str.get_string('nopaylod', 'tiny_cursive').then(str => {
+            nodata.textContent = str;
+            return true;
+        }).catch(error => window.console.log(error));
         $('body').on('click', '#diff' + userid + questionid, function(e) {
             $('#rep' + userid + questionid).prop('disabled', false);
             $('#quality' + userid + questionid).prop('disabled', false);
@@ -97,30 +99,35 @@ export default class AnalyticEvents {
                 if (responsedata) {
                     let submittedText = atob(responsedata.submitted_text);
 
-                    // Fetch the dynamic strings
+                    // Fetch the dynamic strings.
                     Str.get_strings([
-                        { key: 'original_text', component: 'tiny_cursive' },
-                        { key: 'editspastesai', component: 'tiny_cursive' }
+                        {key: 'original_text', component: 'tiny_cursive'},
+                        {key: 'editspastesai', component: 'tiny_cursive'}
                     ]).done(strings => {
                         const originalTextString = strings[0];
                         const editsPastesAIString = strings[1];
 
                         const commentBox = $('<div class="p-2 border rounded mb-2">');
                         var pasteCountDiv = $('<div></div>');
-                        pasteCountDiv.append('<div><strong>Paste Count :</strong> ' + responsedata.commentscount + '</div>');
-                    
+                        Str.get_string('pastecount', 'tiny_cursive').then(str => {
+                            pasteCountDiv.append('<div><strong>' + str + ' :</strong> ' + responsedata.commentscount + '</div>');
+                            return true;
+                        }).catch(error => window.console.log(error));
+
                         var commentsDiv = $('<div class="border-bottom"></div>');
-                        commentsDiv.append('<strong>Comments :</strong>');
-                    
+                        Str.get_string('comments', 'tiny_cursive').then(str => {
+                            commentsDiv.append('<strong>' + str + '</strong>');
+                            return true;
+                        }).catch(error => window.console.error(error));
+
                         var commentsList = $('<div></div>');
-                    
+
                         let comments = responsedata.comments;
                         for (let index in comments) {
                             var commentDiv = $('<div class="shadow-sm p-1 my-1"></div>').text(comments[index].usercomment);
                             commentsList.append(commentDiv);
                         }
                         commentBox.append(pasteCountDiv).append(commentsDiv).append(commentsList);
-                        
 
                         const $legend = $('<div class="d-flex p-2 border rounded mb-2">');
 
@@ -144,8 +151,8 @@ export default class AnalyticEvents {
                             $('<div>').attr('id', 'tiny_cursive-reconstructed_text').html(JSON.parse(submittedText))
                         );
 
-                        contents.append(commentBox,$legend, textBlock2);
-                        $('#content' + userid).html(contents); // Update content
+                        contents.append(commentBox, $legend, textBlock2);
+                        $('#content' + userid).html(contents); // Update content.
                     }).fail(error => {
                         window.console.error("Failed to load language strings:", error);
                         $('#content' + userid).html(nodata);
@@ -189,7 +196,10 @@ export default class AnalyticEvents {
         nodata.style.verticalAlign = 'middle';
         nodata.style.textTransform = 'uppercase';
         nodata.style.fontWeight = '500';
-        nodata.textContent = "no data received yet";
+        Str.get_string('nopaylod', 'tiny_cursive').then(str => {
+            nodata.textContent = str;
+            return true;
+        }).catch(error => window.console.error(error));
 
         $('body').on('click', '#quality' + userid + questionid, function(e) {
 
@@ -243,7 +253,7 @@ export default class AnalyticEvents {
                             if (!metricsData) {
                                 $('#content' + userid).html(nodata);
                             }
-                            //  metricsData.p_burst_cnt,'P-burst Count', metricsData.total_active_time, 'Total Active Time',
+                            //  MetricsData.p_burst_cnt,'P-burst Count', metricsData.total_active_time, 'Total Active Time',
                             var originalData = [
                                 metricsData.word_len_mean, metricsData.edits, metricsData.p_burst_mean,
                                 metricsData.q_count, metricsData.sentence_count,

@@ -29,7 +29,7 @@
 class tiny_cursive_renderer extends plugin_renderer_base {
 
     /**
-     * Generates a timer report table with user attempt data
+     * Generates a timer report table with user attempt data.
      *
      * @param array $users Array containing user attempt data and count
      * @param int $courseid ID of the course
@@ -48,11 +48,11 @@ class tiny_cursive_renderer extends plugin_renderer_base {
         $data = $users['data'];
 
         $table = new html_table();
-        $table->attributes['class'] = 'table table-hover shadow mx-2 my-3 rounded overflow-hidden';
+        $table->attributes['class'] = 'table table-hover mx-2 my-3 overflow-hidden';
         $table->attributes['style'] = 'width: 98%;';
         $table->head = [
             get_string('attemptid', 'tiny_cursive'),
-            get_string('fulname', 'tiny_cursive'),
+            get_string('fullname', 'tiny_cursive'),
             get_string('email', 'tiny_cursive'),
             get_string('module_name', 'tiny_cursive'),
             get_string('last_modified', 'tiny_cursive'),
@@ -111,7 +111,7 @@ class tiny_cursive_renderer extends plugin_renderer_base {
      * Generates a user writing report with analytics and download options
      *
      * @param array $users Array containing user attempt data and count
-     * @param object $userprofile User profile data including word count and time stats
+     * @param stdClass $userprofile User profile data including word count and time stats
      * @param int $userid ID of the user
      * @param int $page Current page number for pagination
      * @param int $limit Number of records per page
@@ -168,13 +168,18 @@ class tiny_cursive_renderer extends plugin_renderer_base {
         $allcoursesattributes =
             empty($courseid) ? ['value' => $allcoursesurl, 'selected' => 'selected'] : ['value' => $allcoursesurl];
         if (is_siteadmin($USER->id) || $courseid == '' || !isset($courseid) || $courseid == null) {
-            $options[] = html_writer::tag('option', 'All Courses', $allcoursesattributes);
+            $options[] = html_writer::tag('option', get_string('allcourses', 'tiny_cursive'), $allcoursesattributes);
         }
+
         foreach ($courses as $course) {
-            $courseurl = new moodle_url($baseurl, ['userid' => $userid, 'courseid' => $course->id]);
-            $courseattributes = (isset($courseid) && $courseid == $course->id) ? ['value' => $courseurl, 'selected' => 'selected'] :
-                ['value' => $courseurl];
-            $options[] = html_writer::tag('option', $course->fullname, $courseattributes);
+            $cursive = get_config('tiny_cursive', "cursive-$course->id");
+
+            if ($cursive == '1' || $cursive === false) {
+                $courseurl = new moodle_url($baseurl, ['userid' => $userid, 'courseid' => $course->id]);
+                $courseattributes = (isset($courseid) && $courseid == $course->id) ? ['value' => $courseurl,
+                'selected' => 'selected'] : ['value' => $courseurl];
+                $options[] = html_writer::tag('option', $course->fullname, $courseattributes);
+            }
         }
 
         $select = html_writer::tag('select', implode('', $options), [
@@ -205,7 +210,8 @@ class tiny_cursive_renderer extends plugin_renderer_base {
                 }
             }
 
-            $getmodulename = $cm ? get_coursemodule_from_id($cm->modname, $user->cmid, 0, false, MUST_EXIST) : null;
+            $getmodulename = $cm ? get_coursemodule_from_id($cm->modname,
+            $user->cmid, 0, false, MUST_EXIST) : null;
 
             $filepath = $user->filename;
             $row = [];
@@ -232,14 +238,17 @@ class tiny_cursive_renderer extends plugin_renderer_base {
             );
             $userdata[] = $row;
         }
-
+        $title = $courseid ? get_course($courseid)->fullname : fullname($user);
+        if (has_capability('tiny/cursive:editsettings', context_system::instance())) {
+            $title = fullname($user);
+        }
         echo $this->output->render_from_template(
             'tiny_cursive/writing_report',
             [
                 'total_word' => $userprofile->word_count ?? 0,
                 'total_time' => $totaltime,
                 'avg_min' => $avgwords,
-                'username' => fullname($user),
+                'username' => $title,
                 'userdata' => $userdata,
                 'options' => $select,
             ],

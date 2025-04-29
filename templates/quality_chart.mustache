@@ -17,10 +17,22 @@
 {{!
     @template tiny_cursive/quality_chart
 
-    TODO describe template quality_cart
+    This template displays a quality chart for cursive handwriting features.
+    The chart shows different handwriting features and their corresponding scores.
 
     Example context (json):
     {
+        "userid": "123",
+        "features": [
+            {
+                "name": "Letter Formation",
+                "score": 85
+            },
+            {
+                "name": "Spacing",
+                "score": 75
+            }
+        ]
     }
 }}
 <div class="position-relative">

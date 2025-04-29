@@ -44,12 +44,9 @@ class filter_report_form extends moodleform {
      */
     public function definition() {
         global $DB;
-        $courses = $DB->get_records('course');
-        $options = [];
+        // Get all courses and create options array in one step.
+        $options = $DB->get_records_menu('course', null, '', 'id, fullname');
 
-        foreach ($courses as $course) {
-            $options[$course->id] = $course->fullname;
-        }
         $mform = &$this->_form;
         $mform->addElement('select', 'coursename', get_string('course', 'tiny_cursive'), $options);
         $mform->addRule('coursename', null, 'required', null, 'client');

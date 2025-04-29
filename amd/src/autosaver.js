@@ -15,9 +15,9 @@
 
 /**
  * @module     tiny_cursive/autosaver
- * @category TinyMCE Editor
+ * @category   TinyMCE Editor
  * @copyright  CTI <info@cursivetechnology.com>
- * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
+ * @author     Brain Station 23 <sales@brainstation-23.com>
  */
 
 import {call} from 'core/ajax';
@@ -92,22 +92,39 @@ export const register = (editor, interval, userId) => {
 
             return create({
                 type: 'SAVE_CANCEL',
-                title: `<div><div style='color:dark;font-weight:500;line-height:0.5'>${title}</div><span style='color: gray;font-weight: 400;line-height: 1.2;font-size: 14px;display: inline-block;margin-top: .5rem;'>${titledes}</span></div>`,
+                title: `<div><div style='color:dark;font-weight:500;line-height:0.5'>${title}</div><span style='color:
+                        gray;font-weight: 400;line-height: 1.2;font-size: 14px;display: inline-block;
+                        margin-top: .5rem;'>${titledes}</span></div>`,
                 body: `<textarea  class="form-control inputUrl" value="" id="inputUrl" placeholder="${placeholder}"></textarea>`,
-    
+
                 removeOnClose: true,
             })
                 .done(modal => {
-                    modal.getRoot().append('<style>.close{ display: none ! important; }</style>');
+                    modal.getRoot().append(`
+                        <style>
+                                .close { 
+                                    display: none ! important; 
+                                } 
+                                body.tox-fullscreen .modal-dialog {
+                                    max-width: 500px;
+                                    max-height:300px;
+                                    padding:1rem;
+                                } 
+                                body.tox-fullscreen .modal-dialog .modal-header {
+                                    height: auto;
+                                    padding: 1rem
+                                }
+                         </style>`);
                     modal.show();
                     var lastEvent = '';
                     // eslint-disable-next-line
                     modal.getRoot().on(save, function() {
-                        var number = document.getElementById("inputUrl").value;
+                        var number = document.getElementById("inputUrl").value.trim();
                         if (number === "" || number === null || number === undefined) {
                             editor.execCommand('Undo');
                             // eslint-disable-next-line
-                            alert("You cannot paste text without providing source");
+                            getString('pastewarning', 'tiny_cursive').then(str => alert(str));
+
                         } else {
                             editor.execCommand('Paste');
                         }
@@ -118,18 +135,18 @@ export const register = (editor, interval, userId) => {
                         let editorid = editor?.id;
                         let courseid = M.cfg.courseId;
                         let cmid = M.cfg.contextInstanceId;
-    
+
                         // eslint-disable-next-line
-                        if (ur.includes("attempt.php") || ur.includes("forum") || ur.includes("assign")) { } else {
+                        if (ur.includes("attempt.php") || ur.includes("forum") || ur.includes("assign") || ur.includes("lesson") | ur.includes("oublog")) { } else {
                             return false;
                         }
                         if (ur.includes("forum") && !ur.includes("assign")) {
                             resourceId = parm.searchParams.get('edit');
-                         }
+                        }
                         if (!ur.includes("forum") && !ur.includes("assign")) {
                             resourceId = parm.searchParams.get('attempt');
                         }
-    
+
                         if (resourceId === null) {
                             resourceId = 0;
                         }
@@ -143,10 +160,18 @@ export const register = (editor, interval, userId) => {
                         if (ur.includes("attempt")) {
                             modulename = "quiz";
                         }
+                        if (ur.includes("lesson")) {
+                            modulename = "lesson";
+                            resourceId = cmid;
+                        }
+                        if (ur.includes("oublog")) {
+                            modulename = "oublog";
+                            resourceId = 0;
+                        }
                         if (cmid === null) {
                             cmid = 0;
                         }
-    
+
                         postOne('cursive_user_comments', {
                             modulename: modulename,
                             cmid: cmid,
@@ -160,7 +185,7 @@ export const register = (editor, interval, userId) => {
                         modal.destroy();
                     });
                     modal.getRoot().on(cancel, function() {
-    
+
                         editor.execCommand('Undo');
                         lastEvent = 'cancel';
                     });
@@ -171,8 +196,8 @@ export const register = (editor, interval, userId) => {
                     });
                     return modal;
                 });
-        });
-        
+        }).catch(error => window.console.error(error));
+
     };
     // eslint-disable-next-line
     const sendKeyEvent = (events, eds) => {
@@ -181,18 +206,17 @@ export const register = (editor, interval, userId) => {
         ed = eds;
         event = events;
         // eslint-disable-next-line
-        if (ur.includes("attempt.php") || ur.includes("forum") || ur.includes("assign")) { } else {
+        if (ur.includes("attempt.php") || ur.includes("forum") || ur.includes("assign") || ur.includes('lesson') || ur.includes("oublog")) { } else {
             return false;
         }
-        // eslint-disable-next-line
+
         if (ur.includes("forum") && !ur.includes("assign")) {
-           resourceId = parm.searchParams.get('edit');
+            resourceId = parm.searchParams.get('edit');
         } else {
 
             resourceId = parm.searchParams.get('attempt');
         }
         if (resourceId === null) {
-
             resourceId = 0;
         }
 
@@ -205,6 +229,14 @@ export const register = (editor, interval, userId) => {
         }
         if (ur.includes("attempt")) {
             modulename = "quiz";
+        }
+        if (ur.includes("lesson")) {
+            modulename = "lesson";
+            resourceId = cmid;
+        }
+        if (ur.includes("oublog")) {
+            modulename = "oublog";
+            resourceId = 0;
         }
 
         filename = `${userid}_${resourceId}_${cmid}_${modulename}_attempt`;
@@ -263,6 +295,7 @@ export const register = (editor, interval, userId) => {
     });
     // eslint-disable-next-line
     editor.on('init', () => {
+
     });
 
     /**
@@ -281,6 +314,7 @@ export const register = (editor, interval, userId) => {
             return;
         } else {
             localStorage.removeItem(filename);
+            let originalText = editor.getContent({format: 'text'});
             try {
                 // eslint-disable-next-line
                 return await postOne('cursive_write_local_to_json', {
@@ -292,6 +326,7 @@ export const register = (editor, interval, userId) => {
                     modulename: modulename,
                     editorid: editorid,
                     "json_data": data,
+                    originalText: originalText
                 });
             } catch (error) {
                 window.console.error('Error submitting data:', error);

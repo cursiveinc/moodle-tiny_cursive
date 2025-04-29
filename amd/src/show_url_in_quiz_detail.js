@@ -98,13 +98,17 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
                             + data.data.questionid + '"]');
                         if (data.usercomment != 'comments' && parseInt(showcomment)) {
                             content.parent().parent().parent().find('.qtext').append('<div class="mb-2">');
-                            var tt = '<h4>References</h4><div class = "tiny_cursive-quiz-references rounded" >';
-                            data.usercomment.forEach(element => {
-                                tt += '<div class = "text-primary p-3" style="border-bottom:1px solid rgba(0, 0, 0, 0.1)">'
-                                    + element.usercomment + '</div>';
-                            });
+                            var tt = "";
+                            // eslint-disable-next-line
+                            str.get_string('refer', 'tiny_cursive').then(str => {
+                                tt += '<h4>' + str + '</h4><div class = "tiny_cursive-quiz-references rounded" >';
 
-                            content.parent().parent().parent().find('.qtext').append(tt + '</div></div>');
+                                data.usercomment.forEach(element => {
+                                    tt += '<div class = " p-3" style="border-bottom:1px solid rgba(0, 0, 0, 0.1); color: #0f6cbf">'
+                                        + element.usercomment + '</div>';
+                                });
+                                content.parent().parent().parent().find('.qtext').append(tt + '</div></div>');
+                            }).catch(error => window.console.error(error));
                         }
                         var filepath = '';
                         if (data.data.filename) {

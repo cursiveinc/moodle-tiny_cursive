@@ -83,12 +83,13 @@ function tiny_cursive_pluginfile($context, $filearea, $args, $forcedownload, arr
  * @throws moodle_exception
  */
 function tiny_cursive_extend_navigation_course(\navigation_node $navigation, \stdClass $course) {
-    global $CFG, $USER, $DB;
+    global $CFG;
     require_once(__DIR__ . "/locallib.php");
 
     $url = new moodle_url($CFG->wwwroot . '/lib/editor/tiny/plugins/cursive/tiny_cursive_report.php', ['courseid' => $course->id]);
     $cmid = tiny_cursive_get_cmid($course->id);
-    if ($cmid && get_config('tiny_cursive', "cursive-$course->id")) {
+    $cursive = tiny_cursive_status($course->id);
+    if ($cmid && $cursive) {
         $context = context_module::instance($cmid);
         $hascap = has_capability("tiny/cursive:editsettings", $context);
         if ($hascap) {
@@ -145,14 +146,15 @@ function tiny_cursive_myprofile_navigation(core_user\output\myprofile\tree $tree
         '/lib/editor/tiny/plugins/cursive/my_writing_report.php',
         ['id' => $user->id, 'course' => isset($course->id) ? $course->id : "", 'mode' => 'cursive']
     );
-    $node = new core_user\output\myprofile\node('reports', 'cursive', get_string('writing', 'tiny_cursive'), null, $url);
+    $node = new core_user\output\myprofile\node('reports', 'cursive',
+    get_string('student_writing_statics', 'tiny_cursive'), null, $url);
     $tree->add_node($node);
 }
 
 /**
  * Uploads a file record using multipart form data
  *
- * @param object $filerecord The file record object containing metadata
+ * @param stdClass $filerecord The file record object containing metadata
  * @param string $filenamewithfullpath Full path to the file to upload
  * @param string $wstoken Web service token for authentication
  * @param string $answertext Original submission text
@@ -174,7 +176,7 @@ function tiny_cursive_upload_multipart_record($filerecord, $filenamewithfullpath
         $jsoncontent = json_decode($filerecord->content, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new Exception("Invalid JSON content in file.");
+            throw new moodle_exception('invalidjson', 'tiny_cursive');
         }
             file_put_contents($tempfilepath, json_encode($jsoncontent));
             $filetosend = new CURLFILE($tempfilepath, 'application/json', 'uploaded.json');
@@ -182,7 +184,7 @@ function tiny_cursive_upload_multipart_record($filerecord, $filenamewithfullpath
             // Ensure the temporary file does not exceed the size limit.
         if (filesize($tempfilepath) > 16 * 1024 * 1024) {
             unlink($tempfilepath);
-            throw new Exception("File exceeds the 16MB size limit.");
+            throw new moodle_exception('filesizelimit', 'tiny_cursive');
         }
 
         echo $remoteurl;
@@ -222,7 +224,7 @@ function tiny_cursive_upload_multipart_record($filerecord, $filenamewithfullpath
         if (isset($tempfilepath) && file_exists($tempfilepath)) {
             unlink($tempfilepath);
         }
-    } catch (Exception $e) {
+    } catch (moodle_exception $e) {
         echo $e->getMessage();
     }
 
@@ -263,96 +265,61 @@ function tiny_cursive_file_urlcreate($context, $user) {
 }
 
 /**
- * Gets the essay quiz responses for a specific user
+ * Get the status of tiny_cursive for a specific course
  *
- * @param int $userid The ID of the user
- * @param int $courseid The ID of the course
- * @param int $resourceid The ID of the quiz attempt
- * @param string $modulename The name of the module ('quiz')
- * @param int $cmid The course module ID
- * @param int $questionid The ID of the essay question
- * @return string The response summary text for the essay question
+ * @param int $courseid The ID of the course to check
+ * @return bool Returns true if tiny_cursive is enabled for the course, false otherwise
+ * @throws dml_exception
  */
-function tiny_cursive_get_user_essay_quiz_responses($userid, $courseid, $resourceid, $modulename, $cmid, $questionid) {
-    global $DB;
-    $sql = "SELECT q.name AS question_name, qna.questionsummary, qna.responsesummary
-              FROM {question_attempt_steps} qas
-              JOIN {question_attempts} qna ON qas.questionattemptid = qna.id
-              JOIN {quiz_attempts} qa ON qna.questionusageid = qa.uniqueid
-              JOIN {quiz} qz ON qa.quiz = qz.id
-              JOIN {question} q ON qna.questionid = q.id
-              JOIN {course_modules} cm ON qz.id = cm.instance AND cm.module = (
-                   SELECT id FROM {modules} WHERE name = 'quiz')
-             WHERE qa.userid = :userid
-                   AND qz.course = :courseid
-                   AND qa.id = :resourceid
-                   AND cm.id = :cmid
-                   AND q.id = :questionid
-                   AND q.qtype = 'essay'
-                   AND qas.state = 'complete'
-          ORDER BY qa.attempt, qna.id, qas.sequencenumber";
+function tiny_cursive_status($courseid) {
 
-    $result = $DB->get_record_sql(
-        $sql,
-        [
-            'userid' => $userid,
-            'courseid' => $courseid,
-            'resourceid' => $resourceid,
-            'modulename' => $modulename,
-            'cmid' => $cmid,
-            'questionid' => $questionid,
-        ]
-    );
-    return $result->responsesummary ?? "";
+    return get_config('tiny_cursive', "cursive-$courseid");
+
 }
 
 /**
- * Gets the online text submissions for a specific assignment
+ * Verifies a token by sending it to a remote server for approval
  *
- * @param int $userid The ID of the user
- * @param int $courseid The ID of the course
- * @param string $modulename The name of the module ('assign')
- * @param int $cmid The course module ID
- * @return string The online text submission content
+ * @param string $token The authentication token to verify
+ * @param string $moodleurl The URL of the Moodle installation
+ * @param string $remoteurl The URL of the remote verification server
+ * @return string The response from the remote server
+ * @throws moodle_exception If token verification fails
  */
-function tiny_cursive_get_user_onlinetext_assignments($userid, $courseid, $modulename, $cmid) {
-    global $DB;
+function cursive_approve_token($token, $moodleurl, $remoteurl) {
+    try {
+        // Use Moodle's cURL library.
+        $curl = new curl();
+        $options = [
+            'CURLOPT_RETURNTRANSFER' => true,
+            'CURLOPT_HTTPHEADER' => [
+                'Authorization: Bearer ' . $token,
+                'X-Moodle-Url: ' . $moodleurl,
+                'Content-Type: multipart/form-data',
+                'Accept: application/json',
+            ],
+        ];
 
-    $sql = "SELECT cm.instance as assignmentid, ontext.onlinetext, :modulename AS modulename
-              FROM {assign_submission} asub
-              JOIN {assign} a ON asub.assignment = a.id
-              JOIN {assignsubmission_onlinetext} ontext ON asub.id = ontext.submission
-              JOIN {course_modules} cm ON a.id = cm.instance AND cm.module = (
-                   SELECT id FROM {modules} WHERE name = 'assign')
-             WHERE asub.userid = :userid
-                   AND a.course = :courseid
-                   AND asub.status = 'submitted'
-                   AND cm.id = :cmid";
+        // Prepare POST fields.
+        $postfields = [
+            'token' => $token,
+            'moodle_url' => $moodleurl,
+        ];
 
-    $result =
-        $DB->get_record_sql($sql, ['userid' => $userid, 'courseid' => $courseid, 'modulename' => $modulename, 'cmid' => $cmid]);
-    return $result->onlinetext ?? "";
-}
+        // Execute the request.
+        $result = $curl->post($remoteurl, $postfields, $options);
 
-/**
- * Gets forum posts for a specific user
- *
- * @param int $userid The ID of the user
- * @param int $courseid The ID of the course
- * @param int $resourceid The ID of the forum post
- * @return string The message content of the forum post
- */
-function tiny_cursive_get_user_forum_posts($userid, $courseid, $resourceid) {
-    global $DB;
+        // Check for cURL errors.
+        if ($result === false) {
+            throw new moodle_exception('curlerror', 'tiny_cursive', '', null, $curl->error);
+        }
+    } catch (moodle_exception $e) {
+        // Log the exception.
+        debugging("Error in cursive_approve_token_func: " . $e->getMessage());
 
-    $sql = "SELECT fp.id AS postid, fp.subject, fp.message
-              FROM {forum_posts} fp
-              JOIN {forum_discussions} fd ON fp.discussion = fd.id
-              JOIN {forum} f ON fd.forum = f.id
-             WHERE fp.userid = :userid
-                   AND fd.course = :courseid
-                   AND fp.id = :resourceid";
-    $result = $DB->get_record_sql($sql, ['userid' => $userid, 'courseid' => $courseid, 'resourceid' => $resourceid]);
+        // Return a Moodle exception.
+        throw new moodle_exception('errorverifyingtoken', 'tiny_cursive', '', null, $e->getMessage());
+    }
 
-    return $result->message ?? "";
+    return $result;
 }

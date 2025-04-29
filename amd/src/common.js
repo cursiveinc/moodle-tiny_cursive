@@ -15,9 +15,9 @@
 
 /**
  * @module     tiny_cursive/common
- * @category TinyMCE Editor
- * @copyright  CTI <info@cursivetechnology.com>
- * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
+ * @category   TinyMCE Editor
+ * @copyright  2025 CTI <info@cursivetechnology.com>
+ * @author     Brain Station 23 <sales@brainstation-23.com>
  */
 
 

@@ -2,10 +2,13 @@
 
 .tiny_cursive-analytics-btn {
     background-color: #306ab3;
-    color: white;
     border-radius: 8vw;
     /* stylelint-disable-next-line declaration-no-important */
     text-decoration: none !important;
+    display: inline-flex;
+    align-items: center;
+    /* stylelint-disable-next-line declaration-no-important */
+    color: white !important;
 }
 
 .tiny_cursive-analytics-btn:hover {
@@ -27,6 +30,56 @@
     margin: 3px;
 }
 
+.tiny_cursive-analytics-icon svg {
+    vertical-align: middle;
+}
+
+.tiny_cursive_table {
+    width: 100%;
+    margin-bottom: 1rem;
+    color: #212529;
+    border-collapse: collapse;
+}
+
+.tiny_cursive_table th,
+.tiny_cursive_table td {
+    padding: 0.75rem;
+    vertical-align: top;
+    border-top: 1px solid #dee2e6;
+}
+
+.tiny_cursive_table thead th {
+    vertical-align: bottom;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.tiny_cursive_table tbody + tbody {
+    border-top: 2px solid #dee2e6;
+}
+
+.tiny_cursive_table-borderless th,
+.tiny_cursive_table-borderless td,
+.tiny_cursive_table-borderless thead th,
+.tiny_cursive_table-borderless tbody + tbody {
+    border: 0;
+}
+
+.tiny_cursive_table-responsive {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 575.98px) {
+    .tiny_cursive_table-responsive {
+        display: block;
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
 
 .tiny_cursive-analytics-header {
     display: flex;
@@ -39,6 +92,9 @@
 .tiny_cursive-analytics-header h3 {
     margin: 0;
     color: #306bb2;
+    display: flex;
+    gap: .5rem;
+    align-items: center;
 }
 
 .tiny_cursive-analytics-header .close-btn {
@@ -52,6 +108,8 @@
     padding: .25rem .7rem;
     transition: .3s ease-in-out;
     background-color: #ff3737;
+    color: white;
+    font-weight: 700;
 }
 
 .tiny_cursive-analytics-header .close-btn:hover span {
@@ -70,6 +128,8 @@
     font-weight: 600;
     font-size: 1rem;
     padding: .8rem 1rem;
+    display: flex;
+    gap: .5rem;
 }
 
 .tiny_cursive-nav-tab .tiny_cursive-nav-item .nav-link svg {
@@ -137,7 +197,7 @@
     height: 100%;
 }
 
-.tiny_cursive .table tr td:nth-child(1) {
+.tiny_cursive .tiny_cursive_table tr td:nth-child(1) {
     display: inline-flex;
     gap: .5rem;
 }
@@ -148,42 +208,42 @@
     border-radius: 30px;
 }
 
-.tiny_cursive .table tbody {
+.tiny_cursive .tiny_cursive_table tbody {
     width: 100%;
 }
 
-.tiny_cursive .table tr {
+.tiny_cursive .tiny_cursive_table tr {
     border-bottom: 1px solid #f3f3f3;
     /* width: 100% !important; */
 }
 
-.tiny_cursive .table td:first-child {
+.tiny_cursive .tiny_cursive_table td:first-child {
     font-size: 1rem;
     font-weight: 600;
 }
 
-.tiny_cursive .table td:last-child {
+.tiny_cursive .tiny_cursive_table td:last-child {
     color: #306ab3;
     font-size: 1rem;
     font-weight: 500;
 }
 
-.tiny_cursive .table tr td svg {
+.tiny_cursive .tiny_cursive_table tr td svg {
     fill: gray;
     width: 30px;
     height: auto;
 }
 
-.tiny_cursive .table tr:first-child td svg {
-    width: 22px;
+.tiny_cursive .tiny_cursive_table tr:first-child td svg {
+    width: 30px;
     height: 30px;
 }
 
-.tiny_cursive .table tr td:nth-child(1) {
+.tiny_cursive .tiny_cursive_table tr td:nth-child(1) {
     font-size: 1.18rem;
 }
 
-.tiny_cursive .table tr td:nth-child(1) p {
+.tiny_cursive .tiny_cursive_table tr td:nth-child(1) p {
     font-size: 14px;
     color: gray;
     width: 190px;
@@ -192,7 +252,7 @@
     text-wrap: wrap;
 }
 
-.tiny_cursive .table tr td:nth-child(even) {
+.tiny_cursive .tiny_cursive_table tr td:nth-child(even) {
     font-size: 1.1rem;
 }
 
@@ -353,8 +413,8 @@
 }
 
 .tiny_cursive_added {
-    background-color: #7ad957;
-    color: #22543d;
+    background-color: #fff2cc;
+    color: rgb(0, 41, 0);
     font-weight: bold;
     padding: 2px 4px;
     border-radius: 4px;
@@ -406,19 +466,30 @@
     max-height: 200px;
     /* stylelint-disable-next-line declaration-no-important */
     overflow-y: auto !important;
-    margin: 2rem 0;
 }
 
 .tiny_cursive_nosub {
     vertical-align: middle;
     text-transform: uppercase;
+    text-align: center;
     font-weight: 500;
+    padding: 3rem;
+    margin: 2rem;
+    color: #306ab3;
+    font-size: 1.2rem;
+    border-radius: .5rem;
 }
 
 .tiny_cursive_nopayload {
     vertical-align: middle;
+    text-align: center;
     text-transform: uppercase;
     font-weight: 500;
+    padding: 3rem;
+    margin: 2rem;
+    color: #306ab3;
+    font-size: 1.2rem;
+    border-radius: .5rem;
 }
 
 /* Mobile Responsive */
@@ -521,12 +592,14 @@
     text-align: center;
     color: #306ab3;
 }
+
 .tiny_cursive-writing-report-body {
     padding: 20px;
     max-width: 1200px;
     margin: 20px auto;
     color: #333;
 }
+
 .tiny_cursive-writing-report select {
     font-size: 16px;
 }
@@ -553,6 +626,7 @@
     padding: 12px;
     border-bottom: 1px solid #ccc;
 }
+
 .tiny_cursive-writing-report table tr:nth-child(even) {
     background: #f9f9f9;
 }
@@ -592,4 +666,11 @@
 .tiny_cursive-writing-report .download-btn:hover {
     background: #1e7a34;
     transform: scale(1.05);
+}
+
+.tiny_cursive_chartIcon {
+    /* Font-size: 36px; */
+    color: black;
+    padding-left: 25px;
+    font-size: x-large;
 }

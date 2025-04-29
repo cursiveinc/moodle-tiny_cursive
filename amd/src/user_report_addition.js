@@ -14,7 +14,8 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * TODO describe module user_report_addition
+ * Module to handle user report additions in the Tiny editor.
+ * This module manages the display of course information in the report interface.
  *
  * @module     tiny_cursive/user_report_addition
  * @copyright  2024 CTI <your@email.com>

@@ -15,9 +15,9 @@
 
 /**
  * @module     tiny_cursive/plugin
- * @category TinyMCE Editor
- * @copyright  CTI <info@cursivetechnology.com>
- * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
+ * @category   TinyMCE Editor
+ * @copyright  2025 CTI <info@cursivetechnology.com>
+ * @author     Brain Station 23 <sales@brainstation-23.com>
  */
 
 import {getTinyMCE} from 'editor_tiny/loader';
@@ -25,12 +25,15 @@ import {getPluginMetadata} from 'editor_tiny/utils';
 import {component, pluginName} from './common';
 import * as Autosaver from './autosaver';
 import getConfig from 'core/ajax';
+
 export default new Promise((resolve, reject) => {
     const page = [
         'page-mod-assign-editsubmission',
         'page-mod-quiz-attempt',
         'page-mod-forum-view',
-        'page-mod-forum-post'];
+        'page-mod-forum-post',
+        'page-mod-lesson-view',
+        'page-mod-oublog-editpost'];
 
     Promise.all([
         getTinyMCE(),
@@ -44,6 +47,7 @@ export default new Promise((resolve, reject) => {
                     args: {courseid: M.cfg.courseId, cmid: M.cfg.contextInstanceId}
                 }])[0].done((data) => {
                     if (data.status && page.includes(document.body.id)) {
+
                         Autosaver.register(editor, data.sync_interval, data.userid);
                     }
                 }).fail((error) => {
@@ -52,8 +56,7 @@ export default new Promise((resolve, reject) => {
 
                 return pluginMetadata;
             });
-            resolve(pluginName);
-            return true;
+            return resolve(pluginName);
         })
         .catch((error) => {
             reject(error);
