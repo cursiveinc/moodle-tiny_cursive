@@ -264,7 +264,7 @@ function tiny_cursive_get_user_submissions_data($userid, $modulename, $cmid, $co
         $sql .= " AND uf.courseid = :courseid";
         $params['courseid'] = $courseid;
     }
-    if($oublogpostid != 0) {
+    if ($oublogpostid != 0) {
         $sql .= " AND uf.resourceid = :oublogid";
         $params['oublogid'] = $oublogpostid;
     }
@@ -288,7 +288,7 @@ function tiny_cursive_get_user_submissions_data($userid, $modulename, $cmid, $co
                        AND cmid = :cmid
                        AND modulename = :modulename';
 
-        if($oublogpostid != 0) {
+        if ($oublogpostid != 0) {
             $sql .= " AND resourceid = :oublogid";
             $params['oublogid'] = $oublogpostid;
         }

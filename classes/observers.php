@@ -236,8 +236,8 @@ class observers {
      * @return string The module name extracted from the component
      */
     public static function get_modules_name($eventdata) {
-        // Use array destructuring to get module name directly from component
+        // Use array destructuring to get module name directly from component.
         [, $modulename] = explode('_', $eventdata['component'], 2);
         return $modulename;
-    } 
+    }
 }

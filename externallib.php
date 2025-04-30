@@ -2250,7 +2250,8 @@ class cursive_json_func_data extends external_api {
             self::validate_context($context);
             require_capability("tiny/cursive:view", $context);
 
-            $rec = tiny_cursive_get_user_submissions_data($params['id'], $params['modulename'], $params['cmid'], 0,$params['resourceid']);
+            $rec = tiny_cursive_get_user_submissions_data($params['id'], $params['modulename'],
+             $params['cmid'], 0, $params['resourceid']);
 
             return json_encode($rec);
     }
