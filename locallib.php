@@ -65,6 +65,7 @@
                    uw.copy_behavior AS copy_behavior
               FROM {tiny_cursive_files} uf
               JOIN {user} u ON uf.userid = u.id
+              JOIN {course} c ON c.id = uf.courseid AND c.visible = 1
          LEFT JOIN {tiny_cursive_user_writing} uw ON uw.file_id = uf.id
              WHERE uf.userid <> :userid1";
 

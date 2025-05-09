@@ -151,7 +151,7 @@ class tiny_cursive_renderer extends plugin_renderer_base {
                   JOIN {enrol} en ON en.courseid = c.id
                   JOIN {user_enrolments} ue ON ue.enrolid = en.id
                   JOIN {user} u ON u.id = ue.userid
-                 WHERE ue.userid = :userid";
+                 WHERE ue.userid = :userid AND c.visible = 1";
 
         if (is_siteadmin($USER->id)) {
             $courses = $DB->get_records_sql($sql, ['userid' => $userid]);

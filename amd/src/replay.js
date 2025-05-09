@@ -63,8 +63,9 @@ export default class Replay {
                     .then(function(results) {
                         var html = results[0];
                         var str = results[1];
-                        var updatedHtml = html.replace('No Submission', str);
-                        $('.tiny_cursive').html(updatedHtml);
+                        var newElement = $(html);
+                        newElement.text(str);
+                        $('.tiny_cursive').html(newElement);
                         return true;
                     })
                     .catch(function(error) {
@@ -87,8 +88,9 @@ export default class Replay {
                 .then(function(results) {
                     var html = results[0];
                     var str = results[1];
-                    var updatedHtml = html.replace('No Submission', str);
-                    $('.tiny_cursive').html(updatedHtml);
+                    var newElement = $(html);
+                    newElement.text(str);
+                    $('.tiny_cursive').html(newElement);
                     return true;
                 })
                 .catch(function(error) {

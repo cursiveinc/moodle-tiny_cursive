@@ -143,6 +143,10 @@ class hook_callbacks {
     public static function after_form_definition(after_form_definition $hook) {
         global $COURSE;
 
+        if (get_config('tiny_cursive', 'disabled')) {
+            return;
+        }
+
         $mform = $hook->mform;
         $mform->addElement('header', 'Cursive', get_string('pluginname', 'tiny_cursive'), [], [
             'collapsed' => false,

@@ -142,6 +142,10 @@ function tiny_cursive_myprofile_navigation(core_user\output\myprofile\tree $tree
         return;
     }
 
+    if (get_config('tiny_cursive', 'disabled')) {
+        return;
+    }
+
     $url = new moodle_url(
         '/lib/editor/tiny/plugins/cursive/my_writing_report.php',
         ['id' => $user->id, 'course' => isset($course->id) ? $course->id : "", 'mode' => 'cursive']
@@ -271,8 +275,10 @@ function tiny_cursive_file_urlcreate($context, $user) {
  * @return bool Returns true if tiny_cursive is enabled for the course, false otherwise
  * @throws dml_exception
  */
-function tiny_cursive_status($courseid) {
-
+function tiny_cursive_status($courseid = 0) {
+    if (get_config('tiny_cursive', 'disabled')) {
+        return false;
+    }
     return get_config('tiny_cursive', "cursive-$courseid");
 
 }
