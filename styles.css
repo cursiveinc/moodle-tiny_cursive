@@ -57,6 +57,7 @@
     border-top: 2px solid #dee2e6;
 }
 
+.tiny_cursive_table-borderless,
 .tiny_cursive_table-borderless th,
 .tiny_cursive_table-borderless td,
 .tiny_cursive_table-borderless thead th,
@@ -155,7 +156,7 @@
     margin: 0 .5rem 1rem 0;
     border-radius: .2rem .2rem 1.1rem 1.1rem;
     padding: 1.2rem 1rem 1rem 2rem;
-    height: 500px;
+    height: 300px;
     text-align: justify;
     overflow: auto;
 }

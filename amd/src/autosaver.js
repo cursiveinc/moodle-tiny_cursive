@@ -20,10 +20,10 @@
  * @author     Brain Station 23 <sales@brainstation-23.com>
  */
 
-import {call} from 'core/ajax';
-import {create} from 'core/modal_factory';
-import {get_string as getString} from 'core/str';
-import {save, cancel, hidden} from 'core/modal_events';
+import { call } from 'core/ajax';
+import { create } from 'core/modal_factory';
+import { get_string as getString } from 'core/str';
+import { save, cancel, hidden } from 'core/modal_events';
 import jQuery from 'jquery';
 
 export const register = (editor, interval, userId) => {
@@ -44,8 +44,9 @@ export const register = (editor, interval, userId) => {
     var questionid = 0;
     let assignSubmit = jQuery('#id_submitbutton');
     var syncInterval = interval ? interval * 1000 : 10000; // Default: Sync Every 10s.
+    var lastCaretPos = 1;
 
-    const postOne = async(methodname, args) => {
+    const postOne = async (methodname, args) => {
         try {
             const response = await call([{
                 methodname,
@@ -58,7 +59,7 @@ export const register = (editor, interval, userId) => {
         }
     };
 
-    assignSubmit.on('click', async function(e) {
+    assignSubmit.on('click', async function (e) {
         e.preventDefault();
         if (filename) {
             // eslint-disable-next-line
@@ -70,7 +71,7 @@ export const register = (editor, interval, userId) => {
         }
     });
 
-    quizSubmit.on('click', async function(e) {
+    quizSubmit.on('click', async function (e) {
         e.preventDefault();
         if (filename) {
             // eslint-disable-next-line
@@ -88,7 +89,7 @@ export const register = (editor, interval, userId) => {
             getString('tiny_cursive_srcurl', 'tiny_cursive'),
             getString('tiny_cursive_srcurl_des', 'tiny_cursive'),
             getString('tiny_cursive_placeholder', 'tiny_cursive')
-        ]).then(function([title, titledes, placeholder]) {
+        ]).then(function ([title, titledes, placeholder]) {
 
             return create({
                 type: 'SAVE_CANCEL',
@@ -118,7 +119,7 @@ export const register = (editor, interval, userId) => {
                     modal.show();
                     var lastEvent = '';
                     // eslint-disable-next-line
-                    modal.getRoot().on(save, function() {
+                    modal.getRoot().on(save, function () {
                         var number = document.getElementById("inputUrl").value.trim();
                         if (number === "" || number === null || number === undefined) {
                             editor.execCommand('Undo');
@@ -184,12 +185,12 @@ export const register = (editor, interval, userId) => {
                         lastEvent = 'save';
                         modal.destroy();
                     });
-                    modal.getRoot().on(cancel, function() {
+                    modal.getRoot().on(cancel, function () {
 
                         editor.execCommand('Undo');
                         lastEvent = 'cancel';
                     });
-                    modal.getRoot().on(hidden, function() {
+                    modal.getRoot().on(hidden, function () {
                         if (lastEvent != 'cancel' && lastEvent != 'save') {
                             editor.execCommand('Undo');
                         }
@@ -206,7 +207,8 @@ export const register = (editor, interval, userId) => {
         ed = eds;
         event = events;
         // eslint-disable-next-line
-        if (ur.includes("attempt.php") || ur.includes("forum") || ur.includes("assign") || ur.includes('lesson') || ur.includes("oublog")) { } else {
+        if (!(ur.includes("attempt.php") || ur.includes("forum") || ur.includes("assign") ||
+         ur.includes('lesson') || ur.includes("oublog"))) {
             return false;
         }
 
@@ -244,11 +246,9 @@ export const register = (editor, interval, userId) => {
         if (modulename === 'quiz') {
             questionid = editorid.split(':')[1].split('_')[0];
             filename = `${userid}_${resourceId}_${cmid}_${questionid}_${modulename}_attempt`;
-
         }
 
         if (localStorage.getItem(filename)) {
-
             let data = JSON.parse(localStorage.getItem(filename));
             data.push({
                 resourceId: resourceId,
@@ -258,12 +258,13 @@ export const register = (editor, interval, userId) => {
                 courseId: courseid,
                 unixTimestamp: Date.now(),
                 clientId: host,
-                personId: userid
+                personId: userid,
+                position: ed.caretPosition,
+                rePosition: ed.rePosition
             });
             localStorage.setItem(filename, JSON.stringify(data));
         } else {
-            let data = [];
-            data.push({
+            let data = [{
                 resourceId: resourceId,
                 key: ed.key,
                 keyCode: ed.keyCode,
@@ -271,32 +272,106 @@ export const register = (editor, interval, userId) => {
                 courseId: courseid,
                 unixTimestamp: Date.now(),
                 clientId: host,
-                personId: userid
-            });
+                personId: userid,
+                position: ed.caretPosition,
+                rePosition: ed.rePosition
+            }];
             localStorage.setItem(filename, JSON.stringify(data));
         }
-
     };
+
     editor.on('keyUp', (editor) => {
+        let position = getCaretPosition(true);
+        editor.caretPosition = position.caretPosition;
+        editor.rePosition = position.rePosition;
         sendKeyEvent("keyUp", editor);
     });
-    editor.on('Paste', async(e) => {
+    editor.on('Paste', async (e) => {
         if (isStudent && intervention) {
             getModal(e);
         }
     });
-    editor.on('Redo', async(e) => {
+    editor.on('Redo', async (e) => {
         if (isStudent && intervention) {
             getModal(e);
         }
     });
     editor.on('keyDown', (editor) => {
+        let position = getCaretPosition();
+        editor.caretPosition = position.caretPosition;
+        editor.rePosition = position.rePosition;
         sendKeyEvent("keyDown", editor);
+    });
+    editor.on('mouseDown', async (editor) => {
+        constructMouseEvent(editor);
+        sendKeyEvent("mouseDown", editor);
+    });
+    editor.on('mouseUp', async (editor) => {
+        constructMouseEvent(editor);
+        sendKeyEvent("mouseUp", editor);
     });
     // eslint-disable-next-line
     editor.on('init', () => {
 
     });
+
+    function constructMouseEvent(editor) {
+        let position = getCaretPosition();
+        editor.caretPosition = position.caretPosition;
+        editor.rePosition = position.rePosition;
+        editor.key = getMouseButton(editor);
+        editor.keyCode = editor.button;
+    }
+
+    function getMouseButton(editor) {
+
+        switch (editor.button) {
+            case 0:
+                return 'left';
+            case 1:
+                return 'middle';
+            case 2:
+                return 'right';
+        }
+    }
+
+    function getCaretPosition(skip = false) {
+        try {
+            if (!editor || !editor.selection) {
+                return { caretPosition: 0, rePosition: 0 };
+            }
+
+            const rng = editor.selection.getRng();
+            const startOffset = rng.startOffset;
+
+            if (skip) {
+                return {
+                    caretPosition: lastCaretPos,
+                    rePosition: startOffset
+                };
+            }
+
+            const storageKey = `${userid}_${resourceId}_${cmid}_position`;
+
+            let storedPos = parseInt(sessionStorage.getItem(storageKey), 10);
+            if (isNaN(storedPos)) {
+                storedPos = 0;
+            }
+
+            storedPos++;
+            lastCaretPos = storedPos;
+
+            sessionStorage.setItem(storageKey, storedPos);
+
+            return {
+                caretPosition: storedPos,
+                rePosition: startOffset
+            };
+        } catch (e) {
+            window.console.warn('Error getting caret position:', e);
+            return { caretPosition: 0, rePosition: 0 };
+        }
+    }
 
     /**
      * Synchronizes data from localStorage to server
@@ -314,7 +389,7 @@ export const register = (editor, interval, userId) => {
             return;
         } else {
             localStorage.removeItem(filename);
-            let originalText = editor.getContent({format: 'text'});
+            let originalText = editor.getContent({ format: 'text' });
             try {
                 // eslint-disable-next-line
                 return await postOne('cursive_write_local_to_json', {

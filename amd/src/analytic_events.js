@@ -50,6 +50,9 @@ export default class AnalyticEvents {
         $('body').on('click', '#analytic' + userid + questionid, function(e) {
             $('#rep' + userid + questionid).prop('disabled', false);
             $('#quality' + userid + questionid).prop('disabled', false);
+            $('#player_' + userid + questionid).css({
+                'display': 'none'
+            });
             e.preventDefault();
             $('#content' + userid).html($('<div>').addClass('d-flex justify-content-center my-5')
                 .append($('<div>').addClass('tiny_cursive-loader')));
@@ -79,6 +82,9 @@ export default class AnalyticEvents {
         $('body').on('click', '#diff' + userid + questionid, function(e) {
             $('#rep' + userid + questionid).prop('disabled', false);
             $('#quality' + userid + questionid).prop('disabled', false);
+            $('#player_' + userid + questionid).css({
+                'display': 'none'
+            });
             e.preventDefault();
             $('#content' + userid).html($('<div>').addClass('d-flex justify-content-center my-5')
                 .append($('<div>').addClass('tiny_cursive-loader')));
@@ -171,6 +177,9 @@ export default class AnalyticEvents {
         $('body').on('click', '#rep' + userid + questionid, function(e) {
             $(this).prop('disabled', true);
             $('#quality' + userid + questionid).prop('disabled', false);
+            $('#player_' + userid + questionid).css({
+                'display': 'block'
+            });
             e.preventDefault();
             $('#content' + userid).html($('<div>').addClass('d-flex justify-content-center my-5')
                 .append($('<div>').addClass('tiny_cursive-loader')));

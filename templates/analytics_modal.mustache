@@ -80,7 +80,8 @@ Example context (json):
                         {{#str}}replay, tiny_cursive {{/str}}</a>
                 </div>
             </div>
-            <div id="content{{userid}}" class="tiny_cursive">
+         <div>
+              <div id="content{{userid}}" class="tiny_cursive">
                 <table class="tiny_cursive_table tiny_cursive_table-borderless  table-responsive">
                     {{#tabledata.total_time_seconds}}
                     <tbody>
@@ -203,8 +204,10 @@ Example context (json):
                 <p class="tiny_cursive_nopayload bg-light">{{#str}} nopaylod,
                     tiny_cursive {{/str}}</p>
                 {{/tabledata.total_time_seconds}}
-            </div>
-        </div>
+              </div>
+                   <div id="player_{{userid}}{{quizid}}">  </div>
+               </div>
+    </div>
     </div>
     </div>
     {{/body}}
