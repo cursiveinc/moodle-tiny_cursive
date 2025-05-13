@@ -167,7 +167,7 @@ class tiny_cursive_renderer extends plugin_renderer_base {
         $allcoursesurl = $currenturl->out(false, ['courseid' => null]);
         $allcoursesattributes =
             empty($courseid) ? ['value' => $allcoursesurl, 'selected' => 'selected'] : ['value' => $allcoursesurl];
-        if (is_siteadmin($USER->id) || $courseid == '' || !isset($courseid) || $courseid == null) {
+        if (is_siteadmin($USER->id) || $courseid == '' || isset($courseid) || $courseid == null) {
             $options[] = html_writer::tag('option', get_string('allcourses', 'tiny_cursive'), $allcoursesattributes);
         }
 
@@ -238,10 +238,8 @@ class tiny_cursive_renderer extends plugin_renderer_base {
             );
             $userdata[] = $row;
         }
-        $title = $courseid ? get_course($courseid)->fullname : fullname($user);
-        if (has_capability('tiny/cursive:editsettings', context_system::instance())) {
-            $title = fullname($user);
-        }
+
+        $title = fullname($user);
         echo $this->output->render_from_template(
             'tiny_cursive/writing_report',
             [

@@ -29,6 +29,9 @@ defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'tiny_cursive';
 $plugin->release = '1.4.4';
-$plugin->version = 2025043005;
+$plugin->version = 2025043006;
 $plugin->requires = 2022041912;
 $plugin->maturity = MATURITY_STABLE;
+$plugin->dependencies = [
+   'mod_oublog' => 2024020100,
+];
