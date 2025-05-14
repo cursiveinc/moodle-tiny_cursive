@@ -268,13 +268,13 @@ export default class Replay {
         speedGroup.style.overflow = 'hidden';
         speedGroup.style.border = '1px solid #e0e0e0';
 
-        [0.5, 1, 1.5, 2].forEach(speedValue => {
+        [1, 1.5, 2, 5, 10].forEach(speedValue => {
             const speedBtn = document.createElement('button');
             speedBtn.textContent = `${speedValue}x`;
             speedBtn.className = `speed-btn ${parseFloat(speedValue) === parseFloat(this.speed) ? 'active' : ''}`;
             speedBtn.style.padding = '6px 12px';
             speedBtn.style.border = 'none';
-            speedBtn.style.borderRight = speedValue !== 2 ? '1px solid #e0e0e0' : 'none';
+            speedBtn.style.borderRight = speedValue !== 10 ? '1px solid #e0e0e0' : 'none';
             speedBtn.style.background = parseFloat(speedValue) === parseFloat(this.speed) ? '#4285f4' : 'white';
             speedBtn.style.color = parseFloat(speedValue) === parseFloat(this.speed) ? 'white' : '#333';
             speedBtn.style.cursor = 'pointer';
@@ -545,7 +545,36 @@ export default class Replay {
             if (event.event && event.event.toLowerCase() === "keydown") {
                 const charToInsert = this.applyKey(event.key);
 
-                if (event.key === "Backspace") {
+                if (event.key === "Control") {
+                    this.isControlKeyPressed = true;
+                }
+                else if (event.key === "Backspace" && this.isControlKeyPressed) {
+                    // Handle Control+Backspace word deletion
+                    if (cursor > 0) {
+                        let wordStart = cursor;
+                        while (wordStart > 0 && text[wordStart - 1] === ' ') {
+                            wordStart--;
+                        }
+                        while (wordStart > 0 && text[wordStart - 1] !== ' ') {
+                            wordStart--;
+                        }
+
+                        const wordToDelete = text.substring(wordStart, cursor);
+                        for (let i = 0; i < wordToDelete.length; i++) {
+                            updatedDeleted.push({
+                                index: wordStart + i,
+                                char: wordToDelete[i],
+                                time: this.currentTime,
+                                expiresAt: this.currentTime + 2000
+                            });
+                        }
+                        // Remove the word
+                        text = text.substring(0, wordStart) + text.substring(cursor);
+                        cursor = wordStart;
+                    }
+                    this.isControlKeyPressed = false;
+                }
+                else if (event.key === "Backspace") {
                     if (cursor > 0) {
                         // Store the character being deleted
                         updatedDeleted.push({
@@ -670,7 +699,35 @@ export default class Replay {
             if (event.event && event.event.toLowerCase() === "keydown") {
                 const charToInsert = this.applyKey(event.key);
 
-                if (event.key === "Backspace") {
+                if (event.key === "Control") {
+                    this.isControlKeyPressed = true;
+                }
+                else if (event.key === "Backspace" && this.isControlKeyPressed) {
+                    if (cursor > 0) {
+                        let wordStart = cursor;
+                        while (wordStart > 0 && text[wordStart - 1] === ' ') {
+                            wordStart--;
+                        }
+                        while (wordStart > 0 && text[wordStart - 1] !== ' ') {
+                            wordStart--;
+                        }
+
+                        const wordToDelete = text.substring(wordStart, cursor);
+                        for (let i = 0; i < wordToDelete.length; i++) {
+                            this.deletedChars.push({
+                                index: wordStart + i,
+                                char: wordToDelete[i],
+                                time: targetTime,
+                                expiresAt: targetTime + 2000
+                            });
+                        }
+
+                        text = text.substring(0, wordStart) + text.substring(cursor);
+                        cursor = wordStart;
+                    }
+                    this.isControlKeyPressed = false;
+                }
+                else if (event.key === "Backspace") {
                     if (cursor > 0) {
                         this.deletedChars.push({
                             index: cursor - 1,
@@ -746,6 +803,9 @@ export default class Replay {
             deletionMap[d.index] = { char: d.char, opacity: opacity };
         });
 
+        // Find if we have out-of-bounds deletions (from Control+Backspace)
+        const outOfRangeDeletions = deletions.filter(d => d.index >= text.length);
+
         const textLines = text.split('\n');
         let currentPosition = 0;
 
@@ -786,6 +846,23 @@ export default class Replay {
 
         if (cursorPosition === text.length && !html.endsWith('<span class="tiny_cursive-cursor">|</span>')) {
             html += '<span class="tiny_cursive-cursor">|</span>';
+        }
+
+        // For control + backspace functionalities
+        if (outOfRangeDeletions.length > 0) {
+            outOfRangeDeletions.sort((a, b) => a.index - b.index);
+
+            const cursorHTML = '<span class="tiny_cursive-cursor">|</span>';
+            let cursorPos = html.lastIndexOf(cursorHTML);
+
+            if (cursorPos !== -1) {
+                let deletedWordHTML = '<span class="tiny_cursive-deleted-char" style="opacity: 0.5;">';
+                outOfRangeDeletions.forEach(d => {
+                    deletedWordHTML += d.char;
+                });
+                deletedWordHTML += '</span>';
+                html = html.substring(0, cursorPos) + deletedWordHTML + html.substring(cursorPos);
+            }
         }
 
         const wasScrolledToBottom = this.outputElement.scrollHeight -

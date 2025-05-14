@@ -208,7 +208,7 @@ export const register = (editor, interval, userId) => {
         event = events;
         // eslint-disable-next-line
         if (!(ur.includes("attempt.php") || ur.includes("forum") || ur.includes("assign") ||
-         ur.includes('lesson') || ur.includes("oublog"))) {
+            ur.includes('lesson') || ur.includes("oublog"))) {
             return false;
         }
 
@@ -340,32 +340,43 @@ export const register = (editor, interval, userId) => {
             if (!editor || !editor.selection) {
                 return { caretPosition: 0, rePosition: 0 };
             }
-
             const rng = editor.selection.getRng();
-            const startOffset = rng.startOffset;
+
+            let absolutePosition = 0;
+            let node = rng.startContainer;
+
+            absolutePosition = rng.startOffset;
+
+            // Calculate position by walking through previous nodes
+            while (node && node !== editor.getBody()) {
+                while (node.previousSibling) {
+                    node = node.previousSibling;
+                    if (node.textContent) {
+                        absolutePosition += node.textContent.length;
+                    }
+                }
+                node = node.parentNode;
+            }
 
             if (skip) {
                 return {
                     caretPosition: lastCaretPos,
-                    rePosition: startOffset
+                    rePosition: absolutePosition
                 };
             }
 
             const storageKey = `${userid}_${resourceId}_${cmid}_position`;
-
             let storedPos = parseInt(sessionStorage.getItem(storageKey), 10);
             if (isNaN(storedPos)) {
                 storedPos = 0;
             }
-
             storedPos++;
             lastCaretPos = storedPos;
-
             sessionStorage.setItem(storageKey, storedPos);
 
             return {
                 caretPosition: storedPos,
-                rePosition: startOffset
+                rePosition: absolutePosition
             };
         } catch (e) {
             window.console.warn('Error getting caret position:', e);
