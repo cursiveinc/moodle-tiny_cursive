@@ -248,7 +248,7 @@ class cursive_json_func_data extends external_api {
             $DB->insert_record('tiny_cursive_comments', $dataobject);
             return true;
         } catch (moodle_exception $e) {
-            echo $e;
+            debugging($e->getMessage());
             return false;
         }
     }
@@ -2231,7 +2231,8 @@ class cursive_json_func_data extends external_api {
      * Gets submission data for a oublog
      *
      * @param int $id The oublog ID
-     * @param string $modulename The name of the module
+     * @param int $resourceid The post ID
+     * @param string $modulename The name of the module 
      * @param int $cmid The course module ID
      * @return string JSON encoded submission data
      */

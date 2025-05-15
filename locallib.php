@@ -21,7 +21,7 @@
  * @copyright 2024, CTI <info@cursivetechnology.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
- use core_external\util;
+use core_external\util;
 /**
  * Get user attempts data from the database
  *
@@ -29,17 +29,16 @@
  * @param int $courseid The course ID to filter by
  * @param int|null $moduleid The module ID to filter by
  * @param string $orderby Field to order results by (id, name, email, date)
- * @param string $order Sort order (ASC or DESC)
  * @param int $page Page number for pagination
  * @param int $limit Number of records per page
  * @return array Array containing total count and data records
  * @throws dml_exception
- */function tiny_cursive_get_user_attempts_data(
+ */
+function tiny_cursive_get_user_attempts_data(
     $userid,
     $courseid,
     $moduleid,
     $orderby = 'id',
-    $order = 'ASC',
     $page = 0,
     $limit = 10
 ) {
@@ -231,10 +230,11 @@ function tiny_cursive_get_user_profile_data($userid, $courseid = 0) {
 /**
  * Get user submissions data including writing metrics and file information
  *
- * @param int $resourceid The resource ID (user ID) to get submissions for
+ * @param int $userid The user ID to get submissions for
  * @param string $modulename The name of the module
  * @param int $cmid The course module ID
  * @param int $courseid Optional course ID to filter results (0 for all courses)
+ * @param int $oublogpostid Optional blog post ID to filter results (0 for all posts)
  * @return array[] Array containing submission data and file information
  * @throws dml_exception
  */
