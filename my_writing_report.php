@@ -40,20 +40,22 @@ if (\core\session\manager::is_loggedinas()) {
 }
 
 $orderby  = optional_param('orderby', 'id', PARAM_TEXT);
-$order    = optional_param('order', 'ASC', PARAM_TEXT);
 $page     = optional_param('page', 0, PARAM_INT);
 $courseid = optional_param('courseid', 0, PARAM_INT);
 $userid   = optional_param('userid', 0, PARAM_INT);
+$uidparam = optional_param('id', 0, PARAM_INT);
+$cparam   = optional_param('course', 0, PARAM_INT);
 
 $limit    = 5;
 $perpage  = $page * $limit;
 
-if (optional_param('id', 0, PARAM_INT)) {
-    $userid   = optional_param('id', 0, PARAM_INT);
+
+if ($uidparam) {
+    $userid   = $uidparam;
 }
 
-if (optional_param('course', 0, PARAM_INT) && !is_siteadmin($USER->id) && optional_param('id', 0, PARAM_INT) !== $USER->id) {
-    $courseid = optional_param('course', 0, PARAM_INT);
+if ($cparam && !is_siteadmin($USER->id) && $useridparam !== $USER->id) {
+    $courseid = $cparam;
 }
 
 $user     = $DB->get_record('user', ['id' => $userid]);
@@ -99,7 +101,7 @@ $PAGE->navbar->add(get_string('student_writing_statics', 'tiny_cursive'), $url);
 echo $OUTPUT->header();
 
 $renderer    = $PAGE->get_renderer('tiny_cursive');
-$attempts    = tiny_cursive_get_user_attempts_data($userid, $courseid, null, $orderby, $order, $page, $limit);
+$attempts    = tiny_cursive_get_user_attempts_data($userid, $courseid, null, $orderby, $page, $limit);
 $userprofile = tiny_cursive_get_user_profile_data($userid, $courseid);
 
 echo $renderer->tiny_cursive_user_writing_report($attempts, $userprofile, $userid, $page, $limit, $url);
