@@ -24,7 +24,7 @@
  */
 
 import myModal from "./analytic_modal";
-import { call as getContent } from "core/ajax";
+import {call as getContent} from "core/ajax";
 import $ from 'jquery';
 import {get_string as getString} from 'core/str';
 import {get_strings as getStrings} from 'core/str';
@@ -33,11 +33,11 @@ import Chart from 'core/chartjs';
 export default class AnalyticEvents {
 
     createModal(userid, context, questionid = '', authIcon) {
-        $('#analytics' + userid + questionid).on('click', function (e) {
+        $('#analytics' + userid + questionid).on('click', function(e) {
             e.preventDefault();
 
             // Create Moodle modal
-            myModal.create({ templateContext: context }).then(modal => {
+            myModal.create({templateContext: context}).then(modal => {
                 $('#content' + userid + ' .tiny_cursive_table  tbody tr:first-child td:nth-child(2)').html(authIcon);
                 modal.show();
                 return true;
@@ -48,7 +48,7 @@ export default class AnalyticEvents {
     }
 
     analytics(userid, templates, context, questionid = '', replayInstances = null, authIcon) {
-        $('body').on('click', '#analytic' + userid + questionid, function (e) {
+        $('body').on('click', '#analytic' + userid + questionid, function(e) {
             $('#rep' + userid + questionid).prop('disabled', false);
             $('#quality' + userid + questionid).prop('disabled', false);
             e.preventDefault();
@@ -60,11 +60,11 @@ export default class AnalyticEvents {
             $('.tiny_cursive-nav-tab').find('.active').removeClass('active');
             $(this).addClass('active'); // Add 'active' class to the clicked element
 
-            templates.render('tiny_cursive/analytics_table', context).then(function (html) {
+            templates.render('tiny_cursive/analytics_table', context).then(function(html) {
                 $('#content' + userid).html(html);
                 $('#content' + userid + ' .tiny_cursive_table  tbody tr:first-child td:nth-child(2)').html(authIcon);
                 return true;
-            }).fail(function (error) {
+            }).fail(function(error) {
                 window.console.error("Failed to render template:", error);
             });
         });
@@ -77,7 +77,7 @@ export default class AnalyticEvents {
             nodata.textContent = str;
             return true;
         }).catch(error => window.console.log(error));
-        $('body').on('click', '#diff' + userid + questionid, function (e) {
+        $('body').on('click', '#diff' + userid + questionid, function(e) {
             $('#rep' + userid + questionid).prop('disabled', false);
             $('#quality' + userid + questionid).prop('disabled', false);
             e.preventDefault();
@@ -94,7 +94,7 @@ export default class AnalyticEvents {
             }
             getContent([{
                 methodname: 'cursive_get_writing_differences',
-                args: { fileid: fileid },
+                args: {fileid: fileid},
             }])[0].done(response => {
                 let responsedata = JSON.parse(response.data);
                 if (responsedata) {
@@ -102,8 +102,8 @@ export default class AnalyticEvents {
 
                     // Fetch the dynamic strings.
                     getStrings([
-                        { key: 'original_text', component: 'tiny_cursive' },
-                        { key: 'editspastesai', component: 'tiny_cursive' }
+                        {key: 'original_text', component: 'tiny_cursive'},
+                        {key: 'editspastesai', component: 'tiny_cursive'}
                     ]).done(strings => {
                         const originalTextString = strings[0];
                         const editsPastesAIString = strings[1];
@@ -133,14 +133,14 @@ export default class AnalyticEvents {
                         const $legend = $('<div class="d-flex p-2 border rounded mb-2">');
 
                         // Create the first legend item
-                        const $attributedItem = $('<div>', { "class": "tiny_cursive-legend-item" });
-                        const $attributedBox = $('<div>', { "class": "tiny_cursive-box attributed" });
+                        const $attributedItem = $('<div>', {"class": "tiny_cursive-legend-item"});
+                        const $attributedBox = $('<div>', {"class": "tiny_cursive-box attributed"});
                         const $attributedText = $('<span>').text(originalTextString);
                         $attributedItem.append($attributedBox).append($attributedText);
 
                         // Create the second legend item
-                        const $unattributedItem = $('<div>', { "class": 'tiny_cursive-legend-item' });
-                        const $unattributedBox = $('<div>', { "class": 'tiny_cursive-box tiny_cursive_added' });
+                        const $unattributedItem = $('<div>', {"class": 'tiny_cursive-legend-item'});
+                        const $unattributedBox = $('<div>', {"class": 'tiny_cursive-box tiny_cursive_added'});
                         const $unattributedText = $('<span>').text(editsPastesAIString);
                         $unattributedItem.append($unattributedBox).append($unattributedText);
 
@@ -169,7 +169,7 @@ export default class AnalyticEvents {
     }
 
     replyWriting(userid, filepath, questionid = '', replayInstances = null) {
-        $('body').on('click', '#rep' + userid + questionid, function (e) {
+        $('body').on('click', '#rep' + userid + questionid, function(e) {
             $(this).prop('disabled', true);
             $('#quality' + userid + questionid).prop('disabled', false);
             e.preventDefault();
@@ -202,7 +202,7 @@ export default class AnalyticEvents {
             return true;
         }).catch(error => window.console.error(error));
 
-        $('body').on('click', '#quality' + userid + questionid, function (e) {
+        $('body').on('click', '#quality' + userid + questionid, function(e) {
 
             $(this).prop('disabled', true);
             $('#rep' + userid + questionid).prop('disabled', false);
@@ -212,7 +212,7 @@ export default class AnalyticEvents {
 
             let res = getContent([{
                 methodname: 'cursive_get_quality_metrics',
-                args: { "file_id": context.tabledata.file_id ?? userid, cmid: cmid },
+                args: {"file_id": context.tabledata.file_id ?? userid, cmid: cmid},
             }]);
 
             const content = document.getElementById('content' + userid);
@@ -230,7 +230,7 @@ export default class AnalyticEvents {
                 replayInstances[userid].stopReplay();
             }
 
-            templates.render('tiny_cursive/quality_chart', context).then(function (html) {
+            templates.render('tiny_cursive/quality_chart', context).then(function(html) {
                 const content = document.getElementById('content' + userid);
 
                 res[0].done(response => {
@@ -240,10 +240,10 @@ export default class AnalyticEvents {
 
                         if (!proUser) {
                             // eslint-disable-next-line promise/no-nesting
-                            templates.render('tiny_cursive/upgrade_to_pro', []).then(function (html) {
+                            templates.render('tiny_cursive/upgrade_to_pro', []).then(function(html) {
                                 $('#content' + userid).html(html);
                                 return true;
-                            }).fail(function (error) {
+                            }).fail(function(error) {
                                 window.console.error(error);
                             });
                         } else {
@@ -261,7 +261,7 @@ export default class AnalyticEvents {
                                 metricsData.verbosity, metricsData.word_count, metricsData.sent_word_count_mean
                             ];
 
-
+                            /* eslint-disable-next-line no-nested-ternary */
                             Promise.all([
                                 getString('word_len_mean', 'tiny_cursive'),
                                 getString('edits', 'tiny_cursive'),
@@ -291,7 +291,7 @@ export default class AnalyticEvents {
                                                 return d;
                                             }
                                         }),
-                                        backgroundColor: function (context) {
+                                        backgroundColor: function(context) {
                                             // Apply green or gray depending on value.
                                             const value = context.raw;
 
@@ -311,7 +311,7 @@ export default class AnalyticEvents {
                                 const drawPercentage = {
                                     id: 'drawPercentage',
                                     afterDraw: (chart) => {
-                                        const { ctx, data } = chart;
+                                        const {ctx, data} = chart;
                                         ctx.save();
                                         let value;
                                         chart.getDatasetMeta(0).data.forEach((dataPoint, index) => {
@@ -366,7 +366,7 @@ export default class AnalyticEvents {
                                 const chartAreaBg = {
                                     id: 'chartAreaBg',
                                     beforeDraw: (chart) => {
-                                        const { ctx, scales: { x, y } } = chart;
+                                        const {ctx, scales: {x, y}} = chart;
                                         ctx.save();
 
                                         const segmentPixel = y.getPixelForValue(y.ticks[0].value) -
@@ -390,7 +390,7 @@ export default class AnalyticEvents {
                                 };
 
 
-                                new Chart(chartvas, {
+                                return new Chart(chartvas, {
                                     type: 'bar',
                                     data: data,
                                     options: {
@@ -410,7 +410,7 @@ export default class AnalyticEvents {
                                                 min: -100,
                                                 max: 100,
                                                 ticks: {
-                                                    callback: function (value) {
+                                                    callback: function(value) {
                                                         if (value === -100 || value === 100) {
                                                             return value + '%';
                                                         } else if (value === 0) {
@@ -419,7 +419,7 @@ export default class AnalyticEvents {
                                                         return '';
                                                     },
                                                     display: true,
-                                                    font: function (context) {
+                                                    font: function(context) {
                                                         if (context && context.tick && context.tick.value === 0) {
                                                             return {
                                                                 weight: 'bold',
@@ -438,7 +438,7 @@ export default class AnalyticEvents {
                                                 },
                                                 grid: {
                                                     display: true,
-                                                    color: function (context) {
+                                                    color: function(context) {
                                                         return context.tick.value === 0 ? 'black' : '#eaeaea';
                                                     },
                                                     tickLength: 0,
@@ -477,7 +477,7 @@ export default class AnalyticEvents {
                                                 yAlign: 'bottom',
                                                 xAlign: 'center',
                                                 callbacks: {
-                                                    label: function (context) {
+                                                    label: function(context) {
                                                         const originalValue = originalData[context.dataIndex];
                                                         return originalValue; // Show the original value.
                                                     },
@@ -487,6 +487,8 @@ export default class AnalyticEvents {
                                     },
                                     plugins: [chartAreaBg, drawPercentage]
                                 });
+                            }).catch(error => {
+                                window.console.log(error);
                             });
 
                         }
@@ -496,7 +498,7 @@ export default class AnalyticEvents {
                     throw new Error('Error: no data received yet', error);
                 });
                 return true;
-            }).catch(function (error) {
+            }).catch(function(error) {
                 window.console.error("Failed to render template:", error);
             });
 

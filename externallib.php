@@ -2232,7 +2232,7 @@ class cursive_json_func_data extends external_api {
      *
      * @param int $id The oublog ID
      * @param int $resourceid The post ID
-     * @param string $modulename The name of the module 
+     * @param string $modulename The name of the module
      * @param int $cmid The course module ID
      * @return string JSON encoded submission data
      */

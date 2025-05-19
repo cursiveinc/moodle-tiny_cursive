@@ -48,6 +48,9 @@ export const init = () => {
         const parentElement = moduleIdElement.parentElement;
         parentElement.insertBefore(h5Element, moduleIdElement);
         document.getElementById('fitem_id_courseid').style.display = 'none';
+        return h5Element;
+    }).catch(error =>{
+        window.console.log(error);
     });
 
 };

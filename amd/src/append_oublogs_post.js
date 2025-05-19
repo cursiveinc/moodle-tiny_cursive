@@ -53,20 +53,20 @@ export const init = (scoreSetting) => {
     };
 
     const ouBlogPosts = $('.oublog-post');
-    const cmid        = M.cfg.contextInstanceId;
+    const cmid = M.cfg.contextInstanceId;
     ouBlogPosts.each(function() {
 
         var Element = $(this);
         var postedByLink = Element.find('.oublog-postedby a').attr('href');
-        var permalink    = Element.find('.oublog-post-links a').attr('href');
-        var resourceId   = parseInt(new URLSearchParams(permalink.split('?')[1]).get('post'));
-        var userid       = parseInt(new URLSearchParams(postedByLink.split('?')[1]).get('id'));
-        var filepath     = '';
+        var permalink = Element.find('.oublog-post-links a').attr('href');
+        var resourceId = parseInt(new URLSearchParams(permalink.split('?')[1]).get('post'));
+        var userid = parseInt(new URLSearchParams(postedByLink.split('?')[1]).get('id'));
+        var filepath = '';
 
         if (userid && resourceId) {
-            let args       = {id: userid, resourceid: resourceId, modulename: "oublog", cmid: cmid};
+            let args = {id: userid, resourceid: resourceId, modulename: "oublog", cmid: cmid};
             let methodname = 'cursive_get_oublog_submission_data';
-            let com        = getData([{ methodname, args }]);
+            let com = getData([{methodname, args}]);
             com[0].done(function (json) {
                 var data = JSON.parse(json);
 
@@ -77,11 +77,11 @@ export const init = (scoreSetting) => {
                 Element.find('.oublog-post-links').append(analyticButton(userid));
 
                 let myEvents = new AnalyticEvents();
-                var context  = {
-                    tabledata : data.res,
+                var context = {
+                    tabledata: data.res,
                     formattime: myEvents.formatedTime(data.res),
-                    page      : scoreSetting,
-                    userid    : userid,
+                    page: scoreSetting,
+                    userid: userid,
                 };
 
                 let authIcon = myEvents.authorshipStatus(data.res.first_file, data.res.score, scoreSetting);
