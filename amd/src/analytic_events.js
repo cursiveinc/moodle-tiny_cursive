@@ -54,6 +54,7 @@ export default class AnalyticEvents {
             $('#player_' + userid + questionid).css({
                 'display': 'none'
             });
+            $('#content' + userid).removeAttr('style').addClass('tiny_cursive').attr('data-label', 'analytics');
             e.preventDefault();
             $('#content' + userid).html($('<div>').addClass('d-flex justify-content-center my-5')
                 .append($('<div>').addClass('tiny_cursive-loader')));
@@ -87,6 +88,7 @@ export default class AnalyticEvents {
             $('#player_' + userid + questionid).css({
                 'display': 'none'
             });
+            $('#content' + userid).removeAttr('style').addClass('tiny_cursive').attr('data-label', 'diff');
             e.preventDefault();
             $('#content' + userid).html($('<div>').addClass('d-flex justify-content-center my-5')
                 .append($('<div>').addClass('tiny_cursive-loader')));
@@ -181,7 +183,8 @@ export default class AnalyticEvents {
             $('#quality' + userid + questionid).prop('disabled', false);
             $('#content' + userid).attr('data-label', 'replay');
             $('#player_' + userid + questionid).css({
-                'display': 'block'
+                'display': 'block',
+                'padding-right': '8px'
             });
             e.preventDefault();
             $('#content' + userid).html($('<div>').addClass('d-flex justify-content-center my-5')

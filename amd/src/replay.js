@@ -20,7 +20,7 @@
  * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
  */
 
-import {call as fetchJson} from 'core/ajax';
+import { call as fetchJson } from 'core/ajax';
 import templates from 'core/templates';
 import $ from 'jquery';
 import * as Str from 'core/str';
@@ -40,6 +40,9 @@ export default class Replay {
         this.totalEvents = 0;
         this.currentTime = 0;
         this.totalDuration = 0;
+        this.usercomments = [];
+        this.pasteTimestamps = [];
+
         const element = document.getElementById(elementId);
         if (element) {
             this.outputElement = element;
@@ -56,14 +59,16 @@ export default class Replay {
         } else {
             throw new Error(`Element with id '${elementId}' not found`);
         }
-        if (controllerId) {
-            this.constructController(controllerId);
-        }
+
         this.loadJSON(filePath)
             .then((data) => {
                 if (data.status) {
                     var val = JSON.parse(data.data);
                     this.logData = val;
+                    if (data.comments) {
+                        var comments = JSON.parse(data.comments);
+                        this.usercomments = Array.isArray(comments) ? [...comments] : [];
+                    }
                     if ("data" in this.logData) {
                         this.logData = this.logData.data;
                     }
@@ -79,6 +84,10 @@ export default class Replay {
                         this.totalDuration = this.logData[this.logData.length - 1].normalizedTime;
                     }
                     this.totalEvents = this.logData.length;
+                    this.identifyPasteEvents();
+                    if (controllerId && this.logData) {
+                        this.constructController(controllerId);
+                    }
                     this.startReplay();
                 } else {
                     try {
@@ -131,8 +140,8 @@ export default class Replay {
         if (this.replayInProgress) {
             clearTimeout(this.replayTimeout);
             this.replayInProgress = false;
-            const playSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
-            viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2">
+            const playSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+            viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polygon points="5,3 19,12 5,21" />
             </svg>`;
             if (this.playButton) {
@@ -157,6 +166,11 @@ export default class Replay {
         // Clean up any existing controls first
         const existingControls = container.querySelectorAll('.replay-control');
         existingControls.forEach(control => control.remove());
+
+        // Check if there's an existing paste events panel
+        const existingPanels = container.querySelectorAll('.paste-events-panel');
+        existingPanels.forEach(panel => panel.remove());
+
         // Create a container for all controls
         const controlContainer = document.createElement('div');
         controlContainer.className = 'replay-control';
@@ -165,7 +179,8 @@ export default class Replay {
         controlContainer.style.gap = '10px';
         controlContainer.style.margin = '10px 0';
         controlContainer.style.alignItems = 'center';
-        controlContainer.style.padding = '12px';
+        controlContainer.style.padding = '10px';
+        controlContainer.style.paddingBottom = '2px';
         controlContainer.style.borderRadius = '8px';
         controlContainer.style.backgroundColor = '#f8f9fa';
         controlContainer.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
@@ -181,8 +196,8 @@ export default class Replay {
         // Create play button
         this.playButton = document.createElement('button');
         this.playButton.className = 'play-button';
-        this.playButton.style.minWidth = '42px';
-        this.playButton.style.height = '42px';
+        this.playButton.style.minWidth = '36px';
+        this.playButton.style.height = '36px';
         this.playButton.style.borderRadius = '50%';
         this.playButton.style.background = '#4285f4';
         this.playButton.style.color = 'white';
@@ -195,9 +210,9 @@ export default class Replay {
         this.playButton.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
         this.playButton.style.flexShrink = '0';
 
-        const playSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
-        viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2">
-        <polygon points="5,3 19,12 5,21" />
+        const playSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+        viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="5,3 19,12 5,21"></polygon>
         </svg>`;
         this.playButton.innerHTML = `<span class="play-icon">${playSvg}</span>`;
         this.playButton.addEventListener('mouseover', () => {
@@ -211,9 +226,9 @@ export default class Replay {
         this.playButton.addEventListener('click', () => {
             if (this.replayInProgress) {
                 this.stopReplay();
-                const playSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
-                viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2">
-                <polygon points="5,3 19,12 5,21" />
+                const playSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="5,3 19,12 5,21"></polygon>
                 </svg>`;
                 this.playButton.querySelector('.play-icon').innerHTML = playSvg;
             } else {
@@ -260,6 +275,15 @@ export default class Replay {
         speedContainer.style.display = 'flex';
         speedContainer.style.gap = '6px';
         speedContainer.style.flexShrink = '0';
+        speedContainer.style.alignItems = 'center';
+
+        const speedLabel = document.createElement('span');
+        speedLabel.textContent = 'Speed: ';
+        speedLabel.style.fontSize = '14px';
+        speedLabel.style.fontWeight = '500';
+        speedLabel.style.color = '#333';
+        speedLabel.style.marginRight = '4px';
+        speedContainer.appendChild(speedLabel);
 
         // Create a single button like container for speed options
         const speedGroup = document.createElement('div');
@@ -272,7 +296,7 @@ export default class Replay {
             const speedBtn = document.createElement('button');
             speedBtn.textContent = `${speedValue}x`;
             speedBtn.className = `speed-btn ${parseFloat(speedValue) === parseFloat(this.speed) ? 'active' : ''}`;
-            speedBtn.style.padding = '6px 12px';
+            speedBtn.style.padding = '6px 10px';
             speedBtn.style.border = 'none';
             speedBtn.style.borderRight = speedValue !== 10 ? '1px solid #e0e0e0' : 'none';
             speedBtn.style.background = parseFloat(speedValue) === parseFloat(this.speed) ? '#4285f4' : 'white';
@@ -315,25 +339,97 @@ export default class Replay {
         speedContainer.appendChild(speedGroup);
         bottomRow.appendChild(speedContainer);
 
+        // Add rows to container
+        controlContainer.appendChild(topRow);
+        controlContainer.appendChild(bottomRow);
+
         // Add time display
         this.timeDisplay = document.createElement('div');
         this.timeDisplay.className = 'time-display';
         this.timeDisplay.textContent = '00:00 / 00:00';
         this.timeDisplay.style.fontSize = '14px';
-        this.timeDisplay.style.fontFamily = 'monospace';
+        this.timeDisplay.style.fontFamily = 'sans-serif';
         this.timeDisplay.style.color = '#333';
-        this.timeDisplay.style.backgroundColor = '#f1f3f4';
-        this.timeDisplay.style.padding = '5px 10px';
-        this.timeDisplay.style.borderRadius = '4px';
+        this.timeDisplay.style.padding = '5px 0';
         this.timeDisplay.style.flexShrink = '0';
-        this.timeDisplay.style.minWidth = '110px';
-        this.timeDisplay.style.textAlign = 'center';
+        this.timeDisplay.style.minWidth = '90px';
+        this.timeDisplay.style.marginLeft = '15px';
+        this.timeDisplay.style.textAlign = 'left';
 
-        bottomRow.appendChild(this.timeDisplay);
+        topRow.appendChild(this.timeDisplay);
 
-        // Add rows to container
-        controlContainer.appendChild(topRow);
-        controlContainer.appendChild(bottomRow);
+        // Create Paste Events Panel toggle button
+        const pasteEventsToggle = document.createElement('div');
+        pasteEventsToggle.className = 'paste-events-toggle';
+        pasteEventsToggle.style.display = 'flex';
+        pasteEventsToggle.style.alignItems = 'center';
+        pasteEventsToggle.style.cursor = 'pointer';
+        pasteEventsToggle.style.userSelect = 'none';
+        pasteEventsToggle.style.color = '#4285f4';
+        pasteEventsToggle.style.fontFamily = 'sans-serif';
+        pasteEventsToggle.style.fontSize = '14px';
+        pasteEventsToggle.style.fontWeight = '500';
+        pasteEventsToggle.style.marginLeft = 'auto';
+
+        const pasteEventsIcon = document.createElement('span');
+        pasteEventsIcon.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" 
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+            <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+        </svg>`;
+        pasteEventsIcon.style.marginRight = '8px';
+        pasteEventsIcon.style.display = 'flex';
+        pasteEventsIcon.style.alignItems = 'center';
+
+        const pasteEventsText = document.createElement('span');
+        pasteEventsText.textContent = 'Paste Events';
+
+        const pasteEventCount = document.createElement('span');
+        pasteEventCount.textContent = `(${this.usercomments.length})`;
+        pasteEventCount.className = 'paste-event-count';
+        pasteEventCount.style.marginLeft = '2px';
+
+        const chevronIcon = document.createElement('span');
+        chevronIcon.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" 
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="chevron-icon">
+            <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>`;
+        chevronIcon.style.marginLeft = '5px';
+        chevronIcon.style.transition = 'transform 0.3s ease';
+
+        pasteEventsToggle.appendChild(pasteEventsIcon);
+        pasteEventsToggle.appendChild(pasteEventsText);
+        pasteEventsToggle.appendChild(pasteEventCount);
+        pasteEventsToggle.appendChild(chevronIcon);
+
+        // Create Paste Events Panel
+        const pasteEventsPanel = document.createElement('div');
+        pasteEventsPanel.className = 'paste-events-panel';
+        pasteEventsPanel.style.display = 'none';
+        pasteEventsPanel.style.marginTop = '10px';
+        pasteEventsPanel.style.border = '1px solid #e0e0e0';
+        pasteEventsPanel.style.borderRadius = '4px';
+        pasteEventsPanel.style.backgroundColor = '#fff';
+        pasteEventsPanel.style.maxHeight = '300px';
+        pasteEventsPanel.style.overflowY = 'auto';
+        pasteEventsPanel.style.width = '100%';
+
+        this.populatePasteEventsPanel(pasteEventsPanel);
+
+        pasteEventsToggle.addEventListener('click', () => {
+            const isHidden = pasteEventsPanel.style.display === 'none';
+            pasteEventsPanel.style.display = isHidden ? 'block' : 'none';
+            chevronIcon.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0)';
+        });
+
+        bottomRow.appendChild(pasteEventsToggle);
+
+        controlContainer.appendChild(pasteEventsPanel);
+
+        this.pasteEventsPanel = pasteEventsPanel;
+        this.pasteEventCount = pasteEventCount;
 
         // Add the controls container to main container
         container.insertBefore(controlContainer, container.firstChild);
@@ -359,7 +455,6 @@ export default class Replay {
             styleElement.textContent = `
                 .tiny_cursive-replay-control {
                     margin: 10px 0;
-                    padding: 12px;
                     border-radius: 8px;
                     background-color: #f8f9fa;
                     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
@@ -454,12 +549,282 @@ export default class Replay {
         }
     }
 
+    identifyPasteEvents() {
+        let controlPressed = false;
+        let pasteCount = 0;
+
+        // Check for finding Control+V combinations
+        for (let i = 0; i < this.logData.length; i++) {
+            const event = this.logData[i];
+
+            if (event.event && event.event.toLowerCase() === "keydown") {
+                if (event.key === "Control") {
+                    controlPressed = true;
+                } else if (event.key === "v" && controlPressed) {
+                    const timestamp = event.normalizedTime || 0;
+
+                    this.pasteTimestamps.push({
+                        index: pasteCount,
+                        time: timestamp,
+                        formattedTime: this.formatTime(timestamp)
+                    });
+
+                    pasteCount++;
+                } else {
+                    controlPressed = false;
+                }
+            }
+        }
+
+        // If there are comments but no paste events happened
+        if (this.usercomments.length > 0 && this.pasteTimestamps.length === 0) {
+            for (let i = 0; i < this.usercomments.length; i++) {
+                this.pasteTimestamps.push({
+                    index: i,
+                    time: 0,
+                    formattedTime: this.formatTime(0)
+                });
+            }
+        }
+
+        while (this.pasteTimestamps.length < this.usercomments.length) {
+            const lastIndex = this.pasteTimestamps.length;
+            this.pasteTimestamps.push({
+                index: lastIndex,
+                time: 0,
+                formattedTime: this.formatTime(0)
+            });
+        }
+    }
+
+    populatePasteEventsPanel(panel) {
+        panel.innerHTML = '';
+
+        while (panel.firstChild) {
+            panel.removeChild(panel.firstChild);
+        }
+
+        panel.style.maxHeight = '400px';
+        panel.style.marginBottom = '15px';
+        panel.style.paddingBottom = '10px';
+        panel.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
+
+        const uniqueComments = this.usercomments && this.usercomments.length ?
+            [...new Set(this.usercomments)] : [];
+
+        if (!uniqueComments || uniqueComments.length === 0) {
+            const noCommentsMessage = document.createElement('div');
+            noCommentsMessage.className = 'no-comments-message';
+            noCommentsMessage.textContent = 'No paste events available for this submission.';
+            noCommentsMessage.style.padding = '15px';
+            panel.appendChild(noCommentsMessage);
+            return;
+        }
+
+        if (this.pasteEventCount) {
+            this.pasteEventCount.textContent = `(${uniqueComments.length})`;
+        }
+
+        const carouselContainer = document.createElement('div');
+        carouselContainer.className = 'paste-events-carousel';
+        carouselContainer.style.display = 'flex';
+        carouselContainer.style.flexDirection = 'column';
+        carouselContainer.style.width = '100%';
+        carouselContainer.style.position = 'relative';
+
+        const navigationRow = document.createElement('div');
+        navigationRow.className = 'paste-events-navigation';
+        navigationRow.style.display = 'flex';
+        navigationRow.style.justifyContent = 'space-between';
+        navigationRow.style.alignItems = 'center';
+        navigationRow.style.padding = '10px 15px';
+        navigationRow.style.borderBottom = '1px solid #f0f0f0';
+
+        const counterDisplay = document.createElement('div');
+        counterDisplay.className = 'paste-events-counter';
+        counterDisplay.textContent = 'Event 1 of ' + uniqueComments.length;
+        counterDisplay.style.fontWeight = 'bold';
+        counterDisplay.style.color = '#4285f4';
+
+        const navButtons = document.createElement('div');
+        navButtons.className = 'paste-events-buttons';
+        navButtons.style.display = 'flex';
+        navButtons.style.gap = '10px';
+
+        const prevButton = document.createElement('button');
+        prevButton.className = 'paste-event-prev-btn';
+        prevButton.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" 
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>`;
+        prevButton.style.border = 'none';
+        prevButton.style.background = '#f1f3f4';
+        prevButton.style.borderRadius = '50%';
+        prevButton.style.width = '30px';
+        prevButton.style.height = '30px';
+        prevButton.style.display = 'flex';
+        prevButton.style.alignItems = 'center';
+        prevButton.style.justifyContent = 'center';
+        prevButton.style.cursor = 'pointer';
+        prevButton.style.color = '#4285f4';
+        prevButton.style.transition = 'background-color 0.2s';
+        prevButton.disabled = true;
+        prevButton.style.opacity = '0.5';
+
+        const nextButton = document.createElement('button');
+        nextButton.className = 'paste-event-next-btn';
+        nextButton.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" 
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>`;
+        nextButton.style.border = 'none';
+        nextButton.style.background = '#f1f3f4';
+        nextButton.style.borderRadius = '50%';
+        nextButton.style.width = '30px';
+        nextButton.style.height = '30px';
+        nextButton.style.display = 'flex';
+        nextButton.style.alignItems = 'center';
+        nextButton.style.justifyContent = 'center';
+        nextButton.style.cursor = 'pointer';
+        nextButton.style.color = '#4285f4';
+        nextButton.style.transition = 'background-color 0.2s';
+        nextButton.disabled = uniqueComments.length <= 1;
+        nextButton.style.opacity = uniqueComments.length <= 1 ? '0.5' : '1';
+
+        prevButton.addEventListener('mouseover', () => {
+            if (!prevButton.disabled) {
+                prevButton.style.background = '#e0e0e0';
+            }
+        });
+        prevButton.addEventListener('mouseout', () => {
+            prevButton.style.background = '#f1f3f4';
+        });
+        nextButton.addEventListener('mouseover', () => {
+            if (!nextButton.disabled) {
+                nextButton.style.background = '#e0e0e0';
+            }
+        });
+        nextButton.addEventListener('mouseout', () => {
+            nextButton.style.background = '#f1f3f4';
+        });
+
+        navButtons.appendChild(prevButton);
+        navButtons.appendChild(nextButton);
+
+        navigationRow.appendChild(counterDisplay);
+        navigationRow.appendChild(navButtons);
+
+        const contentContainer = document.createElement('div');
+        contentContainer.className = 'paste-events-content';
+        contentContainer.style.padding = '15px';
+        contentContainer.style.overflow = 'auto';
+        contentContainer.style.position = 'relative';
+
+        const eventRow = document.createElement('div');
+        eventRow.style.display = 'flex';
+        eventRow.style.justifyContent = 'space-between';
+        eventRow.style.alignItems = 'center';
+        eventRow.style.marginBottom = '10px';
+
+        const commentContainer = document.createElement('div');
+        commentContainer.className = 'paste-event-comment';
+        commentContainer.style.flex = '1';
+        commentContainer.style.paddingRight = '10px';
+        commentContainer.style.wordBreak = 'break-word';
+        commentContainer.textContent = uniqueComments[0];
+
+        const timestampContainer = document.createElement('div');
+        timestampContainer.className = 'paste-event-timestamp';
+        timestampContainer.style.flexShrink = '0';
+        timestampContainer.style.color = '#666';
+        timestampContainer.style.fontSize = '12px';
+        timestampContainer.style.fontFamily = 'monospace';
+        timestampContainer.style.whiteSpace = 'nowrap';
+
+        const timestamp = this.pasteTimestamps && this.pasteTimestamps.length > 0 ?
+            this.pasteTimestamps[0].formattedTime : '00:00';
+
+        timestampContainer.textContent = timestamp;
+
+        eventRow.appendChild(commentContainer);
+        eventRow.appendChild(timestampContainer);
+
+        contentContainer.appendChild(eventRow);
+
+        carouselContainer.appendChild(navigationRow);
+        carouselContainer.appendChild(contentContainer);
+
+        panel.appendChild(carouselContainer);
+
+        let currentIndex = 0;
+
+        prevButton.addEventListener('click', () => {
+            if (currentIndex > 0) {
+                currentIndex--;
+                updateDisplay();
+            }
+        });
+
+        nextButton.addEventListener('click', () => {
+            if (currentIndex < uniqueComments.length - 1) {
+                currentIndex++;
+                updateDisplay();
+            }
+        });
+
+        const updateDisplay = () => {
+            contentContainer.innerHTML = '';
+
+            const newEventRow = document.createElement('div');
+            newEventRow.style.display = 'flex';
+            newEventRow.style.justifyContent = 'space-between';
+            newEventRow.style.alignItems = 'center';
+            newEventRow.style.marginBottom = '10px';
+
+            const newCommentContainer = document.createElement('div');
+            newCommentContainer.className = 'paste-event-comment';
+            newCommentContainer.style.flex = '1';
+            newCommentContainer.style.paddingRight = '10px';
+            newCommentContainer.style.wordBreak = 'break-word';
+            newCommentContainer.textContent = uniqueComments[currentIndex];
+
+            const newTimestampContainer = document.createElement('div');
+            newTimestampContainer.className = 'paste-event-timestamp';
+            newTimestampContainer.style.flexShrink = '0';
+            newTimestampContainer.style.color = '#666';
+            newTimestampContainer.style.fontSize = '12px';
+            newTimestampContainer.style.fontFamily = 'monospace';
+            newTimestampContainer.style.whiteSpace = 'nowrap';
+
+            // Get timestamp for current paste event
+            const timestamp = this.pasteTimestamps && this.pasteTimestamps.length > currentIndex ?
+                this.pasteTimestamps[currentIndex].formattedTime : '00:00';
+
+            newTimestampContainer.textContent = timestamp;
+
+            newEventRow.appendChild(newCommentContainer);
+            newEventRow.appendChild(newTimestampContainer);
+
+            contentContainer.appendChild(newEventRow);
+
+            counterDisplay.textContent = `Event ${currentIndex + 1} of ${uniqueComments.length}`;
+
+            prevButton.disabled = currentIndex === 0;
+            prevButton.style.opacity = currentIndex === 0 ? '0.5' : '1';
+            nextButton.disabled = currentIndex === uniqueComments.length - 1;
+            nextButton.style.opacity = currentIndex === uniqueComments.length - 1 ? '0.5' : '1';
+        };
+    }
+
     setScrubberVal(value) {
         if (this.scrubberElement) {
             this.scrubberElement.value = String(value);
 
             if (this.timeDisplay) {
-                const currentTimeFormatted = this.formatTime(this.currentTime);
+                const displayTime = Math.min(this.currentTime, this.totalDuration);
+                const currentTimeFormatted = this.formatTime(displayTime);
                 const totalTimeFormatted = this.formatTime(this.totalDuration);
                 this.timeDisplay.textContent = `${currentTimeFormatted} / ${totalTimeFormatted}`;
             }
@@ -506,12 +871,13 @@ export default class Replay {
             this.currentTime = 0;
             this.highlightedChars = [];
             this.deletedChars = [];
+            this.isControlKeyPressed = false;
         }
         if (this.playButton) {
-            const pauseSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
-            viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2">
-            <rect x="6" y="4" width="4" height="16" />
-            <rect x="14" y="4" width="4" height="16" />
+            const pauseSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+            viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="9" y1="4" x2="9" y2="20"></line>
+            <line x1="15" y1="4" x2="15" y2="20"></line>
             </svg>`;
             this.playButton.querySelector('.play-icon').innerHTML = pauseSvg;
         }
@@ -548,7 +914,12 @@ export default class Replay {
                 if (event.key === "Control") {
                     this.isControlKeyPressed = true;
                 }
-                else if (event.key === "Backspace" && this.isControlKeyPressed) {
+                else if (event.key !== "v") {
+                    if (event.key !== "Control") {
+                        this.isControlKeyPressed = false;
+                    }
+                }
+                if (event.key === "Backspace" && this.isControlKeyPressed) {
                     // Handle Control+Backspace word deletion
                     if (cursor > 0) {
                         let wordStart = cursor;
@@ -641,7 +1012,7 @@ export default class Replay {
 
             if (this.currentEventIndex >= this.totalEvents) {
                 if (this.loop) {
-                    this.startReplay();
+                    this.startReplay(true);
                 } else {
                     this.stopReplay();
                     this.updateDisplayText(this.text, this.cursorPosition, [], []);
@@ -681,6 +1052,7 @@ export default class Replay {
         this.cursorPosition = 0;
         this.highlightedChars = [];
         this.deletedChars = [];
+        this.isControlKeyPressed = false;
 
         let text = '';
         let cursor = 0;
@@ -702,7 +1074,12 @@ export default class Replay {
                 if (event.key === "Control") {
                     this.isControlKeyPressed = true;
                 }
-                else if (event.key === "Backspace" && this.isControlKeyPressed) {
+                else if (event.key !== "v") {
+                    if (event.key !== "Control") {
+                        this.isControlKeyPressed = false;
+                    }
+                }
+                if (event.key === "Backspace" && this.isControlKeyPressed) {
                     if (cursor > 0) {
                         let wordStart = cursor;
                         while (wordStart > 0 && text[wordStart - 1] === ' ') {

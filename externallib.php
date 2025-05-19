@@ -1240,21 +1240,33 @@ class cursive_json_func_data extends external_api {
         );
         $parts = explode('_', $params['filepath']);
         $cmid = $parts[2];
-
+        $userid = $parts[0];
+        $resourceid = $parts[1];
+    
         $context = context_module::instance($cmid);
         self::validate_context($context);
         require_capability("tiny/cursive:writingreport", $context);
 
+        $conditions = ["userid" => $userid, 'resourceid' => $resourceid, 'cmid' => $cmid];
+
+
         $data = new stdClass;
         try {
-
             $filedata = $DB->get_record('tiny_cursive_files', ['filename' => $params['filepath']]);
+            $comments = $DB->get_records('tiny_cursive_comments', $conditions, '', 'usercomment');
             $content = $filedata->content ? $filedata->content : $content = false;
             $data->status = true;
+            $commentsList = [];
+            foreach ($comments as $comment) {
+                $commentsList [] = $comment->usercomment;
+            }
+
+            $commentsList = array_values($commentsList);
+            $data->comments = json_encode($commentsList);
 
             if ($content === false) {
                 $data->status = false;
-                $content = 'File not found! or Failed to read file';
+                $content = get_string('filenotfound', 'tiny_cursive');
             }
 
             $data->data = $content;
@@ -1273,6 +1285,7 @@ class cursive_json_func_data extends external_api {
         return new external_single_structure([
             'status' => new external_value(PARAM_BOOL, "file status"),
             'data' => new external_value(PARAM_TEXT, 'Reply Json'),
+            'comments' => new external_value(PARAM_TEXT, 'Comments'),
         ]);
     }
 
