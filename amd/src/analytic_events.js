@@ -261,7 +261,7 @@ export default class AnalyticEvents {
                                 metricsData.verbosity, metricsData.word_count, metricsData.sent_word_count_mean
                             ];
 
-                            /* eslint-disable-next-line no-nested-ternary */
+                            // eslint-disable-next-line promise/no-nesting
                             Promise.all([
                                 getString('word_len_mean', 'tiny_cursive'),
                                 getString('edits', 'tiny_cursive'),

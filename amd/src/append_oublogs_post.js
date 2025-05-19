@@ -67,7 +67,7 @@ export const init = (scoreSetting) => {
             let args = {id: userid, resourceid: resourceId, modulename: "oublog", cmid: cmid};
             let methodname = 'cursive_get_oublog_submission_data';
             let com = getData([{methodname, args}]);
-            com[0].done(function (json) {
+            com[0].done(function(json) {
                 var data = JSON.parse(json);
 
                 if (data.res.filename) {
