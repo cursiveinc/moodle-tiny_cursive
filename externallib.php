@@ -248,7 +248,7 @@ class cursive_json_func_data extends external_api {
             $DB->insert_record('tiny_cursive_comments', $dataobject);
             return true;
         } catch (moodle_exception $e) {
-            echo $e;
+            debugging($e->getMessage());
             return false;
         }
     }
@@ -2231,6 +2231,7 @@ class cursive_json_func_data extends external_api {
      * Gets submission data for a oublog
      *
      * @param int $id The oublog ID
+     * @param int $resourceid The post ID
      * @param string $modulename The name of the module
      * @param int $cmid The course module ID
      * @return string JSON encoded submission data
@@ -2250,7 +2251,8 @@ class cursive_json_func_data extends external_api {
             self::validate_context($context);
             require_capability("tiny/cursive:view", $context);
 
-            $rec = tiny_cursive_get_user_submissions_data($params['id'], $params['modulename'], $params['cmid'], 0,$params['resourceid']);
+            $rec = tiny_cursive_get_user_submissions_data($params['id'], $params['modulename'],
+             $params['cmid'], 0, $params['resourceid']);
 
             return json_encode($rec);
     }

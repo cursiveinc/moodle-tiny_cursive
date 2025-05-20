@@ -26,13 +26,14 @@
 defined('MOODLE_INTERNAL') || die;
 
 require_once(__DIR__.'/locallib.php');
-global $CFG, $PAGE, $OUTPUT;
+global $CFG, $PAGE;
 
 $PAGE->requires->js_call_amd('tiny_cursive/token_approve', 'init', [1]);
-$param = optional_param('section', null, PARAM_TEXT);
 
-if (is_siteadmin()) {
-    $settings = new admin_settingpage('tiny_cursive', get_string('pluginname', 'tiny_cursive'));
+$ADMIN->add('editortiny', new admin_category('tiny_cursive', new lang_string('pluginname', 'tiny_cursive')));
+
+if ($ADMIN->fulltree) {
+
     $settings->add(
         new admin_setting_heading(
             'cursive_settings',
@@ -115,7 +116,8 @@ if (is_siteadmin()) {
             get_string('cursivedisable', 'tiny_cursive'),
             "<a href='#cursivedisable' class='btn btn-primary mb-1' id='cursivedisable' >".
             get_string('disable', 'tiny_cursive')."</a>
-            <a href='#cursiveenable' class='btn btn-primary mb-1' id='cursiveenable'>". get_string('enable', 'tiny_cursive')."
+            <a href='#cursiveenable' class='btn btn-primary mb-1' id='cursiveenable'>".
+            get_string('enable', 'tiny_cursive')."
             </a><br><span id='cursivedisable_'></span><br>".
             get_string('cursivedisable_des', 'tiny_cursive'),
         )

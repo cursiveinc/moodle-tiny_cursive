@@ -41,7 +41,6 @@ if (\core\session\manager::is_loggedinas()) {
 $userid   = optional_param('userid', 0, PARAM_INT);
 $courseid = required_param('courseid',  PARAM_INT);
 $orderby  = optional_param('orderby', 'id', PARAM_TEXT);
-$order    = optional_param('order', 'ASC', PARAM_TEXT);
 $page     = optional_param('page', 0, PARAM_INT);
 
 $limit    = 10;
@@ -82,7 +81,7 @@ $PAGE->set_title(get_string('tiny_cursive', 'tiny_cursive'));
 echo $OUTPUT->header();
 
 $renderer    = $PAGE->get_renderer('tiny_cursive');
-$users       = tiny_cursive_get_user_attempts_data($userid, $courseid, null, $orderby, $order, $page, $limit);
+$users       = tiny_cursive_get_user_attempts_data($userid, $courseid, null, $orderby, $page, $limit);
 $userprofile = tiny_cursive_get_user_profile_data($userid, $courseid);
 
 echo $renderer->tiny_cursive_user_writing_report($users, $userprofile, $userid, $page, $limit, $url);
