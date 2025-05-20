@@ -180,7 +180,7 @@ export default class Replay {
         controlContainer.style.margin = '10px 0';
         controlContainer.style.alignItems = 'center';
         controlContainer.style.padding = '10px';
-        controlContainer.style.paddingBottom = '2px';
+        controlContainer.style.paddingBottom = '10px';
         controlContainer.style.borderRadius = '8px';
         controlContainer.style.backgroundColor = '#f8f9fa';
         controlContainer.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
