@@ -1255,6 +1255,7 @@ class cursive_json_func_data extends external_api {
             $filedata = $DB->get_record('tiny_cursive_files', ['filename' => $params['filepath']]);
             $comments = $DB->get_records('tiny_cursive_comments', $conditions, '', 'usercomment');
             $content = $filedata->content ? $filedata->content : $content = false;
+            $originalContent = $filedata->original_content ? $filedata->original_content : $originalContent = false;
             $data->status = true;
             $commentsList = [];
             foreach ($comments as $comment) {
@@ -1270,6 +1271,7 @@ class cursive_json_func_data extends external_api {
             }
 
             $data->data = $content;
+            $data->original = $originalContent;
         } catch (moodle_exception $e) {
             $data->data = $e->getMessage();
         }
@@ -1286,6 +1288,7 @@ class cursive_json_func_data extends external_api {
             'status' => new external_value(PARAM_BOOL, "file status"),
             'data' => new external_value(PARAM_TEXT, 'Reply Json'),
             'comments' => new external_value(PARAM_TEXT, 'Comments'),
+            'original' => new external_value(PARAM_TEXT, 'Original Content')
         ]);
     }
 

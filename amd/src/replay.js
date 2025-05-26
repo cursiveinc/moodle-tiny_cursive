@@ -42,6 +42,8 @@ export default class Replay {
         this.totalDuration = 0;
         this.usercomments = [];
         this.pasteTimestamps = [];
+        this.originalContent = "";
+        this.isPasteEvent = false;
 
         const element = document.getElementById(elementId);
         if (element) {
@@ -65,6 +67,8 @@ export default class Replay {
                 if (data.status) {
                     var val = JSON.parse(data.data);
                     this.logData = val;
+                    this.originalContent = data.original;
+                    window.console.log("Data: ", data.data);
                     if (data.comments) {
                         var comments = JSON.parse(data.comments);
                         this.usercomments = Array.isArray(comments) ? [...comments] : [];
@@ -386,7 +390,7 @@ export default class Replay {
         pasteEventsText.textContent = 'Paste Events';
 
         const pasteEventCount = document.createElement('span');
-        pasteEventCount.textContent = `(${this.usercomments.length})`;
+        pasteEventCount.textContent = `(${this.pasteTimestamps.length})`;
         pasteEventCount.className = 'paste-event-count';
         pasteEventCount.style.marginLeft = '2px';
 
@@ -550,50 +554,79 @@ export default class Replay {
     }
 
     identifyPasteEvents() {
+        this.pasteTimestamps = [];
         let controlPressed = false;
         let pasteCount = 0;
 
         // Check for finding Control+V combinations
         for (let i = 0; i < this.logData.length; i++) {
             const event = this.logData[i];
-
             if (event.event && event.event.toLowerCase() === "keydown") {
                 if (event.key === "Control") {
                     controlPressed = true;
                 } else if (event.key === "v" && controlPressed) {
+                    const pastePosition = event.rePosition;
                     const timestamp = event.normalizedTime || 0;
+
+                    let pasteEndPosition = pastePosition;
+                    let pasteLength = 0;
+                    let j = i + 1;
+
+                    while (j < this.logData.length &&
+                        ((this.logData[j].key === "v" && this.logData[j].event === "keyUp") ||
+                            (this.logData[j].key === "Control" && this.logData[j].event === "keyUp"))) {
+                        j++;
+                    }
+
+                    if (j < this.logData.length && this.logData[j].rePosition !== undefined) {
+                        pasteEndPosition = this.logData[j].rePosition;
+                        pasteLength = pasteEndPosition - pastePosition;
+                    }
+
+                    let FinalPasteLength = pasteLength;
+                    let lastrePosition = pasteEndPosition;
+                    for (let k = j; k < this.logData.length; k++) {
+                        if (this.logData[k].rePosition === undefined) {
+                            continue;
+                        }
+                        if (this.logData[k].event === "keyDown" && this.logData[k].key === "Backspace") {
+                            FinalPasteLength--;
+                            k++;
+                        } else if (this.logData[k].rePosition > lastrePosition) {
+                            break;
+                        } else {
+                            lastrePosition = this.logData[k].rePosition;
+                        }
+                    }
+
+                    let pastedText = "";
+                    if (FinalPasteLength > 0 && this.originalContent) {
+                        const start = Math.min(pastePosition, this.originalContent.length);
+                        const end = Math.min(pastePosition + FinalPasteLength, this.originalContent.length);
+                        pastedText = this.originalContent.substring(start, end);
+                    }
 
                     this.pasteTimestamps.push({
                         index: pasteCount,
                         time: timestamp,
-                        formattedTime: this.formatTime(timestamp)
+                        formattedTime: this.formatTime(timestamp),
+                        pastedText: pastedText,
+                        startPosition: pastePosition,
+                        endPosition: pastePosition + FinalPasteLength,
+                        timestamp: timestamp
                     });
-
                     pasteCount++;
+
+                    controlPressed = false;
                 } else {
                     controlPressed = false;
                 }
             }
         }
 
-        // If there are comments but no paste events happened
-        if (this.usercomments.length > 0 && this.pasteTimestamps.length === 0) {
-            for (let i = 0; i < this.usercomments.length; i++) {
-                this.pasteTimestamps.push({
-                    index: i,
-                    time: 0,
-                    formattedTime: this.formatTime(0)
-                });
-            }
-        }
-
-        while (this.pasteTimestamps.length < this.usercomments.length) {
-            const lastIndex = this.pasteTimestamps.length;
-            this.pasteTimestamps.push({
-                index: lastIndex,
-                time: 0,
-                formattedTime: this.formatTime(0)
-            });
+        console.log("Paste events:", this.pasteTimestamps);
+        if (this.pasteEventsPanel) {
+            this.populatePasteEventsPanel(this.pasteEventsPanel);
         }
     }
 
@@ -609,20 +642,16 @@ export default class Replay {
         panel.style.paddingBottom = '10px';
         panel.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
 
-        const uniqueComments = this.usercomments && this.usercomments.length ?
-            [...new Set(this.usercomments)] : [];
+        const pasteEvents = this.pasteTimestamps && this.pasteTimestamps.length ?
+            this.pasteTimestamps : [];
 
-        if (!uniqueComments || uniqueComments.length === 0) {
-            const noCommentsMessage = document.createElement('div');
-            noCommentsMessage.className = 'no-comments-message';
-            noCommentsMessage.textContent = 'No paste events available for this submission.';
-            noCommentsMessage.style.padding = '15px';
-            panel.appendChild(noCommentsMessage);
+        if (!pasteEvents || pasteEvents.length === 0) {
+            const noEventsMessage = document.createElement('div');
+            noEventsMessage.className = 'no-paste-events-message';
+            noEventsMessage.textContent = 'No paste events detected for this submission.';
+            noEventsMessage.style.padding = '15px';
+            panel.appendChild(noEventsMessage);
             return;
-        }
-
-        if (this.pasteEventCount) {
-            this.pasteEventCount.textContent = `(${uniqueComments.length})`;
         }
 
         const carouselContainer = document.createElement('div');
@@ -642,7 +671,7 @@ export default class Replay {
 
         const counterDisplay = document.createElement('div');
         counterDisplay.className = 'paste-events-counter';
-        counterDisplay.textContent = 'Event 1 of ' + uniqueComments.length;
+        counterDisplay.textContent = 'Paste Events';
         counterDisplay.style.fontWeight = 'bold';
         counterDisplay.style.color = '#4285f4';
 
@@ -690,8 +719,8 @@ export default class Replay {
         nextButton.style.cursor = 'pointer';
         nextButton.style.color = '#4285f4';
         nextButton.style.transition = 'background-color 0.2s';
-        nextButton.disabled = uniqueComments.length <= 1;
-        nextButton.style.opacity = uniqueComments.length <= 1 ? '0.5' : '1';
+        nextButton.disabled = pasteEvents.length <= 1;
+        nextButton.style.opacity = pasteEvents.length <= 1 ? '0.5' : '1';
 
         prevButton.addEventListener('mouseover', () => {
             if (!prevButton.disabled) {
@@ -722,36 +751,88 @@ export default class Replay {
         contentContainer.style.overflow = 'auto';
         contentContainer.style.position = 'relative';
 
-        const eventRow = document.createElement('div');
-        eventRow.style.display = 'flex';
-        eventRow.style.justifyContent = 'space-between';
-        eventRow.style.alignItems = 'center';
-        eventRow.style.marginBottom = '10px';
+        // Create initial content with first paste event
+        const createPasteEventDisplay = (pasteEvent) => {
+            const eventRow = document.createElement('div');
+            eventRow.style.display = 'flex';
+            eventRow.style.flexDirection = 'column';
+            eventRow.style.gap = '10px';
 
-        const commentContainer = document.createElement('div');
-        commentContainer.className = 'paste-event-comment';
-        commentContainer.style.flex = '1';
-        commentContainer.style.paddingRight = '10px';
-        commentContainer.style.wordBreak = 'break-word';
-        commentContainer.textContent = uniqueComments[0];
+            // Header row with timestamp and play button
+            const headerRow = document.createElement('div');
+            headerRow.style.display = 'flex';
+            headerRow.style.justifyContent = 'space-between';
+            headerRow.style.alignItems = 'center';
+            headerRow.style.marginBottom = '8px';
 
-        const timestampContainer = document.createElement('div');
-        timestampContainer.className = 'paste-event-timestamp';
-        timestampContainer.style.flexShrink = '0';
-        timestampContainer.style.color = '#666';
-        timestampContainer.style.fontSize = '12px';
-        timestampContainer.style.fontFamily = 'monospace';
-        timestampContainer.style.whiteSpace = 'nowrap';
+            // Timestamp and text container
+            const textContainer = document.createElement('div');
+            textContainer.style.display = 'flex';
+            textContainer.style.flexDirection = 'column';
+            textContainer.style.flexGrow = '1';
+            textContainer.style.marginRight = '10px';
 
-        const timestamp = this.pasteTimestamps && this.pasteTimestamps.length > 0 ?
-            this.pasteTimestamps[0].formattedTime : '00:00';
+            const timestampContainer = document.createElement('div');
+            timestampContainer.className = 'paste-event-timestamp';
+            timestampContainer.style.fontFamily = 'monospace';
+            timestampContainer.style.fontSize = '12px';
+            timestampContainer.style.color = '#666';
+            timestampContainer.style.fontWeight = 'bold';
+            timestampContainer.textContent = pasteEvent.formattedTime;
 
-        timestampContainer.textContent = timestamp;
+            const pastedTextContainer = document.createElement('div');
+            pastedTextContainer.className = 'paste-event-text';
+            pastedTextContainer.style.fontFamily = 'monospace';
+            pastedTextContainer.style.fontSize = '14px';
+            pastedTextContainer.style.wordBreak = 'break-word';
+            pastedTextContainer.style.whiteSpace = 'pre-wrap';
+            pastedTextContainer.style.color = '#333';
+            pastedTextContainer.style.marginTop = '8px';
+            pastedTextContainer.textContent = pasteEvent.pastedText;
 
-        eventRow.appendChild(commentContainer);
-        eventRow.appendChild(timestampContainer);
+            textContainer.appendChild(timestampContainer);
+            textContainer.appendChild(pastedTextContainer);
 
-        contentContainer.appendChild(eventRow);
+            const playButton = document.createElement('button');
+            playButton.className = 'paste-event-play-btn';
+            playButton.style.minWidth = '32px';
+            playButton.style.height = '32px';
+            playButton.style.borderRadius = '0';
+            playButton.style.background = 'transparent';
+            playButton.style.color = 'white';
+            playButton.style.border = 'none';
+            playButton.style.cursor = 'pointer';
+            playButton.style.display = 'flex';
+            playButton.style.alignItems = 'center';
+            playButton.style.justifyContent = 'center';
+            playButton.style.flexShrink = '0';
+
+            const playIcon = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M7.58 16.89L13.17 12L7.58 7.11V16.89Z" fill="#4A90E2"/>
+            <path d="M16 7V17H18V7H16Z" fill="#4A90E2"/>
+            </svg>`;
+            playButton.innerHTML = playIcon;
+
+            playButton.addEventListener('mouseover', () => {
+                playButton.style.transform = 'scale(1.05)';
+            });
+            playButton.addEventListener('mouseout', () => {
+                playButton.style.transform = 'scale(1)';
+            });
+
+            playButton.addEventListener('click', () => {
+                this.jumpToTimestamp(pasteEvent.timestamp);
+            });
+
+            headerRow.appendChild(textContainer);
+            headerRow.appendChild(playButton);
+
+            eventRow.appendChild(headerRow);
+
+            return eventRow;
+        };
+
+        contentContainer.appendChild(createPasteEventDisplay(pasteEvents[0]));
 
         carouselContainer.appendChild(navigationRow);
         carouselContainer.appendChild(contentContainer);
@@ -763,60 +844,40 @@ export default class Replay {
         prevButton.addEventListener('click', () => {
             if (currentIndex > 0) {
                 currentIndex--;
-                updateDisplay();
+                updatePasteEventDisplay();
             }
         });
 
         nextButton.addEventListener('click', () => {
-            if (currentIndex < uniqueComments.length - 1) {
+            if (currentIndex < pasteEvents.length - 1) {
                 currentIndex++;
-                updateDisplay();
+                updatePasteEventDisplay();
             }
         });
 
-        const updateDisplay = () => {
+        const updatePasteEventDisplay = () => {
             contentContainer.innerHTML = '';
+            contentContainer.appendChild(createPasteEventDisplay(pasteEvents[currentIndex]));
 
-            const newEventRow = document.createElement('div');
-            newEventRow.style.display = 'flex';
-            newEventRow.style.justifyContent = 'space-between';
-            newEventRow.style.alignItems = 'center';
-            newEventRow.style.marginBottom = '10px';
-
-            const newCommentContainer = document.createElement('div');
-            newCommentContainer.className = 'paste-event-comment';
-            newCommentContainer.style.flex = '1';
-            newCommentContainer.style.paddingRight = '10px';
-            newCommentContainer.style.wordBreak = 'break-word';
-            newCommentContainer.textContent = uniqueComments[currentIndex];
-
-            const newTimestampContainer = document.createElement('div');
-            newTimestampContainer.className = 'paste-event-timestamp';
-            newTimestampContainer.style.flexShrink = '0';
-            newTimestampContainer.style.color = '#666';
-            newTimestampContainer.style.fontSize = '12px';
-            newTimestampContainer.style.fontFamily = 'monospace';
-            newTimestampContainer.style.whiteSpace = 'nowrap';
-
-            // Get timestamp for current paste event
-            const timestamp = this.pasteTimestamps && this.pasteTimestamps.length > currentIndex ?
-                this.pasteTimestamps[currentIndex].formattedTime : '00:00';
-
-            newTimestampContainer.textContent = timestamp;
-
-            newEventRow.appendChild(newCommentContainer);
-            newEventRow.appendChild(newTimestampContainer);
-
-            contentContainer.appendChild(newEventRow);
-
-            counterDisplay.textContent = `Event ${currentIndex + 1} of ${uniqueComments.length}`;
+            counterDisplay.textContent = 'Paste Events';
 
             prevButton.disabled = currentIndex === 0;
             prevButton.style.opacity = currentIndex === 0 ? '0.5' : '1';
-            nextButton.disabled = currentIndex === uniqueComments.length - 1;
-            nextButton.style.opacity = currentIndex === uniqueComments.length - 1 ? '0.5' : '1';
+            nextButton.disabled = currentIndex === pasteEvents.length - 1;
+            nextButton.style.opacity = currentIndex === pasteEvents.length - 1 ? '0.5' : '1';
         };
     }
+
+    jumpToTimestamp(timestamp) {
+        const percentage = this.totalDuration > 0 ? (timestamp / this.totalDuration) * 100 : 0;
+
+        this.skipToTime(percentage);
+
+        if (!this.replayInProgress) {
+            this.startReplay(false);
+        }
+    }
+
 
     setScrubberVal(value) {
         if (this.scrubberElement) {
@@ -918,6 +979,13 @@ export default class Replay {
                     if (event.key !== "Control") {
                         this.isControlKeyPressed = false;
                     }
+                    if (event.key !== "Backspace" && event.key !== "ArrowLeft" && event.key !== "ArrowRight") {
+                        this.isPasteEvent = false;
+                    }
+                }
+                else if (event.key == 'v' && this.isControlKeyPressed) {
+                    this.isPasteEvent = true;
+                    this.isControlKeyPressed = false;
                 }
                 if (event.key === "Backspace" && this.isControlKeyPressed) {
                     // Handle Control+Backspace word deletion
@@ -945,7 +1013,7 @@ export default class Replay {
                     }
                     this.isControlKeyPressed = false;
                 }
-                else if (event.key === "Backspace") {
+                else if (event.key === "Backspace" && !this.isPasteEvent) {
                     if (cursor > 0) {
                         // Store the character being deleted
                         updatedDeleted.push({
@@ -1078,6 +1146,13 @@ export default class Replay {
                     if (event.key !== "Control") {
                         this.isControlKeyPressed = false;
                     }
+                    if (event.key !== "Backspace" && event.key !== "ArrowLeft" && event.key !== "ArrowRight") {
+                        this.isPasteEvent = false;
+                    }
+                }
+                else if (event.key == 'v' && this.isControlKeyPressed) {
+                    this.isPasteEvent = true;
+                    this.isControlKeyPressed = false;
                 }
                 if (event.key === "Backspace" && this.isControlKeyPressed) {
                     if (cursor > 0) {
@@ -1104,7 +1179,7 @@ export default class Replay {
                     }
                     this.isControlKeyPressed = false;
                 }
-                else if (event.key === "Backspace") {
+                else if (event.key === "Backspace" && !this.isPasteEvent) {
                     if (cursor > 0) {
                         this.deletedChars.push({
                             index: cursor - 1,
