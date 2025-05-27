@@ -68,7 +68,6 @@ export default class Replay {
                     var val = JSON.parse(data.data);
                     this.logData = val;
                     this.originalContent = data.original;
-                    window.console.log("Data: ", data.data);
                     if (data.comments) {
                         var comments = JSON.parse(data.comments);
                         this.usercomments = Array.isArray(comments) ? [...comments] : [];
@@ -581,6 +580,11 @@ export default class Replay {
                     if (j < this.logData.length && this.logData[j].rePosition !== undefined) {
                         pasteEndPosition = this.logData[j].rePosition;
                         pasteLength = pasteEndPosition - pastePosition;
+                    } else {
+                        if (this.originalContent && pastePosition < this.originalContent.length) {
+                            pasteEndPosition = this.originalContent.length;
+                            pasteLength = pasteEndPosition - pastePosition;
+                        }
                     }
 
                     let FinalPasteLength = pasteLength;
@@ -624,7 +628,6 @@ export default class Replay {
             }
         }
 
-        console.log("Paste events:", this.pasteTimestamps);
         if (this.pasteEventsPanel) {
             this.populatePasteEventsPanel(this.pasteEventsPanel);
         }
@@ -1363,7 +1366,8 @@ export default class Replay {
             default:
                 return !["Shift", "Ctrl", "Alt", "ArrowDown", "ArrowUp", "Control", "ArrowRight",
                     "ArrowLeft", "Meta", "CapsLock", "Tab", "Escape", "Delete", "PageUp", "PageDown",
-                    "Insert", "Home", "End", "NumLock"]
+                    "Insert", "Home", "End", "NumLock", "AudioVolumeUp", "AudioVolumeDown", "MediaPlayPause",
+                ]
                     .includes(key) ? key : "";
         }
     }
