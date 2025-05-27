@@ -50,11 +50,4 @@ $observers = [
         'internal' => true,
         'priority' => 9999,
     ],
-    [
-        'eventname' => '\mod_oublog\event\post_created',
-        'callback' => '\tiny_cursive\observers::oublog_created',
-        'internal' => true,
-        'priority' => 9999,
-    ],
 ];
-

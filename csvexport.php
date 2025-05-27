@@ -82,7 +82,7 @@ if ($courseid != 0) {
                         CAST(AVG(COALESCE(uw.backspace_percent,0)) AS DECIMAL(10,2)) as backspace_percent,
                         CAST(AVG(COALESCE(uw.score,0)) AS DECIMAL(10,2)) as score,
                         " . $DB->sql_cast_char2int('SUM(COALESCE(uw.copy_behavior,0))') . " as copybehavior,
-                        CAST(AVG(COALESCE(CAST(wd.meta AS DECIMAL),0)) AS DECIMAL(10,2)) as effort
+                        CAST(AVG(COALESCE(CAST(wd.meta AS DECIMAL(10,2)),0)) AS DECIMAL(10,2)) as effort
                   FROM {tiny_cursive_files} uf
                   JOIN {user} u ON u.id = uf.userid
              LEFT JOIN {tiny_cursive_user_writing} uw ON uw.file_id = uf.id

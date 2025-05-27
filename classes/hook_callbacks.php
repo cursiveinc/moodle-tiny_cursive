@@ -28,6 +28,7 @@ namespace tiny_cursive;
 use context_course;
 use context_module;
 use core\hook\output\before_footer_html_generation;
+use core_component;
 use core_course\hook\after_form_definition;
 use core_course\hook\after_form_submission;
 
@@ -51,6 +52,7 @@ class hook_callbacks {
         global $PAGE, $COURSE, $USER, $CFG;
         require_once($CFG->dirroot . '/lib/editor/tiny/plugins/cursive/locallib.php');
         require_once($CFG->dirroot . '/lib/editor/tiny/plugins/cursive/lib.php');
+        $plugins = core_component::get_plugin_list('local');
         $cursivestatus = tiny_cursive_status($COURSE->id);
         $capcheck = null;
 
@@ -124,11 +126,13 @@ class hook_callbacks {
                         );
                         break;
                     case 'page-mod-oublog-viewpost':
-                        $PAGE->requires->js_call_amd(
-                            'tiny_cursive/append_oublogs_post',
-                            'init',
-                            [$confidencethreshold, $showcomments],
-                        );
+                        if (isset($plugins['cursive_oublog'])) {
+                            $PAGE->requires->js_call_amd(
+                                'tiny_cursive/append_oublogs_post',
+                                'init',
+                                [$confidencethreshold, $showcomments],
+                            );
+                        }
                 }
             }
 

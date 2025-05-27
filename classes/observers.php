@@ -135,18 +135,6 @@ class observers {
     }
 
     /**
-     * Tiny cursive plugin oublog created observer.
-     *
-     * @param \mod_oublog\event\post_created $event The event object
-     * @return void
-     * @throws \dml_exception
-     */
-    public static function oublog_created(\mod_oublog\event\post_created $event) {
-        self::update_comment($event);
-        self::update_cursive_files($event);
-    }
-
-    /**
      * Tiny cursive plugin post updated observer.
      *
      * @param \mod_forum\event\post_updated $event
