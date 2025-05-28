@@ -478,7 +478,7 @@ class cursive_json_func_data extends external_api {
                 return json_encode(['usercomment' => $usercomment, 'data' => $data]);
 
             } else {
-                return json_encode(['usercomment' => 'comments', 'data' => $data]);
+                return json_encode(['usercomment' => get_string('comments', 'tiny_cursive'), 'data' => $data]);
             }
         }
     }
@@ -602,7 +602,7 @@ class cursive_json_func_data extends external_api {
             }
             return json_encode(['usercomment' => $usercomment, 'data' => $data]);
         } else {
-            return json_encode(['usercomment' => 'comments', 'data' => $data]);
+            return json_encode(['usercomment' => get_string('comments', 'tiny_cursive'), 'data' => $data]);
         }
 
     }
@@ -740,7 +740,7 @@ class cursive_json_func_data extends external_api {
             return json_encode(['usercomment' => $usercomment, 'data' => $data]);
 
         } else {
-            return json_encode(['usercomment' => 'comments', 'data' => $data]);
+            return json_encode(['usercomment' => get_string('comments', 'tiny_cursive'), 'data' => $data]);
         }
     }
 
@@ -809,7 +809,7 @@ class cursive_json_func_data extends external_api {
             return json_encode($usercomment);
 
         } else {
-            return json_encode([['usercomment' => 'comments']]);
+            return json_encode([['usercomment' => get_string('comments', 'tiny_cursive')]]);
         }
     }
 
@@ -931,7 +931,7 @@ class cursive_json_func_data extends external_api {
             return json_encode(['usercomment' => $usercomment, 'data' => $data]);
 
         } else {
-            return json_encode(['usercomment' => 'comments', 'data' => $data]);
+            return json_encode(['usercomment' => get_string('comments', 'tiny_cursive'), 'data' => $data]);
         }
     }
 
