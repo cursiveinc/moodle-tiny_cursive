@@ -51,7 +51,7 @@ if (json_last_error() !== JSON_ERROR_NONE) {
     redirect(get_local_referer(false), get_string('filenotfound', 'tiny_cursive'));
 }
 
-$csvfilename = $filerow->modulename." "."writing statistics_".rand(0, 9).".csv";
+$csvfilename = $filerow->modulename." ".get_string('student_writing_statics', 'tiny_cursive')."_".rand(0, 9).".csv";
 
 // Set headers for CSV download.
 header('X-Content-Type-Options: nosniff');

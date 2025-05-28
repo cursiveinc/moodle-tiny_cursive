@@ -271,8 +271,9 @@ export default class AnalyticEvents {
                                 getString('verbosity', 'tiny_cursive'),
                                 getString('word_count', 'tiny_cursive'),
                                 getString('sent_word_count_mean', 'tiny_cursive'),
+                                getString('average', 'tiny_cursive'),
                             ]).then(([wordLength, edits, pBurstMean, qCount, sentenceCount, verbosity, wordCount,
-                                sentWordCountMean]) => {
+                                sentWordCountMean, average]) => {
                                 let chartvas = document.querySelector('#chart' + userid);
                                 let levels = [wordLength, edits, pBurstMean, qCount, sentenceCount, verbosity, wordCount,
                                     sentWordCountMean];
@@ -414,7 +415,7 @@ export default class AnalyticEvents {
                                                         if (value === -100 || value === 100) {
                                                             return value + '%';
                                                         } else if (value === 0) {
-                                                            return 'Average';
+                                                            return average;
                                                         }
                                                         return '';
                                                     },

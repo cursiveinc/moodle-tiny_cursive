@@ -439,7 +439,7 @@ class cursive_json_func_data extends external_api {
                 return json_encode(['usercomment' => $usercomment, 'data' => $data]);
 
             } else {
-                return json_encode(['usercomment' => 'comments', 'data' => $data]);
+                return json_encode(['usercomment' => get_string('comments', 'tiny_cursive'), 'data' => $data]);
             }
         } else {
             $conditions = ["resourceid" => $params['id']];
@@ -461,16 +461,11 @@ class cursive_json_func_data extends external_api {
             ]);
 
             if (!isset($data->filename)) {
-                $sql = 'SELECT filename from {tiny_cursive_files}
-                         WHERE resourceid = :resourceid
-                               AND cmid = :cmid
-                               AND modulename = :modulename';
-                $filename = $DB->get_record_sql($sql, [
-                    'resourceid' => $params['id'],
-                    'cmid' => $params['cmid'],
-                    'modulename' => $params['modulename'],
-                ]);
-
+                $conditions = [
+                            'resourceid' => $params['id'],
+                            'cmid'       => $params['cmid'],
+                            'modulename' => $params['modulename']];
+                $filename = $DB->get_record('tiny_cursive_files', $conditions, 'filename');
                 $data['filename'] = $filename->filename;
 
             }
@@ -483,7 +478,7 @@ class cursive_json_func_data extends external_api {
                 return json_encode(['usercomment' => $usercomment, 'data' => $data]);
 
             } else {
-                return json_encode(['usercomment' => 'comments', 'data' => $data]);
+                return json_encode(['usercomment' => get_string('comments', 'tiny_cursive'), 'data' => $data]);
             }
         }
     }
@@ -607,7 +602,7 @@ class cursive_json_func_data extends external_api {
             }
             return json_encode(['usercomment' => $usercomment, 'data' => $data]);
         } else {
-            return json_encode(['usercomment' => 'comments', 'data' => $data]);
+            return json_encode(['usercomment' => get_string('comments', 'tiny_cursive'), 'data' => $data]);
         }
 
     }
@@ -745,7 +740,7 @@ class cursive_json_func_data extends external_api {
             return json_encode(['usercomment' => $usercomment, 'data' => $data]);
 
         } else {
-            return json_encode(['usercomment' => 'comments', 'data' => $data]);
+            return json_encode(['usercomment' => get_string('comments', 'tiny_cursive'), 'data' => $data]);
         }
     }
 
@@ -814,7 +809,7 @@ class cursive_json_func_data extends external_api {
             return json_encode($usercomment);
 
         } else {
-            return json_encode([['usercomment' => 'comments']]);
+            return json_encode([['usercomment' => get_string('comments', 'tiny_cursive')]]);
         }
     }
 
@@ -936,7 +931,7 @@ class cursive_json_func_data extends external_api {
             return json_encode(['usercomment' => $usercomment, 'data' => $data]);
 
         } else {
-            return json_encode(['usercomment' => 'comments', 'data' => $data]);
+            return json_encode(['usercomment' => get_string('comments', 'tiny_cursive'), 'data' => $data]);
         }
     }
 
@@ -1254,7 +1249,7 @@ class cursive_json_func_data extends external_api {
 
             if ($content === false) {
                 $data->status = false;
-                $content = 'File not found! or Failed to read file';
+                $content = get_string('filenotfoundor', 'tiny_cursive');
             }
 
             $data->data = $content;
@@ -1346,7 +1341,8 @@ class cursive_json_func_data extends external_api {
         $params = ['fileid' => $vparams['fileid']];
         $rec = $DB->get_record_sql($sql, $params);
         if (isset($rec->effort_ratio)) {
-            $rec->effort_ratio = intval(floatval($rec->effort_ratio) * 100);
+
+            $rec->effort_ratio = round($rec->effort_ratio * 100, 2);
         }
 
         $sql = 'SELECT id AS fileid

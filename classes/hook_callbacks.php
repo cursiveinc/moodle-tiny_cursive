@@ -28,6 +28,7 @@ namespace tiny_cursive;
 use context_course;
 use context_module;
 use core\hook\output\before_footer_html_generation;
+use core_component;
 use core_course\hook\after_form_definition;
 use core_course\hook\after_form_submission;
 
@@ -51,6 +52,7 @@ class hook_callbacks {
         global $PAGE, $COURSE, $USER, $CFG;
         require_once($CFG->dirroot . '/lib/editor/tiny/plugins/cursive/locallib.php');
         require_once($CFG->dirroot . '/lib/editor/tiny/plugins/cursive/lib.php');
+        $plugins = core_component::get_plugin_list('local');
         $cursivestatus = tiny_cursive_status($COURSE->id);
         $capcheck = null;
 
@@ -124,11 +126,13 @@ class hook_callbacks {
                         );
                         break;
                     case 'page-mod-oublog-viewpost':
-                        $PAGE->requires->js_call_amd(
-                            'tiny_cursive/append_oublogs_post',
-                            'init',
-                            [$confidencethreshold, $showcomments],
-                        );
+                        if (isset($plugins['cursive_oublog'])) {
+                            $PAGE->requires->js_call_amd(
+                                'tiny_cursive/append_oublogs_post',
+                                'init',
+                                [$confidencethreshold, $showcomments],
+                            );
+                        }
                 }
             }
 
@@ -151,6 +155,11 @@ class hook_callbacks {
         $mform->addElement('header', 'Cursive', get_string('pluginname', 'tiny_cursive'), [], [
             'collapsed' => false,
         ]);
+        // Add a static element for the notice above the enable/disable dropdown.
+        $notice = get_string('cursive_enable_notice', 'tiny_cursive') .
+                ' <a href="https://cursivetechnology.com/" target="_blank">' .
+                get_string('cursive_more_info', 'tiny_cursive') . '</a>';
+        $mform->addElement('static', 'cursive_notice', '', $notice);
 
         $mform->addElement('select', 'cursive_status', get_string('cursive_status', 'tiny_cursive'), [
             '0' => get_string('disabled', 'tiny_cursive'),
