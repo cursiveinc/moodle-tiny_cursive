@@ -196,7 +196,7 @@ class observers {
      * @throws \dml_exception
      */
     public static function reset_tracking_data(\core\event\course_reset_ended $event) {
-        global $DB, $CFG;
+        global $DB;
 
         // Get the course ID from the event data.
         $data     = (object) $event->get_data();

@@ -64,7 +64,7 @@ $headers = [
 ];
 
 $exportcsv = new csv_export_writer('comma');
-$exportcsv->set_filename("Writing Analysis Report");
+$exportcsv->set_filename(get_string('wractivityreport', 'tiny_cursive'));
 $exportcsv->add_data($headers); // Add Header Row.
 $params = [];
 
