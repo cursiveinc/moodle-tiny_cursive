@@ -155,6 +155,11 @@ class hook_callbacks {
         $mform->addElement('header', 'Cursive', get_string('pluginname', 'tiny_cursive'), [], [
             'collapsed' => false,
         ]);
+        // Add a static element for the notice above the enable/disable dropdown.
+        $notice = get_string('cursive_enable_notice', 'tiny_cursive') .
+                ' <a href="https://cursivetechnology.com/" target="_blank">' .
+                get_string('cursive_more_info', 'tiny_cursive') . '</a>';
+        $mform->addElement('static', 'cursive_notice', '', $notice);
 
         $mform->addElement('select', 'cursive_status', get_string('cursive_status', 'tiny_cursive'), [
             '0' => get_string('disabled', 'tiny_cursive'),
