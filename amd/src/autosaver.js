@@ -107,7 +107,21 @@ export const register = (editor, interval, userId) => {
                 removeOnClose: true,
             })
                 .done(modal => {
-                    modal.getRoot().append('<style>.close{ display: none ! important; }</style>');
+                    modal.getRoot().append(`
+                         <style>
+                                .close { 
+                                    display: none ! important; 
+                                } 
+                                body.tox-fullscreen .modal-dialog {
+                                    max-width: 500px;
+                                    max-height:300px;
+                                    padding:1rem;
+                                } 
+                                body.tox-fullscreen .modal-dialog .modal-header {
+                                    height: auto;
+                                    padding: 1rem
+                                }
+                         </style>`);
                     modal.show();
                     var lastEvent = '';
                     // eslint-disable-next-line
@@ -129,7 +143,7 @@ export const register = (editor, interval, userId) => {
                         let cmid = M.cfg.contextInstanceId;
 
                         // eslint-disable-next-line
-                        if (ur.includes("attempt.php") || ur.includes("forum") || ur.includes("assign")) { } else {
+                        if (ur.includes("attempt.php") || ur.includes("forum") || ur.includes("assign") || ur.includes('lesson') || ur.includes("oublog")) { } else {
                             return false;
                         }
                         if (ur.includes("forum") && !ur.includes("assign")) {
@@ -151,6 +165,14 @@ export const register = (editor, interval, userId) => {
                         }
                         if (ur.includes("attempt")) {
                             modulename = "quiz";
+                        }
+                        if (ur.includes("lesson")) {
+                            modulename = "lesson";
+                            resourceId = cmid;
+                        }
+                        if (ur.includes("oublog")) {
+                            modulename = "oublog";
+                            resourceId = 0;
                         }
                         if (cmid === null) {
                             cmid = 0;
@@ -190,7 +212,7 @@ export const register = (editor, interval, userId) => {
         ed = eds;
         event = events;
 
-        if (ur.includes("attempt.php") || ur.includes("forum") || ur.includes("assign")) { } else {
+        if (ur.includes("attempt.php") || ur.includes("forum") || ur.includes("assign") || ur.includes('lesson') || ur.includes("oublog")) { } else {
             return false;
         }
         if (ur.includes("forum") && !ur.includes("assign")) {
@@ -214,6 +236,14 @@ export const register = (editor, interval, userId) => {
         }
         if (ur.includes("attempt")) {
             modulename = "quiz";
+        }
+        if (ur.includes("lesson")) {
+            modulename = "lesson";
+            resourceId = cmid;
+        }
+        if (ur.includes("oublog")) {
+            modulename = "oublog";
+            resourceId = 0;
         }
 
         filename = `${userid}_${resourceId}_${cmid}_${modulename}_attempt`;
