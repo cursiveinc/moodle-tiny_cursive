@@ -27,7 +27,7 @@ define([
     "./replay",
     "./analytic_button",
     "./analytic_events"
-], function (
+], function(
     AJAX,
     str,
     templates,
@@ -37,7 +37,7 @@ define([
 ) {
     const replayInstances = {};
     // eslint-disable-next-line
-    window.video_playback = function (mid, filepath, questionid) {
+    window.video_playback = function(mid, filepath, questionid) {
         if (filepath !== '') {
             const replay = new Replay(
                 'content' + mid,
@@ -48,12 +48,12 @@ define([
             );
             replayInstances[mid] = replay;
         } else {
-            templates.render('tiny_cursive/no_submission').then(function (html) {
+            templates.render('tiny_cursive/no_submission').then(function(html) {
                 const contentElement = document.getElementById('content' + mid);
                 if (contentElement) {
                     contentElement.innerHTML = html;
                 }
-            }).catch(function (e) {
+            }).catch(function(e) {
                 window.console.error(e);
             });
         }
@@ -61,14 +61,14 @@ define([
     };
 
     var usersTable = {
-        init: function (score_setting, showcomment) {
+        init: function(score_setting, showcomment) {
             str.get_strings([{ key: "field_require", component: "tiny_cursive" }])
-                .done(function () {
+                .done(function() {
                     usersTable.appendSubmissionDetail(score_setting, showcomment);
                 });
         },
 
-        appendSubmissionDetail: function (score_setting, showcomment) {
+        appendSubmissionDetail: function(score_setting, showcomment) {
             let sub_url = window.location.href;
             let parm = new URL(sub_url);
             let attempt_id = parm.searchParams.get('attempt');
@@ -76,7 +76,7 @@ define([
 
             let userid = '';
             let tableRow = document.querySelectorAll('table.generaltable.generalbox.quizreviewsummary tbody tr');
-            tableRow.forEach(function (row) {
+            tableRow.forEach(function(row) {
                 let hrefElement = row.querySelector('a[href*="/user/view.php"]');
                 if (hrefElement) {
                     let href = hrefElement.getAttribute('href');
@@ -87,7 +87,7 @@ define([
                 }
             });
 
-            document.querySelectorAll('#page-mod-quiz-review .info').forEach(function (element) {
+            document.querySelectorAll('#page-mod-quiz-review .info').forEach(function(element) {
                 let editQuestionLink = element.querySelector('.editquestion a[href*="question/bank/editquestion/question.php"]');
                 let questionid = null;
                 if (editQuestionLink) {
@@ -99,7 +99,7 @@ define([
                 let methodname = 'cursive_get_comment_link';
                 let com = AJAX.call([{ methodname, args }]);
 
-                com[0].done(function (json) {
+                com[0].done(function(json) {
                     let data = JSON.parse(json);
 
                     if (data.data.filename) {
@@ -115,7 +115,7 @@ define([
                                     qtextElement.append(referencesDiv);
 
                                     let tt = '<h4>References</h4><div class="tiny_cursive-quiz-references rounded">';
-                                    data.usercomment.forEach(function (element) {
+                                    data.usercomment.forEach(function(element) {
                                         tt += '<div class="text-primary p-3" style="border-bottom:1px solid rgba(0, 0, 0, 0.1)">'
                                             + element.usercomment + '</div>';
                                     });

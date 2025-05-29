@@ -20,7 +20,7 @@
  * @author Brain Station 23 <elearning@brainstation-23.com>
  */
 
-import { call as fetchJson } from 'core/ajax';
+import {call as fetchJson} from 'core/ajax';
 import templates from 'core/templates';
 import * as Str from 'core/str';
 export default class Replay {
@@ -71,7 +71,7 @@ export default class Replay {
                         templates.render('tiny_cursive/no_submission'),
                         Str.get_string('warningpayload', 'tiny_cursive')
                     ])
-                        .then(function (results) {
+                        .then(function(results) {
                             const html = results[0];
                             const str = results[1];
                             const tempDiv = document.createElement('div');
@@ -86,7 +86,7 @@ export default class Replay {
 
                             return true;
                         })
-                        .catch(function (error) {
+                        .catch(function(error) {
                             window.console.error(error);
                         });
                 } catch (error) {

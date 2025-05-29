@@ -23,7 +23,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 import Replay from './replay';
-import { call as getData } from 'core/ajax';
+import {call as getData} from 'core/ajax';
 import templates from 'core/templates';
 import AnalyticEvents from './analytic_events';
 import analyticButton from './analytic_button';
@@ -33,7 +33,7 @@ export const init = (scoreSetting) => {
     const replayInstances = {};
 
     // eslint-disable-next-line camelcase
-    window.video_playback = function (mid, filepath) {
+    window.video_playback = function(mid, filepath) {
         if (filepath !== '') {
             const replay = new Replay(
                 'content' + mid,
@@ -60,7 +60,7 @@ export const init = (scoreSetting) => {
     const headColumns = document.querySelectorAll('#region-main div[role="main"] table thead tr');
 
     Str.get_string('analytics', 'tiny_cursive').then((strs) => {
-        headColumns.forEach(function (row) {
+        headColumns.forEach(function(row) {
             const secondTh = row.querySelector('th:nth-child(2)');
             if (secondTh) {
                 const newTh = document.createElement('th');
@@ -72,7 +72,7 @@ export const init = (scoreSetting) => {
         return true;
     }).catch(e => window.console.error(e));
 
-    emailLinks.forEach(function (emailLink) {
+    emailLinks.forEach(function(emailLink) {
         const href = emailLink.getAttribute('href');
         let userid = 0;
 
@@ -94,7 +94,7 @@ export const init = (scoreSetting) => {
                 const methodname = 'cursive_get_lesson_submission_data';
                 const com = getData([{ methodname, args }]);
 
-                com[0].done(function (json) {
+                com[0].done(function(json) {
                     const data = JSON.parse(json);
                     let filepath = '';
                     if (data.res.filename) {
@@ -126,7 +126,7 @@ export const init = (scoreSetting) => {
                     myEvents.analytics(userid, templates, context, '', replayInstances, authIcon);
                     myEvents.checkDiff(userid, data.res.file_id, '', replayInstances);
                     myEvents.replyWriting(userid, filepath, '', replayInstances);
-                    myEvents.quality(userid, templates, context, '', replayInstances, cmid);
+
                 });
 
                 com[0].fail((error) => {

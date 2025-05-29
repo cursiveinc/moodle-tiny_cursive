@@ -22,7 +22,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-import { call as getData } from 'core/ajax';
+import {call as getData} from 'core/ajax';
 import templates from 'core/templates';
 import AnalyticEvents from './analytic_events';
 import analyticButton from './analytic_button';
@@ -31,7 +31,7 @@ import Replay from './replay';
 export const init = (scoreSetting) => {
     const replayInstances = {};
     // eslint-disable-next-line camelcase
-    window.video_playback = function (mid, filepath) {
+    window.video_playback = function(mid, filepath) {
         if (filepath !== '') {
             const replay = new Replay(
                 'content' + mid,
@@ -56,7 +56,7 @@ export const init = (scoreSetting) => {
 
     const ouBlogPosts = document.querySelectorAll('.oublog-post');
     const cmid = M.cfg.contextInstanceId;
-    ouBlogPosts.forEach(function (element) {
+    ouBlogPosts.forEach(function(element) {
         const postedByLink = element.querySelector('.oublog-postedby a');
         const permalinkElement = element.querySelector('.oublog-post-links a');
 
@@ -75,7 +75,7 @@ export const init = (scoreSetting) => {
             let methodname = 'cursive_get_oublog_submission_data';
             let com = getData([{ methodname, args }]);
 
-            com[0].done(function (json) {
+            com[0].done(function(json) {
                 var data = JSON.parse(json);
                 if (data.res.filename) {
                     filepath = data.res.filename;
@@ -99,7 +99,7 @@ export const init = (scoreSetting) => {
                 myEvents.analytics(userid, templates, context, '', replayInstances, authIcon);
                 myEvents.checkDiff(userid, data.res.file_id, '', replayInstances);
                 myEvents.replyWriting(userid, filepath, '', replayInstances);
-                myEvents.quality(userid, templates, context, '', replayInstances, cmid);
+
             });
 
             com[0].fail((error) => {

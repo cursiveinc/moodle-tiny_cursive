@@ -20,19 +20,19 @@
  * @author Brain Station 23 <elearning@brainstation-23.com>
  */
 
-define(["core/str"], function (str) {
+define(["core/str"], function(str) {
   var usersTable = {
-    init: function (showcomments, user_role) {
+    init: function(showcomments, user_role) {
       str
         .get_strings([
           { key: "tiny_cursive", component: "tiny_cursive" },
         ])
-        .done(function () {
+        .done(function() {
           usersTable.getToken(showcomments, user_role);
         });
     },
 
-    getToken: function (showcomments, user_role) {
+    getToken: function(showcomments, user_role) {
       var body = document.createElement("div");
       body.id = "body";
       body.className = "body";
