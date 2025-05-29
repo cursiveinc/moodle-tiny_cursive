@@ -61,12 +61,10 @@ export default class Replay {
                         let updatedHtml = html.replace('No Submission', "Something Went Wrong! or File Not Found!");
                         document.querySelector('.tiny_cursive').innerHTML = updatedHtml;
                     });
-                } catch (error) {
-                    window.console.error(error);
                 }
-            }
-            return data;
-        })
+                return data;
+            })
+
         .catch(error => {
 
             try {

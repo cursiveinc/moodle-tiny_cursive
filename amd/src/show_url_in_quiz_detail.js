@@ -45,11 +45,6 @@ define([
                 10,
                 false,
                 'player_' + mid + questionid
-                'content' + mid,
-                filepath,
-                10,
-                false,
-                'player_' + mid + questionid
             );
             replayInstances[mid] = replay;
         } else {

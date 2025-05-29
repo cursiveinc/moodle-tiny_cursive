@@ -39,7 +39,7 @@ export default class AnalyticEvents {
                 e.preventDefault();
 
                 // Create Moodle modal
-                MyModal.create({ templateContext: context }).then(modal => {
+                myModal.create({ templateContext: context }).then(modal => {
                     const content = document.querySelector('#content' + userid + ' .table tbody tr:first-child td:nth-child(2)');
                     if (content) content.innerHTML = authIcon.outerHTML;
                     modal.show();

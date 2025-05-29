@@ -46,11 +46,6 @@ define([
                 10,
                 false,
                 'player_' + mid
-                'content' + mid,
-                filepath,
-                10,
-                false,
-                'player_' + mid
             );
             replayInstances[mid] = replay;
         } else {

@@ -111,7 +111,7 @@ export const register = (editor, interval, userId) => {
                 type: 'SAVE_CANCEL',
                 title: `<div><div style='color:dark;font-weight:500;line-height:0.5'>${title}</div><span style='color: gray;font-weight: 400;line-height: 1.2;font-size: 14px;display: inline-block;margin-top: .5rem;'>${titledes}</span></div>`,
                 body: `<textarea  class="form-control inputUrl" value="" id="inputUrl" placeholder="${placeholder}"></textarea>`,
-    
+
                 removeOnClose: true,
             })
                 .done(modal => {
@@ -135,7 +135,7 @@ export const register = (editor, interval, userId) => {
                         let editorid = editor?.id;
                         let courseid = M.cfg.courseId;
                         let cmid = M.cfg.contextInstanceId;
-    
+
                         // eslint-disable-next-line
                         if (ur.includes("attempt.php") || ur.includes("forum") || ur.includes("assign")) { } else {
                             return false;
@@ -146,7 +146,7 @@ export const register = (editor, interval, userId) => {
                         if (!ur.includes("forum") && !ur.includes("assign")) {
                             resourceId = parm.searchParams.get('attempt');
                         }
-    
+
                         if (resourceId === null) {
                             resourceId = 0;
                         }
@@ -163,7 +163,7 @@ export const register = (editor, interval, userId) => {
                         if (cmid === null) {
                             cmid = 0;
                         }
-    
+
                         postOne('cursive_user_comments', {
                             modulename: modulename,
                             cmid: cmid,
@@ -177,7 +177,7 @@ export const register = (editor, interval, userId) => {
                         modal.destroy();
                     });
                     modal.getRoot().on(cancel, function() {
-    
+
                         editor.execCommand('Undo');
                         lastEvent = 'cancel';
                     });
@@ -189,7 +189,7 @@ export const register = (editor, interval, userId) => {
                     return modal;
                 });
         });
-        
+
     };
 
     const sendKeyEvent = (event, ed) => {

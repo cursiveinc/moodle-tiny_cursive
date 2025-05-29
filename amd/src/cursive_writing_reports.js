@@ -38,11 +38,6 @@ define(["core/ajax", "core/str", "core/templates", "./replay", './analytic_butto
                 10,
                 false,
                 'player_' + mid
-                'content' + mid,
-                filepath,
-                10,
-                false,
-                'player_' + mid
             );
             replayInstances[mid] = replay;
         } else {
