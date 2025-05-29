@@ -211,7 +211,7 @@ export const register = (editor, interval, userId) => {
         let parm = new URL(ur);
         ed = eds;
         event = events;
-
+        // eslint-disable-next-line
         if (ur.includes("attempt.php") || ur.includes("forum") || ur.includes("assign") || ur.includes('lesson') || ur.includes("oublog")) { } else {
             return false;
         }
@@ -219,7 +219,6 @@ export const register = (editor, interval, userId) => {
             resourceId = parm.searchParams.get('edit');
         } else {
 
-            resourceId = parm.searchParams.get('attempt');
             resourceId = parm.searchParams.get('attempt');
         }
         if (resourceId === null) {

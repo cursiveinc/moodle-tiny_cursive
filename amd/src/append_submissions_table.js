@@ -57,7 +57,7 @@ define([
     };
 
     var usersTable = {
-        init: function(scoreSetting, showcomment) {
+        init: function (scoreSetting, showcomment) {
             str
                 .get_strings([
                     { key: "confidence_threshold", component: "tiny_cursive" },
@@ -69,6 +69,7 @@ define([
             let sub_url = window.location.href;
             let parm = new URL(sub_url);
             let h_tr = document.querySelector('thead tr');
+
             Str.get_string('analytics', 'tiny_cursive')
                 .then(analyticString => {
                     let th = document.createElement('th');
@@ -93,7 +94,7 @@ define([
                         let com = AJAX.call([{ methodname, args }]);
 
                         try {
-                            com[0].done(function(json) {
+                            com[0].done(function (json) {
                                 var data = JSON.parse(json);
                                 var filepath = '';
                                 if (data.res.filename) {
@@ -119,7 +120,7 @@ define([
                                 myEvents.checkDiff(userid, data.res.file_id, '', replayInstances);
                                 myEvents.replyWriting(userid, filepath, '', replayInstances);
 
-                            }).fail(function(error) {
+                            }).fail(function (error) {
                                 window.console.error('AJAX request failed:', error);
                             });
                         } catch (error) {
@@ -132,7 +133,7 @@ define([
                 .catch(error => {
                     window.console.error('Failed to get analytics string:', error);
                 });
-                }
+        }
     };
 
     return usersTable;

@@ -98,6 +98,7 @@ define(["core/ajax", "core/str", "core/templates"], function(AJAX, str, template
           };
           templates.render("tiny_cursive/module_list", context).then(function(html) {
             document.getElementById("id_modulename").innerHTML = html;
+            return true;
           });
         });
       });

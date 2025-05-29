@@ -134,6 +134,7 @@ define(["core/ajax", "core/str", "core/templates", "./replay", './analytic_butto
                     templates.render("tiny_cursive/user_list", context)
                         .then(function(html) {
                             document.getElementById("id_username").innerHTML = html;
+                            return true;
                         });
                 });
 
@@ -148,6 +149,7 @@ define(["core/ajax", "core/str", "core/templates", "./replay", './analytic_butto
                         tabledata: data,
                         page: page,
                     };
+                     // eslint-disable-next-line
                     templates.render("tiny_cursive/module_list", context)
                         .then(function(html) {
                             document.getElementById("id_modulename").innerHTML = html;

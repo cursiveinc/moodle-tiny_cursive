@@ -27,7 +27,6 @@ export default class Replay {
     controllerId = '';
     constructor(elementId, filePath, speed = 1, loop = false, controllerId) {
         this.controllerId = controllerId;
-        this.controllerId = controllerId;
         this.replayInProgress = false;
         this.speed = speed;
         this.loop = loop;

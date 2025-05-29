@@ -91,23 +91,32 @@ define(["core/ajax", "core/str", "core/templates", "./replay", "./analytic_butto
                     if (filepath) {
                         const analyticButtonDiv = document.createElement('div');
                         analyticButtonDiv.append(analyticButton(ids));
-                        analyticButtonDiv.classList.add('text-center', 'mt-2');
+                        analyticButtonDiv.classList.add('text-center', 'my-3');
                         analyticButtonDiv.setAttribute('data-region', "analytic-div" + ids);
 
-                        document.getElementById('post-content-' + ids).append(analyticButtonDiv);
+                        const postContent = document.getElementById('post-content-' + ids);
 
                         if (data.usercomment !== 'comments' && parseInt(showcomment)) {
-                            let comments = "";
-                            data.usercomment.forEach(element => {
-                                comments += '<div class="border-bottom p-3 text-primary" style="font-weight:600;">' + element.usercomment + '</div>';
-                            });
+                            str.get_string('refer', 'tiny_cursive').then(str => {
+                                let comments = "";
+                                data.usercomment.forEach(element => {
+                                    comments += '<div class="border-bottom p-3" style="font-weight:600;color:#0f6cbf">'
+                                        + element.usercomment + '</div>';
+                                });
 
-                            const commentDiv = document.createElement('div');
-                            commentDiv.classList.add('tiny_cursive-quiz-references', 'rounded');
-                            commentDiv.innerHTML = comments;
+                                const heading = document.createElement('h4');
+                                heading.textContent = str;
 
-                            document.getElementById('post-content-' + ids).prepend(commentDiv);
+                                const commentDiv = document.createElement('div');
+                                commentDiv.classList.add('tiny_cursive-quiz-references', 'rounded', 'mb-2');
+                                commentDiv.innerHTML = comments;
+
+                                postContent.prepend(commentDiv);
+                                commentDiv.prepend(heading);
+                            }).catch(e => window.console.error(e));
                         }
+
+                        postContent.append(analyticButtonDiv);
 
                         const myEvents = new AnalyticEvents();
                         const context = {
