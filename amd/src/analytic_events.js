@@ -54,7 +54,7 @@ export default class AnalyticEvents {
             $('#player_' + userid + questionid).css({
                 'display': 'none'
             });
-            $('#content' + userid).removeAttr('style').addClass('tiny_cursive').attr('data-label', 'analytics');
+            $('#content' + userid).removeClass('tiny_cursive_outputElement').addClass('tiny_cursive').attr('data-label', 'analytics');
             e.preventDefault();
             $('#content' + userid).html($('<div>').addClass('d-flex justify-content-center my-5')
                 .append($('<div>').addClass('tiny_cursive-loader')));
@@ -88,7 +88,7 @@ export default class AnalyticEvents {
             $('#player_' + userid + questionid).css({
                 'display': 'none'
             });
-            $('#content' + userid).removeAttr('style').addClass('tiny_cursive').attr('data-label', 'diff');
+            $('#content' + userid).removeClass('tiny_cursive_outputElement').addClass('tiny_cursive').attr('data-label', 'diff');
             e.preventDefault();
             $('#content' + userid).html($('<div>').addClass('d-flex justify-content-center my-5')
                 .append($('<div>').addClass('tiny_cursive-loader')));

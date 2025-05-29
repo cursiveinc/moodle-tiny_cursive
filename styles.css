@@ -53,7 +53,7 @@
     border-bottom: 2px solid #dee2e6;
 }
 
-.tiny_cursive_table tbody + tbody {
+.tiny_cursive_table tbody+tbody {
     border-top: 2px solid #dee2e6;
 }
 
@@ -61,7 +61,7 @@
 .tiny_cursive_table-borderless th,
 .tiny_cursive_table-borderless td,
 .tiny_cursive_table-borderless thead th,
-.tiny_cursive_table-borderless tbody + tbody {
+.tiny_cursive_table-borderless tbody+tbody {
     border: 0;
 }
 
@@ -678,4 +678,388 @@
     color: black;
     padding-left: 25px;
     font-size: x-large;
+}
+
+.tiny_cursive_outputElement {
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-width: 100%;
+    overflow: auto;
+    font-family: monospace;
+    padding: 10px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    min-height: 100px;
+    background-color: #fff;
+}
+
+.tiny_cursive_replay_control {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 10px 0;
+    align-items: center;
+    padding: 10px;
+    padding-bottom: 10px;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    width: 100%;
+}
+
+.tiny_cursive_top_row {
+    display: flex;
+    width: 100%;
+    gap: 12px;
+    align-items: center;
+}
+
+.tiny_cursive_play_button {
+    min-width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #4285f4;
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s, transform 0.1s;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    flex-shrink: 0;
+}
+
+.tiny_cursive_play_button {
+    min-width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #4285f4;
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s, transform 0.1s;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    flex-shrink: 0;
+}
+
+.tiny_cursive_play_button:hover {
+    background: #3367d6;
+    transform: scale(1.05);
+}
+
+.tiny_cursive_scrubber_container {
+    flex-grow: 1;
+    width: 100%;
+}
+
+.tiny_cursive_timeline_scrubber {
+    width: 100%;
+    height: 8px;
+    border-radius: 4px;
+    accent-color: #4285f4;
+    /* Modern browsers only */
+}
+
+.tiny_cursive_bottom_row {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 5px;
+}
+
+.tiny_cursive_speed_controls {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+    align-items: center;
+}
+
+.tiny_cursive_speed_label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+    margin-right: 4px;
+}
+
+.tiny_cursive_speed_group {
+    display: flex;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid #e0e0e0;
+}
+
+.tiny_cursive_speed_btn {
+    padding: 6px 10px;
+    border: none;
+    border-right: 1px solid #e0e0e0;
+    background: white;
+    color: #333;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: background 0.2s, color 0.2s;
+}
+
+.tiny_cursive_speed_btn:last-child {
+    border-right: none;
+}
+
+.tiny_cursive_speed_btn:hover:not(.active) {
+    background: #f1f3f4;
+}
+
+.tiny_cursive_speed_btn.active {
+    background: #4285f4;
+    color: white;
+}
+
+.tiny_cursive_time_display {
+    font-size: 14px;
+    font-family: sans-serif;
+    color: #333;
+    padding: 5px 0;
+    flex-shrink: 0;
+    min-width: 90px;
+    margin-left: 15px;
+    text-align: left;
+}
+
+.tiny_cursive_paste_events_toggle {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    color: #4285f4;
+    font-family: sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    margin-left: auto;
+}
+
+.tiny_cursive_paste_events_icon {
+    margin-right: 8px;
+    display: flex;
+    align-items: center;
+}
+
+.tiny_cursive_paste_events_panel {
+    display: none;
+    margin-top: 10px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    background-color: #fff;
+    max-height: 300px;
+    overflow-y: auto;
+    width: 100%;
+}
+
+.tiny_cursive-replay-control {
+    margin: 10px 0;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.tiny_cursive-replay-control:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.tiny_cursive-highlighted-char {
+    color: #34a853;
+    font-weight: bold;
+    transition: opacity 0.3s ease, color 0.3s ease;
+}
+
+.tiny_cursive-deleted-char {
+    color: #ea4335;
+    text-decoration: line-through;
+    opacity: 0.5;
+    transition: opacity 0.3s ease;
+}
+
+.tiny_cursive-cursor {
+    display: inline-block;
+    width: 2px;
+    height: 1.2em;
+    background-color: #4285f4;
+    animation: tiny_cursive-blink 1s infinite;
+    vertical-align: middle;
+    border-radius: 1px;
+}
+
+@keyframes tiny_cursive-blink {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0;
+    }
+}
+
+.tiny_cursive-timeline-scrubber {
+    width: 100%;
+    height: 8px;
+    border-radius: 4px;
+    appearance: none;
+    background: #e0e0e0;
+    transition: background 0.2s;
+}
+
+.tiny_cursive-timeline-scrubber:hover {
+    background: #d0d0d0;
+}
+
+.tiny_cursive-timeline-scrubber::-webkit-slider-thumb {
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #4285f4;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.tiny_cursive-timeline-scrubber::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.tiny_cursive-timeline-scrubber::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #4285f4;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    transition: transform 0.1s;
+}
+
+.tiny_cursive-timeline-scrubber::-moz-range-thumb:hover {
+    transform: scale(1.1);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.tiny_cursive-speed-btn.active {
+    background: #4285f4 !important;
+    color: white !important;
+    font-weight: 500;
+}
+.tiny_cursive_event_panel {
+  max-height: 400px;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+.tiny_cursive_paste_events_carousel {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  position: relative;
+}
+.tiny_cursive_navigation_row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  border-bottom: 1px solid #f0f0f0;
+}
+.tiny_cursive_counter_display {
+  font-weight: bold;
+  color: #4285f4;
+}
+.tiny_cursive_nav_buttons {
+  display: flex;
+  gap: 10px;
+}
+.tiny_cursive_nav_button {
+  border: none;
+  background: #f1f3f4;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #4285f4;
+  transition: background-color 0.2s;
+  opacity: 1;
+}
+
+.tiny_cursive_nav_button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.tiny_cursive_nav_button:not(:disabled):hover {
+  background: #e0e0e0;
+}
+.tiny_cursive_content_container {
+  padding: 15px;
+  overflow: auto;
+  position: relative;
+}
+.tiny_cursive_event_row {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.tiny_cursive_header_row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.tiny_cursive_text_container {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  margin-right: 10px;
+}
+.tiny_cursive_paste_event_timestamp {
+  font-family: monospace;
+  font-size: 12px;
+  color: #666;
+  font-weight: bold;
+}
+.tiny_cursive_pasted_text_container {
+  font-family: monospace;
+  font-size: 14px;
+  word-break: break-word;
+  /* white-space: pre-wrap; */
+  color: #333;
+  margin-top: 8px;
+}
+.tiny_cursive_seekplay_button {
+  min-width: 32px;
+  height: 32px;
+  border-radius: 0;
+  background: transparent;
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.1s ease;
+}
+
+.tiny_cursive_seekplay_button:hover {
+  transform: scale(1.05);
+}
+.tiny_cursive_eventplay_button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
