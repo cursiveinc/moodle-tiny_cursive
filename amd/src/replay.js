@@ -20,12 +20,10 @@
  * @author Brain Station 23 <elearning@brainstation-23.com>
  */
 
-import {call as fetchJson} from 'core/ajax';
+import { call as fetchJson } from 'core/ajax';
 import templates from 'core/templates';
-import $ from 'jquery';
 import * as Str from 'core/str';
 export default class Replay {
-    controllerId = '';
     controllerId = '';
     constructor(elementId, filePath, speed = 1, loop = false, controllerId) {
         this.controllerId = controllerId;
@@ -65,30 +63,37 @@ export default class Replay {
                 return data;
             })
 
-        .catch(error => {
+            .catch(error => {
 
-            try {
-               // eslint-disable-next-line
-                Promise.all([
-                    templates.render('tiny_cursive/no_submission'),
-                    Str.get_string('warningpayload', 'tiny_cursive')
-                ])
-                .then(function(results) {
-                    var html = results[0];
-                    var str = results[1];
-                    var newElement = $(html);
-                    newElement.text(str);
-                    $('.tiny_cursive').html(newElement);
-                    return true;
-                })
-                .catch(function(error) {
+                try {
+                    // eslint-disable-next-line
+                    Promise.all([
+                        templates.render('tiny_cursive/no_submission'),
+                        Str.get_string('warningpayload', 'tiny_cursive')
+                    ])
+                        .then(function (results) {
+                            const html = results[0];
+                            const str = results[1];
+                            const tempDiv = document.createElement('div');
+                            tempDiv.innerHTML = html;
+                            const newElement = tempDiv.firstElementChild || tempDiv;
+                            newElement.textContent = str;
+                            const tinyCursiveElements = document.querySelectorAll('.tiny_cursive');
+                            tinyCursiveElements.forEach(element => {
+                                element.innerHTML = '';
+                                element.appendChild(newElement.cloneNode(true));
+                            });
+
+                            return true;
+                        })
+                        .catch(function (error) {
+                            window.console.error(error);
+                        });
+                } catch (error) {
                     window.console.error(error);
-                });
-            } catch (error) {
-                window.console.error(error);
-            }
-            window.console.error('Error loading JSON file: ' + error.message);
-        });
+                }
+                window.console.error('Error loading JSON file: ' + error.message);
+            });
     }
 
     stopReplay() {

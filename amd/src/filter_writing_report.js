@@ -47,10 +47,10 @@ define(["core/ajax", "core/templates"], function (AJAX, templates) {
               filteredUser.innerHTML = html;
             })
             .catch(function (error) {
-              console.error("Error rendering template:", error);
+              window.console.error("Error rendering template:", error);
             });
         }).fail(function (error) {
-          console.error("AJAX request failed:", error);
+          window.console.error("AJAX request failed:", error);
         });
       });
     },

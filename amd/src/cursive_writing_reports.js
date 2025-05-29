@@ -76,7 +76,7 @@ define(["core/ajax", "core/str", "core/templates", "./replay", './analytic_butto
              *
              * @param {Object} scoreSetting - Configuration settings related to scoring.
              */
-            function analyticsEvents(score_setting) {
+            function analyticsEvents(scoreSetting) {
                 const analyticModals = document.querySelectorAll(".analytic-modal");
 
                 analyticModals.forEach(modalElement => {
@@ -103,7 +103,7 @@ define(["core/ajax", "core/str", "core/templates", "./replay", './analytic_butto
 
                         context.formattime = myEvents.formatedTime(data);
                         context.tabledata = data;
-                        let authIcon = myEvents.authorshipStatus(data.first_file, data.score, score_setting);
+                        let authIcon = myEvents.authorshipStatus(data.first_file, data.score, scoreSetting);
                         myEvents.createModal(mid, context, '', authIcon);
                         myEvents.analytics(mid, templates, context, '', replayInstances, authIcon);
                         myEvents.checkDiff(mid, mid, '', replayInstances);

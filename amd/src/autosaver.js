@@ -27,17 +27,14 @@ import { save, cancel, hidden } from 'core/modal_events';
 
 export const register = (editor, interval, userId) => {
 
-    var is_student, intervention, quizSubmit, assignSubmit;
-
-    quizSubmit = document.querySelector('#responseform');
-    assignSubmit = document.querySelector('#id_submitbutton');
+    var is_student, intervention;
 
     var bodyElement = document.querySelector('#body');
     if (bodyElement) {
         is_student = !bodyElement.classList.contains('teacher_admin'); // true or false
         intervention = bodyElement.classList.contains('intervention'); // true or false
     } else {
-        console.error('#body element not found');
+        window.console.error('#body element not found');
     }
 
 
@@ -53,6 +50,8 @@ export const register = (editor, interval, userId) => {
     var cmid = M.cfg.contextInstanceId;
     var questionid = 0;
     var syncInterval = interval ? interval * 1000 : 10000; // Default: Sync Every 10s.
+    const assignSubmit = document.getElementById('id_submitbutton');
+    const quizSubmit = document.getElementById('mod_quiz-next-nav');
 
     const postOne = async (methodname, args) => {
         try {
@@ -62,42 +61,34 @@ export const register = (editor, interval, userId) => {
             }])[0];
             return response;
         } catch (error) {
-            console.error('Error in postOne:', error);
+            window.console.error('Error in postOne:', error);
             throw error;
         }
     };
 
-    if (document.getElementById('page-mod-assign-editsubmission') || document.getElementById('page-mod-forum-post') || document.getElementById('page-mod-forum-view')) {
-        if (assignSubmit) {
-            assignSubmit.addEventListener('click', async function (e) {
-                e.preventDefault();
-                if (filename) {
-                    await SyncData().then((res) => {
-                        assignSubmit.removeEventListener('click', arguments.callee);
-                        assignSubmit.click();
-                        assignSubmit.removeEventListener('click', arguments.callee);
-                    })
-                } else {
-                    assignSubmit.removeEventListener('click', arguments.callee);
-                    assignSubmit.click();
-                    assignSubmit.removeEventListener('click', arguments.callee);
-                }
+    assignSubmit.addEventListener('click', async function (e) {
+        e.preventDefault();
+        if (filename) {
+            // eslint-disable-next-line
+            syncData().then(() => {
+                assignSubmit.off('click').click();
             });
+        } else {
+            assignSubmit.off('click').click();
         }
-    }
+    });
 
-    if (document.getElementById('page-mod-quiz-attempt')) {
-        if (quizSubmit) {
-            quizSubmit.addEventListener('click', async (e) => {
-                if (filename) {
-                    await SyncData().then(res => {
-                        document.querySelector('#responseform').submit();
-                    });
-                }
-
+    quizSubmit.addEventListener('click', async function (e) {
+        e.preventDefault();
+        if (filename) {
+            // eslint-disable-next-line
+            syncData().then(() => {
+                quizSubmit.off('click').click();
             });
+        } else {
+            quizSubmit.off('click').click();
         }
-    }
+    });
 
     const getModal = (e) => {
 
@@ -105,11 +96,12 @@ export const register = (editor, interval, userId) => {
             getString('tiny_cursive_srcurl', 'tiny_cursive'),
             getString('tiny_cursive_srcurl_des', 'tiny_cursive'),
             getString('tiny_cursive_placeholder', 'tiny_cursive')
-        ]).then(function([title, titledes, placeholder]) {
+        ]).then(function ([title, titledes, placeholder]) {
 
             return create({
                 type: 'SAVE_CANCEL',
-                title: `<div><div style='color:dark;font-weight:500;line-height:0.5'>${title}</div><span style='color: gray;font-weight: 400;line-height: 1.2;font-size: 14px;display: inline-block;margin-top: .5rem;'>${titledes}</span></div>`,
+                title: `<div><div style='color:dark;font-weight:500;line-height:0.5'>${title}
+                </div><span style='color: gray;font-weight: 400;line-height: 1.2;font-size: 14px;display: inline-block;margin-top: .5rem;'>${titledes}</span></div>`,
                 body: `<textarea  class="form-control inputUrl" value="" id="inputUrl" placeholder="${placeholder}"></textarea>`,
 
                 removeOnClose: true,
@@ -119,7 +111,7 @@ export const register = (editor, interval, userId) => {
                     modal.show();
                     var lastEvent = '';
                     // eslint-disable-next-line
-                    modal.getRoot().on(save, function() {
+                    modal.getRoot().on(save, function () {
                         var number = document.getElementById("inputUrl").value;
                         if (number === "" || number === null || number === undefined) {
                             editor.execCommand('Undo');
@@ -176,12 +168,12 @@ export const register = (editor, interval, userId) => {
                         lastEvent = 'save';
                         modal.destroy();
                     });
-                    modal.getRoot().on(cancel, function() {
+                    modal.getRoot().on(cancel, function () {
 
                         editor.execCommand('Undo');
                         lastEvent = 'cancel';
                     });
-                    modal.getRoot().on(hidden, function() {
+                    modal.getRoot().on(hidden, function () {
                         if (lastEvent != 'cancel' && lastEvent != 'save') {
                             editor.execCommand('Undo');
                         }
@@ -192,11 +184,11 @@ export const register = (editor, interval, userId) => {
 
     };
 
-    const sendKeyEvent = (event, ed) => {
+    const sendKeyEvent = (events, eds) => {
         let ur = ed.srcElement.baseURI;
         let parm = new URL(ur);
-        ed = ed;
-        event = event;
+        ed = eds;
+        event = events;
 
         if (ur.includes("attempt.php") || ur.includes("forum") || ur.includes("assign")) { } else {
             return false;
@@ -308,12 +300,12 @@ export const register = (editor, interval, userId) => {
                     originalText: originalText
                 });
             } catch (error) {
-                console.error('Error submitting data:', error);
+                window.console.error('Error submitting data:', error);
             }
         }
     }
 
-    window.addEventListener('unload', (e) => {
+    window.addEventListener('unload', () => {
         SyncData();
     });
 

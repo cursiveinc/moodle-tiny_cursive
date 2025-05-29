@@ -22,7 +22,7 @@
 
 define(["core/config", "core/str"], function (mdlcfg, Str) {
     var usersTable = {
-        init: async function(page) {
+        init: async function (page) {
             await usersTable.appendTable(page);
         },
         appendTable: async function () {
@@ -62,7 +62,8 @@ define(["core/config", "core/str"], function (mdlcfg, Str) {
 
                         // if (!sixthTd.querySelector('i:last-child')) {
                         const color = 'font-size:24px;color:black;text-decoration:none';
-                        const link = mdlcfg.wwwroot + "/lib/editor/tiny/plugins/cursive/writing_report.php?userid=" + userId + "&courseid=" + courseid;
+                        const link = mdlcfg.wwwroot + "/lib/editor/tiny/plugins/cursive/writing_report.php?userid="
+                            + userId + "&courseid=" + courseid;
                         const icon = 'fa fa-area-chart';
 
                         const thunderIcon = document.createElement('td');

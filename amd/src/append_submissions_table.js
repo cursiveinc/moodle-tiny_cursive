@@ -62,10 +62,10 @@ define([
                 .get_strings([
                     { key: "confidence_threshold", component: "tiny_cursive" },
                 ]).done(function () {
-                    usersTable.appendTable(score_setting, showcomment);
+                    usersTable.appendTable(scoreSetting, showcomment);
                 });
         },
-        appendTable: function (score_setting) {
+        appendTable: function (scoreSetting) {
             let sub_url = window.location.href;
             let parm = new URL(sub_url);
             let h_tr = document.querySelector('thead tr');

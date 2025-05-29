@@ -88,7 +88,8 @@ define(["core/ajax", "core/str"], function (AJAX, str) {
 
         // Handle the failure response
         promise.fail((jqXHR, textStatus) => {
-          const errorMessage = `<span class='text-danger' role='alert'>An error occurred while generating the token: ${textStatus}</span>`;
+          const errorMessage = `<span class='text-danger' role='alert'>
+          An error occurred while generating the token: ${textStatus}</span>`;
           const alertContainer = document.querySelector('#cursivetoken_');
           alertContainer.innerHTML = errorMessage;
 

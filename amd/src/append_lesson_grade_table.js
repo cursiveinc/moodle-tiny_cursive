@@ -22,19 +22,18 @@
  * @copyright  2025  CTI <info@cursivetechnology.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
 import Replay from './replay';
-import $ from 'jquery';
-import {call as getData} from 'core/ajax';
+import { call as getData } from 'core/ajax';
 import templates from 'core/templates';
 import AnalyticEvents from './analytic_events';
 import analyticButton from './analytic_button';
 import * as Str from 'core/str';
-// eslint-disable-next-line
-export const init = (scoreSetting, showcomment) => {
+
+export const init = (scoreSetting) => {
     const replayInstances = {};
+
     // eslint-disable-next-line camelcase
-    window.video_playback = function(mid, filepath) {
+    window.video_playback = function (mid, filepath) {
         if (filepath !== '') {
             const replay = new Replay(
                 'content' + mid,
@@ -46,70 +45,90 @@ export const init = (scoreSetting, showcomment) => {
             replayInstances[mid] = replay;
         } else {
             templates.render('tiny_cursive/no_submission').then(html => {
-                $('#content' + mid).html(html);
+                const contentElement = document.getElementById('content' + mid);
+                if (contentElement) {
+                    contentElement.innerHTML = html;
+                }
                 return true;
             }).catch(e => window.console.error(e));
         }
         return false;
-
     };
 
-
-    var cmid = M.cfg.contextInstanceId;
-    var emailLink = $('#page-content div[role="main"] td.lastcol a');
-    var headcolumn = $('#region-main div[role="main"] table thead tr');
+    const cmid = M.cfg.contextInstanceId;
+    const emailLinks = document.querySelectorAll('#page-content div[role="main"] td.lastcol a');
+    const headColumns = document.querySelectorAll('#region-main div[role="main"] table thead tr');
 
     Str.get_string('analytics', 'tiny_cursive').then((strs) => {
-        headcolumn.each(function() {
-            $(this).find('th:eq(1)').after(`<th class="header">${strs}</th>`);
+        headColumns.forEach(function (row) {
+            const secondTh = row.querySelector('th:nth-child(2)');
+            if (secondTh) {
+                const newTh = document.createElement('th');
+                newTh.className = 'header';
+                newTh.innerHTML = strs;
+                secondTh.insertAdjacentElement('afterend', newTh);
+            }
         });
         return true;
     }).catch(e => window.console.error(e));
 
-    emailLink.each(function() {
-        let href = $(this).attr('href');
-        const $emailLink = $(this);
+    emailLinks.forEach(function (emailLink) {
+        const href = emailLink.getAttribute('href');
         let userid = 0;
+
         if (href) {
-            userid = parseInt(new URLSearchParams(href.split('?')[1]).get('userid'));
+            const urlParams = new URLSearchParams(href.split('?')[1]);
+            const useridParam = urlParams.get('userid');
+            userid = useridParam ? parseInt(useridParam) : 0;
+
             if (!userid) {
-                $emailLink.closest('tr').find('td:eq(1)').after("<td></td>"); // For aligning the table column
+                // For aligning the table column
+                const closestTr = emailLink.closest('tr');
+                const secondTd = closestTr.querySelector('td:nth-child(2)');
+                if (secondTd) {
+                    const emptyTd = document.createElement('td');
+                    secondTd.insertAdjacentElement('afterend', emptyTd);
+                }
             } else {
-                let args = {id: userid, modulename: "lesson", cmid: cmid};
-                let methodname = 'cursive_get_lesson_submission_data';
-                let com = getData([{methodname, args}]);
-                com[0].done(function(json) {
-                    var data = JSON.parse(json);
-                    var filepath = '';
+                const args = { id: userid, modulename: "lesson", cmid: cmid };
+                const methodname = 'cursive_get_lesson_submission_data';
+                const com = getData([{ methodname, args }]);
+
+                com[0].done(function (json) {
+                    const data = JSON.parse(json);
+                    let filepath = '';
                     if (data.res.filename) {
                         filepath = data.res.filename;
                     }
 
-                    let analyticButtonDiv = document.createElement('div');
-                    let analyticsColumn = document.createElement('td');
+                    const analyticButtonDiv = document.createElement('div');
+                    const analyticsColumn = document.createElement('td');
                     analyticButtonDiv.append(analyticButton(userid));
                     analyticButtonDiv.dataset.region = "analytic-div" + userid;
                     analyticsColumn.append(analyticButtonDiv);
 
+                    const closestTr = emailLink.closest('tr');
+                    const secondTd = closestTr.querySelector('td:nth-child(2)');
+                    if (secondTd) {
+                        secondTd.insertAdjacentElement('afterend', analyticsColumn);
+                    }
 
-                    $emailLink.closest('tr').find('td:eq(1)').after(analyticsColumn);
-
-                    let myEvents = new AnalyticEvents();
-                    var context = {
+                    const myEvents = new AnalyticEvents();
+                    const context = {
                         tabledata: data.res,
                         formattime: myEvents.formatedTime(data.res),
                         page: scoreSetting,
                         userid: userid,
                     };
 
-                    let authIcon = myEvents.authorshipStatus(data.res.first_file, data.res.score, scoreSetting);
+                    const authIcon = myEvents.authorshipStatus(data.res.first_file, data.res.score, scoreSetting);
                     myEvents.createModal(userid, context, '', authIcon);
                     myEvents.analytics(userid, templates, context, '', replayInstances, authIcon);
                     myEvents.checkDiff(userid, data.res.file_id, '', replayInstances);
                     myEvents.replyWriting(userid, filepath, '', replayInstances);
                     myEvents.quality(userid, templates, context, '', replayInstances, cmid);
-
                 });
+
                 com[0].fail((error) => {
                     window.console.error('Error getting cursive config:', error);
                 });

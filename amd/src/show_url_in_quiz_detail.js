@@ -54,7 +54,7 @@ define([
                     contentElement.innerHTML = html;
                 }
             }).catch(function (e) {
-                console.error(e);
+                window.console.error(e);
             });
         }
         return false;
@@ -103,7 +103,8 @@ define([
                     let data = JSON.parse(json);
 
                     if (data.data.filename) {
-                        let content = document.querySelector('.que.essay .editquestion a[href*="question/bank/editquestion/question.php"][href*="&id=' + data.data.questionid + '"]');
+                        let content = document.querySelector('.que.essay .editquestion a[href*="question/bank/editquestion/question.php"][href*="&id='
+                            + data.data.questionid + '"]');
                         if (content) {
                             let qtextElement = content.parentNode.parentElement.nextSibling.querySelector('.qtext');
 
@@ -115,7 +116,8 @@ define([
 
                                     let tt = '<h4>References</h4><div class="tiny_cursive-quiz-references rounded">';
                                     data.usercomment.forEach(function (element) {
-                                        tt += '<div class="text-primary p-3" style="border-bottom:1px solid rgba(0, 0, 0, 0.1)">' + element.usercomment + '</div>';
+                                        tt += '<div class="text-primary p-3" style="border-bottom:1px solid rgba(0, 0, 0, 0.1)">'
+                                            + element.usercomment + '</div>';
                                     });
                                     qtextElement.innerHTML += tt + '</div></div>';
                                 }

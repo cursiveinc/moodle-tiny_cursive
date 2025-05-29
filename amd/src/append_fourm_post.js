@@ -20,7 +20,7 @@
  * @author Brain Station 23 <elearning@brainstation-23.com>
  */
 
-define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./analytic_button", "./analytic_events"], function(
+define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./analytic_button", "./analytic_events"], function (
     $,
     AJAX,
     str,
@@ -30,7 +30,7 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
     AnalyticEvents) {
     const replayInstances = {};
     // eslint-disable-next-line camelcase
-    window.video_playback = function(mid, filepath) {
+    window.video_playback = function (mid, filepath) {
         if (filepath !== '') {
             const replay = new Replay(
                 'content' + mid,
@@ -49,16 +49,16 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
     };
 
     var usersTable = {
-        init: function(scoreSetting, showcomment) {
+        init: function (scoreSetting, showcomment) {
             str
                 .get_strings([
-                    {key: "field_require", component: "tiny_cursive"},
+                    { key: "field_require", component: "tiny_cursive" },
                 ])
-                .done(function() {
+                .done(function () {
                     usersTable.getToken(scoreSetting, showcomment);
                 });
         },
-        getToken: function (score_setting, showcomment) {
+        getToken: function (scoreSetting, showcomment) {
             const articles = document.querySelectorAll('#page-mod-forum-discuss article');
             articles.forEach(function (entry) {
                 const replyButton = document.querySelectorAll('a[data-region="post-action"][title="Reply"]');
@@ -118,7 +118,7 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
                             userid: ids,
                         };
 
-                        const authIcon = myEvents.authorshipStatus(data.data.first_file, data.data.score, score_setting);
+                        const authIcon = myEvents.authorshipStatus(data.data.first_file, data.data.score, scoreSetting);
                         myEvents.createModal(ids, context, '', authIcon);
                         myEvents.analytics(ids, templates, context, '', replayInstances, authIcon);
                         myEvents.checkDiff(ids, data.data.file_id, '', replayInstances);
