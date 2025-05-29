@@ -27,7 +27,7 @@ define([
     "./replay",
     "./analytic_button",
     "./analytic_events"
-], function (
+], function(
     AJAX,
     str,
     templates,
@@ -37,7 +37,7 @@ define([
 ) {
     const replayInstances = {};
 
-    window.video_playback = function (mid, filepath) {
+    window.video_playback = function(mid, filepath) {
         if (filepath !== '') {
             const replay = new Replay(
                 'content' + mid,
@@ -60,7 +60,7 @@ define([
     };
 
     var usersTable = {
-        init: function (score_setting, showcomment) {
+        init: function(score_setting, showcomment) {
 
             const graderElement = document.getElementById('page-mod-assign-grader');
             if (graderElement) {
@@ -73,13 +73,13 @@ define([
                 });
         },
 
-        appendSubmissionDetail: function (score_setting, showcomment) {
+        appendSubmissionDetail: function(score_setting, showcomment) {
 
             const divElement = document.querySelector('.path-mod-assign [data-region="grade-panel"]');
             let previousContextId = window.location.href;
 
-            const observer = new MutationObserver(function (mutations) {
-                mutations.forEach(function () {
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function() {
                     let currentContextId = window.location.href;
                     if (currentContextId !== previousContextId) {
                         window.location.reload();
@@ -100,7 +100,7 @@ define([
             const methodname = 'cursive_get_assign_grade_comment';
             const com = AJAX.call([{ methodname, args }]);
 
-            com[0].done(function (json) {
+            com[0].done(function(json) {
                 const data = JSON.parse(json);
                 let filepath = '';
                 if (data.data.filename) {
@@ -135,18 +135,18 @@ define([
                     gradeActionsPanel.parentNode.insertBefore(container, gradeActionsPanel);
 
                     const chatboxTitleClose = document.querySelector('.tiny_cursive-chatbox__title__close');
-                    chatboxTitle.addEventListener('click', function () {
+                    chatboxTitle.addEventListener('click', function() {
                         chatbox.classList.toggle('tiny_cursive-chatbox--tray');
                     });
 
                     if (chatboxTitleClose) {
-                        chatboxTitleClose.addEventListener('click', function (e) {
+                        chatboxTitleClose.addEventListener('click', function(e) {
                             e.stopPropagation();
                             chatbox.classList.add('tiny_cursive-chatbox--closed');
                         });
                     }
 
-                    chatbox.addEventListener('transitionend', function () {
+                    chatbox.addEventListener('transitionend', function() {
                         if (chatbox.classList.contains('tiny_cursive-chatbox--closed')) {
                             chatbox.remove();
                         }

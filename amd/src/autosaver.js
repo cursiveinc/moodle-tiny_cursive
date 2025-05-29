@@ -66,7 +66,7 @@ export const register = (editor, interval, userId) => {
         }
     };
 
-    assignSubmit.addEventListener('click', async function (e) {
+    assignSubmit.addEventListener('click', async function(e) {
         e.preventDefault();
         if (filename) {
             // eslint-disable-next-line
@@ -78,7 +78,7 @@ export const register = (editor, interval, userId) => {
         }
     });
 
-    quizSubmit.addEventListener('click', async function (e) {
+    quizSubmit.addEventListener('click', async function(e) {
         e.preventDefault();
         if (filename) {
             // eslint-disable-next-line
@@ -96,7 +96,7 @@ export const register = (editor, interval, userId) => {
             getString('tiny_cursive_srcurl', 'tiny_cursive'),
             getString('tiny_cursive_srcurl_des', 'tiny_cursive'),
             getString('tiny_cursive_placeholder', 'tiny_cursive')
-        ]).then(function ([title, titledes, placeholder]) {
+        ]).then(function([title, titledes, placeholder]) {
 
             return create({
                 type: 'SAVE_CANCEL',
@@ -111,7 +111,7 @@ export const register = (editor, interval, userId) => {
                     modal.show();
                     var lastEvent = '';
                     // eslint-disable-next-line
-                    modal.getRoot().on(save, function () {
+                    modal.getRoot().on(save, function() {
                         var number = document.getElementById("inputUrl").value;
                         if (number === "" || number === null || number === undefined) {
                             editor.execCommand('Undo');
@@ -168,12 +168,12 @@ export const register = (editor, interval, userId) => {
                         lastEvent = 'save';
                         modal.destroy();
                     });
-                    modal.getRoot().on(cancel, function () {
+                    modal.getRoot().on(cancel, function() {
 
                         editor.execCommand('Undo');
                         lastEvent = 'cancel';
                     });
-                    modal.getRoot().on(hidden, function () {
+                    modal.getRoot().on(hidden, function() {
                         if (lastEvent != 'cancel' && lastEvent != 'save') {
                             editor.execCommand('Undo');
                         }

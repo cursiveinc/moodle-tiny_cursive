@@ -24,16 +24,16 @@
  */
 
 import myModal from "./analytic_modal";
-import { call as getContent } from "core/ajax";
-import { get_string as getString } from 'core/str';
-import { get_strings as getStrings } from 'core/str';
+import {call as getContent} from "core/ajax";
+import {get_string as getString} from 'core/str';
+import {get_strings as getStrings} from 'core/str';
 
 export default class AnalyticEvents {
 
     createModal(userid, context, questionid = '', authIcon) {
         const element = document.getElementById('analytics' + userid + questionid);
         if (element) {
-            element.addEventListener('click', function (e) {
+            element.addEventListener('click', function(e) {
                 e.preventDefault();
 
                 // Create Moodle modal
@@ -52,7 +52,7 @@ export default class AnalyticEvents {
     }
 
     analytics(userid, templates, context, questionid = '', replayInstances = null, authIcon) {
-        document.body.addEventListener('click', function (e) {
+        document.body.addEventListener('click', function(e) {
             if (e.target && e.target.id === 'analytic' + userid + questionid) {
 
                 const repElement = document.getElementById('rep' + userid + questionid);
@@ -80,7 +80,7 @@ export default class AnalyticEvents {
                 document.querySelectorAll('.tiny_cursive-nav-tab .active').forEach(el => el.classList.remove('active'));
                 e.target.classList.add('active');
 
-                templates.render('tiny_cursive/analytics_table', context).then(function (html) {
+                templates.render('tiny_cursive/analytics_table', context).then(function(html) {
                     const content = document.getElementById('content' + userid);
                     if (content) {
                         content.innerHTML = html;
@@ -90,7 +90,7 @@ export default class AnalyticEvents {
                     if (firstCell) {
                         firstCell.innerHTML = authIcon.outerHTML;
                     }
-                }).catch(function (error) {
+                }).catch(function(error) {
                     window.console.error("Failed to render template:", error);
                 });
             }
@@ -106,7 +106,7 @@ export default class AnalyticEvents {
             return true;
         }).catch(error => window.console.log(error));
 
-        document.body.addEventListener('click', function (e) {
+        document.body.addEventListener('click', function(e) {
             if (e.target && e.target.id === 'diff' + userid + questionid) {
 
                 const repElement = document.getElementById('rep' + userid + questionid);
@@ -255,7 +255,7 @@ export default class AnalyticEvents {
     }
 
     replyWriting(userid, filepath, questionid = '', replayInstances = null) {
-        document.body.addEventListener('click', function (e) {
+        document.body.addEventListener('click', function(e) {
             if (e.target && e.target.id === 'rep' + userid + questionid) {
                 let replyBtn = document.getElementById('rep' + userid + questionid);
 

@@ -20,13 +20,13 @@
  * @author Brain Station 23 <elearning@brainstation-23.com>
  */
 
-define(["core/config", "core/str"], function (mdlcfg, Str) {
+define(["core/config", "core/str"], function(mdlcfg, Str) {
     var usersTable = {
-        init: async function (page) {
+        init: async function(page) {
             await usersTable.appendTable(page);
         },
-        appendTable: async function () {
-            // $(document).ready(async function ($) {
+        appendTable: async function() {
+            // $(document).ready(async function($) {
             // Get the first row in the table header
 
             let h_tr = document.querySelector('thead tr');

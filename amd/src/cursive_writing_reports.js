@@ -20,7 +20,7 @@
  * @author Brain Station 23 <elearning@brainstation-23.com>
  */
 
-define(["core/ajax", "core/str", "core/templates", "./replay", './analytic_button', "./analytic_events"], function (
+define(["core/ajax", "core/str", "core/templates", "./replay", './analytic_button', "./analytic_events"], function(
     AJAX,
     str,
     templates,
@@ -30,7 +30,7 @@ define(["core/ajax", "core/str", "core/templates", "./replay", './analytic_butto
 ) {
     const replayInstances = {};
 
-    window.video_playback = function (mid, filepath) {
+    window.video_playback = function(mid, filepath) {
         if (filepath !== '') {
             const replay = new Replay(
                 'content' + mid,
@@ -49,9 +49,9 @@ define(["core/ajax", "core/str", "core/templates", "./replay", './analytic_butto
     };
 
     var usersTable = {
-        init: function (page) {
+        init: function(page) {
             str.get_strings([{ key: "field_require", component: "tiny_cursive" }])
-                .done(function () {
+                .done(function() {
                     usersTable.getusers(page);
                 });
 
@@ -62,14 +62,13 @@ define(["core/ajax", "core/str", "core/templates", "./replay", './analytic_butto
                     analyticsEvents(scoreSetting);
                 } catch (error) {
                     window.console.error('Error fetching string:', error);
-                    window.console.error('Error fetching string:', error);
                 }
             })();
 
             /**
              * Handles the analytics events for each modal on the page.
              *
-             * This function iterates over each element with the class `analytic-modal`,
+             * This functioniterates over each element with the class `analytic-modal`,
              * retrieves necessary data attributes, and makes an AJAX call to get writing
              * statistics. Once the data is retrieved, it processes and displays it within
              * the modal.
@@ -108,7 +107,7 @@ define(["core/ajax", "core/str", "core/templates", "./replay", './analytic_butto
                         myEvents.analytics(mid, templates, context, '', replayInstances, authIcon);
                         myEvents.checkDiff(mid, mid, '', replayInstances);
                         myEvents.replyWriting(mid, filepath, '', replayInstances);
-                        myEvents.quality(mid, templates, context, '', replayInstances, cmid);
+
                     }).fail(error => {
                         throw new Error('Error: ' + error.message);
                     });
@@ -117,8 +116,8 @@ define(["core/ajax", "core/str", "core/templates", "./replay", './analytic_butto
             }
         },
 
-        getusers: function (page) {
-            document.getElementById("id_coursename").addEventListener('change', function () {
+        getusers: function(page) {
+            document.getElementById("id_coursename").addEventListener('change', function() {
                 var courseid = this.value;
 
                 AJAX.call([{
@@ -126,14 +125,14 @@ define(["core/ajax", "core/str", "core/templates", "./replay", './analytic_butto
                     args: {
                         courseid: courseid,
                     },
-                }])[0].done(function (json) {
+                }])[0].done(function(json) {
                     var data = JSON.parse(json);
                     var context = {
                         tabledata: data,
                         page: page,
                     };
                     templates.render("tiny_cursive/user_list", context)
-                        .then(function (html) {
+                        .then(function(html) {
                             document.getElementById("id_username").innerHTML = html;
                         });
                 });
@@ -143,14 +142,14 @@ define(["core/ajax", "core/str", "core/templates", "./replay", './analytic_butto
                     args: {
                         courseid: courseid,
                     },
-                }])[0].done(function (json) {
+                }])[0].done(function(json) {
                     var data = JSON.parse(json);
                     var context = {
                         tabledata: data,
                         page: page,
                     };
                     templates.render("tiny_cursive/module_list", context)
-                        .then(function (html) {
+                        .then(function(html) {
                             document.getElementById("id_modulename").innerHTML = html;
                         });
                 });
