@@ -27,77 +27,84 @@ require(__DIR__ . '/../../../../../config.php');
 global $CFG, $DB, $USER, $PAGE;
 require_once($CFG->dirroot . '/mod/quiz/lib.php');
 require_once($CFG->dirroot . '/mod/quiz/locallib.php');
-require_once(__DIR__ . '/classes/forms/filterreportform.php');
+require_once(__DIR__ . '/../../../../../user/lib.php');
 require_once(__DIR__ . '/locallib.php');
 
 require_login();
 
 if (isguestuser()) {
     redirect(new moodle_url('/'));
-    die;
 }
 if (\core\session\manager::is_loggedinas()) {
     redirect(new moodle_url('/user/index.php'));
-    die;
 }
 
-$userid = optional_param('userid', 0, PARAM_INT);
-if (optional_param('id', 0, PARAM_INT)) {
-    $userid = optional_param('id', 0, PARAM_INT);
-}
-
-$orderby = optional_param('orderby', 'id', PARAM_TEXT);
-$order = optional_param('order', 'ASC', PARAM_TEXT);
-$page = optional_param('page', 0, PARAM_INT);
+$orderby  = optional_param('orderby', 'id', PARAM_TEXT);
+$page     = optional_param('page', 0, PARAM_INT);
 $courseid = optional_param('courseid', 0, PARAM_INT);
+$userid   = optional_param('userid', 0, PARAM_INT);
+$uidparam = optional_param('id', 0, PARAM_INT);
+$cparam   = optional_param('course', 0, PARAM_INT);
 
-if (optional_param('course', 0, PARAM_INT) && !is_siteadmin($USER->id) && optional_param('id', 0, PARAM_INT) !== $USER->id) {
-    $courseid = optional_param('course', 0, PARAM_INT);
+$limit    = 5;
+$perpage  = $page * $limit;
+
+
+if ($uidparam) {
+    $userid   = $uidparam;
 }
 
-$limit = 10;
-$isvalid = false;
+if ($cparam && !is_siteadmin($USER->id) && $useridparam !== $USER->id) {
+    $courseid = $cparam;
+}
 
-$context = context_system::instance();
-$haseditcapability = has_capability('tiny/cursive:view', $context);
+$user     = $DB->get_record('user', ['id' => $userid]);
+if (!$user) {
+    throw new moodle_exception('invaliduser', 'error');
+}
 
-if (!$haseditcapability && $userid != $USER->id) {
+if (!user_can_view_profile($user)) {
+    throw new moodle_exception('cannotviewprofile', 'error');
+}
+
+$viewaccess = has_capability('tiny/cursive:view', context_system::instance());
+
+if (!$viewaccess && $userid != $USER->id) {
     return redirect(new moodle_url('/course/index.php'), get_string('warning', 'tiny_cursive'));
 }
 
-$PAGE->requires->js_call_amd('tiny_cursive/key_logger', 'init', [1]);
-$PAGE->requires->jquery_plugin('jquery');
-$PAGE->requires->js_call_amd('tiny_cursive/cursive_writing_reports', 'init', []);
-
-$perpage = $page * $limit;
-$user = $DB->get_record('user', ['id' => $userid], '*', MUST_EXIST);
-$systemcontext = context_system::instance();
+$params = ['userid' => $userid];
+if (!empty($courseid)) {
+    $params['courseid'] = $courseid;
+}
+$url    = new moodle_url('/lib/editor/tiny/plugins/cursive/my_writing_report.php', $params);
 
 if ($courseid) {
-    $linkurl =
-        $CFG->wwwroot . '/lib/editor/tiny/plugins/cursive/my_writing_report.php?userid=' . $userid . '&courseid=' . $courseid;
+    $cmid    = tiny_cursive_get_cmid($courseid);
+    $context = context_module::instance($cmid);
 } else {
-    $linkurl = $CFG->wwwroot . '/lib/editor/tiny/plugins/cursive/my_writing_report.php?userid=' . $userid;
+    $context = context_system::instance();
 }
-$linktext = get_string('tiny_cursive', 'tiny_cursive');
-$PAGE->set_context($systemcontext);
-$PAGE->set_url($linkurl);
-$PAGE->set_title($linktext);
-$PAGE->set_heading(fullname($user));
+
+$PAGE->requires->js_call_amd('tiny_cursive/key_logger', 'init', [1]);
+$PAGE->requires->js_call_amd('tiny_cursive/cursive_writing_reports', 'init', []);
+
+$PAGE->set_context(context_system::instance());
+$PAGE->set_url($url);
+$PAGE->set_title(get_string('tiny_cursive', 'tiny_cursive'));
 $PAGE->set_pagelayout('mypublic');
 $PAGE->set_pagetype('user-profile');
 
-$struser = get_string('student_writing_statics', 'tiny_cursive');
-$PAGE->set_url('/user/profile.php', ['id' => $userid]);
-$PAGE->navbar->add($struser);
+$PAGE->navbar->add(get_string('profile'), new moodle_url('/user/profile.php'));
+$PAGE->navbar->add(get_string('student_writing_statics', 'tiny_cursive'), $url);
+
 echo $OUTPUT->header();
 
-echo $OUTPUT->heading(get_string('student_writing_statics', 'tiny_cursive'));
-$renderer = $PAGE->get_renderer('tiny_cursive');
-$attempts = get_user_attempts_data($userid, $courseid, null, $orderby, $order, $page, $limit);
-$userprofile = get_user_profile_data($userid, $courseid);
-echo $renderer->user_writing_report($attempts, $userprofile, $userid, $page, $limit, $linkurl);
+$renderer    = $PAGE->get_renderer('tiny_cursive');
+$attempts    = tiny_cursive_get_user_attempts_data($userid, $courseid, null, $orderby, $page, $limit);
+$userprofile = tiny_cursive_get_user_profile_data($userid, $courseid);
 
+echo $renderer->tiny_cursive_user_writing_report($attempts, $userprofile, $userid, $page, $limit, $url);
 echo $OUTPUT->footer();
 
 

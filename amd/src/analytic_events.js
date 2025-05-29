@@ -14,15 +14,21 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * TODO describe module analytic_events
+ * Module for handling analytics events in the Tiny Cursive plugin.
+ * Provides functionality for displaying analytics data, replaying writing,
+ * checking differences and showing quality metrics.
  *
  * @module     tiny_cursive/analytic_events
- * @copyright  2024 CTI <your@email.com>
+ * @copyright  2024 CTI <info@cursivetechnology.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-import MyModal from "./analytic_modal";
-import { call as getContent } from "core/ajax";
-import * as Str from 'core/str';
+
+import myModal from "./analytic_modal";
+import {call as getContent} from "core/ajax";
+import $ from 'jquery';
+import {get_string as getString} from 'core/str';
+import {get_strings as getStrings} from 'core/str';
+import Chart from 'core/chartjs';
 
 export default class AnalyticEvents {
 
@@ -258,30 +264,348 @@ export default class AnalyticEvents {
         });
     }
 
+    quality(userid, templates, context, questionid = '', replayInstances = null, cmid) {
+        let metricsData = '';
+        const nodata = document.createElement('p');
+        nodata.classList.add('text-center', 'p-5', 'bg-light', 'rounded', 'm-5', 'text-primary');
+        nodata.style.verticalAlign = 'middle';
+        nodata.style.textTransform = 'uppercase';
+        nodata.style.fontWeight = '500';
+        getString('nopaylod', 'tiny_cursive').then(str => {
+            nodata.textContent = str;
+            return true;
+        }).catch(error => window.console.error(error));
+
+        $('body').on('click', '#quality' + userid + questionid, function(e) {
+
+            $(this).prop('disabled', true);
+            $('#rep' + userid + questionid).prop('disabled', false);
+            e.preventDefault();
+            $('.tiny_cursive-nav-tab').find('.active').removeClass('active');
+            $(this).addClass('active'); // Add 'active' class to the clicked element
+
+            let res = getContent([{
+                methodname: 'cursive_get_quality_metrics',
+                args: {"file_id": context.tabledata.file_id ?? userid, cmid: cmid},
+            }]);
+
+            const content = document.getElementById('content' + userid);
+            if (content) {
+                content.innerHTML = '';
+                const loaderDiv = document.createElement('div');
+                loaderDiv.className = 'd-flex justify-content-center my-5';
+                const loader = document.createElement('div');
+                loader.className = 'tiny_cursive-loader';
+                loaderDiv.appendChild(loader);
+                content.appendChild(loaderDiv);
+            }
+
+            if (replayInstances && replayInstances[userid]) {
+                replayInstances[userid].stopReplay();
+            }
+
+            templates.render('tiny_cursive/quality_chart', context).then(function(html) {
+                const content = document.getElementById('content' + userid);
+
+                res[0].done(response => {
+                    if (response.status) {
+                        metricsData = response.data;
+                        let proUser = metricsData.quality_access;
+
+                        if (!proUser) {
+                            // eslint-disable-next-line promise/no-nesting
+                            templates.render('tiny_cursive/upgrade_to_pro', []).then(function(html) {
+                                $('#content' + userid).html(html);
+                                return true;
+                            }).fail(function(error) {
+                                window.console.error(error);
+                            });
+                        } else {
+
+                            if (content) {
+                                content.innerHTML = html;
+                            }
+                            if (!metricsData) {
+                                $('#content' + userid).html(nodata);
+                            }
+                            //  MetricsData.p_burst_cnt,'P-burst Count', metricsData.total_active_time, 'Total Active Time',
+                            var originalData = [
+                                metricsData.word_len_mean, metricsData.edits, metricsData.p_burst_mean,
+                                metricsData.q_count, metricsData.sentence_count,
+                                metricsData.verbosity, metricsData.word_count, metricsData.sent_word_count_mean
+                            ];
+
+                            // eslint-disable-next-line promise/no-nesting
+                            Promise.all([
+                                getString('word_len_mean', 'tiny_cursive'),
+                                getString('edits', 'tiny_cursive'),
+                                getString('p_burst_mean', 'tiny_cursive'),
+                                getString('q_count', 'tiny_cursive'),
+                                getString('sentence_count', 'tiny_cursive'),
+                                getString('verbosity', 'tiny_cursive'),
+                                getString('word_count', 'tiny_cursive'),
+                                getString('sent_word_count_mean', 'tiny_cursive'),
+                                getString('average', 'tiny_cursive'),
+                            ]).then(([wordLength, edits, pBurstMean, qCount, sentenceCount, verbosity, wordCount,
+                                sentWordCountMean, average]) => {
+                                let chartvas = document.querySelector('#chart' + userid);
+                                let levels = [wordLength, edits, pBurstMean, qCount, sentenceCount, verbosity, wordCount,
+                                    sentWordCountMean];
+
+                                const data = {
+                                    labels: [
+                                        levels
+                                    ],
+                                    datasets: [{
+                                        data: originalData.map(d => {
+                                            if (d > 100) {
+                                                return 100;
+                                            } else if (d < -100) {
+                                                return -100;
+                                            } else {
+                                                return d;
+                                            }
+                                        }),
+                                        backgroundColor: function(context) {
+                                            // Apply green or gray depending on value.
+                                            const value = context.raw;
+
+                                            if (value > 0 && value < 100) {
+                                                return '#43BB97';
+                                            } else if (value < 0) {
+                                                return '#AAAAAA';
+                                            } else {
+                                                return '#00432F'; // Green for positive, gray for negative.
+                                            }
+
+                                        },
+                                        barPercentage: 0.75,
+                                    }]
+                                };
+
+                                const drawPercentage = {
+                                    id: 'drawPercentage',
+                                    afterDraw: (chart) => {
+                                        const {ctx, data} = chart;
+                                        ctx.save();
+                                        let value;
+                                        chart.getDatasetMeta(0).data.forEach((dataPoint, index) => {
+                                            value = parseInt(data.datasets[0].data[index]);
+                                            if (!value) {
+                                                value = 0;
+                                            }
+                                            value = originalData[index];
+
+                                            ctx.font = "bold 14px sans-serif";
+
+                                            if (value > 50 && value <= 100) {
+                                                ctx.fillStyle = 'white';
+                                                ctx.textAlign = 'right';
+                                                ctx.fillText(value + '%', dataPoint.x - 5, dataPoint.y + 5);
+                                            } else if (value <= 10 && value > 0) {
+                                                ctx.fillStyle = '#43bb97';
+                                                ctx.textAlign = 'left';
+                                                if (value >= 1) {
+                                                    ctx.fillText('0' + value + '%', dataPoint.x + 5, dataPoint.y + 5);
+                                                } else {
+                                                    ctx.fillText(value + '%', dataPoint.x + 5, dataPoint.y + 5);
+                                                }
+                                                // eslint-disable-next-line no-empty
+                                            } else if (value == 0 || value == undefined) {
+                                            } else if (value > 100) {
+                                                ctx.fillStyle = 'white';
+                                                ctx.textAlign = 'right';
+                                                ctx.fillText(value + '%', dataPoint.x - 5, dataPoint.y + 5);
+                                            } else if (value < -50 && value >= -100) {
+                                                ctx.fillStyle = 'white';
+                                                ctx.textAlign = 'left';
+                                                ctx.fillText(value + '%', dataPoint.x + 5, dataPoint.y + 5);
+                                            } else if (value < -100) {
+                                                ctx.fillStyle = 'white';
+                                                ctx.textAlign = 'left';
+                                                ctx.fillText(value + '%', dataPoint.x + 5, dataPoint.y + 5);
+                                            } else if (value > -50 && value < 0) {
+                                                ctx.fillStyle = 'grey';
+                                                ctx.textAlign = 'right';
+                                                ctx.fillText(value + '%', dataPoint.x - 5, dataPoint.y + 5);
+                                            } else {
+                                                ctx.fillStyle = '#43bb97';
+                                                ctx.textAlign = 'left';
+                                                ctx.fillText(value + '%', dataPoint.x + 5, dataPoint.y + 5);
+                                            }
+
+                                        });
+                                    }
+                                };
+
+                                const chartAreaBg = {
+                                    id: 'chartAreaBg',
+                                    beforeDraw: (chart) => {
+                                        const {ctx, scales: {x, y}} = chart;
+                                        ctx.save();
+
+                                        const segmentPixel = y.getPixelForValue(y.ticks[0].value) -
+                                            y.getPixelForValue(y.ticks[1].value);
+                                        const doubleSegment = y.ticks[2].value - y.ticks[0].value;
+                                        let tickArray = [];
+
+                                        // Generate tick values.
+                                        for (let i = 0; i <= y.max; i += doubleSegment) {
+                                            if (i !== y.max) {
+                                                tickArray.push(i);
+                                            }
+                                        }
+
+                                        // Draw the background rectangles for each tick.
+                                        tickArray.forEach(tick => {
+                                            ctx.fillStyle = 'rgba(0, 0, 0, 0.02)';
+                                            ctx.fillRect(0, y.getPixelForValue(tick) + 80, x.width + x.width + 21, segmentPixel);
+                                        });
+                                    }
+                                };
+
+
+                                return new Chart(chartvas, {
+                                    type: 'bar',
+                                    data: data,
+                                    options: {
+                                        responsive: false,
+                                        maintainAspectRatio: false,
+                                        indexAxis: 'y',
+                                        elements: {
+                                            bar: {
+                                                borderRadius: 16,
+                                                borderWidth: 0,
+                                                zIndex: 1,
+                                            }
+                                        },
+                                        scales: {
+                                            x: {
+                                                beginAtZero: true,
+                                                min: -100,
+                                                max: 100,
+                                                ticks: {
+                                                    callback: function(value) {
+                                                        if (value === -100 || value === 100) {
+                                                            return value + '%';
+                                                        } else if (value === 0) {
+                                                            return average;
+                                                        }
+                                                        return '';
+                                                    },
+                                                    display: true,
+                                                    font: function(context) {
+                                                        if (context && context.tick && context.tick.value === 0) {
+                                                            return {
+                                                                weight: 'bold',
+                                                                size: 14,
+                                                                color: 'black'
+                                                            };
+                                                        }
+                                                        return {
+                                                            weight: 'bold',
+                                                            size: 13,
+                                                            color: 'black'
+                                                        };
+                                                    },
+                                                    color: 'black',
+
+                                                },
+                                                grid: {
+                                                    display: true,
+                                                    color: function(context) {
+                                                        return context.tick.value === 0 ? 'black' : '#eaeaea';
+                                                    },
+                                                    tickLength: 0,
+                                                },
+                                                position: 'top'
+
+                                            },
+                                            y: {
+                                                beginAtZero: true,
+                                                ticks: {
+                                                    display: true,
+                                                    align: 'center',
+
+                                                    crossAlign: 'far',
+                                                    font: {
+                                                        size: 18,
+                                                    },
+                                                    tickLength: 100,
+                                                    color: 'black',
+                                                },
+                                                grid: {
+                                                    display: true,
+                                                    tickLength: 1000,
+                                                },
+
+                                            }
+                                        },
+                                        plugins: {
+                                            legend: {
+                                                display: false,
+                                            },
+                                            title: {
+                                                display: false,
+                                            },
+                                            tooltip: {
+                                                yAlign: 'bottom',
+                                                xAlign: 'center',
+                                                callbacks: {
+                                                    label: function(context) {
+                                                        const originalValue = originalData[context.dataIndex];
+                                                        return originalValue; // Show the original value.
+                                                    },
+                                                },
+                                            },
+                                        }
+                                    },
+                                    plugins: [chartAreaBg, drawPercentage]
+                                });
+                            }).catch(error => {
+                                window.console.log(error);
+                            });
+
+                        }
+                    }
+                }).fail(error => {
+                    $('#content' + userid).html(nodata);
+                    throw new Error('Error: no data received yet', error);
+                });
+                return true;
+            }).catch(function(error) {
+                window.console.error("Failed to render template:", error);
+            });
+
+            document.querySelectorAll('.tiny_cursive-nav-tab .active').forEach(el => el.classList.remove('active'));
+            e.target.classList.add('active');
+        });
+    }
+
     formatedTime(data) {
         if (data.total_time_seconds) {
-            let total_time_seconds = data.total_time_seconds;
-            let hours = Math.floor(total_time_seconds / 3600).toString().padStart(2, 0);
-            let minutes = Math.floor((total_time_seconds % 3600) / 60).toString().padStart(2, 0);
-            let seconds = (total_time_seconds % 60).toString().padStart(2, 0);
+            let totalTimeSeconds = data.total_time_seconds;
+            let hours = Math.floor(totalTimeSeconds / 3600).toString().padStart(2, 0);
+            let minutes = Math.floor((totalTimeSeconds % 3600) / 60).toString().padStart(2, 0);
+            let seconds = (totalTimeSeconds % 60).toString().padStart(2, 0);
             return `${hours}h ${minutes}m ${seconds}s`;
         } else {
             return "0h 0m 0s";
         }
     }
 
-    authorshipStatus(firstFile, score, score_setting) {
+    authorshipStatus(firstFile, score, scoreSetting) {
         var icon = 'fa fa-circle-o';
         var color = 'font-size:32px;color:black';
-        var score = parseFloat(score);
+        score = parseFloat(score);
 
         if (firstFile) {
             icon = 'fa fa-solid fa-info-circle';
             color = 'font-size:32px;color:#000000';
-        } else if (score >= score_setting) {
+        } else if (score >= scoreSetting) {
             icon = 'fa fa-check-circle';
             color = 'font-size:32px;color:green';
-        } else if (score < score_setting) {
+        } else if (score < scoreSetting) {
             icon = 'fa fa-question-circle';
             color = 'font-size:32px;color:#A9A9A9';
         }

@@ -47,8 +47,8 @@ define([
                 'player_' + mid
             );
             replayInstances[mid] = replay;
-        }
-        else {
+        } else {
+            // eslint-disable-next-line
             templates.render('tiny_cursive/no_submission').then(html => {
                 const contentElement = document.getElementById('content' + mid);
                 if (contentElement) {

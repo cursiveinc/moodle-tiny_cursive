@@ -17,10 +17,10 @@
 /**
  * Tiny cursive plugin upgrade script.
  *
- * @package tiny_cursive
+ * @package    tiny_cursive
  * @copyright  CTI <info@cursivetechnology.com>
- * @author Brain Station 23 <elearning@brainstation-23.com>
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @author     Brain Station 23 <elearning@brainstation-23.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 
@@ -103,4 +103,3 @@ function xmldb_tiny_cursive_upgrade($oldversion) {
 
     return true;
 }
-

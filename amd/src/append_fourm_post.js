@@ -20,7 +20,8 @@
  * @author Brain Station 23 <elearning@brainstation-23.com>
  */
 
-define(["core/ajax", "core/str", "core/templates", "./replay", "./analytic_button", "./analytic_events"], function (
+define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./analytic_button", "./analytic_events"], function(
+    $,
     AJAX,
     str,
     templates,
@@ -28,8 +29,8 @@ define(["core/ajax", "core/str", "core/templates", "./replay", "./analytic_butto
     analyticButton,
     AnalyticEvents) {
     const replayInstances = {};
-
-    window.video_playback = function (mid, filepath) {
+    // eslint-disable-next-line camelcase
+    window.video_playback = function(mid, filepath) {
         if (filepath !== '') {
             const replay = new Replay(
                 'content' + mid,
@@ -39,8 +40,7 @@ define(["core/ajax", "core/str", "core/templates", "./replay", "./analytic_butto
                 'player_' + mid
             );
             replayInstances[mid] = replay;
-        }
-        else {
+        } else {
             templates.render('tiny_cursive/no_submission').then(html => {
                 document.getElementById('content' + mid).innerHTML = html;
             }).catch(e => window.console.error(e));
@@ -49,13 +49,13 @@ define(["core/ajax", "core/str", "core/templates", "./replay", "./analytic_butto
     };
 
     var usersTable = {
-        init: function (score_setting, showcomment) {
+        init: function(scoreSetting, showcomment) {
             str
                 .get_strings([
-                    { key: "field_require", component: "tiny_cursive" },
+                    {key: "field_require", component: "tiny_cursive"},
                 ])
-                .done(function () {
-                    usersTable.getToken(score_setting, showcomment);
+                .done(function() {
+                    usersTable.getToken(scoreSetting, showcomment);
                 });
         },
         getToken: function (score_setting, showcomment) {
@@ -86,6 +86,7 @@ define(["core/ajax", "core/str", "core/templates", "./replay", "./analytic_butto
                     let filepath = '';
                     if (data.data.filename) {
                         filepath = data.data.filename;
+                        filepath = data.data.filename;
                     }
 
                     if (filepath) {
@@ -113,7 +114,7 @@ define(["core/ajax", "core/str", "core/templates", "./replay", "./analytic_butto
                         const context = {
                             tabledata: data.data,
                             formattime: myEvents.formatedTime(data.data),
-                            page: score_setting,
+                            page: scoreSetting,
                             userid: ids,
                         };
 
@@ -122,6 +123,7 @@ define(["core/ajax", "core/str", "core/templates", "./replay", "./analytic_butto
                         myEvents.analytics(ids, templates, context, '', replayInstances, authIcon);
                         myEvents.checkDiff(ids, data.data.file_id, '', replayInstances);
                         myEvents.replyWriting(ids, filepath, '', replayInstances);
+                        myEvents.quality(ids, templates, context, '', replayInstances, cmid);
                     }
                 });
                 return com.usercomment;

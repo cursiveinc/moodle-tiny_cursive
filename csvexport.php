@@ -24,51 +24,51 @@
  */
 
 require(__DIR__ . '/../../../../../config.php');
-require_login();
-require_once($CFG->libdir . "/csvlib.class.php");
 
-require_once('lib.php');
+require_once($CFG->libdir . "/csvlib.class.php");
+require_once(__DIR__.'/locallib.php');
+require_once(__DIR__.'/lib.php');
+
+require_login();
+global $CFG, $DB;
 
 $courseid = optional_param('courseid', 0, PARAM_INT);
-$userid = optional_param('userid', 0, PARAM_INT);
+$userid   = optional_param('userid', 0, PARAM_INT);
 $moduleid = optional_param('moduleid', 0, PARAM_INT);
-// Use csv_export_writer.
+
 if ($moduleid != 0) {
     $context = context_module::instance($moduleid);
 } else {
-    $cm = $DB->get_record('course_modules', ['course' => $courseid]);
-    $context = context_module::instance($cm->id);
+    $cmid    = tiny_cursive_get_cmid($courseid);
+    $context = context_module::instance($cmid);
 }
 
-$haseditcapability = has_capability('tiny/cursive:view', $context);
+require_capability('tiny/cursive:view', $context);
 
-if (!$haseditcapability) {
-    return redirect(new moodle_url('/course/index.php'), get_string('warning', 'tiny_cursive'));
-}
-
-global $CFG, $DB, $OUTPUT;
 $report = [];
 $headers = [
-    'FullName',
-    'Email',
-    'CourseID',
-    'total_time_seconds',
-    'key_count',
-    'keys_per_minute',
-    'character_count',
-    'characters_per_minute	',
-    'word_count',
-    'words_per_minute',
-    'backspace_percent',
-    'score',
-    'copybehavior',
+    get_string('fullname', 'tiny_cursive'),
+    get_string('email', 'tiny_cursive'),
+    get_string('courseid', 'tiny_cursive'),
+    get_string('total_time_seconds', 'tiny_cursive'),
+    get_string('key_count', 'tiny_cursive'),
+    get_string('keys_per_minute', 'tiny_cursive'),
+    get_string('character_count', 'tiny_cursive'),
+    get_string('characters_per_minute', 'tiny_cursive'),
+    get_string('word_count', 'tiny_cursive'),
+    get_string('words_per_minute', 'tiny_cursive'),
+    get_string('backspace_percent', 'tiny_cursive'),
+    get_string('score', 'tiny_cursive'),
+    get_string('copybehavior', 'tiny_cursive'),
+    get_string('effort_ratio', 'tiny_cursive'),
 ];
+
 $exportcsv = new csv_export_writer('comma');
-$exportcsv->set_filename("ExportUsersData");
+$exportcsv->set_filename(get_string('wractivityreport', 'tiny_cursive'));
 $exportcsv->add_data($headers); // Add Header Row.
 $params = [];
-if ($courseid != 0) {
 
+if ($courseid != 0) {
     $attempts = "SELECT uf.id as fileid, u.id as usrid,
                         " . $DB->sql_concat('u.firstname', "' '", 'u.lastname') . " as fullname,
                         u.email, uf.courseid,
@@ -81,17 +81,20 @@ if ($courseid != 0) {
                         CAST(AVG(COALESCE(uw.words_per_minute,0)) AS DECIMAL(10,2)) as words_per_minute,
                         CAST(AVG(COALESCE(uw.backspace_percent,0)) AS DECIMAL(10,2)) as backspace_percent,
                         CAST(AVG(COALESCE(uw.score,0)) AS DECIMAL(10,2)) as score,
-                        " . $DB->sql_cast_char2int('SUM(COALESCE(uw.copy_behavior,0))') . " as copybehavior
+                        CAST(AVG(COALESCE(uw.copy_behavior,0)) AS DECIMAL(10,2)) as copybehavior,
+                        CAST(AVG(COALESCE(CAST(wd.meta AS DECIMAL(10,2)),0)) AS DECIMAL(10,2)) as effort
                   FROM {tiny_cursive_files} uf
                   JOIN {user} u ON u.id = uf.userid
              LEFT JOIN {tiny_cursive_user_writing} uw ON uw.file_id = uf.id
+             LEFT JOIN {tiny_cursive_writing_diff} wd ON wd.file_id = uf.id
                  WHERE uf.userid != :adminid";
 
-    $params['adminid'] = 1;
+
+    $params['adminid']  = get_admin()->id;
 
     if ($userid != 0) {
         $attempts .= " AND uf.userid = :userid";
-        $params['userid'] = $userid;
+        $params['userid']   = $userid;
     }
     if ($courseid != 0) {
         $attempts .= " AND uf.courseid = :courseid";
@@ -102,6 +105,7 @@ if ($courseid != 0) {
         $attempts .= " AND uf.cmid = :moduleid";
         $params['moduleid'] = $moduleid;
     }
+
     $attempts .= " GROUP BY uf.id, u.id, u.email, uf.courseid";
     $ress = $DB->get_records_sql($attempts, $params);
 
@@ -121,6 +125,7 @@ if ($courseid != 0) {
                 $res->backspace_percent,
                 $res->score,
                 $res->copybehavior,
+                $res->effort,
             ];
             $exportcsv->add_data($userrow);
         }

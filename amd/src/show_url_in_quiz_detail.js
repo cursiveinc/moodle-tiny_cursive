@@ -36,10 +36,15 @@ define([
     AnalyticEvents
 ) {
     const replayInstances = {};
-
+    // eslint-disable-next-line
     window.video_playback = function (mid, filepath, questionid) {
         if (filepath !== '') {
             const replay = new Replay(
+                'content' + mid,
+                filepath,
+                10,
+                false,
+                'player_' + mid + questionid
                 'content' + mid,
                 filepath,
                 10,

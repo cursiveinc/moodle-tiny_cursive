@@ -17,18 +17,24 @@
 {{!
     @template tiny_cursive/module_list
 
-    Template purpose and description.
+    Template to display a dropdown list of modules for the tiny_cursive plugin.
 
-    Classes required for JS:
-    * none
-
-    Data attributes required for JS:
-    * none
-
-    Context variables required for this template:
-    * none
+    Example context (json):
+    {
+        "tabledata": {
+            "userlist": [
+                {
+                    "id": "1", 
+                    "name": "Module 1"
+                },
+                {
+                    "id": "2",
+                    "name": "Module 2" 
+                }
+            ]
+        }
+    }
 }}
-
 <select>
     <option value="">{{#str}}selectmodule, tiny_cursive{{/str}}</option>
     {{#tabledata.userlist}}

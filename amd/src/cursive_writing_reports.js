@@ -38,6 +38,11 @@ define(["core/ajax", "core/str", "core/templates", "./replay", './analytic_butto
                 10,
                 false,
                 'player_' + mid
+                'content' + mid,
+                filepath,
+                10,
+                false,
+                'player_' + mid
             );
             replayInstances[mid] = replay;
         } else {
@@ -56,11 +61,12 @@ define(["core/ajax", "core/str", "core/templates", "./replay", './analytic_butto
                 });
 
             let myEvents = new AnalyticEvents();
-            (async function () {
+            (async function() {
                 try {
-                    let score_setting = await str.get_string('confidence_threshold', 'tiny_cursive');
-                    analyticsEvents(score_setting);
+                    let scoreSetting = await str.get_string('confidence_threshold', 'tiny_cursive');
+                    analyticsEvents(scoreSetting);
                 } catch (error) {
+                    window.console.error('Error fetching string:', error);
                     window.console.error('Error fetching string:', error);
                 }
             })();
@@ -73,7 +79,7 @@ define(["core/ajax", "core/str", "core/templates", "./replay", './analytic_butto
              * statistics. Once the data is retrieved, it processes and displays it within
              * the modal.
              *
-             * @param {Object} score_setting - Configuration settings related to scoring.
+             * @param {Object} scoreSetting - Configuration settings related to scoring.
              */
             function analyticsEvents(score_setting) {
                 const analyticModals = document.querySelectorAll(".analytic-modal");
@@ -107,6 +113,7 @@ define(["core/ajax", "core/str", "core/templates", "./replay", './analytic_butto
                         myEvents.analytics(mid, templates, context, '', replayInstances, authIcon);
                         myEvents.checkDiff(mid, mid, '', replayInstances);
                         myEvents.replyWriting(mid, filepath, '', replayInstances);
+                        myEvents.quality(mid, templates, context, '', replayInstances, cmid);
                     }).fail(error => {
                         throw new Error('Error: ' + error.message);
                     });

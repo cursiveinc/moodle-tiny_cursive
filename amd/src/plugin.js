@@ -15,9 +15,9 @@
 
 /**
  * @module     tiny_cursive/plugin
- * @category TinyMCE Editor
- * @copyright  CTI <info@cursivetechnology.com>
- * @author Brain Station 23 <elearning@brainstation-23.com>
+ * @category   TinyMCE Editor
+ * @copyright  2025 CTI <info@cursivetechnology.com>
+ * @author     Brain Station 23 <sales@brainstation-23.com>
  */
 
 import { getTinyMCE } from 'editor_tiny/loader';
@@ -51,7 +51,7 @@ export default new Promise((resolve, reject) => {
 
                 return pluginMetadata;
             });
-            resolve(pluginName);
+            return resolve(pluginName);
         })
         .catch((error) => {
             reject(error);

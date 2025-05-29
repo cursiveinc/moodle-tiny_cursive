@@ -23,8 +23,9 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die;
-require_once($CFG->libdir . '/formslib.php');
+namespace tiny_cursive\forms;
+use context_course;
+use moodleform;
 
 /**
  * Tiny cursive plugin.
@@ -34,27 +35,42 @@ require_once($CFG->libdir . '/formslib.php');
  * @author eLearningstack
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class wrreportform extends moodleform {
+class user_report_form extends moodleform {
     /**
-     * Tiny cursive plugin report form.
+     * Tiny cursive plugin user report form.
      */
     public function definition() {
         // Start dropdowns of course, quiz and user email search field in mform.
-
+        global $PAGE;
         $mform = &$this->_form;
         $attributes = '';
+        $courseid = $this->_customdata['courseid'];
+        $users = self::get_user($courseid);
+        $modules = self::get_modules($courseid);
         $options = ['multiple' => false, 'includefrontpage' => false];
-        $mform->addElement('course', 'coursename', get_string('coursename', 'tiny_cursive'), $options);
-        $mform->addRule('coursename', null, 'required', null, 'client');
+        $mform->addElement('course', 'courseid', get_string('coursename', 'tiny_cursive'), $options);
+        if ($courseid) {
+            $mform->setDefault('courseid', $courseid);
+        }
+
+        $mform->addRule('courseid', null, 'required', null, 'client');
+        $mform->addElement('select', 'moduleid', get_string('module_name', 'tiny_cursive'), $modules, $attributes);
+        $mform->setType('moduleid', PARAM_TEXT);
+        $mform->addElement('select', 'userid', get_string('userename', 'tiny_cursive'), $users, $attributes);
+        $mform->setType('userid', PARAM_TEXT);
         $options = [
-            'id' => 'ID',
-            'name' => 'Name',
-            'email' => 'Email',
-            'date' => 'Date',
+            'id'    => get_string('uid', 'tiny_cursive'),
+            'name'  => get_string('name', "tiny_cursive"),
+            'email' => get_string('email', 'tiny_cursive'),
+            'date'  => get_string('date', 'tiny_cursive'),
         ];
         $mform->addElement('select', 'orderby', get_string('orderby', 'tiny_cursive'), $options, $attributes);
         $mform->setType('orderby', PARAM_TEXT);
         $this->add_action_buttons(false, get_string('submit'));
+
+        if (!is_siteadmin()) {
+            $PAGE->requires->js_call_amd('tiny_cursive/user_report_addition', 'init', []);
+        }
     }
 
     /**
@@ -76,6 +92,9 @@ class wrreportform extends moodleform {
             if (!empty($mform->_submitValues['moduleid'])) {
                 $data->moduleid = $mform->_submitValues['moduleid'];
             }
+            if (!empty($mform->_submitValues['orderby'])) {
+                $data->orderby = $mform->_submitValues['orderby'];
+            }
         }
         return $data;
     }
@@ -92,10 +111,7 @@ class wrreportform extends moodleform {
         $mdetail = [];
         $mdetail[0] = get_string('allmodule', 'tiny_cursive');
         if ($courseid) {
-            $sql = "SELECT id, instance
-                      FROM {course_modules}
-                     WHERE course = :courseid ";
-            $modules = $DB->get_records_sql($sql, ['courseid' => $courseid]);
+            $modules = $DB->get_records('course_modules', ['course' => $courseid], '', 'id, instance');
             foreach ($modules as $cm) {
                 $modinfo = get_fast_modinfo($courseid);
                 $cm = $modinfo->get_cm($cm->id);
@@ -103,7 +119,29 @@ class wrreportform extends moodleform {
                 $mdetail[$cm->id] = $getmodulename->name;
             }
         }
-
         return $mdetail;
+    }
+
+    /**
+     * Tiny cursive plugin get all users.
+     *
+     * @param integer $courseid
+     * @return array
+     */
+    public function get_user($courseid) {
+        global $DB;
+        $udetail = [];
+
+        $udetail[0] = get_string('alluser', 'tiny_cursive');
+
+        if (!empty($courseid)) {
+            // Use get_enrolled_users() function instead of raw SQL for better maintainability and security.
+            $users = get_enrolled_users(context_course::instance($courseid), '', 0, 'u.*', null, 0, 0, true);
+            foreach ($users as $user) {
+                $udetail[$user->id] = fullname($user);
+            }
+        }
+
+        return $udetail;
     }
 }

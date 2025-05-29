@@ -15,9 +15,9 @@
 
 /**
  * @module     tiny_cursive/autosaver
- * @category TinyMCE Editor
+ * @category   TinyMCE Editor
  * @copyright  CTI <info@cursivetechnology.com>
- * @author Brain Station 23 <elearning@brainstation-23.com>
+ * @author     Brain Station 23 <sales@brainstation-23.com>
  */
 
 import { call } from 'core/ajax';
@@ -206,6 +206,7 @@ export const register = (editor, interval, userId) => {
         } else {
 
             resourceId = parm.searchParams.get('attempt');
+            resourceId = parm.searchParams.get('attempt');
         }
         if (resourceId === null) {
 
@@ -280,6 +281,7 @@ export const register = (editor, interval, userId) => {
     editor.on('keyDown', (editor) => {
         sendKeyEvent("keyDown", editor);
     });
+    // eslint-disable-next-line
     editor.on('init', () => {
 
     });

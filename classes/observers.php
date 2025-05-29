@@ -24,7 +24,6 @@
  */
 
 namespace tiny_cursive;
-defined('MOODLE_INTERNAL') || die();
 
 /**
  * Tiny cursive plugin observer class.
@@ -35,33 +34,38 @@ defined('MOODLE_INTERNAL') || die();
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class observers {
+
     /**
      * Tiny cursive plugin update comment observer.
      *
-     * @param $event
+     * @param \core\event\base $event The event object
      * @return void
      * @throws \dml_exception
      */
     public static function update_comment($event) {
         global $DB;
-        $eventdata = $event->get_data();
-        $table = 'tiny_cursive_comments';
+
+        $eventdata  = $event->get_data();
+        $table      = 'tiny_cursive_comments';
+        $modulename = self::get_modules_name($eventdata);
         $conditions = [
-            "userid" => $eventdata['userid'],
-            "modulename" => 'forum',
+            "userid"     => $eventdata['userid'],
+            "modulename" => $modulename,
             'resourceid' => 0,
-            'courseid' => $eventdata['courseid'],
-            'cmid' => $eventdata['contextinstanceid']
+            'courseid'   => $eventdata['courseid'],
+            'cmid'       => $eventdata['contextinstanceid'],
         ];
+
         $recs = $DB->get_records($table, $conditions);
         if ($recs) {
             foreach ($recs as $rec) {
-                $dataobj = new \stdClass();
-                $dataobj->userid = $eventdata['userid'];
-                $dataobj->id = $rec->id;
-                $dataobj->cmid = $eventdata['contextinstanceid'];
-                $dataobj->courseid = $eventdata['courseid'];
+                $dataobj             = new \stdClass();
+                $dataobj->userid     = $eventdata['userid'];
+                $dataobj->id         = $rec->id;
+                $dataobj->cmid       = $eventdata['contextinstanceid'];
+                $dataobj->courseid   = $eventdata['courseid'];
                 $dataobj->resourceid = $eventdata['objectid'];
+
                 $DB->update_record($table, $dataobj, true);
             }
         }
@@ -70,46 +74,50 @@ class observers {
     /**
      * Tiny cursive plugin update cursive files observer.
      *
-     * @param $event
+     * @param \core\event\base $event The event object
      * @return void
      * @throws \dml_exception
      */
     public static function update_cursive_files($event) {
 
-        global $DB, $CFG;
-        $eventdata = $event->get_data();
+        global $DB;
+
+        $eventdata     = $event->get_data();
         if ($eventdata['target'] === "discussion") {
             $discussid = $eventdata['objectid'];
-            $postdata = $DB->get_record('forum_posts', ['discussion' => $discussid]);
+            $postdata  = $DB->get_record('forum_posts', ['discussion' => $discussid]);
             if ($postdata) {
                 $eventdata['objectid'] = $postdata->id;
             }
         }
 
-        $table = 'tiny_cursive_files';
+        $table      = 'tiny_cursive_files';
+        $modulename = self::get_modules_name($eventdata);
         $conditions = [
-            "userid" => $eventdata['userid'],
-            "modulename" => 'forum',
+            "userid"     => $eventdata['userid'],
+            "modulename" => $modulename,
             'resourceid' => 0,
-            'courseid' => $eventdata['courseid'],
-            'cmid' => $eventdata['contextinstanceid']
+            'courseid'   => $eventdata['courseid'],
+            'cmid'       => $eventdata['contextinstanceid'],
         ];
         $recs = $DB->get_records($table, $conditions);
         if ($recs) {
             foreach ($recs as $rec) {
-                $userid = $eventdata['userid'];
-                $cmid = $eventdata['contextinstanceid'];
-                $resourceid = $eventdata['objectid'];
-                $fname = $userid . '_' . $resourceid . '_' . $cmid . '_attempt' . '.json';
+                $userid              = $eventdata['userid'];
+                $cmid                = $eventdata['contextinstanceid'];
+                $resourceid          = $eventdata['objectid'];
+                $fname               = $userid . '_' . $resourceid . '_' . $cmid . '_attempt' . '.json';
 
-                $dataobj = new \stdClass();
-                $dataobj->userid = $userid;
-                $dataobj->id = $rec->id;
-                $dataobj->cmid = $cmid;
-                $dataobj->courseid = $eventdata['courseid'];
+                $dataobj             = new \stdClass();
+                $dataobj->userid     = $userid;
+                $dataobj->id         = $rec->id;
+                $dataobj->cmid       = $cmid;
+                $dataobj->courseid   = $eventdata['courseid'];
                 $dataobj->resourceid = $resourceid;
-                $dataobj->filename = $fname;
+                $dataobj->filename   = $fname;
+
                 $DB->update_record($table, $dataobj, true);
+
             }
         }
     }
@@ -148,27 +156,30 @@ class observers {
     public static function discussion_created(\mod_forum\event\discussion_created $event) {
 
         global $DB;
-        $eventdata = $event->get_data();
-        $objectid = $eventdata['objectid'];
+        $eventdata        = $event->get_data();
+        $objectid         = $eventdata['objectid'];
         $discussionstable = 'forum_discussions';
-        $discussionsrec = $DB->get_record($discussionstable, ['id' => $objectid]);
-        $table = 'tiny_cursive_comments';
-        $conditions = [
-            "userid" => $eventdata['userid'],
+        $discussionsrec   = $DB->get_record($discussionstable, ['id' => $objectid]);
+        $table            = 'tiny_cursive_comments';
+
+        $conditions       = [
+            "userid"     => $eventdata['userid'],
             "modulename" => 'forum',
             'resourceid' => 0,
-            'courseid' => $eventdata['courseid'],
-            'cmid' => $eventdata['contextinstanceid']
+            'courseid'   => $eventdata['courseid'],
+            'cmid'       => $eventdata['contextinstanceid'],
         ];
         $recs = $DB->get_records($table, $conditions);
+
         if ($recs) {
             foreach ($recs as $rec) {
-                $dataobj = new \stdClass();
-                $dataobj->userid = $eventdata['userid'];
-                $dataobj->id = $rec->id;
-                $dataobj->cmid = $eventdata['contextinstanceid'];
-                $dataobj->courseid = $eventdata['courseid'];
+                $dataobj             = new \stdClass();
+                $dataobj->userid     = $eventdata['userid'];
+                $dataobj->id         = $rec->id;
+                $dataobj->cmid       = $eventdata['contextinstanceid'];
+                $dataobj->courseid   = $eventdata['courseid'];
                 $dataobj->resourceid = $discussionsrec->firstpost;
+
                 $DB->update_record($table, $dataobj, true);
             }
         }
@@ -185,14 +196,14 @@ class observers {
      * @throws \dml_exception
      */
     public static function reset_tracking_data(\core\event\course_reset_ended $event) {
-        global $DB, $CFG;
+        global $DB;
 
         // Get the course ID from the event data.
-        $data = (object) $event->get_data();
+        $data     = (object) $event->get_data();
         $courseid = $data->courseid;
 
         // Retrieve all file records related to the course.
-        $fileids = $DB->get_records('tiny_cursive_files', ['courseid' => $courseid], '', 'id, filename');
+        $fileids  = $DB->get_records('tiny_cursive_files', ['courseid' => $courseid], '', 'id, filename');
 
         // Delete records from 'tiny_cursive_files' and 'tiny_cursive_comments' tables.
         $DB->delete_records('tiny_cursive_files', ['courseid' => $courseid]);
@@ -202,6 +213,19 @@ class observers {
         foreach ($fileids as $file) {
             $DB->delete_records('tiny_cursive_user_writing', ['file_id' => $file->id]);
             $DB->delete_records('tiny_cursive_writing_diff', ['file_id' => $file->id]);
+            $DB->delete_records('tiny_cursive_quality_metrics', ['file_id' => $file->id]);
         }
+    }
+
+    /**
+     * Get the module name from event data.
+     *
+     * @param array $eventdata The event data containing component information
+     * @return string The module name extracted from the component
+     */
+    public static function get_modules_name($eventdata) {
+        // Use array destructuring to get module name directly from component.
+        [, $modulename] = explode('_', $eventdata['component'], 2);
+        return $modulename;
     }
 }

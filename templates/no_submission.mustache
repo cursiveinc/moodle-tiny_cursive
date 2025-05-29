@@ -16,12 +16,14 @@
 }}
 {{!
     @template tiny_cursive/no_submission
-
-    TODO describe template no_submission
+    
+    Template that displays a message when no submission is available.
+    Used to show a notification to users when there is no content to display.
 
     Example context (json):
     {
+        "message": "No submission available"
     }
 }}
 
-<p class="text-center p-5 bg-light rounded m-5 text-primary tiny_cursive_nosub">{{#str}}no_submission, tiny_cursive {{/str}}</p>
+<p class="bg-light tiny_cursive_nosub">{{#str}}no_submission, tiny_cursive {{/str}}</p>

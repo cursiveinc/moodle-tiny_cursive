@@ -22,10 +22,10 @@
 
 define(["core/ajax", "core/str", "core/templates"], function (AJAX, str, templates) {
   var usersTable = {
-    init: function (page) {
+    init: function(page) {
       str
         .get_strings([
-          { key: "field_require", component: "tiny_cursive" }
+          {key: "field_require", component: "tiny_cursive"}
         ])
         .done(function () {
           document.addEventListener("DOMContentLoaded", function () {
@@ -87,7 +87,7 @@ define(["core/ajax", "core/str", "core/templates"], function (AJAX, str, templat
             args: {
               courseid: courseid,
             },
-          },
+          }
         ]);
 
         promise2[0].done(function (json) {

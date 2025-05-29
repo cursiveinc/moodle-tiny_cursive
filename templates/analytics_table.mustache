@@ -1,31 +1,39 @@
 {{!
-This file is part of Moodle - http://moodle.org/
+    This file is part of Moodle - http://moodle.org/
 
-Moodle is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-Moodle is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with Moodle. If not, see
-<http: //www.gnu.org/licenses />.
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-@template tiny_cursive/analytics_table
+    @template tiny_cursive/analytics_table
 
-TODO describe template analytics_table
+    Template to display analytics data in a table format for the tiny_cursive plugin.
+    Shows metrics like authorship, effort ratio, time writing, words per minute, total words and backspace usage.
 
-Example context (json):
-{
-}
+    Example context (json):
+    {
+        "tabledata": {
+            "total_time_seconds": 300,
+            "effort_ratio": 75,
+            "words_per_minute": 30,
+            "word_count": 150,
+            "backspace_percent": 10
+        },
+        "formattime": "5:00"
+    }
 }}
 
-<table class="table table-borderless table-responsive">
+<table class="tiny_cursive_table tiny_cursive_table-borderless  table-responsive">
     {{#tabledata.total_time_seconds}}
     <tbody>
         <tr>
@@ -86,7 +94,7 @@ Example context (json):
                             d="M15.7317 18.426V8.86668C15.7317 8.63682 15.6546 8.41638 15.5174 8.25384C15.3801 8.09131 15.194 8 15 8C14.806 8 14.6199 8.09131 14.4826 8.25384C14.3454 8.41638 14.2683 8.63682 14.2683 8.86668V18.426C13.8348 18.6279 13.4743 19.0027 13.2492 19.4858C13.024 19.9688 12.9482 20.5298 13.035 21.072C13.1217 21.6141 13.3655 22.1034 13.7242 22.4554C14.0829 22.8074 14.5342 23 15 23C15.4658 23 15.9171 22.8074 16.2758 22.4554C16.6345 22.1034 16.8783 21.6141 16.965 21.072C17.0518 20.5298 16.976 19.9688 16.7508 19.4858C16.5257 19.0027 16.1652 18.6279 15.7317 18.426Z"
                             fill="black" />
                     </svg></div>
-                <div>{{#str}}words_per_minute, tiny_cursive {{/str}} <p>{{#str}}words_per_minute, tiny_cursive {{/str}}</p>
+                <div>{{#str}}words_per_minute, tiny_cursive {{/str}} <p>{{#str}}words_per_minute_desc, tiny_cursive {{/str}}</p>
                 </div>
             </td>
             <td> {{tabledata.words_per_minute}} {{#tabledata.words_per_minute}}WPM{{/tabledata.words_per_minute}}</td>
@@ -122,8 +130,8 @@ Example context (json):
         </tr>
     </tbody>
     {{/tabledata.total_time_seconds}}
-    {{^tabledata.total_time_seconds}}
-    <p class="text-center p-5 bg-light rounded m-5 text-primary tiny_cursive_nopayload">
-        {{#str}}nopaylod, tiny_cursive {{/str}}</p>
-    {{/tabledata.total_time_seconds}}
 </table>
+{{^tabledata.total_time_seconds}}
+    <p class="bg-light tiny_cursive_nopayload">
+        {{#str}}nopaylod, tiny_cursive {{/str}}</p>
+{{/tabledata.total_time_seconds}}

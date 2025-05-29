@@ -22,8 +22,6 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-use editor_tiny\cursive\forms\fileupload;
-
 /**
  * Given an array with a file path, it returns the itemid and the filepath for the defined filearea.
  *
@@ -48,14 +46,17 @@ function tiny_cursive_get_path_from_pluginfile(array $args): array {
 }
 
 /**
- * Serves the tiny_cursive files.
+ * Serves files from the tiny_cursive plugin's file storage area.
  *
- * @param stdClass $context context object
- * @param string $filearea file area
- * @param array $args extra arguments
- * @param bool $forcedownload whether or not force download
- * @param array $options additional options affecting the file serving
- * @package  mod_tiny_cursive
+ * This function handles file serving requests for files stored in the tiny_cursive
+ * plugin's file area. It retrieves and sends the requested file to the user.
+ *
+ * @param stdClass $context The context object for file access permissions
+ * @param string $filearea The file area identifier within tiny_cursive
+ * @param array $args Array of path segments identifying the file
+ * @param bool $forcedownload If true, forces file download rather than display
+ * @param array $options Additional options for file serving (e.g. caching, filters)
+ * @return void|bool Returns false if file not found, void otherwise
  */
 function tiny_cursive_pluginfile($context, $filearea, $args, $forcedownload, array $options = []) {
     $itemid = array_shift($args);
@@ -77,20 +78,23 @@ function tiny_cursive_pluginfile($context, $filearea, $args, $forcedownload, arr
 }
 
 /**
- * tiny_cursive_extend_navigation_course
+ * Extends the course navigation with a link to the Cursive writing report.
+ * This function adds a navigation node to access writing reports if the user has appropriate permissions
+ * and Cursive is enabled for the course.
  *
- * @param navigation_node $navigation
- * @param stdClass $course
+ * @param navigation_node $navigation The navigation node to extend
+ * @param stdClass $course The course object containing the course details
  * @return void
- * @throws moodle_exception
+ * @throws moodle_exception If there is an error creating the navigation node
  */
 function tiny_cursive_extend_navigation_course(\navigation_node $navigation, \stdClass $course) {
-    global $CFG, $USER, $DB;
+    global $CFG;
     require_once(__DIR__ . "/locallib.php");
 
     $url = new moodle_url($CFG->wwwroot . '/lib/editor/tiny/plugins/cursive/tiny_cursive_report.php', ['courseid' => $course->id]);
     $cmid = tiny_cursive_get_cmid($course->id);
-    if ($cmid && get_config('tiny_cursive', "cursive-$course->id")) {
+    $cursive = tiny_cursive_status($course->id);
+    if ($cmid && $cursive) {
         $context = context_module::instance($cmid);
         $hascap = has_capability("tiny/cursive:editsettings", $context);
         if ($hascap) {
@@ -107,9 +111,11 @@ function tiny_cursive_extend_navigation_course(\navigation_node $navigation, \st
 }
 
 /**
- * tiny_cursive_extend_navigation
+ * Modifies the global navigation by removing the home node.
+ * This function is called when building the global navigation menu and ensures
+ * the home node is not displayed.
  *
- * @param global_navigation $navigation
+ * @param global_navigation $navigation The global navigation instance to modify
  * @return void
  */
 function tiny_cursive_extend_navigation(global_navigation $navigation) {
@@ -118,12 +124,13 @@ function tiny_cursive_extend_navigation(global_navigation $navigation) {
     }
 }
 
+
 /**
- * tiny_cursive_myprofile_navigation
+ * Add a node to the myprofile navigation tree for writing reports.
  *
- * @param \core_user\output\myprofile\tree $tree
- * @param $user
- * @param $course
+ * @param \core_user\output\myprofile\tree $tree Navigation tree to add node to
+ * @param stdClass $user The user object
+ * @param stdClass $course The course object
  * @return void
  * @throws coding_exception
  * @throws moodle_exception
@@ -142,20 +149,27 @@ function tiny_cursive_myprofile_navigation(core_user\output\myprofile\tree $tree
         return;
     }
 
+    if (get_config('tiny_cursive', 'disabled')) {
+        return;
+    }
+
     $url = new moodle_url(
         '/lib/editor/tiny/plugins/cursive/my_writing_report.php',
         ['id' => $user->id, 'course' => isset($course->id) ? $course->id : "", 'mode' => 'cursive']
     );
-    $node = new core_user\output\myprofile\node('reports', 'cursive', get_string('writing', 'tiny_cursive'), null, $url);
+    $node = new core_user\output\myprofile\node('reports', 'cursive',
+    get_string('student_writing_statics', 'tiny_cursive'), null, $url);
     $tree->add_node($node);
 }
 
 /**
- * upload_multipart_record
+ * Uploads a file record using multipart form data
  *
- * @param $filerecord
- * @param $filenamewithfullpath
- * @return bool|string
+ * @param stdClass $filerecord The file record object containing metadata
+ * @param string $filenamewithfullpath Full path to the file to upload
+ * @param string $wstoken Web service token for authentication
+ * @param string $answertext Original submission text
+ * @return bool|string Returns response from server or false on failure
  * @throws dml_exception
  */
 function tiny_cursive_upload_multipart_record($filerecord, $filenamewithfullpath, $wstoken, $answertext) {
@@ -170,18 +184,18 @@ function tiny_cursive_upload_multipart_record($filerecord, $filenamewithfullpath
 
         $tempfilepath = tempnam(sys_get_temp_dir(), 'upload');
 
-        $jsoncontent = json_decode(base64_decode($filerecord->content), true);
+        $jsoncontent = json_decode($filerecord->content, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new Exception("Invalid JSON content in file.");
+            throw new moodle_exception('invalidjson', 'tiny_cursive');
         }
             file_put_contents($tempfilepath, json_encode($jsoncontent));
             $filetosend = new CURLFILE($tempfilepath, 'application/json', 'uploaded.json');
 
-                // Ensure the temporary file does not exceed the size limit.
+            // Ensure the temporary file does not exceed the size limit.
         if (filesize($tempfilepath) > 16 * 1024 * 1024) {
             unlink($tempfilepath);
-            throw new Exception("File exceeds the 16MB size limit.");
+            throw new moodle_exception('filesizelimit', 'tiny_cursive');
         }
 
         echo $remoteurl;
@@ -221,7 +235,7 @@ function tiny_cursive_upload_multipart_record($filerecord, $filenamewithfullpath
         if (isset($tempfilepath) && file_exists($tempfilepath)) {
             unlink($tempfilepath);
         }
-    } catch (Exception $e) {
+    } catch (moodle_exception $e) {
         echo $e->getMessage();
     }
 
@@ -229,11 +243,11 @@ function tiny_cursive_upload_multipart_record($filerecord, $filenamewithfullpath
 }
 
 /**
- * file_urlcreate
+ * Creates a URL for a file in the tiny_cursive file area
  *
- * @param $context
- * @param $user
- * @return false|string
+ * @param \context $context The context object
+ * @param stdClass $user The user object containing fileid
+ * @return string|false Returns the download URL for the file, or false if no file found
  * @throws coding_exception
  */
 function tiny_cursive_file_urlcreate($context, $user) {
@@ -259,4 +273,64 @@ function tiny_cursive_file_urlcreate($context, $user) {
         }
     }
     return false;
+}
+
+/**
+ * Get the status of tiny_cursive for a specific course
+ *
+ * @param int $courseid The ID of the course to check
+ * @return bool Returns true if tiny_cursive is enabled for the course, false otherwise
+ * @throws dml_exception
+ */
+function tiny_cursive_status($courseid = 0) {
+    if (get_config('tiny_cursive', 'disabled')) {
+        return false;
+    }
+    return get_config('tiny_cursive', "cursive-$courseid");
+
+}
+
+/**
+ * Verifies a token by sending it to a remote server for approval
+ *
+ * @param string $token The authentication token to verify
+ * @param string $moodleurl The URL of the Moodle installation
+ * @param string $remoteurl The URL of the remote verification server
+ * @return string The response from the remote server
+ * @throws moodle_exception If token verification fails
+ */
+function cursive_approve_token($token, $moodleurl, $remoteurl) {
+    try {
+        // Use Moodle's cURL library.
+        $curl = new curl();
+        $options = [
+            'CURLOPT_RETURNTRANSFER' => true,
+            'CURLOPT_HTTPHEADER' => [
+                'Authorization: Bearer ' . $token,
+                'X-Moodle-Url: ' . $moodleurl,
+                'Content-Type: multipart/form-data',
+                'Accept: application/json',
+            ],
+        ];
+
+        // Prepare POST fields.
+        $postfields = [
+            'token' => $token,
+            'moodle_url' => $moodleurl,
+        ];
+
+        $result = $curl->post($remoteurl, $postfields, $options);
+
+        if ($result === false) {
+            throw new moodle_exception('curlerror', 'tiny_cursive', '', null, $curl->error);
+        }
+    } catch (moodle_exception $e) {
+        // Log the exception.
+        debugging("Error in cursive_approve_token_func: " . $e->getMessage());
+
+        // Return a Moodle exception.
+        throw new moodle_exception('errorverifyingtoken', 'tiny_cursive', '', null, $e->getMessage());
+    }
+
+    return $result;
 }

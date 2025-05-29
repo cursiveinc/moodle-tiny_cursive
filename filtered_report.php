@@ -23,13 +23,12 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use tiny_cursive\forms\filter_report_form;
 require(__DIR__ . '/../../../../../config.php');
-
 global $CFG, $DB, $USER, $PAGE, $OUTPUT;
 
 require_once($CFG->dirroot . '/mod/quiz/lib.php');
 require_once($CFG->dirroot . '/mod/quiz/locallib.php');
-require_once(__DIR__ . '/classes/forms/filterreportform.php');
 require_once(__DIR__ . '/locallib.php');
 
 require_login();
@@ -38,7 +37,7 @@ $courseid = optional_param('coursename', 0, PARAM_INT);
 $systemcontext = context_system::instance();
 $PAGE->set_context($systemcontext);
 
-$cm = $DB->get_record('course_modules', ['course' => $courseid]);
+$cm = $DB->get_record('course_modules', ['course' => $courseid], '*', IGNORE_MULTIPLE);
 $context = context_module::instance($cm->id);
 $haseditcapability = has_capability('tiny/cursive:view', $context);
 
@@ -47,7 +46,7 @@ $PAGE->set_url(new moodle_url('/lib/editor/tiny/plugins/cursive/filtered_report.
 
 echo $OUTPUT->header();
 
-$mform = new filterreportform(null, [
+$mform = new filter_report_form(null, [
     'coursename' => $courseid,
 ], 'post', '', ['class' => 'timer_report', 'id' => 'elstimerreport']);
 

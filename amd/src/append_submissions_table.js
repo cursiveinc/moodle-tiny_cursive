@@ -46,6 +46,11 @@ define([
                 10,
                 false,
                 'player_' + mid
+                'content' + mid,
+                filepath,
+                10,
+                false,
+                'player_' + mid
             );
             replayInstances[mid] = replay;
         } else {
@@ -57,7 +62,7 @@ define([
     };
 
     var usersTable = {
-        init: function (score_setting, showcomment) {
+        init: function(scoreSetting, showcomment) {
             str
                 .get_strings([
                     { key: "confidence_threshold", component: "tiny_cursive" },
@@ -93,7 +98,7 @@ define([
                         let com = AJAX.call([{ methodname, args }]);
 
                         try {
-                            com[0].done(function (json) {
+                            com[0].done(function(json) {
                                 var data = JSON.parse(json);
                                 var filepath = '';
                                 if (data.res.filename) {
@@ -109,23 +114,30 @@ define([
                                     tabledata: data.res,
                                     formattime: myEvents.formatedTime(data.res),
                                     moduletitle: textContent,
-                                    page: score_setting,
+                                    page: scoreSetting,
                                     userid: userid,
                                 };
 
-                                let authIcon = myEvents.authorshipStatus(data.res.first_file, data.res.score, score_setting);
+                                let authIcon = myEvents.authorshipStatus(data.res.first_file, data.res.score, scoreSetting);
                                 myEvents.createModal(userid, context, '', authIcon);
                                 myEvents.analytics(userid, templates, context, '', replayInstances, authIcon);
                                 myEvents.checkDiff(userid, data.res.file_id, '', replayInstances);
                                 myEvents.replyWriting(userid, filepath, '', replayInstances);
+                                myEvents.quality(userid, templates, context, '', replayInstances, cmid);
+                            }).fail(function(error) {
+                                window.console.error('AJAX request failed:', error);
                             });
                         } catch (error) {
-                            window.console.error(error);
+                            window.console.error('Error processing data:', error);
                         }
                         return com.usercomment;
                     });
+                    return true;
+                })
+                .catch(error => {
+                    window.console.error('Failed to get analytics string:', error);
                 });
-        }
+                }
     };
 
     return usersTable;
