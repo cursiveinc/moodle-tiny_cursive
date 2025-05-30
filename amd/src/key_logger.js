@@ -20,32 +20,32 @@
  * @author Brain Station 23 <elearning@brainstation-23.com>
  */
 
-define(["core/ajax", "core/str", "core/templates"], function (AJAX, str, templates) {
+define(["core/ajax", "core/str", "core/templates"], function(AJAX, str, templates) {
   var usersTable = {
-    init: function (page) {
+    init: function(page) {
       str
         .get_strings([
-          { key: "field_require", component: "tiny_cursive" }
+          {key: "field_require", component: "tiny_cursive"}
         ])
-        .done(function () {
-          document.addEventListener("DOMContentLoaded", function () {
-            document.querySelectorAll(".popup_item").forEach(function (element) {
-              element.addEventListener("click", function () {
+        .done(function() {
+          document.addEventListener("DOMContentLoaded", function() {
+            document.querySelectorAll(".popup_item").forEach(function(element) {
+              element.addEventListener("click", function() {
                 var mid = this.dataset.id;
                 document.getElementById(mid).style.display = 'block';
               });
             });
 
-            document.querySelectorAll(".link_icon").forEach(function (element) {
-              element.addEventListener("click", function () {
+            document.querySelectorAll(".link_icon").forEach(function(element) {
+              element.addEventListener("click", function() {
                 var smid = this.dataset.id;
                 document.getElementById(smid).style.display = 'block';
               });
             });
 
-            document.querySelectorAll(".modal-close").forEach(function (element) {
-              element.addEventListener("click", function () {
-                document.querySelectorAll(".modal").forEach(function (modal) {
+            document.querySelectorAll(".modal-close").forEach(function(element) {
+              element.addEventListener("click", function() {
+                document.querySelectorAll(".modal").forEach(function(modal) {
                   modal.style.display = 'none';
                 });
               });
@@ -56,9 +56,9 @@ define(["core/ajax", "core/str", "core/templates"], function (AJAX, str, templat
         });
     },
 
-    getusers: function (page) {
+    getusers: function(page) {
       document.getElementById("fgroup_id_buttonar").style.display = 'none';
-      document.getElementById("id_coursename").addEventListener("change", function () {
+      document.getElementById("id_coursename").addEventListener("change", function() {
         var courseid = this.value;
 
         var promise1 = AJAX.call([
@@ -69,14 +69,14 @@ define(["core/ajax", "core/str", "core/templates"], function (AJAX, str, templat
             },
           },
         ]);
-
-        promise1[0].done(function (json) {
+          // eslint-disable-next-line
+        promise1[0].done(function(json) {
           var data = JSON.parse(json);
           var context = {
             tabledata: data,
             page: page,
           };
-          templates.render("tiny_cursive/user_list", context).then(function (html) {
+          templates.render("tiny_cursive/user_list", context).then(function(html) {
             document.getElementById("id_username").innerHTML = html;
           });
         });
@@ -87,17 +87,19 @@ define(["core/ajax", "core/str", "core/templates"], function (AJAX, str, templat
             args: {
               courseid: courseid,
             },
-          },
+          }
         ]);
 
-        promise2[0].done(function (json) {
+        promise2[0].done(function(json) {
           var data = JSON.parse(json);
           var context = {
             tabledata: data,
             page: page,
           };
-          templates.render("tiny_cursive/module_list", context).then(function (html) {
+          // eslint-disable-next-line
+          templates.render("tiny_cursive/module_list", context).then(function(html) {
             document.getElementById("id_modulename").innerHTML = html;
+            return true;
           });
         });
       });

@@ -26,11 +26,10 @@
 
 namespace tiny_cursive;
 
+use context_course;
+
 defined('MOODLE_INTERNAL') || die();
-require_once($CFG->dirroot . '/config.php');
-require_login();
 require_once($CFG->dirroot . '/mod/quiz/lib.php');
-require_once($CFG->dirroot . '/config.php');
 require_once($CFG->dirroot . '/mod/quiz/locallib.php');
 require_once($CFG->dirroot . '/mod/quiz/attemptlib.php');
 
@@ -48,33 +47,33 @@ use stdClass;
 class tiny_cursive_data {
 
     /**
-     * get_courses_users
+     * Get list of users enrolled in a course.
      *
-     * @param $params
-     * @return stdClass
+     * @param array $params Parameters containing courseid
+     * @return stdClass Object containing array of users
      * @throws \dml_exception
      */
     public static function get_courses_users($params) {
         global $DB;
-        $allusers = new stdClass();
-        $allusers->userlist = [];
-        $udetail = [];
-        $udetail2 = [];
-        $courseid = (int)$params['courseid'];
-        $sql = "SELECT ue.id as enrolid,u.id as id,u.firstname,u.lastname FROM {enrol} e
-                  JOIN {user_enrolments} ue ON e.id = ue.enrolid
-                  JOIN {user} u ON u.id = ue.userid
-                 WHERE e.courseid = :courseid
-                       AND u.id != 1";
-        $users = $DB->get_records_sql($sql, ['courseid' => $courseid]);
-        $udetail2['id'] = 0;
-        $udetail2['name'] = 'All Users';
+
+        $allusers             = new stdClass();
+        $allusers->userlist   = [];
+        $udetail              = [];
+        $udetail2             = [];
+        $courseid             = (int)$params['courseid'];
+        $admin                = get_admin();
+        $users                = get_enrolled_users(context_course::instance($courseid), '', 0, );
+
+        $udetail2['id']       = 0;
+        $udetail2['name']     = get_string('alluser', 'tiny_cursive');
         $allusers->userlist[] = $udetail2;
+
         foreach ($users as $user) {
-            $udetail['id'] = $user->id;
-
-            $udetail['name'] = $user->firstname . ' ' . $user->lastname;
-
+            if ($user->id == $admin->id) {
+                continue;
+            }
+            $udetail['id']        = $user->id;
+            $udetail['name']      = fullname($user);
             $allusers->userlist[] = $udetail;
 
         }
@@ -82,39 +81,38 @@ class tiny_cursive_data {
     }
 
     /**
-     * get_courses_modules
+     * Get list of modules in a course.
      *
-     * @param $params
-     * @return stdClass
+     * @param array $params Parameters containing courseid
+     * @return stdClass Object containing array of course modules
      * @throws \coding_exception
      * @throws \dml_exception
      * @throws \moodle_exception
      */
     public static function get_courses_modules($params) {
-
         global $DB;
-        $allusers = new stdClass();
-        $allusers->userlist = [];
 
-        $udetail = [];
-        $udetail2 = [];
-        $courseid = (int)$params['courseid'];
+        $allusers             = new stdClass();
+        $allusers->userlist   = [];
 
-        $udetail2['id'] = 0;
-        $udetail2['name'] = get_string('allmodule', 'tiny_cursive');
+        $udetail              = [];
+        $udetail2             = [];
+        $courseid             = (int)$params['courseid'];
+
+        $udetail2['id']       = 0;
+        $udetail2['name']     = get_string('allmodule', 'tiny_cursive');
         $allusers->userlist[] = $udetail2;
-        $sql = "SELECT id, instance
-                  FROM {course_modules}
-                 WHERE course = :courseid";
-        $modules = $DB->get_records_sql($sql, ['courseid' => $courseid]);
+        $modules = $DB->get_records('course_modules', ['course' => $courseid], '', 'id, instance');
+
         foreach ($modules as $cm) {
-            $modinfo = get_fast_modinfo($courseid);
-            $cm = $modinfo->get_cm($cm->id);
-            $getmodulename = get_coursemodule_from_id($cm->modname, $cm->id, 0, false, MUST_EXIST);
-            $udetail['id'] = $cm->id;
-            $udetail['name'] = $getmodulename->name;
+            $modinfo              = get_fast_modinfo($courseid);
+            $cm                   = $modinfo->get_cm($cm->id);
+            $getmodulename        = get_coursemodule_from_id($cm->modname, $cm->id, 0, false, MUST_EXIST);
+            $udetail['id']        = $cm->id;
+            $udetail['name']      = $getmodulename->name;
             $allusers->userlist[] = $udetail;
         }
+
         return $allusers;
     }
 }

@@ -17,41 +17,32 @@
 /**
  * Tiny cursive plugin.
  *
- * @package tiny_cursive
- * @copyright  CTI <info@cursivetechnology.com>
- * @author eLearningstack
+ * @package   tiny_cursive
+ * @copyright CTI <info@cursivetechnology.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die;
-require_once($CFG->libdir . '/formslib.php');
+namespace tiny_cursive\forms;
+use moodleform;
 
 /**
- * Tiny cursive plugin.
+ * Form for file upload in Tiny cursive plugin.
  *
- * @package tiny_cursive
- * @copyright  CTI <info@cursivetechnology.com>
- * @author eLearningstack
+ * @package   tiny_cursive
+ * @copyright CTI <info@cursivetechnology.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class filterreportform extends moodleform {
+class file_upload extends moodleform {
+
     /**
-     * Tiny cursive plugin.
+     * Form definition.
      *
-     * @package tiny_cursive
-     * @copyright  CTI <info@cursivetechnology.com>
-     * @author eLearningstack
+     * @return void
      */
     public function definition() {
-        global $DB;
-        $courses = $DB->get_records('course');
-        $options = [];
+        $mform = $this->_form; // Don't forget the underscore!
 
-        foreach ($courses as $course) {
-            $options[$course->id] = $course->fullname;
-        }
-        $mform = &$this->_form;
-        $mform->addElement('select', 'coursename', 'Course', $options);
-        $mform->addRule('coursename', null, 'required', null, 'client');
+        $mform->addElement('hidden', 'draftid', ''); // Add elements to your form.
+        $mform->addRule('draftid', get_string('maximumchars', '', 512), 'maxlength', 255, 'client');
     }
 }

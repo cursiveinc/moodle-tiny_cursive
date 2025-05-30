@@ -20,10 +20,10 @@
  * @author Brain Station 23 <elearning@brainstation-23.com>
  */
 
-define(["core/ajax", "core/templates"], function (AJAX, templates) {
+define(["core/ajax", "core/templates"], function(AJAX, templates) {
   return {
-    init: function (page) {
-      document.getElementById("id_coursename").addEventListener("change", function () {
+    init: function(page) {
+      document.getElementById("id_coursename").addEventListener("change", function() {
         const courseId = this.value;
         const promise1 = AJAX.call([
           {
@@ -34,7 +34,7 @@ define(["core/ajax", "core/templates"], function (AJAX, templates) {
           },
         ]);
 
-        promise1[0].done(function (json) {
+        promise1[0].done(function(json) {
           const data = JSON.parse(json);
           const context = {
             data: data.data,
@@ -42,15 +42,16 @@ define(["core/ajax", "core/templates"], function (AJAX, templates) {
           };
 
           templates.render("tiny_cursive/user_table", context)
-            .then(function (html) {
+            .then(function(html) {
               const filteredUser = document.getElementById("id_username");
               filteredUser.innerHTML = html;
+              return filteredUser;
             })
-            .catch(function (error) {
-              console.error("Error rendering template:", error);
+            .catch(function(error) {
+              window.console.error("Error rendering template:", error);
             });
-        }).fail(function (error) {
-          console.error("AJAX request failed:", error);
+        }).fail(function(error) {
+          window.console.error("AJAX request failed:", error);
         });
       });
     },

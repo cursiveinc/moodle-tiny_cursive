@@ -20,7 +20,7 @@
  * @author Brain Station 23 <elearning@brainstation-23.com>
  */
 
-define(["core/ajax", "core/str", "core/templates", "./replay", "./analytic_button", "./analytic_events"], function (
+define(["core/ajax", "core/str", "core/templates", "./replay", "./analytic_button", "./analytic_events"], function(
     AJAX,
     str,
     templates,
@@ -28,8 +28,8 @@ define(["core/ajax", "core/str", "core/templates", "./replay", "./analytic_butto
     analyticButton,
     AnalyticEvents) {
     const replayInstances = {};
-
-    window.video_playback = function (mid, filepath) {
+    // eslint-disable-next-line camelcase
+    window.video_playback = function(mid, filepath) {
         if (filepath !== '') {
             const replay = new Replay(
                 'content' + mid,
@@ -39,8 +39,7 @@ define(["core/ajax", "core/str", "core/templates", "./replay", "./analytic_butto
                 'player_' + mid
             );
             replayInstances[mid] = replay;
-        }
-        else {
+        } else {
             templates.render('tiny_cursive/no_submission').then(html => {
                 document.getElementById('content' + mid).innerHTML = html;
             }).catch(e => window.console.error(e));
@@ -49,24 +48,24 @@ define(["core/ajax", "core/str", "core/templates", "./replay", "./analytic_butto
     };
 
     var usersTable = {
-        init: function (score_setting, showcomment) {
+        init: function(scoreSetting, showcomment) {
             str
                 .get_strings([
-                    { key: "field_require", component: "tiny_cursive" },
+                    {key: "field_require", component: "tiny_cursive" },
                 ])
-                .done(function () {
-                    usersTable.getToken(score_setting, showcomment);
+                .done(function() {
+                    usersTable.getToken(scoreSetting, showcomment);
                 });
         },
-        getToken: function (score_setting, showcomment) {
+        getToken: function(scoreSetting, showcomment) {
             const articles = document.querySelectorAll('#page-mod-forum-discuss article');
-            articles.forEach(function (entry) {
+            articles.forEach(function(entry) {
                 const replyButton = document.querySelectorAll('a[data-region="post-action"][title="Reply"]');
 
                 if (replyButton.length > 0) {
                     replyButton.forEach(button => {
 
-                        button.addEventListener('click', function (event) {
+                        button.addEventListener('click', function(event) {
                             event.preventDefault();
                             const url = button.getAttribute('href');
                             window.location.href = url;
@@ -77,10 +76,10 @@ define(["core/ajax", "core/str", "core/templates", "./replay", "./analytic_butto
                 const ids = document.getElementById(entry.id).getAttribute('data-post-id');
                 var cmid = M.cfg.contextInstanceId;
 
-                let args = { id: ids, modulename: "forum", cmid: cmid };
+                let args = {id: ids, modulename: "forum", cmid: cmid};
                 let methodname = 'cursive_get_forum_comment_link';
-                let com = AJAX.call([{ methodname, args }]);
-                com[0].done(function (json) {
+                let com = AJAX.call([{methodname, args}]);
+                com[0].done(function(json) {
                     const data = JSON.parse(json);
 
                     let filepath = '';
@@ -91,33 +90,42 @@ define(["core/ajax", "core/str", "core/templates", "./replay", "./analytic_butto
                     if (filepath) {
                         const analyticButtonDiv = document.createElement('div');
                         analyticButtonDiv.append(analyticButton(ids));
-                        analyticButtonDiv.classList.add('text-center', 'mt-2');
+                        analyticButtonDiv.classList.add('text-center', 'my-3');
                         analyticButtonDiv.setAttribute('data-region', "analytic-div" + ids);
 
-                        document.getElementById('post-content-' + ids).append(analyticButtonDiv);
+                        const postContent = document.getElementById('post-content-' + ids);
 
                         if (data.usercomment !== 'comments' && parseInt(showcomment)) {
-                            let comments = "";
-                            data.usercomment.forEach(element => {
-                                comments += '<div class="border-bottom p-3 text-primary" style="font-weight:600;">' + element.usercomment + '</div>';
-                            });
+                            str.get_string('refer', 'tiny_cursive').then(str => {
+                                let comments = "";
+                                data.usercomment.forEach(element => {
+                                    comments += '<div class="border-bottom p-3" style="font-weight:600;color:#0f6cbf">'
+                                        + element.usercomment + '</div>';
+                                });
 
-                            const commentDiv = document.createElement('div');
-                            commentDiv.classList.add('tiny_cursive-quiz-references', 'rounded');
-                            commentDiv.innerHTML = comments;
+                                const heading = document.createElement('h4');
+                                heading.textContent = str;
 
-                            document.getElementById('post-content-' + ids).prepend(commentDiv);
+                                const commentDiv = document.createElement('div');
+                                commentDiv.classList.add('tiny_cursive-quiz-references', 'rounded', 'mb-2');
+                                commentDiv.innerHTML = comments;
+
+                                postContent.prepend(commentDiv);
+                                commentDiv.prepend(heading);
+                            }).catch(e => window.console.error(e));
                         }
+
+                        postContent.append(analyticButtonDiv);
 
                         const myEvents = new AnalyticEvents();
                         const context = {
                             tabledata: data.data,
                             formattime: myEvents.formatedTime(data.data),
-                            page: score_setting,
+                            page: scoreSetting,
                             userid: ids,
                         };
 
-                        const authIcon = myEvents.authorshipStatus(data.data.first_file, data.data.score, score_setting);
+                        const authIcon = myEvents.authorshipStatus(data.data.first_file, data.data.score, scoreSetting);
                         myEvents.createModal(ids, context, '', authIcon);
                         myEvents.analytics(ids, templates, context, '', replayInstances, authIcon);
                         myEvents.checkDiff(ids, data.data.file_id, '', replayInstances);

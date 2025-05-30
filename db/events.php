@@ -51,4 +51,3 @@ $observers = [
         'priority' => 9999,
     ],
 ];
-

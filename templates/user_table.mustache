@@ -1,108 +1,107 @@
 {{!
-  This file is part of Moodle - https://moodle.org/
+This file is part of Moodle - https://moodle.org/
 
-  Moodle is free software: you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation, either version 3 of the License, or
-  (at your option) any later version.
+Moodle is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-  Moodle is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
+Moodle is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
 
-  You should have received a copy of the GNU General Public License
-  along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with Moodle. If not, see
+<http: //www.gnu.org/licenses />.
 }}
 {{!
-  @template tiny_cursive/user_table
+@template tiny_cursive/user_table
 
-  Template purpose and description.
+Template for displaying a table of user data with cursive writing analytics.
 
-  Classes required for JS:
-  * none
-
-  Data attributes required for JS:
-  * none
-
-  Context variables required for this template:
-  * none
+Example context (json):
+{
+}
 }}
 
-<table class="table table-striped table-bordered table-responsive">
+<table class="tiny_cursive_table table-striped table-bordered table-responsive">
   <thead>
     <tr>
-      <td>{{#str}}modulename, tiny_cursive{{/str}}</td>
+      <td>{{#str}}module_name, tiny_cursive{{/str}}</td>
       <td>{{#str}}last_modified, tiny_cursive{{/str}} </td>
       <td>{{#str}}analytics, tiny_cursive{{/str}}</td>
       <td>{{#str}}typeid, tiny_cursive{{/str}}</td>
       <td>{{#str}}download, tiny_cursive{{/str}}</td>
     </tr>
-    </thead>
-    {{#data}}
+  </thead>
+  {{#data}}
 
-    <tr>
-      <td>{{firstname}}</td>
+  <tr>
+    <td>{{firstname}}</td>
 
-      <td>{{timemodified}}</td>
-      <td><a style="display:'block';" data-id="{{attemptid}}" href="#" class="popup_item"><i class="fa fa-area-chart"
-            style="font-size:36px;color:black" aria-hidden="true" style="padding-left:25px; font-size:x-large;"></i></a>
-
-        <div class="modal" id="score{{attemptid}}" role="dialog">
-          <div class="modal-dialog">
-            <!-- Modal content-->
-            <div class="modal-content">
-              <div class="modal-header">
-                <h4 class="modal-title">{{#str}}random_reflex, tiny_cursive{{/str}}</h4>
+    <td>{{timemodified}}</td>
+    <td>
+      <a style="display: block;" data-id="{{attemptid}}" href="#" class="popup_item">
+        <i class="fa fa-area-chart tiny_cursive_chartIcon" aria-hidden="true"></i>
+      </a>
+      <!-- stylelint-disable-next-line -->
+      <div class="modal" id="score{{attemptid}}" role="dialog">
+          <!-- Modal content-->
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title">{{#str}}random_reflex, tiny_cursive{{/str}}</h4>
+            </div>
+            <div class="modal-body">
+              <div class="position">
+                <p>{{#str}}authorship, tiny_cursive {{/str}}</p><span></span>
               </div>
-              <div class="modal-body">
-                <div class="position">
-                  <p>{{#str}}authorship, tiny_cursive {{/str}} 'score' </p><span></span>
-                </div>
-                <div class="position">
-                  <p>{{#str}}copy_behave, tiny_cursive{{/str}}'.''.' </p><span></span>
-                </div>
-
+              <div class="position">
+                <p>{{#str}}copy_behave, tiny_cursive{{/str}}</p><span></span>
               </div>
-              <div class="modal-footer">
-                <button type="button" data-id="{{attemptid}}" class="modal-close btn btn-primary"
-                  data-dismiss="modal">{{#str}}close, tiny_cursive {{/str}} </button>
+
+            </div>
+            <div class="modal-footer">
+              <button type="button" data-id="{{attemptid}}" class="modal-close btn btn-primary"
+                data-dismiss="modal">{{#str}}close, tiny_cursive {{/str}} </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </td>
+    <td><a data-id="t{{attemptid}}" href='#'><i class="{{icon}}" style = "{{color}}"></i></a>
+      <div class="modal" id="t{{attemptid}}" role="dialog">
+        <div class="modal-dialog">
+          <!-- Modal content-->
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title"></h4>
+            </div>
+            <div class="modal-body">
+              <div class="position">
+                <p>{{#str}}time_writing, tiny_cursive {{/str}} ({{total_time_seconds}}/ 60 % 60):( {{total_time_seconds%
+                  60}}) </p><span></span>
+              </div>
+              <div class="position">
+                <p>{{#str}}words_per_minute, tiny_cursive {{/str}}: {{words_per_minute}} </p><span></span>
+              </div>
+              <div class="username">
+                <p> {{#str}}total_words, tiny_cursive {{/str}}: $user->word_count.'</p><span></span>
+              </div>
+              <div class="position">
+                <p>{{#str}}backspace, tiny_cursive {{/str}} %: {{backspace_percent}} </p><span></span>
               </div>
             </div>
-
-          </div>
-        </div>
-      </td>
-      <td><a data-id="t{{attemptid}}" href='#'><i class="{{icon}}" style="{{color}}" ;></i></a>
-        <div class="modal" id="t{{attemptid}}" role="dialog">
-          <div class="modal-dialog">
-            <!-- Modal content-->
-            <div class="modal-content">
-              <div class="modal-header">
-                <h4 class="modal-title"></h4>
-              </div>
-              <div class="modal-body">
-                <div class="position">
-                  <p>{{#str}}time_writing, tiny_cursive {{/str}} ({{total_time_seconds}}/ 60 % 60):( {{total_time_seconds% 60}}) </p><span></span>
-                </div>
-                <div class="position">
-                  <p>Words per minute: {{words_per_minute}} </p><span></span>
-                </div>
-                <div class="username">
-                  <p> {{#str}}total_words, tiny_cursive {{/str}} '.$user->word_count.'</p><span></span>
-                </div>
-                <div class="position">
-                  <p>{{#str}}backspace, tiny_cursive {{/str}} %: {{backspace_percent}} </p><span></span>
-                </div>
-              </div>
-              <div class="modal-footer">
-                <button type="button" class="modal-close btn btn-primary" data-dismiss="modal">{{#str}}close, tiny_cursive {{/str}}</button>
-              </div>
+            <div class="modal-footer">
+              <button type="button" class="modal-close btn btn-primary" data-dismiss="modal">{{#str}}close, tiny_cursive
+                {{/str}}</button>
             </div>
-
           </div>
+
         </div>
-      </td>
-    </tr>
-    {{/data}}
+      </div>
+    </td>
+  </tr>
+  {{/data}}
 </table>

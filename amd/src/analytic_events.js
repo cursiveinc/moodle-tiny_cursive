@@ -14,28 +14,35 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * TODO describe module analytic_events
+ * Module for handling analytics events in the Tiny Cursive plugin.
+ * Provides functionality for displaying analytics data, replaying writing,
+ * checking differences.
  *
  * @module     tiny_cursive/analytic_events
- * @copyright  2024 CTI <your@email.com>
+ * @copyright  2024 CTI <info@cursivetechnology.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-import MyModal from "./analytic_modal";
-import { call as getContent } from "core/ajax";
-import * as Str from 'core/str';
+
+import myModal from "./analytic_modal";
+import {call as getContent} from "core/ajax";
+import {get_string as getString} from 'core/str';
+import {get_strings as getStrings} from 'core/str';
 
 export default class AnalyticEvents {
 
     createModal(userid, context, questionid = '', authIcon) {
         const element = document.getElementById('analytics' + userid + questionid);
         if (element) {
-            element.addEventListener('click', function (e) {
+            element.addEventListener('click', function(e) {
                 e.preventDefault();
 
                 // Create Moodle modal
-                MyModal.create({ templateContext: context }).then(modal => {
-                    const content = document.querySelector('#content' + userid + ' .table tbody tr:first-child td:nth-child(2)');
-                    if (content) content.innerHTML = authIcon.outerHTML;
+                myModal.create({ templateContext: context }).then(modal => {
+                    const content = document.querySelector('#content' + userid +
+                        ' .tiny_cursive_table tbody tr:first-child td:nth-child(2)');
+                    if (content) {
+                        content.innerHTML = authIcon.outerHTML;
+                    }
                     modal.show();
                 }).catch(error => {
                     window.console.error("Failed to create modal:", error);
@@ -45,11 +52,13 @@ export default class AnalyticEvents {
     }
 
     analytics(userid, templates, context, questionid = '', replayInstances = null, authIcon) {
-        document.body.addEventListener('click', function (e) {
+        document.body.addEventListener('click', function(e) {
             if (e.target && e.target.id === 'analytic' + userid + questionid) {
 
                 const repElement = document.getElementById('rep' + userid + questionid);
-                if (repElement.getAttribute('disabled') === 'true') repElement.setAttribute('disabled', 'false');
+                if (repElement.getAttribute('disabled') === 'true') {
+                    repElement.setAttribute('disabled', 'false');
+                }
 
                 e.preventDefault();
 
@@ -71,12 +80,17 @@ export default class AnalyticEvents {
                 document.querySelectorAll('.tiny_cursive-nav-tab .active').forEach(el => el.classList.remove('active'));
                 e.target.classList.add('active');
 
-                templates.render('tiny_cursive/analytics_table', context).then(function (html) {
+                templates.render('tiny_cursive/analytics_table', context).then(function(html) {
                     const content = document.getElementById('content' + userid);
-                    if (content) content.innerHTML = html;
-                    const firstCell = document.querySelector('#content' + userid + ' .table tbody tr:first-child td:nth-child(2)');
-                    if (firstCell) firstCell.innerHTML = authIcon.outerHTML;
-                }).catch(function (error) {
+                    if (content) {
+                        content.innerHTML = html;
+                    }
+                    const firstCell = document.querySelector('#content' + userid +
+                        ' .tiny_cursive_table tbody tr:first-child td:nth-child(2)');
+                    if (firstCell) {
+                        firstCell.innerHTML = authIcon.outerHTML;
+                    }
+                }).catch(function(error) {
                     window.console.error("Failed to render template:", error);
                 });
             }
@@ -85,17 +99,20 @@ export default class AnalyticEvents {
 
     checkDiff(userid, fileid, questionid = '', replayInstances = null) {
         const nodata = document.createElement('p');
-        nodata.className = 'text-center p-5 bg-light rounded m-5 text-primary';
-        nodata.style.verticalAlign = 'middle';
-        nodata.style.textTransform = 'uppercase';
-        nodata.style.fontWeight = '500';
-        nodata.textContent = "no data received yet";
+        nodata.classList.add('tiny_cursive_nopayload', 'bg-light');
 
-        document.body.addEventListener('click', function (e) {
+        getString('nopaylod', 'tiny_cursive').then(str => {
+            nodata.textContent = str;
+            return true;
+        }).catch(error => window.console.log(error));
+
+        document.body.addEventListener('click', function(e) {
             if (e.target && e.target.id === 'diff' + userid + questionid) {
 
                 const repElement = document.getElementById('rep' + userid + questionid);
-                if (repElement.getAttribute('disabled') === 'true') repElement.setAttribute('disabled', 'false');
+                if (repElement.getAttribute('disabled') === 'true') {
+                    repElement.setAttribute('disabled', 'false');
+                }
 
                 e.preventDefault();
 
@@ -119,7 +136,11 @@ export default class AnalyticEvents {
 
                 if (!fileid) {
                     const content = document.getElementById('content' + userid);
-                    if (content) content.innerHTML = nodata.outerHTML;
+                    if (content) {
+                        content.innerHTML = nodata.outerHTML;
+                    }
+
+                    // Throw error when file ID is missing or no diff content, not visible in ui.
                     throw new Error('Missing file id or Difference Content not received yet');
                 }
 
@@ -132,9 +153,9 @@ export default class AnalyticEvents {
                         let submittedText = atob(responsedata.submitted_text);
 
                         // Fetch the dynamic strings
-                        Str.get_strings([
-                            { key: 'original_text', component: 'tiny_cursive' },
-                            { key: 'editspastesai', component: 'tiny_cursive' }
+                        getStrings([
+                            {key: 'original_text', component: 'tiny_cursive'},
+                            {key: 'editspastesai', component: 'tiny_cursive'}
                         ]).done(strings => {
                             const originalTextString = strings[0];
                             const editsPastesAIString = strings[1];
@@ -143,11 +164,17 @@ export default class AnalyticEvents {
                             commentBox.className = 'p-2 border rounded mb-2';
 
                             const pasteCountDiv = document.createElement('div');
-                            pasteCountDiv.innerHTML = `<div><strong>Paste Count :</strong> ${responsedata.commentscount}</div>`;
+                            getString('pastecount', 'tiny_cursive').then(str => {
+                                pasteCountDiv.innerHTML = ('<div><strong>' + str +
+                                    ' :</strong> ' + responsedata.commentscount + '</div>');
+                                return true;
+                            }).catch(error => window.console.log(error));
 
                             const commentsDiv = document.createElement('div');
-                            commentsDiv.className = 'border-bottom';
-                            commentsDiv.innerHTML = '<strong>Comments :</strong>';
+                            getString('comments', 'tiny_cursive').then(str => {
+                                commentsDiv.innerHTML = ('<strong>' + str + '</strong>');
+                                return true;
+                            }).catch(error => window.console.error(error));
 
                             const commentsList = document.createElement('div');
 
@@ -163,7 +190,7 @@ export default class AnalyticEvents {
                             commentBox.appendChild(commentsDiv);
                             commentBox.appendChild(commentsList);
 
-                            
+
                             const legend = document.createElement('div');
                             legend.className = 'd-flex p-2 border rounded mb-2';
 
@@ -196,25 +223,33 @@ export default class AnalyticEvents {
                             let textBlock2 = document.createElement('div');
                             textBlock2.className = 'tiny_cursive-text-block';
                             textBlock2.innerHTML = `<div id="tiny_cursive-reconstructed_text">${JSON.parse(submittedText)}</div>`;
-                            
+
                             contents.appendChild(commentBox);
                             contents.appendChild(legend);
                             contents.appendChild(textBlock2);
 
                             const content = document.getElementById('content' + userid);
-                            if (content) content.innerHTML = contents.outerHTML;
+                            if (content) {
+                                content.innerHTML = contents.outerHTML;
+                            }
                         }).catch(error => {
                             window.console.error("Failed to load language strings:", error);
                             const content = document.getElementById('content' + userid);
-                            if (content) content.innerHTML = nodata.outerHTML;
+                            if (content) {
+                                content.innerHTML = nodata.outerHTML;
+                            }
                         });
                     } else {
                         const content = document.getElementById('content' + userid);
-                        if (content) content.innerHTML = nodata.outerHTML;
+                        if (content) {
+                            content.innerHTML = nodata.outerHTML;
+                        }
                     }
                 }).catch(error => {
                     const content = document.getElementById('content' + userid);
-                    if (content) content.innerHTML = nodata.outerHTML;
+                    if (content) {
+                        content.innerHTML = nodata.outerHTML;
+                    }
                     throw new Error('Error loading JSON file: ' + error.message);
                 });
             }
@@ -222,11 +257,13 @@ export default class AnalyticEvents {
     }
 
     replyWriting(userid, filepath, questionid = '', replayInstances = null) {
-        document.body.addEventListener('click', function (e) {
+        document.body.addEventListener('click', function(e) {
             if (e.target && e.target.id === 'rep' + userid + questionid) {
                 let replyBtn = document.getElementById('rep' + userid + questionid);
 
-                if (replyBtn.getAttribute('disabled') == 'true') return;
+                if (replyBtn.getAttribute('disabled') == 'true') {
+                    return;
+                }
                 replyBtn.setAttribute('disabled', 'true');
 
                 e.preventDefault();
@@ -250,8 +287,10 @@ export default class AnalyticEvents {
                 }
 
                 if (questionid) {
+                     // eslint-disable-next-line
                     video_playback(userid, filepath, questionid);
                 } else {
+                     // eslint-disable-next-line
                     video_playback(userid, filepath);
                 }
             }
@@ -260,28 +299,28 @@ export default class AnalyticEvents {
 
     formatedTime(data) {
         if (data.total_time_seconds) {
-            let total_time_seconds = data.total_time_seconds;
-            let hours = Math.floor(total_time_seconds / 3600).toString().padStart(2, 0);
-            let minutes = Math.floor((total_time_seconds % 3600) / 60).toString().padStart(2, 0);
-            let seconds = (total_time_seconds % 60).toString().padStart(2, 0);
+            let totalTimeSeconds = data.total_time_seconds;
+            let hours = Math.floor(totalTimeSeconds / 3600).toString().padStart(2, 0);
+            let minutes = Math.floor((totalTimeSeconds % 3600) / 60).toString().padStart(2, 0);
+            let seconds = (totalTimeSeconds % 60).toString().padStart(2, 0);
             return `${hours}h ${minutes}m ${seconds}s`;
         } else {
             return "0h 0m 0s";
         }
     }
 
-    authorshipStatus(firstFile, score, score_setting) {
+    authorshipStatus(firstFile, score, scoreSetting) {
         var icon = 'fa fa-circle-o';
         var color = 'font-size:32px;color:black';
-        var score = parseFloat(score);
+        score = parseFloat(score);
 
         if (firstFile) {
             icon = 'fa fa-solid fa-info-circle';
             color = 'font-size:32px;color:#000000';
-        } else if (score >= score_setting) {
+        } else if (score >= scoreSetting) {
             icon = 'fa fa-check-circle';
             color = 'font-size:32px;color:green';
-        } else if (score < score_setting) {
+        } else if (score < scoreSetting) {
             icon = 'fa fa-question-circle';
             color = 'font-size:32px;color:#A9A9A9';
         }

@@ -23,8 +23,8 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die;
-require_once($CFG->libdir . '/formslib.php');
+namespace tiny_cursive\forms;
+use moodleform;
 
 /**
  * Tiny cursive plugin.
@@ -34,9 +34,9 @@ require_once($CFG->libdir . '/formslib.php');
  * @author eLearningstack
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class wrreportform extends moodleform {
+class wrreport_form extends moodleform {
     /**
-     * Tiny cursive plugin report form.
+     * Defines the form elements for the cursive plugin report.
      */
     public function definition() {
         // Start dropdowns of course, quiz and user email search field in mform.
@@ -47,10 +47,10 @@ class wrreportform extends moodleform {
         $mform->addElement('course', 'coursename', get_string('coursename', 'tiny_cursive'), $options);
         $mform->addRule('coursename', null, 'required', null, 'client');
         $options = [
-            'id' => 'ID',
-            'name' => 'Name',
-            'email' => 'Email',
-            'date' => 'Date',
+            'id'    => get_string('uid', 'tiny_cursive'),
+            'name'  => get_string('name', "tiny_cursive"),
+            'email' => get_string('email', 'tiny_cursive'),
+            'date'  => get_string('date', 'tiny_cursive'),
         ];
         $mform->addElement('select', 'orderby', get_string('orderby', 'tiny_cursive'), $options, $attributes);
         $mform->setType('orderby', PARAM_TEXT);
@@ -60,7 +60,7 @@ class wrreportform extends moodleform {
     /**
      * Tiny cursive plugin user report form data.
      *
-     * @return object
+     * @return object|null Form data object or null if no data submitted
      */
     public function get_data() {
         $data = parent::get_data();
@@ -81,10 +81,10 @@ class wrreportform extends moodleform {
     }
 
     /**
-     * Tiny cursive plugin get all modules.
+     * Get all modules for a given course.
      *
-     * @param integer $courseid
-     * @return array
+     * @param int $courseid The ID of the course to get modules for
+     * @return array Array of module details with module ID as key and name as value
      */
     public function get_modules($courseid) {
         // Get users dropdown.
@@ -92,10 +92,7 @@ class wrreportform extends moodleform {
         $mdetail = [];
         $mdetail[0] = get_string('allmodule', 'tiny_cursive');
         if ($courseid) {
-            $sql = "SELECT id, instance
-                      FROM {course_modules}
-                     WHERE course = :courseid ";
-            $modules = $DB->get_records_sql($sql, ['courseid' => $courseid]);
+            $modules = $DB->get_records('course_modules', ['course' => $courseid], '', 'id, instance');
             foreach ($modules as $cm) {
                 $modinfo = get_fast_modinfo($courseid);
                 $cm = $modinfo->get_cm($cm->id);
