@@ -27,7 +27,7 @@ define([
     "./replay",
     './analytic_button',
     './analytic_events',
-    'core/str'], function (
+    'core/str'], function(
         AJAX,
         str,
         templates,
@@ -37,8 +37,8 @@ define([
         Str
     ) {
     const replayInstances = {};
-
-    window.video_playback = function (mid, filepath) {
+    // eslint-disable-next-line camelcase
+    window.video_playback = function(mid, filepath) {
         if (filepath !== '') {
             const replay = new Replay(
                 'content' + mid,
@@ -57,18 +57,19 @@ define([
     };
 
     var usersTable = {
-        init: function (score_setting, showcomment) {
+        init: function(scoreSetting, showcomment) {
             str
                 .get_strings([
                     { key: "confidence_threshold", component: "tiny_cursive" },
-                ]).done(function () {
-                    usersTable.appendTable(score_setting, showcomment);
+                ]).done(function() {
+                    usersTable.appendTable(scoreSetting, showcomment);
                 });
         },
-        appendTable: function (score_setting) {
+        appendTable: function(scoreSetting) {
             let sub_url = window.location.href;
             let parm = new URL(sub_url);
             let h_tr = document.querySelector('thead tr');
+
             Str.get_string('analytics', 'tiny_cursive')
                 .then(analyticString => {
                     let th = document.createElement('th');
@@ -78,7 +79,7 @@ define([
                         '<i class="icon fa fa-minus fa-fw " aria-hidden="true"></i></div>';
                     h_tr.children[3].insertAdjacentElement('afterend', th);
 
-                    document.querySelectorAll('tbody tr').forEach(function (tr) {
+                    document.querySelectorAll('tbody tr').forEach(function(tr) {
                         let td_user = tr.querySelector("td");
                         let userid = td_user.querySelector("input[type='checkbox']").value;
                         let cmid = parm.searchParams.get('id');
@@ -88,12 +89,12 @@ define([
                         tableCell.appendChild(analyticButton(userid));
                         tr.children[3].insertAdjacentElement('afterend', tableCell);
 
-                        let args = { id: userid, modulename: "assign", cmid: cmid };
+                        let args = {id: userid, modulename: "assign", cmid: cmid};
                         let methodname = 'cursive_user_list_submission_stats';
-                        let com = AJAX.call([{ methodname, args }]);
+                        let com = AJAX.call([{methodname, args}]);
 
                         try {
-                            com[0].done(function (json) {
+                            com[0].done(function(json) {
                                 var data = JSON.parse(json);
                                 var filepath = '';
                                 if (data.res.filename) {
@@ -109,21 +110,28 @@ define([
                                     tabledata: data.res,
                                     formattime: myEvents.formatedTime(data.res),
                                     moduletitle: textContent,
-                                    page: score_setting,
+                                    page: scoreSetting,
                                     userid: userid,
                                 };
 
-                                let authIcon = myEvents.authorshipStatus(data.res.first_file, data.res.score, score_setting);
+                                let authIcon = myEvents.authorshipStatus(data.res.first_file, data.res.score, scoreSetting);
                                 myEvents.createModal(userid, context, '', authIcon);
                                 myEvents.analytics(userid, templates, context, '', replayInstances, authIcon);
                                 myEvents.checkDiff(userid, data.res.file_id, '', replayInstances);
                                 myEvents.replyWriting(userid, filepath, '', replayInstances);
+
+                            }).fail(function(error) {
+                                window.console.error('AJAX request failed:', error);
                             });
                         } catch (error) {
-                            window.console.error(error);
+                            window.console.error('Error processing data:', error);
                         }
                         return com.usercomment;
                     });
+                    return true;
+                })
+                .catch(error => {
+                    window.console.error('Failed to get analytics string:', error);
                 });
         }
     };

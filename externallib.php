@@ -24,10 +24,13 @@
  */
 
 use tiny_cursive\tiny_cursive_data;
+use core_external\external_api;
+use core_external\external_function_parameters;
+use core_external\external_single_structure;
+use core_external\external_value;
 
 defined('MOODLE_INTERNAL') || die;
 
-require_once("$CFG->libdir/externallib.php");
 require_once($CFG->dirroot . '/mod/quiz/locallib.php');
 require_once(__DIR__ . '/locallib.php');
 
@@ -40,7 +43,6 @@ require_once(__DIR__ . '/locallib.php');
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class cursive_json_func_data extends external_api {
-
     /**
      * get_user_list_parameters.
      *
@@ -51,24 +53,23 @@ class cursive_json_func_data extends external_api {
             [
                 'page' => new external_value(PARAM_INT, '', VALUE_DEFAULT, null),
                 'courseid' => new external_value(PARAM_INT, 'Course id', VALUE_DEFAULT, null),
-            ]
+            ],
         );
     }
 
     /**
-     * get_user_list
+     * Get list of users
      *
-     * @param $page
-     * @param $courseid
-     * @return false|string
+     * @param int|null $page Page number
+     * @param int|null $courseid ID of the course
+     * @return false|string JSON encoded list of users or false on failure
      * @throws coding_exception
      * @throws invalid_parameter_exception
      * @throws moodle_exception
-     * @throws require_login_exception
      */
     public static function get_user_list($page, $courseid) {
 
-        global $CFG, $DB;
+        global $DB;
 
         // Validate parameters.
         $params = self::validate_parameters(
@@ -76,7 +77,7 @@ class cursive_json_func_data extends external_api {
             [
                 'page' => $page,
                 'courseid' => $courseid,
-            ]
+            ],
         );
 
         // Get course context.
@@ -111,25 +112,23 @@ class cursive_json_func_data extends external_api {
             [
                 'page' => new external_value(PARAM_INT, 'pagenumber', VALUE_DEFAULT, null),
                 'courseid' => new external_value(PARAM_INT, 'Course id', VALUE_DEFAULT, null),
-            ]
+            ],
         );
     }
 
     /**
-     * get_module_list
+     * Get list of modules in a course
      *
-     * @param $page
-     * @param $courseid
-     * @return false|string
+     * @param int|null $page Page number
+     * @param int|null $courseid ID of the course
+     * @return false|string JSON encoded list of modules or false on failure
      * @throws coding_exception
      * @throws invalid_parameter_exception
      * @throws moodle_exception
-     * @throws require_login_exception
      */
     public static function get_module_list($page, $courseid) {
 
         global $CFG, $DB;
-
         require_once($CFG->libdir . '/accesslib.php');
 
         // Validate parameters.
@@ -138,7 +137,7 @@ class cursive_json_func_data extends external_api {
             [
                 'page' => $page,
                 'courseid' => $courseid,
-            ]
+            ],
         );
 
         // Get course context.
@@ -154,270 +153,21 @@ class cursive_json_func_data extends external_api {
     }
 
 
-    /**
-     * get_module_list_returns
-     *
-     * @return external_value
-     */
+
+     /**
+      * Returns description of get_module_list() result value
+      *
+      * @return external_value The return value definition for module list response
+      */
     public static function get_module_list_returns() {
         return new external_value(PARAM_TEXT, 'All quizzes');
     }
 
-
-    /**
-     * cursive_json_func_parameters
-     *
-     * @return external_function_parameters
-     */
-    public static function cursive_json_func_parameters() {
-        return new external_function_parameters(
-            [
-                'resourceId' => new external_value(PARAM_INT, 'resourceid', VALUE_DEFAULT, 0),
-                'key' => new external_value(PARAM_TEXT, 'key detail', VALUE_DEFAULT, null),
-                'keyCode' => new external_value(PARAM_INT, 'key code ', VALUE_DEFAULT, null),
-                'event' => new external_value(PARAM_TEXT, 'event', VALUE_DEFAULT, null),
-                'cmid' => new external_value(PARAM_INT, 'cmid', VALUE_DEFAULT, 0),
-                'modulename' => new external_value(PARAM_TEXT, 'modulename', VALUE_DEFAULT, ''),
-                'editorid' => new external_value(PARAM_TEXT, 'editorid', VALUE_DEFAULT, ''),
-            ]
-        );
-    }
-
-
-    /**
-     * cursive_json_func
-     *
-     * @param $resourceid
-     * @param $key
-     * @param $keycode
-     * @param $event
-     * @param $cmid
-     * @param $modulename
-     * @param $editorid
-     * @return string
-     * @throws coding_exception
-     * @throws dml_exception
-     * @throws file_exception
-     * @throws invalid_parameter_exception
-     * @throws moodle_exception
-     * @throws require_login_exception
-     * @throws stored_file_creation_exception
-     */
-    public static function cursive_json_func(
-        $resourceid = 0,
-        $key = null,
-        $keycode = null,
-        $event = 'keyUp',
-        $cmid = 0,
-        $modulename = 'quiz',
-        $editorid = null
-    ) {
-
-        global $USER, $DB, $CFG;
-
-        $params = self::validate_parameters(
-            self::cursive_json_func_parameters(),
-            [
-                'resourceId' => $resourceid,
-                'key' => $key,
-                'keyCode' => $keycode,
-                'event' => $event,
-                'cmid' => $cmid,
-                'modulename' => $modulename,
-                'editorid' => $editorid,
-            ]
-        );
-
-        if ($params['resourceId'] == 0 && $params['modulename'] !== 'forum') {
-            $params['resourceId'] = $params['cmid'];
-            // For Quiz and Assignment there is no resourceid that's why cmid is resourceid.
-        }
-
-        $courseid = 0;
-
-        $userdata = [
-            'resourceId' => $params['resourceId'],
-            'key' => $params['key'],
-            'keyCode' => $params['keyCode'],
-            'event' => $params['event'],
-        ];
-        if ($params['cmid']) {
-            $cm = $DB->get_record('course_modules', ['id' => $params['cmid']]);
-            $courseid = $cm->course;
-            $userdata["courseId"] = $courseid;
-
-            // Get course context.
-            $context = context_module::instance($params['cmid']);
-            self::validate_context($context);
-            require_capability('tiny/cursive:write', $context);
-
-        } else {
-            $userdata["courseId"] = 0;
-        }
-
-        $timearr = explode('.', microtime("now") * 1000);
-        $timestampinmilliseconds = $timearr[0];
-        $userdata['unixTimestamp'] = $timestampinmilliseconds;
-        $userdata["clientId"] = $CFG->wwwroot;
-        $userdata["personId"] = $USER->id;
-        $questionid = '';
-        $editoridarr = explode(':', $params['editorid']);
-        $questionid = '';
-        if (count($editoridarr) > 1) {
-            $uniqueid = substr($editoridarr[0] . "\n", 1);
-            $slot = substr($editoridarr[1] . "\n", 0, -11);
-            $quba = question_engine::load_questions_usage_by_activity($uniqueid);
-            $question = $quba->get_question($slot, false);
-            $questionid = $question->id;
-        }
-        $dirname = make_temp_directory('userdata');
-
-        $fname = $USER->id . '_' . $params['resourceId'] . '_' . $params['cmid'] . '_attempt' . '.json';
-        if ($questionid) {
-            $fname = $USER->id . '_' . $params['resourceId'] . '_' . $params['cmid'] . '_' . $questionid . '_attempt' . '.json';
-        }
-        // File path.
-        $filename = $dirname . '/' . $fname;
-
-        $table = 'tiny_cursive_files';
-        $inp = file_get_contents($filename);
-
-        $temparray = null;
-        if ($inp && $DB->record_exists($table, ['cmid' => $params['cmid'],
-        'modulename' => $params['modulename'], 'userid' => $USER->id])) {
-
-            $temparray = json_decode($inp, true);
-            array_push($temparray, $userdata);
-            $filerec = $DB->get_record($table, [
-                'cmid' => $params['cmid'],
-                'modulename' => $params['modulename'],
-                'userid' => $USER->id,
-            ]);
-            if ($questionid) {
-                $filerec = $DB->get_record($table, [
-                    'cmid' => $params['cmid'],
-                    'modulename' => $params['modulename'],
-                    'userid' => $USER->id,
-                    'questionid' => $questionid,
-                ]);
-            }
-            $filerec->uploaded = 0;
-            $DB->update_record($table, $filerec);
-        } else {
-
-            $temparray[] = $userdata;
-            $dataobj = new stdClass();
-            $dataobj->userid = $USER->id;
-            $dataobj->resourceid = $params['resourceId'];
-            $dataobj->cmid = $params['cmid'];
-            $dataobj->modulename = $params['modulename'];
-            $dataobj->courseid = $courseid;
-            $dataobj->timemodified = time();
-            $dataobj->filename = $fname;
-            $dataobj->questionid = $questionid ?? 0;
-            $dataobj->uploaded = 0;
-            $DB->insert_record($table, $dataobj);
-        }
-
-        $jsondata = json_encode($temparray);
-
-        if (is_array($temparray)) {
-            file_put_contents($filename, $jsondata);
-        }
-
-        return $filename;
-    }
-
-    /**
-     * cursive_json_func_returns
-     *
-     * @return external_value
-     */
-    public static function cursive_json_func_returns() {
-        return new external_value(PARAM_TEXT, 'result');
-    }
-
-
-    /**
-     * cursive_reports_func_parameters
-     *
-     * @return external_function_parameters
-     */
-    public static function cursive_reports_func_parameters() {
-        return new external_function_parameters(
-            [
-                'coursename' => new external_value(PARAM_INT, 'Course Name', VALUE_DEFAULT, null),
-                'quizname' => new external_value(PARAM_TEXT, 'quizname detail', VALUE_DEFAULT, null),
-                'username' => new external_value(PARAM_TEXT, 'username detail ', VALUE_DEFAULT, null),
-            ]
-        );
-    }
-
-    /**
-     * cursive_reports_func
-     *
-     * @param $coursename
-     * @param $quizname
-     * @param $username
-     * @return string
-     * @throws coding_exception
-     * @throws invalid_parameter_exception
-     * @throws moodle_exception
-     * @throws require_login_exception
-     */
-    public static function cursive_reports_func(
-        $courseid = 0,
-        $quizname = null,
-        $username = 'keyUp'
-    ) {
-
-        global $DB, $CFG;
-        require_once($CFG->libdir . '/accesslib.php');
-        // Include accesslib.php for capability checks.
-        $params = self::validate_parameters(
-            self::cursive_reports_func_parameters(),
-            [
-                'courseid' => $courseid,
-                'quizname' => $quizname,
-                'username' => $username,
-            ]
-        );
-
-        // Ensure the user has the capability to view the cursive reports.
-        if ($params['courseid']) {
-            $course = $DB->get_record('course', [
-                'id' => $params['courseid'],
-            ], '*', MUST_EXIST);
-            $cm = $DB->get_record('course_modules', ['course' => $params['courseid']]);
-            $context = context_module::instance($cm->id);
-            self::validate_context($context);
-            require_capability("tiny/cursive:write", $context);
-
-        }
-
-        // You can add additional logic here if needed.
-
-        return "cursive reports";
-    }
-
-
-
-    /**
-     * cursive_reports_func_returns
-     *
-     * @return external_value
-     */
-    public static function cursive_reports_func_returns() {
-        return new external_value(PARAM_TEXT, 'result');
-    }
-
-    // User comments store.
-
-    /**
-     * cursive_user_comments_func_parameters
-     *
-     * @return external_function_parameters
-     */
+     /**
+      * Returns the parameters definition for cursive_user_comments_func
+      *
+      * @return external_function_parameters Parameters definition for storing user comments
+      */
     public static function cursive_user_comments_func_parameters() {
         return new external_function_parameters(
             [
@@ -428,24 +178,23 @@ class cursive_json_func_data extends external_api {
                 'usercomment' => new external_value(PARAM_TEXT, 'usercomment', VALUE_DEFAULT, null),
                 'timemodified' => new external_value(PARAM_INT, 'timemodified', VALUE_DEFAULT, 0),
                 'editorid' => new external_value(PARAM_TEXT, 'editorid', VALUE_DEFAULT, ''),
-            ]
+            ],
         );
     }
 
     /**
-     * cursive_user_comments_func
+     * Store user comments for cursive writing
      *
-     * @param $modulename
-     * @param $cmid
-     * @param $resourceid
-     * @param $courseid
-     * @param $usercomment
-     * @param $timemodified
-     * @param $editorid
-     * @return bool
-     * @throws coding_exception
-     * @throws moodle_exception
-     * @throws require_login_exception
+     * @param string $modulename The name of the module
+     * @param int $cmid Course module ID
+     * @param int $resourceid Resource ID
+     * @param int $courseid Course ID
+     * @param string $usercomment The user's comment text
+     * @param int $timemodified Time when comment was modified
+     * @param string $editorid Editor instance ID
+     * @return bool True if comment saved successfully, false otherwise
+     * @throws coding_exception If parameters are invalid
+     * @throws moodle_exception If user lacks required capabilities
      */
     public static function cursive_user_comments_func(
         $modulename,
@@ -454,7 +203,7 @@ class cursive_json_func_data extends external_api {
         $courseid,
         $usercomment,
         $timemodified,
-        $editorid
+        $editorid,
     ) {
         global $DB, $USER, $CFG;
 
@@ -468,7 +217,7 @@ class cursive_json_func_data extends external_api {
                 'usercomment' => $usercomment,
                 'timemodified' => $timemodified,
                 'editorid' => $editorid,
-            ]
+            ],
         );
         require_once($CFG->libdir . '/accesslib.php');
         // Capability check.
@@ -498,16 +247,16 @@ class cursive_json_func_data extends external_api {
         try {
             $DB->insert_record('tiny_cursive_comments', $dataobject);
             return true;
-        } catch (Exception $e) {
-            echo $e;
+        } catch (moodle_exception $e) {
+            debugging($e->getMessage());
             return false;
         }
     }
 
     /**
-     * cursive_user_comments_func_returns
+     * Returns the expected return value for the user comments function
      *
-     * @return external_value
+     * @return external_value The return value definition for user comments response
      */
     public static function cursive_user_comments_func_returns() {
         return new external_value(PARAM_BOOL, 'All User Comments');
@@ -523,28 +272,28 @@ class cursive_json_func_data extends external_api {
         return new external_function_parameters(
             [
                 'token' => new external_value(PARAM_TEXT, 'usertoken', VALUE_DEFAULT, ''),
-            ]
+            ],
         );
     }
 
     /**
-     * cursive_approve_token_func
+     * Verifies and approves a token by sending it to a remote server for validation
      *
-     * @param $token
-     * @return bool|string
-     * @throws coding_exception
-     * @throws dml_exception
-     * @throws moodle_exception
-     * @throws require_login_exception
+     * @param string $token The token to verify and approve
+     * @return bool|string Returns the server response if successful, false on failure
+     * @throws coding_exception If parameters are invalid
+     * @throws dml_exception If there is a database error
+     * @throws moodle_exception If token verification fails or there are other errors
      */
     public static function cursive_approve_token_func($token) {
         global $CFG;
         require_once("$CFG->libdir/filelib.php");
+        require_once($CFG->dirroot . '/lib/editor/tiny/plugins/cursive/lib.php');
         $params = self::validate_parameters(
             self::cursive_approve_token_func_parameters(),
             [
                 'token' => $token,
-            ]
+            ],
         );
         // Check if the user has the required capability.
         $context = context_system::instance(); // Assuming a system-wide capability check.
@@ -554,62 +303,25 @@ class cursive_json_func_data extends external_api {
         $remoteurl = get_config('tiny_cursive', 'python_server') . '/verify-token';
         $moodleurl = $CFG->wwwroot;
 
-        try {
-            // Use Moodle's cURL library.
-            $curl = new curl();
-            $options = [
-                'CURLOPT_RETURNTRANSFER' => true,
-                'CURLOPT_HTTPHEADER' => [
-                    'Authorization: Bearer ' . $params['token'],
-                    'X-Moodle-Url: ' . $moodleurl,
-                    'Content-Type: multipart/form-data',
-                    'Accept: application/json',
-                ],
-            ];
-
-            // Prepare POST fields.
-            $postfields = [
-                'token' => $params['token'],
-                'moodle_url' => $moodleurl,
-            ];
-
-            // Execute the request.
-            $result = $curl->post($remoteurl, $postfields, $options);
-
-            // Check for cURL errors.
-            if ($result === false) {
-                throw new moodle_exception('curlerror', 'tiny_cursive', '', null, $curl->error);
-            }
-        } catch (Exception $e) {
-            // Log the exception.
-            debugging("Error in cursive_approve_token_func: " . $e->getMessage());
-
-            // Return a Moodle exception.
-            throw new moodle_exception('errorverifyingtoken', 'tiny_cursive', '', null, $e->getMessage());
-        }
+        $result = cursive_approve_token($params['token'], $moodleurl, $remoteurl);
 
         return $result;
     }
 
 
     /**
-     * cursive_approve_token_func_returns
+     * Returns the expected return value for the token approval function
      *
-     * @return external_value
+     * @return external_value The return value definition for token approval response
      */
     public static function cursive_approve_token_func_returns() {
         return new external_value(PARAM_TEXT, 'Token Approved');
     }
 
-
-
-    // Service for assignment comment list.
-
-
     /**
-     * get_comment_link_parameters
+     * Returns the parameters definition for get_comment_link function
      *
-     * @return external_function_parameters
+     * @return external_function_parameters Parameters definition for get_comment_link
      */
     public static function get_comment_link_parameters() {
         return new external_function_parameters(
@@ -619,30 +331,28 @@ class cursive_json_func_data extends external_api {
                 'cmid' => new external_value(PARAM_INT, 'cmid', VALUE_DEFAULT, null),
                 'questionid' => new external_value(PARAM_INT, 'questionid', VALUE_DEFAULT, null),
                 'userid' => new external_value(PARAM_INT, 'userid', VALUE_DEFAULT, null),
-            ]
+            ],
         );
     }
 
     /**
-     * get_comment_link
+     * Retrieves comment links and associated data for a given resource
      *
-     * @param $id
-     * @param $modulename
-     * @param $cmid
-     * @param $questionid
-     * @param $userid
-     * @return false|string
-     * @throws coding_exception
-     * @throws dml_exception
-     * @throws invalid_parameter_exception
-     * @throws moodle_exception
-     * @throws require_login_exception
+     * @param int $id The resource ID
+     * @param string $modulename The name of the module (e.g. 'quiz')
+     * @param int $cmid The course module ID
+     * @param int $questionid The question ID
+     * @param int $userid The user ID
+     * @return string JSON encoded array containing comment data and user writing metrics
+     * @throws coding_exception If parameters are invalid
+     * @throws dml_exception If there is a database error
+     * @throws invalid_parameter_exception If parameters fail validation
+     * @throws moodle_exception If capability check fails
      */
-    public static function get_comment_link($id, $modulename, $cmid , $questionid , $userid ) {
+    public static function get_comment_link($id, $modulename, $cmid, $questionid, $userid) {
         global $DB, $CFG;
         require_once($CFG->dirroot . '/lib/accesslib.php');
         require_once($CFG->dirroot . '/question/lib.php');
-
         $params = self::validate_parameters(
             self::get_comment_link_parameters(),
             [
@@ -651,7 +361,7 @@ class cursive_json_func_data extends external_api {
                 'cmid' => $cmid,
                 'questionid' => $questionid,
                 'userid' => $userid,
-            ]
+            ],
         );
 
         $context = context_module::instance($params['cmid']);
@@ -680,7 +390,7 @@ class cursive_json_func_data extends external_api {
                     'modulename' => $params['modulename'],
                     'questionid' => $params['questionid'],
                     "userid" => $params['userid'],
-                ]
+                ],
             );
 
             $data['filename'] = $filename->filename;
@@ -738,7 +448,7 @@ class cursive_json_func_data extends external_api {
 
             $attempts = "SELECT  uw.total_time_seconds ,uw.word_count ,uw.words_per_minute,
                                  uw.backspace_percent,uw.score,uw.copy_behavior,uf.resourceid,
-                                 uf.modulename,uf.userid, uf.filename
+                                 uf.modulename,uf.userid, uf.filename,
                            FROM {tiny_cursive_user_writing} uw
                            JOIN {tiny_cursive_files} uf ON uw.file_id = uf.id
                           WHERE uf.resourceid = :id
@@ -751,16 +461,11 @@ class cursive_json_func_data extends external_api {
             ]);
 
             if (!isset($data->filename)) {
-                $sql = 'SELECT filename from {tiny_cursive_files}
-                         WHERE resourceid = :resourceid
-                                AND cmid = :cmid
-                                AND modulename = :modulename';
-                $filename = $DB->get_record_sql($sql, [
-                    'resourceid' => $params['id'],
-                    'cmid' => $params['cmid'],
-                    'modulename' => $params['modulename'],
-                ]);
-
+                $conditions = [
+                            'resourceid' => $params['id'],
+                            'cmid'       => $params['cmid'],
+                            'modulename' => $params['modulename']];
+                $filename = $DB->get_record('tiny_cursive_files', $conditions, 'filename');
                 $data['filename'] = $filename->filename;
 
             }
@@ -799,22 +504,21 @@ class cursive_json_func_data extends external_api {
                 'id' => new external_value(PARAM_INT, 'id', VALUE_DEFAULT, null),
                 'modulename' => new external_value(PARAM_TEXT, 'modulename', VALUE_DEFAULT, ''),
                 'cmid' => new external_value(PARAM_INT, 'cmid', VALUE_DEFAULT, 0),
-            ]
+            ],
         );
     }
 
 
     /**
-     * get_forum_comment_link
+     * Get forum comment link data
      *
-     * @param $id
-     * @param $modulename
-     * @param $cmid
-     * @return string
+     * @param int $id The resource ID
+     * @param string $modulename The name of the module
+     * @param int|null $cmid The course module ID
+     * @return string JSON encoded comment and data
      * @throws coding_exception
      * @throws invalid_parameter_exception
      * @throws moodle_exception
-     * @throws require_login_exception
      */
     public static function get_forum_comment_link($id, $modulename, $cmid = null) {
         global $DB, $CFG;
@@ -827,16 +531,15 @@ class cursive_json_func_data extends external_api {
                 'id' => (int) $id,
                 'modulename' => $modulename,
                 'cmid' => (int) $cmid,
-            ]
+            ],
         );
 
         $context = context_module::instance($params['cmid']);
         self::validate_context($context);
         require_capability('tiny/cursive:view', $context);
-        
+
         $conditions = ["resourceid" => $params['id'], 'modulename' => "forum"];
-        $table = 'tiny_cursive_comments';
-        $recs = $DB->get_records($table, $conditions);
+        $recs = $DB->get_records('tiny_cursive_comments', $conditions);
 
         $attempts = "SELECT uw.total_time_seconds, uw.word_count, uw.words_per_minute,
                             uw.backspace_percent, uw.score, uw.copy_behavior, uf.resourceid,
@@ -849,8 +552,11 @@ class cursive_json_func_data extends external_api {
                            AND uf.cmid = :cmid
                            AND uf.modulename = :modulename";
 
-        $data = $DB->get_record_sql($attempts, ['id' => $params['id'], 'cmid' => $params['cmid'],
-                                    'modulename' => $params['modulename']]);
+        $data =
+            $DB->get_record_sql(
+                $attempts,
+                ['id' => $params['id'], 'cmid' => $params['cmid'], 'modulename' => $params['modulename']],
+            );
         if (isset($data->effort_ratio)) {
             $data->effort_ratio = intval(floatval($data->effort_ratio) * 100);
         }
@@ -858,14 +564,14 @@ class cursive_json_func_data extends external_api {
         $data['first_file'] = 0;
 
         if (!isset($data['filename'])) {
-            $sql = 'SELECT id as file_id, filename, userid, content
+            $sql = 'SELECT id as file_id, filename,userid, content
                       FROM {tiny_cursive_files}
                      WHERE resourceid = :resourceid
                             AND cmid = :cmid
                             AND modulename = :modulename';
             $filename = $DB->get_record_sql(
                 $sql,
-                ['resourceid' => $params['id'], 'cmid' => $params['cmid'], 'modulename' => $params['modulename']]
+                ['resourceid' => $params['id'], 'cmid' => $params['cmid'], 'modulename' => $params['modulename']],
             );
 
             $data['filename'] = $filename->filename;
@@ -902,18 +608,18 @@ class cursive_json_func_data extends external_api {
     }
 
     /**
-     * get_forum_comment_link_returns
+     * Returns description of get_forum_comment_link() result value
      *
-     * @return external_value
+     * @return external_value The return value definition for forum comment link response
      */
     public static function get_forum_comment_link_returns() {
         return new external_value(PARAM_TEXT, 'Comment Link');
     }
 
     /**
-     * get_quiz_comment_link_parameters
+     * Returns description of get_quiz_comment_link() parameters
      *
-     * @return external_function_parameters
+     * @return external_function_parameters Parameters definition for quiz comment link
      */
     public static function get_quiz_comment_link_parameters() {
         return new external_function_parameters(
@@ -922,34 +628,32 @@ class cursive_json_func_data extends external_api {
                 'modulename' => new external_value(PARAM_TEXT, 'modulename', VALUE_DEFAULT, ''),
                 'cmid' => new external_value(PARAM_INT, 'cmid', VALUE_DEFAULT, null),
                 'questionid' => new external_value(PARAM_INT, 'questionid', VALUE_DEFAULT, null),
-            ]
+            ],
         );
     }
 
     /**
-     * get_quiz_comment_link
+     * Get quiz comment link data including user comments and writing analytics
      *
-     * @param $id
-     * @param $modulename
-     * @param $cmid
-     * @param $questionid
-     * @return false|string
+     * @param int $id The resource ID
+     * @param string $modulename The module name (e.g. 'quiz')
+     * @param int|null $cmid The course module ID
+     * @param int|null $questionid The question ID for quiz questions
+     * @return string JSON encoded array containing user comments and analytics data
      * @throws coding_exception
      * @throws dml_exception
      * @throws invalid_parameter_exception
      * @throws moodle_exception
-     * @throws require_login_exception
      */
     public static function get_quiz_comment_link(
         $id,
         $modulename,
         $cmid = null,
-        $questionid = null
+        $questionid = null,
     ) {
         global $DB, $CFG;
         require_once($CFG->dirroot . '/lib/accesslib.php');
         require_once($CFG->dirroot . '/question/lib.php');
-
         $params = self::validate_parameters(
             self::get_comment_link_parameters(),
             [
@@ -957,7 +661,7 @@ class cursive_json_func_data extends external_api {
                 'modulename' => $modulename,
                 'cmid' => $cmid,
                 'questionid' => $questionid,
-            ]
+            ],
         );
 
         $context = context_module::instance($params['cmid']);
@@ -976,10 +680,10 @@ class cursive_json_func_data extends external_api {
                            JOIN {tiny_cursive_files} uf ON uw.file_id =uf.id
                           WHERE uf.resourceid = :id
                                 AND uf.cmid = :cmid
-                                AND uf.modulenam e= :modulename";
+                                AND uf.modulename = :modulename";
             $data = $DB->get_record_sql(
                 $attempts,
-                ['id' => $params['id'], 'cmid' => $params['cmid'], 'modulename' => $params['modulename']]
+                ['id' => $params['id'], 'cmid' => $params['cmid'], 'modulename' => $params['modulename']],
             );
 
             if (!isset($data->filename)) {
@@ -990,7 +694,7 @@ class cursive_json_func_data extends external_api {
                                AND modulename = :modulename';
                 $filename = $DB->get_record_sql(
                     $sql,
-                    ['resourceid' => $params['id'], 'cmid' => $params['cmid'], 'modulename' => $params['modulename']]
+                    ['resourceid' => $params['id'], 'cmid' => $params['cmid'], 'modulename' => $params['modulename']],
                 );
 
                 $data['filename'] = $filename->filename;
@@ -1011,7 +715,7 @@ class cursive_json_func_data extends external_api {
                                 AND uf.modulename = :modulename ";
             $data = $DB->get_record_sql(
                 $attempts,
-                ['id' => $params['id'], 'cmid' => $params['cmid'], 'modulename' => $params['modulename']]
+                ['id' => $params['id'], 'cmid' => $params['cmid'], 'modulename' => $params['modulename']],
             );
 
             if (!isset($data->filename)) {
@@ -1022,7 +726,7 @@ class cursive_json_func_data extends external_api {
                                AND modulename = :modulename';
                 $filename = $DB->get_record_sql(
                     $sql,
-                    ['resourceid' => $params['id'], 'cmid' => $params['cmid'], 'modulename' => $params['modulename']]
+                    ['resourceid' => $params['id'], 'cmid' => $params['cmid'], 'modulename' => $params['modulename']],
                 );
 
                 $data['filename'] = $filename->filename;
@@ -1041,41 +745,40 @@ class cursive_json_func_data extends external_api {
     }
 
     /**
-     * get_quiz_comment_link_returns
+     * Returns description of get_quiz_comment_link() result value
      *
-     * @return external_value
+     * @return external_value The return value definition for quiz comment link response
      */
     public static function get_quiz_comment_link_returns() {
         return new external_value(PARAM_TEXT, 'Comment Link');
     }
 
     /**
-     * get_assign_comment_link_parameters
+     * Returns the parameters definition for get_assign_comment_link function
      *
-     * @return external_function_parameters
+     * @return external_function_parameters Parameters definition for assignment comment link
      */
     public static function get_assign_comment_link_parameters() {
         return new external_function_parameters(
             [
                 'id' => new external_value(PARAM_INT, 'id', VALUE_REQUIRED),
                 'modulename' => new external_value(PARAM_TEXT, 'modulename', VALUE_REQUIRED),
-                'cmid' => new external_value(PARAM_INT, 'cmid', VALUE_REQUIRED ),
-            ]
+                'cmid' => new external_value(PARAM_INT, 'cmid', VALUE_REQUIRED),
+            ],
         );
     }
 
     /**
-     * get_assign_comment_link
+     * Get assignment comment link
      *
-     * @param $id
-     * @param $modulename
-     * @param $cmid
-     * @return false|string
+     * @param int $id The assignment submission ID
+     * @param string $modulename The module name
+     * @param int $cmid The course module ID
+     * @return false|string JSON encoded comment data
      * @throws coding_exception
      * @throws dml_exception
      * @throws invalid_parameter_exception
      * @throws moodle_exception
-     * @throws require_login_exception
      */
     public static function get_assign_comment_link($id, $modulename, $cmid) {
         global $DB;
@@ -1086,7 +789,7 @@ class cursive_json_func_data extends external_api {
                 'id' => $id,
                 'modulename' => $modulename,
                 'cmid' => $cmid,
-            ]
+            ],
         );
 
         // Check if user has capability to view assignment comments.
@@ -1097,8 +800,7 @@ class cursive_json_func_data extends external_api {
         $recassignsubmission = $DB->get_record('assign_submission', ['id' => $params['id']], '*', false);
         $userid = $recassignsubmission->userid;
         $conditions = ["userid" => $userid, 'modulename' => $params['modulename'], 'cmid' => $params['cmid']];
-        $table = 'tiny_cursive_comments';
-        $recs = $DB->get_records($table, $conditions);
+        $recs = $DB->get_records('tiny_cursive_comments', $conditions);
         $usercomment = [];
         if ($recs) {
             foreach ($recs as $rec) {
@@ -1112,44 +814,43 @@ class cursive_json_func_data extends external_api {
     }
 
     /**
-     * get_assign_comment_link_returns
+     * Returns description of get_assign_comment_link() result value
      *
-     * @return external_value
+     * @return external_value The return value definition for assignment comment link response
      */
     public static function get_assign_comment_link_returns() {
         return new external_value(PARAM_TEXT, 'Comment Link');
     }
 
     /**
-     * get_assign_grade_comment_parameters
+     * Returns the parameters definition for get_assign_grade_comment function
      *
-     * @return external_function_parameters
+     * @return external_function_parameters Parameters definition for assignment grade comment
      */
     public static function get_assign_grade_comment_parameters() {
         return new external_function_parameters(
             [
-                'id' => new external_value(PARAM_INT, 'id', VALUE_REQUIRED ),
+                'id' => new external_value(PARAM_INT, 'id', VALUE_REQUIRED),
                 'modulename' => new external_value(PARAM_TEXT, 'modulename', VALUE_REQUIRED),
                 'cmid' => new external_value(PARAM_INT, 'cmid', VALUE_REQUIRED),
-            ]
+            ],
         );
     }
 
     /**
-     * get_assign_grade_comment
+     * Get assignment grade comment data
      *
-     * @param $id
-     * @param $modulename
-     * @param $cmid
-     * @return false|string
+     * @param int $id The user ID
+     * @param string $modulename The module name
+     * @param int $cmid The course module ID
+     * @return false|string JSON encoded comment and data
      * @throws coding_exception
      * @throws dml_exception
      * @throws invalid_parameter_exception
      * @throws moodle_exception
-     * @throws require_login_exception
      */
     public static function get_assign_grade_comment($id, $modulename, $cmid) {
-        global $DB, $CFG;
+        global $DB;
 
         $params = self::validate_parameters(
             self::get_assign_grade_comment_parameters(),
@@ -1157,7 +858,7 @@ class cursive_json_func_data extends external_api {
                 'id' => $id,
                 'modulename' => $modulename,
                 'cmid' => $cmid,
-            ]
+            ],
         );
 
         // Check if user has capability to view assignment comments.
@@ -1181,12 +882,13 @@ class cursive_json_func_data extends external_api {
                             AND uf.modulename = :modulename";
 
         $data =
-            $DB->get_record_sql($attempts,
+            $DB->get_record_sql(
+                $attempts,
                 [
                     'id' => $params['id'],
                     'cmid' => $params['cmid'],
                     'modulename' => $params['modulename'],
-                ]
+                ],
             );
         if (isset($data->effort_ratio)) {
             $data->effort_ratio = intval(floatval($data->effort_ratio) * 100);
@@ -1200,7 +902,7 @@ class cursive_json_func_data extends external_api {
                             AND modulename = :modulename';
             $filename = $DB->get_record_sql(
                 $sql,
-                ['userid' => $params['id'], 'cmid' => $params['cmid'], 'modulename' => $params['modulename']]
+                ['userid' => $params['id'], 'cmid' => $params['cmid'], 'modulename' => $params['modulename']],
             );
 
             $data['filename'] = $filename->filename;
@@ -1234,18 +936,18 @@ class cursive_json_func_data extends external_api {
     }
 
     /**
-     * get_assign_grade_comment_returns
+     * Returns description of get_assign_grade_comment() result value
      *
-     * @return external_value
+     * @return external_value The return value definition for assignment grade comment response
      */
     public static function get_assign_grade_comment_returns() {
         return new external_value(PARAM_TEXT, 'Comment Link');
     }
 
     /**
-     * get_user_list_submission_stats_parameters
+     * Returns parameters for getting user list submission statistics
      *
-     * @return external_function_parameters
+     * @return external_function_parameters Parameters definition for submission stats
      */
     public static function get_user_list_submission_stats_parameters() {
         return new external_function_parameters(
@@ -1254,24 +956,22 @@ class cursive_json_func_data extends external_api {
                 'modulename' => new external_value(PARAM_TEXT, 'modulename', VALUE_DEFAULT, ''),
                 'cmid' => new external_value(PARAM_INT, 'cmid', VALUE_DEFAULT, null),
                 'filename' => new external_value(PARAM_TEXT, 'filename', VALUE_DEFAULT, ''),
-            ]
+            ],
         );
     }
 
     /**
-     * get_user_list_submission_stats
+     * Get user list submission statistics
      *
-     * @param $id
-     * @param $modulename
-     * @param $cmid
-     * @return false|string
+     * @param int $id The user ID
+     * @param string $modulename The module name
+     * @param int $cmid The course module ID
+     * @return false|string JSON encoded submission statistics
      * @throws coding_exception
      * @throws invalid_parameter_exception
      * @throws moodle_exception
-     * @throws require_login_exception
      */
     public static function get_user_list_submission_stats($id, $modulename, $cmid) {
-        global $DB;
 
         $params = self::validate_parameters(
             self::get_user_list_submission_stats_parameters(),
@@ -1279,49 +979,48 @@ class cursive_json_func_data extends external_api {
                 'id' => $id,
                 'modulename' => $modulename,
                 'cmid' => $cmid,
-            ]
+            ],
         );
         $context = context_module::instance($params['cmid']);
         self::validate_context($context);
         require_capability("tiny/cursive:view", $context);
 
-        $rec = get_user_submissions_data($params['id'], $params['modulename'], $params['cmid']);
+        $rec = tiny_cursive_get_user_submissions_data($params['id'], $params['modulename'], $params['cmid']);
 
         return json_encode($rec);
     }
 
     /**
-     * get_user_list_submission_stats_returns
+     * Returns description of get_user_list_submission_stats() result value
      *
-     * @return external_value
+     * @return external_value The return value definition for submission stats response
      */
     public static function get_user_list_submission_stats_returns() {
         return new external_value(PARAM_TEXT, 'Comment Link');
     }
 
     /**
-     * cursive_filtered_writing_func_parameters
+     * Returns parameters for filtering writing data
      *
-     * @return external_function_parameters
+     * @return external_function_parameters Parameters definition for filtering writing data
      */
     public static function cursive_filtered_writing_func_parameters() {
         return new external_function_parameters(
             [
                 'id' => new external_value(PARAM_TEXT, 'id', VALUE_REQUIRED, 0),
-            ]
+            ],
         );
     }
 
     /**
-     * cursive_filtered_writing_func
+     * Get filtered writing data for a course
      *
-     * @param $id
-     * @return false|string
-     * @throws coding_exception
-     * @throws dml_exception
-     * @throws invalid_parameter_exception
-     * @throws moodle_exception
-     * @throws require_login_exception
+     * @param int $id Course ID
+     * @return string|false JSON encoded data containing filtered writing statistics
+     * @throws coding_exception If parameters are invalid
+     * @throws dml_exception If database query fails
+     * @throws invalid_parameter_exception If parameters validation fails
+     * @throws moodle_exception If context validation fails
      */
     public static function cursive_filtered_writing_func($id) {
         global $DB, $USER;
@@ -1330,16 +1029,13 @@ class cursive_json_func_data extends external_api {
             self::cursive_filtered_writing_func_parameters(),
             [
                 'id' => $id,
-            ]
+            ],
         );
 
         $userid = $USER->id;
         $params = [];
 
-        $sql = "SELECT *
-                  FROM {course_modules}
-                 WHERE course = :course LIMIT 1";
-        $cm = $DB->get_record_sql($sql, ['course' => $vparams['id']]);
+        $cm = $DB->get_record('course_modules', ['course' => $vparams['id']], '*', IGNORE_MULTIPLE);
         $context = context_module::instance($cm->id);
         self::validate_context($context);
         require_capability('tiny/cursive:view', $context);
@@ -1373,43 +1069,40 @@ class cursive_json_func_data extends external_api {
     }
 
     /**
-     * cursive_filtered_writing_func_returns
+     * Returns description of method result value for cursive_filtered_writing_func
      *
-     * @return external_value
+     * @return external_value The return value definition for filtered writing data
      */
     public static function cursive_filtered_writing_func_returns() {
         return new external_value(PARAM_TEXT, 'Comment Link');
     }
 
-
-
     /**
-     * Method store_user_writing_parameters
+     * Returns parameters for store_user_writing method
      *
-     * @return object [explicite description]
+     * @return external_function_parameters Parameters definition for storing user writing data
      */
     public static function store_user_writing_parameters() {
         return new external_function_parameters(self::storing_user_writing_param());
     }
 
     /**
-     * Method store_user_writing
+     * Stores user writing data in the database
      *
-     * @param $personid $person_id [explicite description]
-     * @param $fileid $file_id [explicite description]
-     * @param $charactercount $character_count [explicite description]
-     * @param $totaltimeseconds $total_time_seconds [explicite description]
-     * @param $charactersperminute $characters_per_minute [explicite description]
-     * @param $keycount $key_count [explicite description]
-     * @param $keysperminute $keys_per_minute [explicite description]
-     * @param $wordcount $word_count [explicite description]
-     * @param $wordsperminute $words_per_minute [explicite description]
-     * @param $backspacepercent $backspace_percent [explicite description]
-     * @param $copybehaviour $copy_behaviour [explicite description]
-     * @param $copybehavior $copy_behavior [explicite description]
-     * @param $score $score [explicite description]
-     *
-     * @return array [explicite description]
+     * @param int $personid User ID
+     * @param int $fileid File ID to store data for
+     * @param int $charactercount Total number of characters typed
+     * @param int $totaltimeseconds Total time spent writing in seconds
+     * @param float $charactersperminute Characters typed per minute
+     * @param int $keycount Total number of keystrokes
+     * @param float $keysperminute Keystrokes per minute
+     * @param int $wordcount Total number of words written
+     * @param float $wordsperminute Words written per minute
+     * @param float $backspacepercent Percentage of backspace usage
+     * @param string $copybehavior Copy/paste behavior flag
+     * @param float $score Writing score
+     * @param  int $qualityaccess Quality access flag
+     * @return array Array containing status and message
      */
     public static function store_user_writing(
         $personid,
@@ -1424,7 +1117,7 @@ class cursive_json_func_data extends external_api {
         $backspacepercent,
         $copybehavior,
         $score,
-        $qualityaccess
+        $qualityaccess,
     ) {
         global $DB;
 
@@ -1444,7 +1137,7 @@ class cursive_json_func_data extends external_api {
                 'copy_behavior' => $copybehavior,
                 'score' => $score,
                 'quality_access' => $qualityaccess,
-            ]
+            ],
         );
 
         try {
@@ -1498,9 +1191,9 @@ class cursive_json_func_data extends external_api {
     }
 
     /**
-     * Method store_user_writing_returns
+     * Returns description of method result value for store_user_writing
      *
-     * @return external_single_structure [explicite description]
+     * @return external_single_structure Returns structure containing status and message
      */
     public static function store_user_writing_returns() {
         return new external_single_structure([
@@ -1511,9 +1204,9 @@ class cursive_json_func_data extends external_api {
 
 
     /**
-     * Method cursive_get_reply_json_parameters
+     * Returns parameters for getting reply JSON
      *
-     * @return  external_single_structure [explicite description]
+     * @return external_function_parameters Parameters definition for getting reply JSON
      */
     public static function cursive_get_reply_json_parameters() {
         return new external_function_parameters([
@@ -1522,11 +1215,14 @@ class cursive_json_func_data extends external_api {
     }
 
     /**
-     * Method cursive_get_reply_json
+     * Get reply JSON data for a file
      *
-     * @param $filepath $filepath [explicite description]
-     *
-     * @return object [explicite description]
+     * @param string $filepath Path to the file to get reply JSON for
+     * @return stdClass Object containing status and data
+     * @throws coding_exception
+     * @throws dml_exception
+     * @throws invalid_parameter_exception
+     * @throws moodle_exception
      */
     public static function cursive_get_reply_json($filepath) {
         global $DB;
@@ -1535,7 +1231,7 @@ class cursive_json_func_data extends external_api {
             self::cursive_get_reply_json_parameters(),
             [
                 'filepath' => $filepath,
-            ]
+            ],
         );
         $parts = explode('_', $params['filepath']);
         $cmid = $parts[2];
@@ -1546,26 +1242,27 @@ class cursive_json_func_data extends external_api {
 
         $data = new stdClass;
         try {
+
             $filedata = $DB->get_record('tiny_cursive_files', ['filename' => $params['filepath']]);
-            $content = $filedata->content ? base64_decode($filedata->content) : $content = false;
+            $content = $filedata->content ? $filedata->content : $content = false;
             $data->status = true;
 
             if ($content === false) {
                 $data->status = false;
-                $content = 'File not found! or Failed to read file';
+                $content = get_string('filenotfoundor', 'tiny_cursive');
             }
 
             $data->data = $content;
-        } catch (Exception $e) {
+        } catch (moodle_exception $e) {
             $data->data = $e->getMessage();
         }
         return $data;
     }
 
     /**
-     * Method cursive_get_reply_json_returns
+     * Returns description of method result value for cursive_get_reply_json
      *
-     * @return external_single_structure [explicite description]
+     * @return external_single_structure Returns structure containing status and data
      */
     public static function cursive_get_reply_json_returns() {
         return new external_single_structure([
@@ -1577,7 +1274,7 @@ class cursive_json_func_data extends external_api {
     /**
      * Method storing_user_writing_param
      *
-     * @return array [explicite description]
+     * @return array array of parameters for storing data
      */
     public static function storing_user_writing_param() {
         return [
@@ -1597,11 +1294,10 @@ class cursive_json_func_data extends external_api {
         ];
 
     }
-
     /**
-     * Method store_user_writing_parameters
+     * Returns parameters for store_user_writing method
      *
-     * @return object [explicite description]
+     * @return external_function_parameters Parameters definition for storing user writing data
      */
     public static function cursive_get_analytics_parameters() {
         return new external_function_parameters([
@@ -1611,9 +1307,15 @@ class cursive_json_func_data extends external_api {
     }
 
     /**
-     * Method cursive_get_analytics
-     * @param $cmid $cmid
-     * @param $fileid $fileid
+     * Get analytics data for a user submission
+     *
+     * @param int $cmid Course module ID
+     * @param int $fileid File ID
+     * @return array Analytics data
+     * @throws coding_exception
+     * @throws dml_exception
+     * @throws invalid_parameter_exception
+     * @throws moodle_exception
      */
     public static function cursive_get_analytics($cmid, $fileid) {
         global $DB;
@@ -1623,7 +1325,7 @@ class cursive_json_func_data extends external_api {
             [
                 'cmid' => $cmid,
                 'fileid' => $fileid,
-            ]
+            ],
         );
 
         $context = context_module::instance($vparams['cmid']);
@@ -1639,8 +1341,10 @@ class cursive_json_func_data extends external_api {
         $params = ['fileid' => $vparams['fileid']];
         $rec = $DB->get_record_sql($sql, $params);
         if (isset($rec->effort_ratio)) {
-            $rec->effort_ratio = intval(floatval($rec->effort_ratio) * 100);
+
+            $rec->effort_ratio = round($rec->effort_ratio * 100, 2);
         }
+
         $sql = 'SELECT id AS fileid
                   FROM {tiny_cursive_files}
                  WHERE userid = :userid ORDER BY id ASC LIMIT 1';
@@ -1657,9 +1361,9 @@ class cursive_json_func_data extends external_api {
     }
 
     /**
-     * Method store_user_writing_parameters
+     * Returns parameters for store_quality_metrics method
      *
-     * @return object [explicite description]
+     * @return external_function_parameters Parameters definition for storing quality metrics data
      */
     public static function cursive_get_analytics_returns() {
         return new external_single_structure([
@@ -1668,9 +1372,9 @@ class cursive_json_func_data extends external_api {
     }
 
     /**
-     * Method store_user_writing_parameters
+     * Returns parameters for store_user_writing method
      *
-     * @return object [explicite description]
+     * @return external_function_parameters Parameters definition for storing user writing data
      */
     public static function cursive_store_writing_differencs_parameters() {
         return new external_function_parameters([
@@ -1682,12 +1386,12 @@ class cursive_json_func_data extends external_api {
     }
 
     /**
-     * Method store_user_writing_parameters
+     * Store writing differences between reconstructed and submitted text
      *
-     * @param string $fileid
-     * @param string $reconstructedtext
-     * @param string $submittedtext
-     * @param string $meta
+     * @param int $fileid File identifier
+     * @param string $reconstructedtext Original reconstructed text
+     * @param string $submittedtext Final submitted text
+     * @param string|null $meta Optional metadata
      */
     public static function cursive_store_writing_differencs($fileid, $reconstructedtext, $submittedtext, $meta = null) {
         global $DB;
@@ -1699,7 +1403,7 @@ class cursive_json_func_data extends external_api {
                 'reconstructed_text' => $reconstructedtext,
                 'submitted_text' => $submittedtext,
                 'meta' => $meta,
-            ]
+            ],
         );
 
         $context = context_system::instance(); // Assuming a system-wide capability check.
@@ -1725,7 +1429,7 @@ class cursive_json_func_data extends external_api {
                 'status' => get_string('success', 'tiny_cursive'),
                 'message' => get_string('data_save', 'tiny_cursive'),
             ];
-        } catch (Exception $e) {
+        } catch (moodle_exception $e) {
             // Handle the exception.
             return [
                 'status' => get_string('failed', 'tiny_cursive'),
@@ -1735,9 +1439,9 @@ class cursive_json_func_data extends external_api {
     }
 
     /**
-     * Method store_user_writing_parameters
+     * Returns parameters for store_user_writing method
      *
-     * @return object [explicite description]
+     * @return external_function_parameters Parameters definition for storing user writing data
      */
     public static function cursive_store_writing_differencs_returns() {
         return new external_single_structure([
@@ -1748,9 +1452,9 @@ class cursive_json_func_data extends external_api {
 
 
     /**
-     * Method store_user_writing_parameters
+     * Returns parameters for writing difference method
      *
-     * @return object [explicite description]
+     * @return external_single_structure Returns structure containing status and message
      */
     public static function cursive_get_writing_differencs_parameters() {
         return new external_function_parameters([
@@ -1759,9 +1463,14 @@ class cursive_json_func_data extends external_api {
     }
 
     /**
-     * Method cursive_get_writing_differencs
+     * Get writing differences for a user submission
      *
-     * @param array $fileid
+     * @param int $fileid File identifier
+     * @return array Writing differences data
+     * @throws coding_exception
+     * @throws dml_exception
+     * @throws invalid_parameter_exception
+     * @throws moodle_exception
      */
     public static function cursive_get_writing_differencs($fileid) {
         global $DB;
@@ -1770,11 +1479,14 @@ class cursive_json_func_data extends external_api {
             self::cursive_get_writing_differencs_parameters(),
             [
                 'fileid' => $fileid,
-            ]
+            ],
         );
 
-        $filename = $DB->get_record('tiny_cursive_files',
-            ['id' => $vparams['fileid']], 'filename');
+        $filename = $DB->get_record(
+            'tiny_cursive_files',
+            ['id' => $vparams['fileid']],
+            'filename',
+        );
         $parts = explode('_', $filename->filename);
         $cmid = $parts[2];
 
@@ -1785,8 +1497,8 @@ class cursive_json_func_data extends external_api {
         $sql = "SELECT WD.*, CF.cmid, CF.resourceid, CF.modulename, COUNT(CC.id) AS commentscount, CF.userid, CF.questionid
                   FROM {tiny_cursive_writing_diff} WD
                   JOIN {tiny_cursive_files} CF ON CF.id = WD.file_id
-             LEFT JOIN {tiny_cursive_comments} CC ON CC.resourceid = CF.resourceid 
-                                                AND CC.modulename = CF.modulename 
+             LEFT JOIN {tiny_cursive_comments} CC ON CC.resourceid = CF.resourceid
+                                                AND CC.modulename = CF.modulename
                                                 AND CC.cmid = CF.cmid
                                                 AND CC.userid = CF.userid
                                                 AND CC.questionid = CF.questionid
@@ -1803,7 +1515,7 @@ class cursive_json_func_data extends external_api {
                     'modulename' => $data->modulename,
                     'cmid' => $data->cmid,
                     'userid' => $data->userid,
-                    'questionid' => $data->questionid
+                    'questionid' => $data->questionid,
                 ],
             );
             $data->comments = $comments;
@@ -1813,9 +1525,9 @@ class cursive_json_func_data extends external_api {
     }
 
     /**
-     * Method cursive_get_writing_differencs_returns
+     * Returns description of method result value for cursive_get_writing_differencs
      *
-     * @return object [explicite description]
+     * @return external_single_structure Returns structure containing content data
      */
     public static function cursive_get_writing_differencs_returns() {
         return new external_single_structure([
@@ -1823,22 +1535,22 @@ class cursive_json_func_data extends external_api {
         ]);
     }
 
-        /**
-         * Method generate_webtoken_parameters
-         *
-         * @return external_function_parameters
-         */
+    /**
+     * Returns parameters for generate_webtoken method
+     *
+     * @return external_function_parameters Parameters definition for generating web token
+     */
     public static function generate_webtoken_parameters() {
         return new external_function_parameters([]);
     }
 
     /**
-     * Method generate_webtoken
+     * Generates a web token for authentication
      *
-     * @return array
+     * @return array Array containing the generated token
      */
     public static function generate_webtoken() {
-        $token = create_token_for_user();
+        $token = tiny_cursive_create_token_for_user();
         if ($token) {
             set_config('cursivetoken', $token, 'tiny_cursive');
         }
@@ -1846,9 +1558,9 @@ class cursive_json_func_data extends external_api {
     }
 
     /**
-     * Method generate_webtoken_returns
+     * Returns description of method result value for generate_webtoken
      *
-     * @return external_single_structure
+     * @return external_single_structure Returns structure containing the generated token
      */
     public static function generate_webtoken_returns() {
         return new external_single_structure([
@@ -1857,9 +1569,9 @@ class cursive_json_func_data extends external_api {
     }
 
     /**
-     * Method write_local_to_json_parameters
+     * Returns parameters for write_local_to_json method
      *
-     * @return external_function_parameters
+     * @return external_function_parameters Parameters definition for writing local data to JSON
      */
     public static function write_local_to_json_parameters() {
         return new external_function_parameters(
@@ -1873,27 +1585,35 @@ class cursive_json_func_data extends external_api {
                 'editorid' => new external_value(PARAM_TEXT, 'editorid', VALUE_DEFAULT, ""),
                 'json_data' => new external_value(PARAM_TEXT, 'JSON Data', VALUE_DEFAULT, ""),
                 "originalText" => new external_value(PARAM_TEXT, 'original submission Text', VALUE_DEFAULT, ""),
-            ]
+            ],
         );
     }
 
     /**
-     * Method write_local_to_json
+     * Write localstorage jsonObject data to database
      *
-     * @param $resourceid $resourceid [explicite description]
-     * @param $key $key [explicite description]
-     * @param $keycode $keycode [explicite description]
-     * @param $event $event [explicite description]
-     * @param $cmid $cmid [explicite description]
-     * @param $modulename $modulename [explicite description]
-     * @param $editorid $editorid [explicite description]
-     * @param $jsondata $jsondata [explicite description]
-     *
-     * @return string
+     * @param int $resourceid Resource identifier
+     * @param string|null $key Key detail
+     * @param int|null $keycode Key code
+     * @param string $event Event type
+     * @param int $cmid Course module ID
+     * @param string $modulename Module name
+     * @param string|null $editorid Editor identifier
+     * @param array $jsondata JSON data to write
+     * @param string $originaltext Original submission text
+     * @return string name of the saved record.
      */
-    public static function write_local_to_json($resourceid, $key, $keycode , $event,
-                                                $cmid, $modulename, $editorid, $jsondata, $originaltext) {
-
+    public static function write_local_to_json(
+        $resourceid = 0,
+        $key = null,
+        $keycode = null,
+        $event = 'keyUp',
+        $cmid = 0,
+        $modulename = 'quiz',
+        $editorid = null,
+        $jsondata = [],
+        $originaltext = ""
+    ) {
         global $USER, $DB, $CFG;
 
         $params = self::validate_parameters(
@@ -1907,29 +1627,36 @@ class cursive_json_func_data extends external_api {
                 'modulename' => $modulename,
                 'editorid' => $editorid,
                 'json_data' => $jsondata,
-                'originalText' => $originaltext
-            ]
+                'originalText' => $originaltext,
+            ],
         );
 
-        if ($params['resourceId'] == 0 && $params['modulename'] !== 'forum') {
+        if ($params['resourceId'] == 0 && $params['modulename'] !== 'forum' && $params['modulename'] !== 'oublog') {
             // For Quiz and Assignment there is no resourceid that's why cmid is resourceid.
             $params['resourceId'] = $params['cmid'];
         }
 
         $courseid = 0;
 
+        $userdata = [];
         if ($params['cmid']) {
             $cm = $DB->get_record('course_modules', ['id' => $params['cmid']]);
             $courseid = $cm->course;
+            $userdata["courseId"] = $courseid;
 
+            // Get course context.
             $context = context_module::instance($params['cmid']);
             self::validate_context($context);
             require_capability('tiny/cursive:write', $context);
 
+        } else {
+            $userdata["courseId"] = 0;
         }
 
+        $userdata["clientId"] = $CFG->wwwroot;
+        $userdata["personId"] = $USER->id;
         $editoridarr = explode(':', $params['editorid']);
-        $questionid = 0;
+        $questionid = "";
         if (count($editoridarr) > 1) {
             $uniqueid = substr($editoridarr[0] . "\n", 1);
             $slot = substr($editoridarr[1] . "\n", 0, -11);
@@ -1944,28 +1671,37 @@ class cursive_json_func_data extends external_api {
         }
 
         $table = 'tiny_cursive_files';
-
-        $conditions = [
-            'cmid' => $params['cmid'],
-            'modulename' => $params['modulename'],
-            'resourceid' => $params['resourceId'],
-            'userid' => $USER->id,
-        ];
+        $inp = '';
 
         if ($questionid) {
-            $conditions['questionid'] = $questionid;
+            $inp = $DB->get_record($table, [
+                'cmid' => $params['cmid'],
+                'modulename' => $params['modulename'],
+                'resourceid' => $params['resourceId'],
+                'userid' => $USER->id,
+                'questionid' => $questionid,
+            ]);
+        } else {
+            $inp = $DB->get_record($table, [
+                'cmid' => $params['cmid'],
+                'modulename' => $params['modulename'],
+                'resourceid' => $params['resourceId'],
+                'userid' => $USER->id,
+            ]);
         }
-        $record = $DB->get_record($table, $conditions, 'id, content');
-        $jsondata = json_decode($params['json_data'], true);
+        $temparray = [];
+        if ($inp) {
 
-        if ($record) {
-
-            $temparray = json_decode(base64_decode($record->content), true);
-            $mergecontent = array_merge($temparray, $jsondata);
-            $DB->set_field('tiny_cursive_files', 'content', base64_encode(json_encode($mergecontent)), ['id' => $record->id]);
-            $DB->set_field('tiny_cursive_files', 'original_content', $params['originalText'], ['id' => $record->id]);
-            $DB->set_field('tiny_cursive_files', 'uploaded', 0, ['id' => $record->id]);
-
+            $temparray = json_decode($inp->content, true);
+            $jsondata = json_decode($params['json_data'], true);
+            foreach ($jsondata as $value) {
+                $userdata = $value;
+                array_push($temparray, $userdata);
+            }
+            $inp->content = json_encode($temparray);
+            $inp->original_content = $params['originalText'];
+            $inp->uploaded = 0;
+            $DB->update_record($table, $inp);
             return 'true';
         } else {
             $dataobj = new stdClass();
@@ -1976,24 +1712,30 @@ class cursive_json_func_data extends external_api {
             $dataobj->courseid = $courseid;
             $dataobj->timemodified = time();
             $dataobj->filename = $fname;
-            $dataobj->content = base64_encode($params['json_data']);
+            $dataobj->content = $params['json_data'];
             $dataobj->original_content = $params['originalText'];
             $dataobj->questionid = $questionid ?? 0;
             $dataobj->uploaded = 0;
             $DB->insert_record($table, $dataobj);
             return $fname;
         }
+
     }
 
-    /**
-     * Method write_local_to_json_returns
-     *
-     * @return external_value
-     */
+     /**
+      * Method write_local_to_json_returns
+      * @return external_value Returns the filename as a text parameter
+      *
+      */
     public static function write_local_to_json_returns() {
         return new external_value(PARAM_TEXT, 'filename');
     }
 
+    /**
+     * Returns the parameters for the cursive_get_config function
+     *
+     * @return external_function_parameters Parameters definition for the external function
+     */
     public static function cursive_get_config_parameters() {
         return new external_function_parameters([
             'courseid' => new external_value(PARAM_INT, 'course id', VALUE_DEFAULT, 0),
@@ -2001,8 +1743,16 @@ class cursive_json_func_data extends external_api {
         ]);
     }
 
+    /**
+     * Get cursive configuration settings for a course and course module
+     *
+     * @param int $courseid The course ID to get config for
+     * @param int $cmid The course module ID to get config for
+     * @return array Array containing config status and sync interval
+     */
     public static function cursive_get_config($courseid, $cmid) {
-        global $PAGE, $USER;
+        global $PAGE, $USER, $CFG;
+        require_once($CFG->dirroot . '/lib/editor/tiny/plugins/cursive/lib.php');
         $params = self::validate_parameters(
             self::cursive_get_config_parameters(),
             [
@@ -2015,16 +1765,186 @@ class cursive_json_func_data extends external_api {
         self::validate_context($context);
         require_capability("tiny/cursive:writingreport", $context);
 
-        $config = get_config('tiny_cursive', "cursive-" . $params['courseid']);
+        $remoteurl = get_config('tiny_cursive', 'python_server') . '/verify-token';
+        $moodleurl = $CFG->wwwroot;
+
+        $config = tiny_cursive_status($params['courseid']);
         $syncinterval = get_config('tiny_cursive', "syncinterval");
-        return ['status' => $config, 'sync_interval' => $syncinterval, 'userid' => $USER->id];
+        $apikey = cursive_approve_token(get_config( 'tiny_cursive', 'secretkey'), $moodleurl, $remoteurl);
+        $apikey = json_decode($apikey);
+        return ['status' => $config, 'sync_interval' => $syncinterval, 'userid' => $USER->id, 'apikey_status' =>
+                                                                                isset($apikey->status) ? true : false];
     }
 
+    /**
+     * Returns description of method result value for cursive_get_config
+     *
+     * @return external_single_structure Returns a structure containing config status and sync interval
+     */
     public static function cursive_get_config_returns() {
         return new external_single_structure([
             'status' => new external_value(PARAM_BOOL, 'config'),
-            'sync_interval' => new external_value(PARAM_TEXT, 'Data Sync interval'),
+            'sync_interval' => new external_value(PARAM_INT, 'Data Sync interval'),
             'userid' => new external_value(PARAM_INT, 'userid'),
+            'apikey_status' => new external_value(PARAM_BOOL, 'api key status'),
         ]);
     }
+
+    /**
+     * Returns the parameters for the get_lesson_submission_data function
+     *
+     * @return external_function_parameters The parameters structure containing:
+     *         - id (int): Optional lesson ID parameter
+     *         - modulename (string): Optional module name parameter
+     *         - cmid (int): Optional course module ID parameter
+     */
+    public static function get_lesson_submission_data_parameters() {
+        return new external_function_parameters(
+                [
+                    'id' => new external_value(PARAM_INT, 'id', VALUE_DEFAULT, null),
+                    'modulename' => new external_value(PARAM_TEXT, 'modulename', VALUE_DEFAULT, ''),
+                    'cmid' => new external_value(PARAM_INT, 'cmid', VALUE_DEFAULT, 0),
+                ],
+            );
+    }
+
+    /**
+     * Gets submission data for a lesson
+     *
+     * @param int $id The lesson ID
+     * @param string $modulename The name of the module
+     * @param int $cmid The course module ID
+     * @return string JSON encoded submission data
+     */
+    public static function get_lesson_submission_data($id, $modulename, $cmid) {
+            $params = self::validate_parameters(
+                    self::get_lesson_submission_data_parameters(),
+                    [
+                        'id' => $id,
+                        'modulename' => $modulename,
+                        'cmid' => $cmid,
+                    ],
+            );
+
+            $context = context_module::instance($params['cmid']);
+            self::validate_context($context);
+            require_capability("tiny/cursive:view", $context);
+
+            $rec = tiny_cursive_get_user_submissions_data($params['id'], $params['modulename'], $params['cmid']);
+
+            return json_encode($rec);
+    }
+
+    /**
+     * Returns description of get_lesson_submission_data return value
+     *
+     * @return external_value Returns a text parameter containing lesson submission data
+     */
+    public static function get_lesson_submission_data_returns() {
+        return new external_value(PARAM_TEXT, 'Lesson data');
+    }
+
+    /**
+     * Returns the parameters for the disable_cursive function
+     *
+     * @return external_function_parameters The parameters structure containing:
+     *         - disable (bool): Optional boolean parameter to disable cursive
+     */
+    public static function disable_cursive_parameters() {
+        return new external_function_parameters(
+            [
+                'disable' => new external_value(PARAM_BOOL, 'status', VALUE_DEFAULT, null),
+            ]
+        );
+
+    }
+    /**
+     * Disables cursive functionality for all courses
+     *
+     * @param bool $disable Whether to disable cursive
+     * @return bool True if cursive was successfully disabled for all courses
+     */
+    public static function disable_cursive($disable) {
+
+        try {
+            $courses = get_courses();
+            $value = !$disable;
+            foreach ($courses as $course) {
+                set_config("cursive-{$course->id}", $value, 'tiny_cursive');
+            }
+            return true;
+        } catch (moodle_exception $e) {
+                // Log error and return false if config update fails.
+                debugging('Error disabling cursive: ' . $e->getMessage(), DEBUG_DEVELOPER);
+                return false;
+        }
+    }
+    /**
+     * Returns description of disable_cursive return value
+     *
+     * @return external_value Returns a boolean parameter indicating if cursive was disabled
+     */
+    public static function disable_cursive_returns() {
+        return new external_value(PARAM_BOOL, 'cursive disable message');
+    }
+
+    /**
+     * Returns the parameters for the get_oublog_submission_data function
+     *
+     * @return external_function_parameters The parameters structure containing:
+     *         - id (int): Optional lesson ID parameter
+     *         - resourceid (int): Optional resource ID parameter
+     *         - modulename (string): Optional module name parameter
+     *         - cmid (int): Optional course module ID parameter
+     */
+    public static function get_oublog_submission_data_parameters() {
+        return new external_function_parameters(
+                [
+                    'id' => new external_value(PARAM_INT, 'id', VALUE_DEFAULT, 0),
+                    'resourceid' => new external_value(PARAM_INT, 'post id', VALUE_DEFAULT, 0),
+                    'modulename' => new external_value(PARAM_TEXT, 'modulename', VALUE_DEFAULT, ''),
+                    'cmid' => new external_value(PARAM_INT, 'cmid', VALUE_DEFAULT, 0),
+                ],
+            );
+    }
+
+    /**
+     * Gets submission data for a oublog
+     *
+     * @param int $id The oublog ID
+     * @param int $resourceid The post ID
+     * @param string $modulename The name of the module
+     * @param int $cmid The course module ID
+     * @return string JSON encoded submission data
+     */
+    public static function get_oublog_submission_data($id, $resourceid, $modulename, $cmid) {
+            $params = self::validate_parameters(
+                    self::get_oublog_submission_data_parameters(),
+                    [
+                        'id' => $id,
+                        'resourceid' => $resourceid,
+                        'modulename' => $modulename,
+                        'cmid' => $cmid,
+                    ],
+            );
+
+            $context = context_module::instance($params['cmid']);
+            self::validate_context($context);
+            require_capability("tiny/cursive:view", $context);
+
+            $rec = tiny_cursive_get_user_submissions_data($params['id'], $params['modulename'],
+             $params['cmid'], 0, $params['resourceid']);
+
+            return json_encode($rec);
+    }
+
+    /**
+     * Returns description of get_lesson_submission_data return value
+     *
+     * @return external_value Returns a text parameter containing lesson submission data
+     */
+    public static function get_oublog_submission_data_returns() {
+        return new external_value(PARAM_TEXT, 'oublog data');
+    }
+
 }

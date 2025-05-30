@@ -25,10 +25,15 @@
 
 defined('MOODLE_INTERNAL') || die;
 
+require_once(__DIR__.'/locallib.php');
 global $CFG, $PAGE;
+
 $PAGE->requires->js_call_amd('tiny_cursive/token_approve', 'init', [1]);
 
-if (is_siteadmin()) {
+$ADMIN->add('editortiny', new admin_category('tiny_cursive', new lang_string('pluginname', 'tiny_cursive')));
+
+if ($ADMIN->fulltree) {
+
     $settings->add(
         new admin_setting_heading(
             'cursive_settings',
@@ -36,17 +41,15 @@ if (is_siteadmin()) {
             get_string('pluginname_desc', 'tiny_cursive')
         )
     );
-    $restweblink = $CFG->wwwroot . '/admin/settings.php?section=webserviceprotocols';
-    $createtoken = $CFG->wwwroot . '/admin/webservice/tokens.php';
+
     $settings->add(
         new admin_setting_configtext(
             'tiny_cursive/secretkey',
             get_string('secretkey', 'tiny_cursive'),
             get_string('secretkey_desc', 'tiny_cursive') . '' .
-            "<br/><a id='approve_token' href='#' class='btn btn-primary'>  " . get_string('test_token', 'tiny_cursive') . " </a>
-            <span id='token_message'></span>",
-            '',
-            PARAM_TEXT
+            "<br/><a id='approve_token' href='#' class='btn btn-primary'>  " .
+            get_string('test_token', 'tiny_cursive') . " </a><span id='token_message'></span>",
+            "", PARAM_TEXT
         )
     );
     $settings->add(
@@ -84,13 +87,14 @@ if (is_siteadmin()) {
             1
         )
     );
+
     $settings->add(
         new admin_setting_configtext(
             'tiny_cursive/cursivetoken',
             get_string('webservicetoken', "tiny_cursive"),
             "<a id='generate_cursivetoken' href='#' class=''>  " .
-            get_string('generate', 'tiny_cursive') . " </a>" . ' ' .
-            get_string('webservicetoken_des', 'tiny_cursive') . "<br><span id='cursivetoken_'></span>",
+            get_string('generate', 'tiny_cursive') . " </a>".' '.
+            get_string('webservicetoken_des', 'tiny_cursive')."<br><span id='cursivetoken_'></span>",
             '',
             PARAM_TEXT
         )
@@ -103,6 +107,19 @@ if (is_siteadmin()) {
             get_string('syncinterval_des', 'tiny_cursive'),
             10,
             PARAM_TEXT
+        )
+    );
+
+    $settings->add(
+        new admin_setting_configempty(
+            'tiny_cursive/cursivedisable',
+            get_string('cursivedisable', 'tiny_cursive'),
+            "<a href='#cursivedisable' class='btn btn-primary mb-1' id='cursivedisable' >".
+            get_string('disable', 'tiny_cursive')."</a>
+            <a href='#cursiveenable' class='btn btn-primary mb-1' id='cursiveenable'>".
+            get_string('enable', 'tiny_cursive')."
+            </a><br><span id='cursivedisable_'></span><br>".
+            get_string('cursivedisable_des', 'tiny_cursive'),
         )
     );
 }

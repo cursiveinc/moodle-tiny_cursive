@@ -20,7 +20,7 @@
  * @author Brain Station 23 <elearning@brainstation-23.com>
  */
 
-define(["core/ajax", "core/str", "core/templates", "./replay", './analytic_button', "./analytic_events"], function (
+define(["core/ajax", "core/str", "core/templates", "./replay", './analytic_button', "./analytic_events"], function(
     AJAX,
     str,
     templates,
@@ -29,8 +29,8 @@ define(["core/ajax", "core/str", "core/templates", "./replay", './analytic_butto
     AnalyticEvents
 ) {
     const replayInstances = {};
-
-    window.video_playback = function (mid, filepath) {
+    // eslint-disable-next-line
+    window.video_playback = function(mid, filepath) {
         if (filepath !== '') {
             const replay = new Replay(
                 'content' + mid,
@@ -41,6 +41,7 @@ define(["core/ajax", "core/str", "core/templates", "./replay", './analytic_butto
             );
             replayInstances[mid] = replay;
         } else {
+             // eslint-disable-next-line
             templates.render('tiny_cursive/no_submission').then(html => {
                 document.getElementById('content' + mid).innerHTML = html;
             }).catch(e => window.console.error(e));
@@ -49,17 +50,17 @@ define(["core/ajax", "core/str", "core/templates", "./replay", './analytic_butto
     };
 
     var usersTable = {
-        init: function (page) {
-            str.get_strings([{ key: "field_require", component: "tiny_cursive" }])
-                .done(function () {
+        init: function(page) {
+            str.get_strings([{key: "field_require", component: "tiny_cursive"}])
+                .done(function() {
                     usersTable.getusers(page);
                 });
 
             let myEvents = new AnalyticEvents();
-            (async function () {
+            (async function() {
                 try {
-                    let score_setting = await str.get_string('confidence_threshold', 'tiny_cursive');
-                    analyticsEvents(score_setting);
+                    let scoreSetting = await str.get_string('confidence_threshold', 'tiny_cursive');
+                    analyticsEvents(scoreSetting);
                 } catch (error) {
                     window.console.error('Error fetching string:', error);
                 }
@@ -68,14 +69,14 @@ define(["core/ajax", "core/str", "core/templates", "./replay", './analytic_butto
             /**
              * Handles the analytics events for each modal on the page.
              *
-             * This function iterates over each element with the class `analytic-modal`,
+             * This functioniterates over each element with the class `analytic-modal`,
              * retrieves necessary data attributes, and makes an AJAX call to get writing
              * statistics. Once the data is retrieved, it processes and displays it within
              * the modal.
              *
-             * @param {Object} score_setting - Configuration settings related to scoring.
+             * @param {Object} scoreSetting - Configuration settings related to scoring.
              */
-            function analyticsEvents(score_setting) {
+            function analyticsEvents(scoreSetting) {
                 const analyticModals = document.querySelectorAll(".analytic-modal");
 
                 analyticModals.forEach(modalElement => {
@@ -93,20 +94,19 @@ define(["core/ajax", "core/str", "core/templates", "./replay", './analytic_butto
 
                     AJAX.call([{
                         methodname: 'cursive_get_writing_statistics',
-                        args: {
-                            cmid: cmid,
-                            fileid: mid,
-                        },
+                        args: {cmid: cmid, fileid: mid},
                     }])[0].done(response => {
                         let data = JSON.parse(response.data);
 
                         context.formattime = myEvents.formatedTime(data);
                         context.tabledata = data;
-                        let authIcon = myEvents.authorshipStatus(data.first_file, data.score, score_setting);
+
+                        let authIcon = myEvents.authorshipStatus(data.first_file, data.score, scoreSetting);
                         myEvents.createModal(mid, context, '', authIcon);
                         myEvents.analytics(mid, templates, context, '', replayInstances, authIcon);
                         myEvents.checkDiff(mid, mid, '', replayInstances);
                         myEvents.replyWriting(mid, filepath, '', replayInstances);
+
                     }).fail(error => {
                         throw new Error('Error: ' + error.message);
                     });
@@ -115,40 +115,38 @@ define(["core/ajax", "core/str", "core/templates", "./replay", './analytic_butto
             }
         },
 
-        getusers: function (page) {
-            document.getElementById("id_coursename").addEventListener('change', function () {
+        getusers: function(page) {
+            document.getElementById("id_coursename").addEventListener('change', function() {
                 var courseid = this.value;
 
                 AJAX.call([{
                     methodname: "cursive_get_user_list",
-                    args: {
-                        courseid: courseid,
-                    },
-                }])[0].done(function (json) {
+                    args: {courseid: courseid},
+                }])[0].done(function(json) {
                     var data = JSON.parse(json);
                     var context = {
                         tabledata: data,
                         page: page,
                     };
                     templates.render("tiny_cursive/user_list", context)
-                        .then(function (html) {
+                        .then(function(html) {
                             document.getElementById("id_username").innerHTML = html;
+                            return true;
                         });
                 });
 
                 AJAX.call([{
                     methodname: "cursive_get_module_list",
-                    args: {
-                        courseid: courseid,
-                    },
-                }])[0].done(function (json) {
+                    args: {courseid: courseid},
+                }])[0].done(function(json) {
                     var data = JSON.parse(json);
                     var context = {
                         tabledata: data,
                         page: page,
                     };
+                     // eslint-disable-next-line
                     templates.render("tiny_cursive/module_list", context)
-                        .then(function (html) {
+                        .then(function(html) {
                             document.getElementById("id_modulename").innerHTML = html;
                         });
                 });

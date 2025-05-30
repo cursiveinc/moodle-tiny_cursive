@@ -24,7 +24,7 @@
  */
 
 namespace tiny_cursive\task;
-
+use core\task\scheduled_task;
 /**
  * Tiny cursive plugin upload file using cron to the api server.
  *
@@ -33,7 +33,7 @@ namespace tiny_cursive\task;
  * @author Brain Station 23 <elearning@brainstation-23.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class upload_student_json_cron extends \core\task\scheduled_task {
+class upload_student_json_cron extends scheduled_task {
     /**
      * Return the task's name as shown in admin screens.
      *
@@ -53,18 +53,19 @@ class upload_student_json_cron extends \core\task\scheduled_task {
         global $CFG, $DB;
         require_once($CFG->dirroot . '/lib/editor/tiny/plugins/cursive/lib.php');
 
-        $serviceshortname = 'cursive_json_service'; // Replace with your service shortname.
+        $serviceshortname = 'cursive_json_service';
         $service = $DB->get_record('external_services', ['shortname' => $serviceshortname]);
 
+        $token = '';
         $adminuser = get_admin();
         $cursivetoken = get_config('tiny_cursive', 'cursivetoken');
 
         if (!$cursivetoken) {
-            $sql = "SELECT *
-                      FROM {external_tokens}
-                     WHERE userid = ? AND externalserviceid = ?
-                           ORDER BY id DESC LIMIT 1";
-            $token = $DB->get_record_sql($sql, [$adminuser->id, $service->id]);
+            // Use get_record() instead of get_record_sql() for simpler queries.
+            $token = $DB->get_record('external_tokens',
+                        ['userid' => $adminuser->id, 'externalserviceid' => $service->id],
+                        '*',
+                        IGNORE_MULTIPLE);
         }
 
         $wstoken = $cursivetoken ?? $token->token;

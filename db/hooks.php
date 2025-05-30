@@ -30,8 +30,7 @@ $callbacks = [
         'hook' => \core\hook\output\before_footer_html_generation::class,
         'callback' => \tiny_cursive\hook_callbacks::class . '::before_footer_html_generation',
         'priority' => 0,
-    ],
-    [
+    ], [
         'hook' => \core_course\hook\after_form_definition::class,
         'callback' => \tiny_cursive\hook_callbacks::class . '::after_form_definition',
         'priority' => 0,
