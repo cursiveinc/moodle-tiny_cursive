@@ -49,7 +49,7 @@ export const init = (scoreSetting) => {
                 if (contentElement) {
                     contentElement.innerHTML = html;
                 }
-                return true;
+                return contentElement;
             }).catch(e => window.console.error(e));
         }
         return false;
@@ -90,9 +90,9 @@ export const init = (scoreSetting) => {
                     secondTd.insertAdjacentElement('afterend', emptyTd);
                 }
             } else {
-                const args = { id: userid, modulename: "lesson", cmid: cmid };
+                const args = {id: userid, modulename: "lesson", cmid: cmid};
                 const methodname = 'cursive_get_lesson_submission_data';
-                const com = getData([{ methodname, args }]);
+                const com = getData([{methodname, args}]);
 
                 com[0].done(function(json) {
                     const data = JSON.parse(json);
@@ -130,7 +130,7 @@ export const init = (scoreSetting) => {
                 });
 
                 com[0].fail((error) => {
-                    window.console.error('Error getting cursive config:', error);
+                    window.console.error('Error getting lesson data:', error);
                 });
             }
         }

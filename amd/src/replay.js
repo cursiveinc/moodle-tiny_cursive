@@ -34,6 +34,7 @@ export default class Replay {
         if (element) {
             this.outputElement = element;
         } else {
+            // Debug message that won't shown in UI.
             throw new Error(`Element with id '${elementId}' not found`);
         }
         if (controllerId) {
@@ -54,10 +55,28 @@ export default class Replay {
                     }
                     this.startReplay();
                 } else {
-                    templates.render('tiny_cursive/no_submission').then(html => {
-                        let updatedHtml = html.replace('No Submission', "Something Went Wrong! or File Not Found!");
-                        document.querySelector('.tiny_cursive').innerHTML = updatedHtml;
-                    });
+                   try {
+                    // eslint-disable-next-line
+                    Promise.all([
+                        templates.render('tiny_cursive/no_submission'),
+                        Str.get_string('warningpayload', 'tiny_cursive')
+                    ])
+                    .then(([html, str]) => {
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = html;
+
+                        const newContent = tempDiv.firstElementChild || tempDiv;
+                        newContent.textContent = str;
+
+                        document.querySelectorAll('.tiny_cursive').forEach(element => {
+                            element.innerHTML = '';
+                            element.appendChild(newContent.cloneNode(true));
+                        });
+                    })
+                    .catch(window.console.error);
+                } catch (error) {
+                    window.console.error(error);
+                }
                 }
                 return data;
             })
@@ -69,25 +88,19 @@ export default class Replay {
                     Promise.all([
                         templates.render('tiny_cursive/no_submission'),
                         Str.get_string('warningpayload', 'tiny_cursive')
-                    ])
-                        .then(function(results) {
-                            const html = results[0];
-                            const str = results[1];
-                            const tempDiv = document.createElement('div');
-                            tempDiv.innerHTML = html;
-                            const newElement = tempDiv.firstElementChild || tempDiv;
-                            newElement.textContent = str;
-                            const tinyCursiveElements = document.querySelectorAll('.tiny_cursive');
-                            tinyCursiveElements.forEach(element => {
-                                element.innerHTML = '';
-                                element.appendChild(newElement.cloneNode(true));
-                            });
+                    ]).then(([html, str]) => {
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = html;
 
-                            return true;
-                        })
-                        .catch(function(error) {
-                            window.console.error(error);
+                        const newContent = tempDiv.firstElementChild || tempDiv;
+                        newContent.textContent = str;
+
+                        document.querySelectorAll('.tiny_cursive').forEach(element => {
+                            element.innerHTML = '';
+                            element.appendChild(newContent.cloneNode(true));
                         });
+                    })
+                    .catch(window.console.error);
                 } catch (error) {
                     window.console.error(error);
                 }

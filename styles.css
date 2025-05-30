@@ -256,146 +256,6 @@
     font-size: 1.1rem;
 }
 
-
-.tiny_cursive-chatbox {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 400px;
-    height: 400px;
-    background-color: #fff;
-    font-family: 'Lato', sans-serif;
-
-    -webkit-transition: all 600ms cubic-bezier(0.19, 1, 0.22, 1);
-    transition: all 600ms cubic-bezier(0.19, 1, 0.22, 1);
-    z-index: 999;
-    display: flex;
-
-    -webkit-flex-direction: column;
-    flex-direction: column;
-}
-
-.tiny_cursive-chatbox--tray {
-    bottom: -350px;
-}
-
-.tiny_cursive-chatbox--closed {
-    bottom: -400px;
-}
-
-.tiny_cursive-chatbox .form-control:focus {
-    border-color: #1f2836;
-}
-
-.tiny_cursive-chatbox__title,
-.tiny_cursive-chatbox__body {
-    border-bottom: none;
-}
-
-.tiny_cursive-chatbox__title {
-    min-height: 50px;
-    padding-right: 10px;
-    background-color: #1f2836cc;
-    border-top-left-radius: 4px;
-    border-top-right-radius: 4px;
-    cursor: pointer;
-    display: flex;
-
-    -webkit-align-items: center;
-    align-items: center;
-}
-
-.tiny_cursive-chatbox__title h5 {
-    height: 50px;
-    margin: 0 0 0 15px;
-    line-height: 50px;
-    position: relative;
-    padding-left: 20px;
-
-    -webkit-flex-grow: 1;
-    flex-grow: 1;
-}
-
-.tiny_cursive-chatbox__title h5 a {
-    color: #fff;
-    max-width: 195px;
-    display: inline-block;
-    text-decoration: none;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.tiny_cursive-chatbox__title__tray,
-.tiny_cursive-chatbox__title__close {
-    width: 24px;
-    height: 24px;
-    outline: 0;
-    border: none;
-    background-color: transparent;
-    opacity: 0.5;
-    cursor: pointer;
-
-    -webkit-transition: opacity 200ms;
-    transition: opacity 200ms;
-}
-
-.tiny_cursive-chatbox__title__tray:hover,
-.tiny_cursive-chatbox__title__close:hover {
-    opacity: 1;
-}
-
-.tiny_cursive-chatbox__title__tray span {
-    width: 12px;
-    height: 12px;
-    display: inline-block;
-    border-bottom: 2px solid #fff;
-}
-
-.tiny_cursive-chatbox__title__close svg {
-    vertical-align: middle;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-width: 1.2px;
-}
-
-.tiny_cursive-chatbox__body,
-.tiny_cursive-chatbox__credentials {
-    padding: 15px;
-    border-top: 0;
-    background-color: #fafafa;
-    border-left: 1px solid #ddd;
-    border-right: 1px solid #ddd;
-    -webkit-flex-grow: 1;
-    flex-grow: 1;
-}
-
-
-.tiny_cursive-chatbox--empty {
-    height: 262px;
-}
-
-.tiny_cursive-chatbox--empty.chatbox--tray {
-    bottom: -212px;
-}
-
-.tiny_cursive-chatbox--empty.chatbox--closed {
-    bottom: -262px;
-}
-
-.tiny_cursive-chatbox--empty .chatbox__body,
-.tiny_cursive-chatbox--empty .chatbox__message {
-    display: none;
-}
-
-.tiny_cursive-chatbox--empty .chatbox__credentials {
-    display: block;
-}
-
-.tiny_cursive-chatbox22 .form-control:focus {
-    border-color: #dcdcdc;
-}
-
 .tiny_cursive-comparison-content {
     margin-right: 1rem;
 }
@@ -675,7 +535,38 @@
     font-size: x-large;
 }
 
-.tiny_cursive_quality {
-    position: absolute;
-    top: 0.5%;
+.tiny-cursive-title-container {
+    line-height: 0.5;
+}
+
+.tiny-cursive-title-text {
+    color: dark;
+    /* Use a proper color like #333 or black if 'dark' doesn't work */
+    font-weight: 500;
+    line-height: 0.5;
+}
+
+.tiny-cursive-title-description {
+    color: gray;
+    font-weight: 400;
+    line-height: 1.2;
+    font-size: 14px;
+    display: inline-block;
+    margin-top: 0.5rem;
+}
+
+/* Styles scoped to tiny_cursive plugin modal */
+body.tox-fullscreen .tiny-cursive-modal .modal-dialog {
+    max-width: 500px;
+    max-height: 300px;
+    padding: 1rem;
+}
+
+body.tox-fullscreen .tiny-cursive-modal .modal-dialog .modal-header {
+    height: auto;
+    padding: 1rem;
+}
+
+body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
+    display: none !important;
 }

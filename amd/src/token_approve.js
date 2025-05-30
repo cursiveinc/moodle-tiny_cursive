@@ -47,7 +47,7 @@ define(["core/ajax", "core/str"], function(AJAX, str) {
           promise1[0].done(function(json) {
             var data = JSON.parse(json);
             var messageAlert = "";
-            if (data.status == true) {
+            if (data.status) {
               messageAlert =
                 "<span class='alert alert-success' role='alert'>" +
                 data.message +

@@ -62,7 +62,7 @@ define([
 
     var usersTable = {
         init: function(score_setting, showcomment) {
-            str.get_strings([{ key: "field_require", component: "tiny_cursive" }])
+            str.get_strings([{key: "field_require", component: "tiny_cursive"}])
                 .done(function() {
                     usersTable.appendSubmissionDetail(score_setting, showcomment);
                 });
@@ -89,20 +89,21 @@ define([
 
             document.querySelectorAll('#page-mod-quiz-review .info').forEach(function(element) {
                 let editQuestionLink = element.querySelector('.editquestion a[href*="question/bank/editquestion/question.php"]');
-                let questionid = null;
+                let questionid = 0;
                 if (editQuestionLink) {
                     let editQuestionHref = editQuestionLink.getAttribute('href');
                     questionid = editQuestionHref.match(/&id=(\d+)/)[1];
                 }
 
-                let args = { id: attempt_id, modulename: "quiz", cmid: cmid, questionid: questionid, userid: userid };
+                let args = {id: attempt_id, modulename: "quiz", cmid: cmid, questionid: questionid, userid: userid};
                 let methodname = 'cursive_get_comment_link';
-                let com = AJAX.call([{ methodname, args }]);
+                let com = AJAX.call([{methodname, args}]);
 
                 com[0].done(function(json) {
                     let data = JSON.parse(json);
 
                     if (data.data.filename) {
+                        // eslint-disable-next-line
                         let content = document.querySelector('.que.essay .editquestion a[href*="question/bank/editquestion/question.php"][href*="&id='
                             + data.data.questionid + '"]');
                         if (content) {
@@ -124,12 +125,12 @@ define([
                             }
 
                             let filepath = data.data.filename || '';
-                            let analytic_button_div = document.createElement('div');
-                            analytic_button_div.classList.add('text-center', 'mt-2');
-                            analytic_button_div.appendChild(analyticButton(userid, questionid));
+                            let analyticButtonDiv = document.createElement('div');
+                            analyticButtonDiv.classList.add('text-center', 'mt-2');
+                            analyticButtonDiv.appendChild(analyticButton(userid, questionid));
 
                             if (qtextElement) {
-                                qtextElement.appendChild(analytic_button_div);
+                                qtextElement.appendChild(analyticButtonDiv);
                             }
 
                             let myEvents = new AnalyticEvents();

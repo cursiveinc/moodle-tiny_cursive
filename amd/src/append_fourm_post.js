@@ -20,7 +20,7 @@
  * @author Brain Station 23 <elearning@brainstation-23.com>
  */
 
-define(["core/ajax", "core/str", "core/templates", "./replay", "./analytic_button", "./analytic_events"], function (
+define(["core/ajax", "core/str", "core/templates", "./replay", "./analytic_button", "./analytic_events"], function(
     AJAX,
     str,
     templates,
@@ -29,7 +29,7 @@ define(["core/ajax", "core/str", "core/templates", "./replay", "./analytic_butto
     AnalyticEvents) {
     const replayInstances = {};
     // eslint-disable-next-line camelcase
-    window.video_playback = function (mid, filepath) {
+    window.video_playback = function(mid, filepath) {
         if (filepath !== '') {
             const replay = new Replay(
                 'content' + mid,
@@ -48,24 +48,24 @@ define(["core/ajax", "core/str", "core/templates", "./replay", "./analytic_butto
     };
 
     var usersTable = {
-        init: function (scoreSetting, showcomment) {
+        init: function(scoreSetting, showcomment) {
             str
                 .get_strings([
-                    { key: "field_require", component: "tiny_cursive" },
+                    {key: "field_require", component: "tiny_cursive" },
                 ])
-                .done(function () {
+                .done(function() {
                     usersTable.getToken(scoreSetting, showcomment);
                 });
         },
-        getToken: function (scoreSetting, showcomment) {
+        getToken: function(scoreSetting, showcomment) {
             const articles = document.querySelectorAll('#page-mod-forum-discuss article');
-            articles.forEach(function (entry) {
+            articles.forEach(function(entry) {
                 const replyButton = document.querySelectorAll('a[data-region="post-action"][title="Reply"]');
 
                 if (replyButton.length > 0) {
                     replyButton.forEach(button => {
 
-                        button.addEventListener('click', function (event) {
+                        button.addEventListener('click', function(event) {
                             event.preventDefault();
                             const url = button.getAttribute('href');
                             window.location.href = url;
@@ -76,15 +76,14 @@ define(["core/ajax", "core/str", "core/templates", "./replay", "./analytic_butto
                 const ids = document.getElementById(entry.id).getAttribute('data-post-id');
                 var cmid = M.cfg.contextInstanceId;
 
-                let args = { id: ids, modulename: "forum", cmid: cmid };
+                let args = {id: ids, modulename: "forum", cmid: cmid};
                 let methodname = 'cursive_get_forum_comment_link';
-                let com = AJAX.call([{ methodname, args }]);
-                com[0].done(function (json) {
+                let com = AJAX.call([{methodname, args}]);
+                com[0].done(function(json) {
                     const data = JSON.parse(json);
 
                     let filepath = '';
                     if (data.data.filename) {
-                        filepath = data.data.filename;
                         filepath = data.data.filename;
                     }
 

@@ -106,5 +106,3 @@ $userprofile = tiny_cursive_get_user_profile_data($userid, $courseid);
 
 echo $renderer->tiny_cursive_user_writing_report($attempts, $userprofile, $userid, $page, $limit, $url);
 echo $OUTPUT->footer();
-
-

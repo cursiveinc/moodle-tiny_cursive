@@ -47,7 +47,7 @@ export const init = (scoreSetting) => {
                 if (contentElement) {
                     contentElement.innerHTML = html;
                 }
-                return true;
+                return contentElement;
             }).catch(e => window.console.error(e));
         }
         return false;
@@ -71,9 +71,9 @@ export const init = (scoreSetting) => {
         let filepath = '';
 
         if (userid && resourceId) {
-            let args = { id: userid, resourceid: resourceId, modulename: "oublog", cmid: cmid };
+            let args = {id: userid, resourceid: resourceId, modulename: "oublog", cmid: cmid};
             let methodname = 'cursive_get_oublog_submission_data';
-            let com = getData([{ methodname, args }]);
+            let com = getData([{methodname, args}]);
 
             com[0].done(function(json) {
                 var data = JSON.parse(json);

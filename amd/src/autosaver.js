@@ -20,10 +20,10 @@
  * @author     Brain Station 23 <sales@brainstation-23.com>
  */
 
-import { call } from 'core/ajax';
-import { create } from 'core/modal_factory';
-import { get_string as getString } from 'core/str';
-import { save, cancel, hidden } from 'core/modal_events';
+import {call} from 'core/ajax';
+import {create} from 'core/modal_factory';
+import {get_string as getString} from 'core/str';
+import {save, cancel, hidden} from 'core/modal_events';
 
 export const register = (editor, interval, userId) => {
 
@@ -66,29 +66,42 @@ export const register = (editor, interval, userId) => {
         }
     };
 
-    assignSubmit.addEventListener('click', async function(e) {
-        e.preventDefault();
-        if (filename) {
-            // eslint-disable-next-line
-            syncData().then(() => {
-                assignSubmit.off('click').click();
+    if (document.getElementById('page-mod-assign-editsubmission') ||
+     document.getElementById('page-mod-forum-post') || document.getElementById('page-mod-forum-view')) {
+        if (assignSubmit) {
+            assignSubmit.addEventListener('click', async function(e) {
+                e.preventDefault();
+                if (filename) {
+                    await SyncData().then(() => {
+                        // eslint-disable-next-line no-caller
+                        assignSubmit.removeEventListener('click', arguments.callee);
+                        assignSubmit.click();
+                        // eslint-disable-next-line no-caller
+                        assignSubmit.removeEventListener('click', arguments.callee);
+                    });
+                } else {
+                    // eslint-disable-next-line no-caller
+                    assignSubmit.removeEventListener('click', arguments.callee);
+                    assignSubmit.click();
+                    // eslint-disable-next-line no-caller
+                    assignSubmit.removeEventListener('click', arguments.callee);
+                }
             });
-        } else {
-            assignSubmit.off('click').click();
         }
-    });
+    }
 
-    quizSubmit.addEventListener('click', async function(e) {
-        e.preventDefault();
-        if (filename) {
-            // eslint-disable-next-line
-            syncData().then(() => {
-                quizSubmit.off('click').click();
+    if (document.getElementById('page-mod-quiz-attempt')) {
+        if (quizSubmit) {
+            quizSubmit.addEventListener('click', async () => {
+                if (filename) {
+                    await SyncData().then(() => {
+                        document.querySelector('#responseform').submit();
+                    });
+                }
+
             });
-        } else {
-            quizSubmit.off('click').click();
         }
-    });
+    }
 
     const getModal = (e) => {
 
@@ -100,29 +113,16 @@ export const register = (editor, interval, userId) => {
 
             return create({
                 type: 'SAVE_CANCEL',
-                title: `<div><div style='color:dark;font-weight:500;line-height:0.5'>${title}
-                </div><span style='color: gray;font-weight: 400;line-height: 1.2;font-size: 14px;display: inline-block;margin-top: .5rem;'>${titledes}</span></div>`,
+                title: `<div><div class="tiny-cursive-title-text">${title}</div>
+                <span class="tiny-cursive-title-description ">${titledes}</span></div>`,
                 body: `<textarea  class="form-control inputUrl" value="" id="inputUrl" placeholder="${placeholder}"></textarea>`,
 
                 removeOnClose: true,
             })
                 .done(modal => {
-                    modal.getRoot().append(`
-                         <style>
-                                .close { 
-                                    display: none ! important; 
-                                } 
-                                body.tox-fullscreen .modal-dialog {
-                                    max-width: 500px;
-                                    max-height:300px;
-                                    padding:1rem;
-                                } 
-                                body.tox-fullscreen .modal-dialog .modal-header {
-                                    height: auto;
-                                    padding: 1rem
-                                }
-                         </style>`);
+                    modal.getRoot().addClass('tiny-cursive-modal');
                     modal.show();
+
                     var lastEvent = '';
                     // eslint-disable-next-line
                     modal.getRoot().on(save, function() {
@@ -130,7 +130,7 @@ export const register = (editor, interval, userId) => {
                         if (number === "" || number === null || number === undefined) {
                             editor.execCommand('Undo');
                             // eslint-disable-next-line
-                            alert("You cannot paste text without providing source");
+                           getString('pastewarning', 'tiny_cursive').then(str => alert(str));
                         } else {
                             editor.execCommand('Paste');
                         }
@@ -143,7 +143,7 @@ export const register = (editor, interval, userId) => {
                         let cmid = M.cfg.contextInstanceId;
 
                         // eslint-disable-next-line
-                        if (ur.includes("attempt.php") || ur.includes("forum") || ur.includes("assign") || ur.includes('lesson') || ur.includes("oublog")) { } else {
+                        if (ur.includes("attempt.php") || ur.includes("forum") || ur.includes("assign") || ur.includes("lesson") || ur.includes("oublog")) { } else {
                             return false;
                         }
                         if (ur.includes("forum") && !ur.includes("assign")) {
@@ -207,22 +207,20 @@ export const register = (editor, interval, userId) => {
     };
 
     const sendKeyEvent = (events, eds) => {
-        let ur = ed.srcElement.baseURI;
+        let ur = eds.srcElement.baseURI;
         let parm = new URL(ur);
         ed = eds;
         event = events;
         // eslint-disable-next-line
-        if (ur.includes("attempt.php") || ur.includes("forum") || ur.includes("assign") || ur.includes('lesson') || ur.includes("oublog")) { } else {
+        if (ur.includes("attempt.php") || ur.includes("forum") || ur.includes("assign") || ur.includes("lesson") || ur.includes("oublog")) { } else {
             return false;
         }
         if (ur.includes("forum") && !ur.includes("assign")) {
             resourceId = parm.searchParams.get('edit');
         } else {
-
             resourceId = parm.searchParams.get('attempt');
         }
         if (resourceId === null) {
-
             resourceId = 0;
         }
 
@@ -304,9 +302,16 @@ export const register = (editor, interval, userId) => {
     });
     // eslint-disable-next-line
     editor.on('init', () => {
-
     });
 
+    /**
+     * Synchronizes data from localStorage to server
+     * @async
+     * @function SyncData
+     * @description Retrieves stored keypress data from localStorage and sends it to server
+     * @returns {Promise} Returns response from server if data exists and is successfully sent
+     * @throws {Error} Logs error to console if data submission fails
+     */
     async function SyncData() {
 
         let data = localStorage.getItem(filename);

@@ -69,7 +69,7 @@ define(["core/ajax", "core/str", "core/templates"], function(AJAX, str, template
             },
           },
         ]);
-
+          // eslint-disable-next-line
         promise1[0].done(function(json) {
           var data = JSON.parse(json);
           var context = {
@@ -96,6 +96,7 @@ define(["core/ajax", "core/str", "core/templates"], function(AJAX, str, template
             tabledata: data,
             page: page,
           };
+          // eslint-disable-next-line
           templates.render("tiny_cursive/module_list", context).then(function(html) {
             document.getElementById("id_modulename").innerHTML = html;
             return true;

@@ -26,16 +26,13 @@ define(["core/config", "core/str"], function(mdlcfg, Str) {
             await usersTable.appendTable(page);
         },
         appendTable: async function() {
-            // $(document).ready(async function($) {
-            // Get the first row in the table header
-
             let h_tr = document.querySelector('thead tr');
             let courseid = M.cfg.courseId;
 
-            // Fetch string for stats header
+            // Fetch string for stats header.
             let statsString = await Str.get_string('stats', 'tiny_cursive');
 
-            // Add the stats header if it doesn't already exist
+            // Add the stats header if it doesn't already exist.
             if (!h_tr.querySelector('#stats')) {
                 const sixthHeader = h_tr.querySelector('th:nth-child(7)'); // Adjust index if needed
                 const newHeader = document.createElement('th');
@@ -60,7 +57,6 @@ define(["core/config", "core/str"], function(mdlcfg, Str) {
                     if (userId) {
                         const sixthTd = row.querySelector('td:last-child');
 
-                        // if (!sixthTd.querySelector('i:last-child')) {
                         const color = 'font-size:24px;color:black;text-decoration:none';
                         const link = mdlcfg.wwwroot + "/lib/editor/tiny/plugins/cursive/writing_report.php?userid="
                             + userId + "&courseid=" + courseid;

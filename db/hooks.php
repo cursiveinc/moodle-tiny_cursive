@@ -40,14 +40,4 @@ $callbacks = [
         'callback' => \tiny_cursive\hook_callbacks::class . '::after_form_submission',
         'priority' => 0,
     ],
-    [
-        'hook' => \core_course\hook\after_form_definition::class,
-        'callback' => \tiny_cursive\hook_callbacks::class . '::after_form_definition',
-        'priority' => 0,
-    ],
-    [
-        'hook' => \core_course\hook\after_form_submission::class,
-        'callback' => \tiny_cursive\hook_callbacks::class . '::after_form_submission',
-        'priority' => 0,
-    ],
 ];

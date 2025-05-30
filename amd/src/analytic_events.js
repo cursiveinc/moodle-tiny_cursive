@@ -139,6 +139,8 @@ export default class AnalyticEvents {
                     if (content) {
                         content.innerHTML = nodata.outerHTML;
                     }
+
+                    // Throw error when file ID is missing or no diff content, not visible in ui.
                     throw new Error('Missing file id or Difference Content not received yet');
                 }
 
@@ -152,8 +154,8 @@ export default class AnalyticEvents {
 
                         // Fetch the dynamic strings
                         getStrings([
-                            { key: 'original_text', component: 'tiny_cursive' },
-                            { key: 'editspastesai', component: 'tiny_cursive' }
+                            {key: 'original_text', component: 'tiny_cursive'},
+                            {key: 'editspastesai', component: 'tiny_cursive'}
                         ]).done(strings => {
                             const originalTextString = strings[0];
                             const editsPastesAIString = strings[1];

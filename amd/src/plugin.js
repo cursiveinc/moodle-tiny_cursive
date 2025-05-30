@@ -20,9 +20,9 @@
  * @author     Brain Station 23 <sales@brainstation-23.com>
  */
 
-import { getTinyMCE } from 'editor_tiny/loader';
-import { getPluginMetadata } from 'editor_tiny/utils';
-import { component, pluginName } from './common';
+import {getTinyMCE} from 'editor_tiny/loader';
+import {getPluginMetadata } from 'editor_tiny/utils';
+import {component, pluginName} from './common';
 import * as Autosaver from './autosaver';
 import getConfig from 'core/ajax';
 export default new Promise((resolve, reject) => {
@@ -30,7 +30,9 @@ export default new Promise((resolve, reject) => {
         'page-mod-assign-editsubmission',
         'page-mod-quiz-attempt',
         'page-mod-forum-view',
-        'page-mod-forum-post'];
+        'page-mod-forum-post',
+        'page-mod-lesson-view',
+        'page-mod-oublog-editpost'];
 
     Promise.all([
         getTinyMCE(),

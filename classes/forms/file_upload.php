@@ -28,7 +28,7 @@ use moodleform;
 /**
  * Form for file upload in Tiny cursive plugin.
  *
- * @package   editor_tiny
+ * @package   tiny_cursive
  * @copyright CTI <info@cursivetechnology.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

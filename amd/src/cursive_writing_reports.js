@@ -29,7 +29,7 @@ define(["core/ajax", "core/str", "core/templates", "./replay", './analytic_butto
     AnalyticEvents
 ) {
     const replayInstances = {};
-
+    // eslint-disable-next-line
     window.video_playback = function(mid, filepath) {
         if (filepath !== '') {
             const replay = new Replay(
@@ -41,6 +41,7 @@ define(["core/ajax", "core/str", "core/templates", "./replay", './analytic_butto
             );
             replayInstances[mid] = replay;
         } else {
+             // eslint-disable-next-line
             templates.render('tiny_cursive/no_submission').then(html => {
                 document.getElementById('content' + mid).innerHTML = html;
             }).catch(e => window.console.error(e));
@@ -50,7 +51,7 @@ define(["core/ajax", "core/str", "core/templates", "./replay", './analytic_butto
 
     var usersTable = {
         init: function(page) {
-            str.get_strings([{ key: "field_require", component: "tiny_cursive" }])
+            str.get_strings([{key: "field_require", component: "tiny_cursive"}])
                 .done(function() {
                     usersTable.getusers(page);
                 });
@@ -93,15 +94,13 @@ define(["core/ajax", "core/str", "core/templates", "./replay", './analytic_butto
 
                     AJAX.call([{
                         methodname: 'cursive_get_writing_statistics',
-                        args: {
-                            cmid: cmid,
-                            fileid: mid,
-                        },
+                        args: {cmid: cmid, fileid: mid},
                     }])[0].done(response => {
                         let data = JSON.parse(response.data);
 
                         context.formattime = myEvents.formatedTime(data);
                         context.tabledata = data;
+
                         let authIcon = myEvents.authorshipStatus(data.first_file, data.score, scoreSetting);
                         myEvents.createModal(mid, context, '', authIcon);
                         myEvents.analytics(mid, templates, context, '', replayInstances, authIcon);
@@ -122,9 +121,7 @@ define(["core/ajax", "core/str", "core/templates", "./replay", './analytic_butto
 
                 AJAX.call([{
                     methodname: "cursive_get_user_list",
-                    args: {
-                        courseid: courseid,
-                    },
+                    args: {courseid: courseid},
                 }])[0].done(function(json) {
                     var data = JSON.parse(json);
                     var context = {
@@ -140,9 +137,7 @@ define(["core/ajax", "core/str", "core/templates", "./replay", './analytic_butto
 
                 AJAX.call([{
                     methodname: "cursive_get_module_list",
-                    args: {
-                        courseid: courseid,
-                    },
+                    args: {courseid: courseid},
                 }])[0].done(function(json) {
                     var data = JSON.parse(json);
                     var context = {

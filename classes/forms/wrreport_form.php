@@ -36,7 +36,7 @@ use moodleform;
  */
 class wrreport_form extends moodleform {
     /**
-     * Tiny cursive plugin report form.
+     * Defines the form elements for the cursive plugin report.
      */
     public function definition() {
         // Start dropdowns of course, quiz and user email search field in mform.
@@ -60,7 +60,7 @@ class wrreport_form extends moodleform {
     /**
      * Tiny cursive plugin user report form data.
      *
-     * @return object
+     * @return object|null Form data object or null if no data submitted
      */
     public function get_data() {
         $data = parent::get_data();
@@ -81,10 +81,10 @@ class wrreport_form extends moodleform {
     }
 
     /**
-     * Tiny cursive plugin get all modules.
+     * Get all modules for a given course.
      *
-     * @param integer $courseid
-     * @return array
+     * @param int $courseid The ID of the course to get modules for
+     * @return array Array of module details with module ID as key and name as value
      */
     public function get_modules($courseid) {
         // Get users dropdown.

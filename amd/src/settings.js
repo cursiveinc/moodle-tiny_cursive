@@ -25,7 +25,7 @@ define(["core/str"], function(str) {
     init: function(showcomments, user_role) {
       str
         .get_strings([
-          { key: "tiny_cursive", component: "tiny_cursive" },
+          {key: "tiny_cursive", component: "tiny_cursive"},
         ])
         .done(function() {
           usersTable.getToken(showcomments, user_role);

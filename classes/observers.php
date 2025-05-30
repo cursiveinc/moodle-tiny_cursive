@@ -213,7 +213,6 @@ class observers {
         foreach ($fileids as $file) {
             $DB->delete_records('tiny_cursive_user_writing', ['file_id' => $file->id]);
             $DB->delete_records('tiny_cursive_writing_diff', ['file_id' => $file->id]);
-            $DB->delete_records('tiny_cursive_quality_metrics', ['file_id' => $file->id]);
         }
     }
 

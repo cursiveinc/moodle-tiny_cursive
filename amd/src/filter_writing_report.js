@@ -45,7 +45,7 @@ define(["core/ajax", "core/templates"], function(AJAX, templates) {
             .then(function(html) {
               const filteredUser = document.getElementById("id_username");
               filteredUser.innerHTML = html;
-              return true;
+              return filteredUser;
             })
             .catch(function(error) {
               window.console.error("Error rendering template:", error);

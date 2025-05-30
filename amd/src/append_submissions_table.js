@@ -27,7 +27,7 @@ define([
     "./replay",
     './analytic_button',
     './analytic_events',
-    'core/str'], function (
+    'core/str'], function(
         AJAX,
         str,
         templates,
@@ -37,8 +37,8 @@ define([
         Str
     ) {
     const replayInstances = {};
-
-    window.video_playback = function (mid, filepath) {
+    // eslint-disable-next-line camelcase
+    window.video_playback = function(mid, filepath) {
         if (filepath !== '') {
             const replay = new Replay(
                 'content' + mid,
@@ -57,15 +57,15 @@ define([
     };
 
     var usersTable = {
-        init: function (scoreSetting, showcomment) {
+        init: function(scoreSetting, showcomment) {
             str
                 .get_strings([
                     { key: "confidence_threshold", component: "tiny_cursive" },
-                ]).done(function () {
+                ]).done(function() {
                     usersTable.appendTable(scoreSetting, showcomment);
                 });
         },
-        appendTable: function (scoreSetting) {
+        appendTable: function(scoreSetting) {
             let sub_url = window.location.href;
             let parm = new URL(sub_url);
             let h_tr = document.querySelector('thead tr');
@@ -79,7 +79,7 @@ define([
                         '<i class="icon fa fa-minus fa-fw " aria-hidden="true"></i></div>';
                     h_tr.children[3].insertAdjacentElement('afterend', th);
 
-                    document.querySelectorAll('tbody tr').forEach(function (tr) {
+                    document.querySelectorAll('tbody tr').forEach(function(tr) {
                         let td_user = tr.querySelector("td");
                         let userid = td_user.querySelector("input[type='checkbox']").value;
                         let cmid = parm.searchParams.get('id');
@@ -89,12 +89,12 @@ define([
                         tableCell.appendChild(analyticButton(userid));
                         tr.children[3].insertAdjacentElement('afterend', tableCell);
 
-                        let args = { id: userid, modulename: "assign", cmid: cmid };
+                        let args = {id: userid, modulename: "assign", cmid: cmid};
                         let methodname = 'cursive_user_list_submission_stats';
-                        let com = AJAX.call([{ methodname, args }]);
+                        let com = AJAX.call([{methodname, args}]);
 
                         try {
-                            com[0].done(function (json) {
+                            com[0].done(function(json) {
                                 var data = JSON.parse(json);
                                 var filepath = '';
                                 if (data.res.filename) {
@@ -120,7 +120,7 @@ define([
                                 myEvents.checkDiff(userid, data.res.file_id, '', replayInstances);
                                 myEvents.replyWriting(userid, filepath, '', replayInstances);
 
-                            }).fail(function (error) {
+                            }).fail(function(error) {
                                 window.console.error('AJAX request failed:', error);
                             });
                         } catch (error) {
