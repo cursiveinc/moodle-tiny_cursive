@@ -96,12 +96,12 @@ export default class Replay {
                             Str.get_string('warningpayload', 'tiny_cursive')
                         ])
                             .then(function (results) {
-                               var html = results[0];
-                               var str = results[1];
-                               var newElement = $(html);
-                               newElement.text(str);
-                               $('.tiny_cursive').html(newElement);
-                               return true;
+                                var html = results[0];
+                                var str = results[1];
+                                var newElement = $(html);
+                                newElement.text(str);
+                                $('.tiny_cursive').html(newElement);
+                                return true;
                             })
                             .catch(function (error) {
                                 window.console.error(error);
@@ -120,11 +120,11 @@ export default class Replay {
                         Str.get_string('warningpayload', 'tiny_cursive')
                     ])
                         .then(function (results) {
-                           var html = results[0];
-                           var str = results[1];
-                           var newElement = $(html);
-                           newElement.text(str);
-                           $('.tiny_cursive').html(newElement);
+                            var html = results[0];
+                            var str = results[1];
+                            var newElement = $(html);
+                            newElement.text(str);
+                            $('.tiny_cursive').html(newElement);
                         })
                         .catch(function (error) {
                             window.console.error(error);
@@ -180,10 +180,10 @@ export default class Replay {
 
         // Create play button
         this.playButton = document.createElement('button');
-       this.playButton.classList.add('tiny_cursive_play_button');
+        this.playButton.classList.add('tiny_cursive_play_button');
 
         const playSvg = document.createElement('i');
-        playSvg.className = ''
+        playSvg.className = '';
 
         this.playButton.innerHTML = `<span class="play-icon">${playSvg.outerHTML}</span>`;
         this.playButton.classList.add('tiny_cursive_play_button');
@@ -245,26 +245,9 @@ export default class Replay {
                 speedBtn.classList.add('active');
             }
             speedBtn.dataset.speed = speedValue;
-            // speedBtn.addEventListener('mouseover', () => {
-            //     if (!speedBtn.classList.contains('active')) {
-            //         speedBtn.style.background = '#f1f3f4';
-            //     }
-            // });
-            // speedBtn.addEventListener('mouseout', () => {
-            //     if (!speedBtn.classList.contains('active')) {
-            //         speedBtn.style.background = 'white';
-            //     }
-            // });
+
             speedBtn.addEventListener('click', () => {
-                // document.querySelectorAll('.speed-btn').forEach(btn => {
-                //     btn.style.background = 'white';
-                //     btn.style.color = '#333';
-                //     btn.classList.remove('active');
-                // });
-                // speedBtn.style.background = '#4285f4';
-                // speedBtn.style.color = 'white';
-                // speedBtn.classList.add('active');
-                 document.querySelectorAll('.tiny_cursive_speed_btn').forEach(btn => {
+                document.querySelectorAll('.tiny_cursive_speed_btn').forEach(btn => {
                     btn.classList.remove('active');
                 });
                 speedBtn.classList.add('active');
@@ -290,7 +273,7 @@ export default class Replay {
         this.timeDisplay = document.createElement('div');
         this.timeDisplay.classList.add('tiny_cursive_time_display');
         this.timeDisplay.textContent = '00:00 / 00:00';
-        
+
         topRow.appendChild(this.timeDisplay);
 
         // Create Paste Events Panel toggle button
@@ -326,6 +309,7 @@ export default class Replay {
         // Create Paste Events Panel
         const pasteEventsPanel = document.createElement('div');
         pasteEventsPanel.classList.add('tiny_cursive_paste_events_panel', 'paste-events-panel');
+        pasteEventsPanel.style.display = 'none';
 
         this.populatePasteEventsPanel(pasteEventsPanel);
 
@@ -350,15 +334,19 @@ export default class Replay {
         this.pasteTimestamps = [];
         let controlPressed = false;
         let pasteCount = 0;
+        let enterCount = 0;
 
         // Check for finding Control+V combinations
         for (let i = 0; i < this.logData.length; i++) {
             const event = this.logData[i];
             if (event.event && event.event.toLowerCase() === "keydown") {
+                if (event.event === "keyDown" && event.key === "Enter") {
+                    enterCount += 2;
+                }
                 if (event.key === "Control") {
                     controlPressed = true;
                 } else if (event.key === "v" && controlPressed) {
-                    const pastePosition = event.rePosition;
+                    const pastePosition = event.rePosition + enterCount;
                     const timestamp = event.normalizedTime || 0;
 
                     let pasteEndPosition = pastePosition;
@@ -366,7 +354,7 @@ export default class Replay {
                     let j = i + 1;
 
                     while (j < this.logData.length &&
-                            ((this.logData[j].key === "v" && this.logData[j].event === "keyUp") ||
+                        ((this.logData[j].key === "v" && this.logData[j].event === "keyUp") ||
                             (this.logData[j].key === "Control" && this.logData[j].event === "keyUp") ||
                             (this.logData[j].key === "left" && this.logData[j].event === "mouseUp") ||
                             (this.logData[j].key === "left" && this.logData[j].event === "mouseDown") ||
@@ -377,10 +365,12 @@ export default class Replay {
 
                     if (j < this.logData.length && this.logData[j].rePosition !== undefined) {
                         pasteEndPosition = this.logData[j].rePosition;
+                        pasteEndPosition += enterCount;
                         pasteLength = pasteEndPosition - pastePosition;
                     } else {
                         if (this.originalContent && pastePosition < this.originalContent.length) {
                             pasteEndPosition = this.originalContent.length;
+                            pasteEndPosition += enterCount;
                             pasteLength = pasteEndPosition - pastePosition;
                         }
                     }
@@ -451,14 +441,14 @@ export default class Replay {
         }
 
         const carouselContainer = document.createElement('div');
-        carouselContainer.classList.add('tiny_cursive_paste_events_carousel', 'paste-events-carousel')
+        carouselContainer.classList.add('tiny_cursive_paste_events_carousel', 'paste-events-carousel');
 
         const navigationRow = document.createElement('div');
-        navigationRow.classList.add('paste-events-navigation', 'tiny_cursive_navigation_row')
+        navigationRow.classList.add('paste-events-navigation', 'tiny_cursive_navigation_row');
 
 
         const counterDisplay = document.createElement('div');
-        counterDisplay.classList.add('paste-events-counter', 'tiny_cursive_counter_display')
+        counterDisplay.classList.add('paste-events-counter', 'tiny_cursive_counter_display');
         counterDisplay.textContent = 'Paste Events';
 
 
