@@ -14,7 +14,7 @@ Ultimately, we believe in human contribution as captured through the writing pro
 If you have questions, comments, or would like to request a trial API key, please reach out to us at contact@cursivetechnology.com
 
 
-## Instatllation
+## Installation
 
 ### Install by downloading the ZIP file
 - Install by downloading the ZIP file from the Moodle plugins directory
