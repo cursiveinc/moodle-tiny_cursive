@@ -21,7 +21,7 @@
  * @copyright 2024, CTI <info@cursivetechnology.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
+use tiny_cursive\tiny_cursive_constants as MODULES;
 /**
  * Given an array with a file path, it returns the itemid and the filepath for the defined filearea.
  *
@@ -124,6 +124,69 @@ function tiny_cursive_extend_navigation(global_navigation $navigation) {
     }
 }
 
+/**
+ * Callback to add Cursive settings to a course module form.
+ *
+ * This function adds a Cursive configuration section to supported module forms,
+ * allowing users to enable/disable Cursive functionality for that specific module instance.
+ *
+ * @param moodleform $formwrapper The form wrapper containing the module form
+ * @param MoodleQuickForm $mform The actual form object to add elements to
+ * @return void
+ */
+function tiny_cursive_coursemodule_standard_elements($formwrapper, $mform) {
+
+    $cursive = tiny_cursive_status($formwrapper->get_current()->course);
+    if (!$cursive) {
+        return;
+    }
+
+    $module    = $formwrapper->get_current()->modulename;
+    $courseid  = $formwrapper->get_current()->course;
+    $instance  = $formwrapper->get_current()->instance;
+    $key       = "CUR$courseid$instance";
+    $state     = get_config('tiny_cursive', $key);
+
+    // MODULES::NAMES is cursive supported plugin list defined in tiny_cursive\constant class.
+    if (in_array($module,MODULES::NAMES)) {
+        $mform->addElement('header', 'cursiveheader', 'Cursive', 'local_callbacks');
+        $options = [
+            0 => get_string('enable', 'tiny_cursive'),
+            1 => get_string('disable', 'tiny_cursive'),
+        ];
+        $mform->addElement('select', 'cursive', get_string('cursive_status', 'tiny_cursive'), $options);
+        $mform->setType('cursive', PARAM_INT);
+        $mform->setdefault('cursive', $state);
+    }
+}
+
+/**
+ * Handles post-actions for course module editing, specifically for Cursive settings.
+ *
+ * This function is called after a course module form is submitted. It saves the Cursive
+ * state configuration for supported modules.
+ *
+ * @param stdClass $formdata The form data containing module settings
+ * @param stdClass $course The course object
+ * @return stdClass The modified form data
+ */
+function tiny_cursive_coursemodule_edit_post_actions($formdata,$course) {
+
+    $cursive = tiny_cursive_status($course->id);
+    if (!$cursive) {
+        return $formdata;
+    }
+
+    // MODULES::NAMES is cursive supported plugin list defined in tiny_cursive\constant class.
+    if (in_array($formdata->name,MODULES::NAMES)) {
+        $state    = $formdata->cursive;
+        $courseid = $course->id;
+        $instance = $formdata->instance;
+        $key      = "CUR$courseid$instance";
+        set_config($key,$state, 'tiny_cursive');
+    }
+    return $formdata;
+}
 
 /**
  * Add a node to the myprofile navigation tree for writing reports.
