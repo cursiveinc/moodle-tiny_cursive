@@ -75,7 +75,7 @@ Currently supported Moodle activity modules:
 >**Note:** Users who want to use and get Cursive support in the **OU Blog** plugin must install the support plugin. Check for more updates about it at https://cursivetechnology.com.
 
 ## License
-#### 2023 Cursive Technology, Inc.
+#### 2025 Cursive Technology, Inc.
 
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 
