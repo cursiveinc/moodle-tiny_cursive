@@ -16,7 +16,7 @@
 
 namespace tiny_cursive;
 /**
- * Class tiny_cursive_constants
+ * Class constants
  *
  * @package    tiny_cursive
  * @copyright  2025 Cursive Technology, Inc. <info@cursivetechnology.com>

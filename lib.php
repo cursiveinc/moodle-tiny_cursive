@@ -21,7 +21,7 @@
  * @copyright 2024, CTI <info@cursivetechnology.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-use tiny_cursive\tiny_cursive_constants as MODULES;
+use tiny_cursive\constants as MODULES;
 /**
  * Given an array with a file path, it returns the itemid and the filepath for the defined filearea.
  *
@@ -40,7 +40,7 @@ function tiny_cursive_get_path_from_pluginfile(array $args): array {
     }
 
     return [
-        'itemid' => 0,
+        'itemid'   => 0,
         'filepath' => $filepath,
     ];
 }
@@ -68,7 +68,7 @@ function tiny_cursive_pluginfile($context, $filearea, $args, $forcedownload, arr
         $filepath = '/' . implode('/', $args) . '/';
     }
 
-    $fs = get_file_storage();
+    $fs   = get_file_storage();
 
     $file = $fs->get_file($context->id, 'tiny_cursive', $filearea, $itemid, $filepath, $filename);
     if (!$file) {
@@ -91,12 +91,12 @@ function tiny_cursive_extend_navigation_course(\navigation_node $navigation, \st
     global $CFG;
     require_once(__DIR__ . "/locallib.php");
 
-    $url = new moodle_url($CFG->wwwroot . '/lib/editor/tiny/plugins/cursive/tiny_cursive_report.php', ['courseid' => $course->id]);
-    $cmid = tiny_cursive_get_cmid($course->id);
+    $url     = new moodle_url($CFG->wwwroot . '/lib/editor/tiny/plugins/cursive/tiny_cursive_report.php', ['courseid' => $course->id]);
+    $cmid    = tiny_cursive_get_cmid($course->id);
     $cursive = tiny_cursive_status($course->id);
     if ($cmid && $cursive) {
         $context = context_module::instance($cmid);
-        $hascap = has_capability("tiny/cursive:editsettings", $context);
+        $hascap  = has_capability("tiny/cursive:editsettings", $context);
         if ($hascap) {
             $navigation->add(
                 get_string('wractivityreport', 'tiny_cursive'),
@@ -136,7 +136,7 @@ function tiny_cursive_extend_navigation(global_navigation $navigation) {
  */
 function tiny_cursive_coursemodule_standard_elements($formwrapper, $mform) {
 
-    $cursive = tiny_cursive_status($formwrapper->get_current()->course);
+    $cursive   = tiny_cursive_status($formwrapper->get_current()->course);
     if (!$cursive) {
         return;
     }
@@ -216,7 +216,7 @@ function tiny_cursive_myprofile_navigation(core_user\output\myprofile\tree $tree
         return;
     }
 
-    $url = new moodle_url(
+    $url  = new moodle_url(
         '/lib/editor/tiny/plugins/cursive/my_writing_report.php',
         ['id' => $user->id, 'course' => isset($course->id) ? $course->id : "", 'mode' => 'cursive']
     );
@@ -238,16 +238,18 @@ function tiny_cursive_myprofile_navigation(core_user\output\myprofile\tree $tree
 function tiny_cursive_upload_multipart_record($filerecord, $filenamewithfullpath, $wstoken, $answertext) {
     global $CFG;
     require_once($CFG->dirroot . '/lib/filelib.php');
+
     $moodleurl = get_config('tiny_cursive', 'host_url');
-    $result = '';
+    $result    = '';
+
     try {
-        $token = get_config('tiny_cursive', 'secretkey');
-        $remoteurl = get_config('tiny_cursive', 'python_server') . "/upload_file";
+        $token      = get_config('tiny_cursive', 'secretkey');
+        $remoteurl  = get_config('tiny_cursive', 'python_server') . "/upload_file";
         $filetosend = '';
 
         $tempfilepath = tempnam(sys_get_temp_dir(), 'upload');
 
-        $jsoncontent = json_decode($filerecord->content, true);
+        $jsoncontent  = json_decode($filerecord->content, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
             throw new moodle_exception('invalidjson', 'tiny_cursive');
@@ -263,7 +265,7 @@ function tiny_cursive_upload_multipart_record($filerecord, $filenamewithfullpath
 
         echo $remoteurl;
 
-        $curl = new curl();
+        $curl     = new curl();
         $postdata = [
             'file' => $filetosend,
             'resource_id' => $filerecord->id,
@@ -314,7 +316,7 @@ function tiny_cursive_upload_multipart_record($filerecord, $filenamewithfullpath
  * @throws coding_exception
  */
 function tiny_cursive_file_urlcreate($context, $user) {
-    $fs = get_file_storage();
+    $fs    = get_file_storage();
     $files = $fs->get_area_files($context->id, 'tiny_cursive', 'attachment', $user->fileid, 'sortorder', false);
 
     foreach ($files as $file) {
@@ -365,7 +367,7 @@ function tiny_cursive_status($courseid = 0) {
 function cursive_approve_token($token, $moodleurl, $remoteurl) {
     try {
         // Use Moodle's cURL library.
-        $curl = new curl();
+        $curl    = new curl();
         $options = [
             'CURLOPT_RETURNTRANSFER' => true,
             'CURLOPT_HTTPHEADER' => [
