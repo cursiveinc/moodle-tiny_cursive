@@ -279,24 +279,28 @@ export const register = (editor, interval, userId, hasApiKey) => {
 
     };
     editor.on('keyUp', (editor) => {
+        customTooltip();
         sendKeyEvent("keyUp", editor);
     });
     editor.on('Paste', async(e) => {
+        customTooltip();
         if (isStudent && intervention) {
             getModal(e);
         }
     });
     editor.on('Redo', async(e) => {
+        customTooltip();
         if (isStudent && intervention) {
             getModal(e);
         }
     });
     editor.on('keyDown', (editor) => {
         sendKeyEvent("keyDown", editor);
+        customTooltip();
     });
     // eslint-disable-next-line
     editor.on('init', () => {
-
+        customTooltip();
     });
     editor.on('SkinLoaded', () => {
 
@@ -345,6 +349,9 @@ export const register = (editor, interval, userId, hasApiKey) => {
      * @function customTooltip
      */
     function customTooltip() {
+        if (document.querySelector('#tiny_cursive_StateIcon')) {
+            return;
+        }
         try {
             const tooltipText = getTooltipText();
             const menubarDiv = document.querySelector('div[role="menubar"].tox-menubar');
