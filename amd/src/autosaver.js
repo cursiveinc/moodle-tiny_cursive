@@ -300,12 +300,21 @@ export const register = (editor, interval, userId, hasApiKey) => {
     });
     // eslint-disable-next-line
     editor.on('init', () => {
+        console.log('Init');
         customTooltip();
     });
     editor.on('SkinLoaded', () => {
-
+        console.log('SkinLoaded');
         customTooltip();
     });
+    editor.on('LoadContent', () => {
+        console.log('LoadContent');
+        customTooltip();
+    });
+    editor.on('PreInit', () => {
+        console.log('PreInit');
+        customTooltip();
+    })
 
     /**
      * Synchronizes data from localStorage to server
