@@ -42,7 +42,6 @@ export default class Replay {
         this.totalDuration = 0;
         this.usercomments = [];
         this.pasteTimestamps = [];
-        this.originalContent = "";
         this.isPasteEvent = false;
 
         const element = document.getElementById(elementId);
@@ -59,7 +58,6 @@ export default class Replay {
                 if (data.status) {
                     var val = JSON.parse(data.data);
                     this.logData = val;
-                    this.originalContent = data.original;
 
                     if (data.comments) {
                         var comments = JSON.parse(data.comments);
@@ -290,7 +288,7 @@ export default class Replay {
         pasteEventsText.textContent = 'Paste Events';
 
         const pasteEventCount = document.createElement('span');
-        pasteEventCount.textContent = `(${this.pasteTimestamps.length})`;
+        pasteEventCount.textContent = `(${this.usercomments.length})`;
         pasteEventCount.className = 'paste-event-count';
         pasteEventCount.style.marginLeft = '2px';
 
@@ -334,77 +332,26 @@ export default class Replay {
         this.pasteTimestamps = [];
         let controlPressed = false;
         let pasteCount = 0;
-        let enterCount = 0;
 
         // Check for finding Control+V combinations
         for (let i = 0; i < this.logData.length; i++) {
             const event = this.logData[i];
             if (event.event && event.event.toLowerCase() === "keydown") {
-                if (event.event === "keyDown" && event.key === "Enter") {
-                    enterCount += 2;
-                }
                 if (event.key === "Control") {
                     controlPressed = true;
                 } else if (event.key === "v" && controlPressed) {
-                    const pastePosition = event.rePosition + enterCount;
                     const timestamp = event.normalizedTime || 0;
 
-                    let pasteEndPosition = pastePosition;
-                    let pasteLength = 0;
-                    let j = i + 1;
-
-                    while (j < this.logData.length &&
-                        ((this.logData[j].key === "v" && this.logData[j].event === "keyUp") ||
-                            (this.logData[j].key === "Control" && this.logData[j].event === "keyUp") ||
-                            (this.logData[j].key === "left" && this.logData[j].event === "mouseUp") ||
-                            (this.logData[j].key === "left" && this.logData[j].event === "mouseDown") ||
-                            (this.logData[j].key === "right" && this.logData[j].event === "mouseUp") ||
-                            (this.logData[j].key === "right" && this.logData[j].event === "mouseDown"))) {
-                        j++;
-                    }
-
-                    if (j < this.logData.length && this.logData[j].rePosition !== undefined) {
-                        pasteEndPosition = this.logData[j].rePosition;
-                        pasteEndPosition += enterCount;
-                        pasteLength = pasteEndPosition - pastePosition;
-                    } else {
-                        if (this.originalContent && pastePosition < this.originalContent.length) {
-                            pasteEndPosition = this.originalContent.length;
-                            pasteEndPosition += enterCount;
-                            pasteLength = pasteEndPosition - pastePosition;
-                        }
-                    }
-
-                    let FinalPasteLength = pasteLength;
-                    let lastrePosition = pasteEndPosition;
-                    for (let k = j; k < this.logData.length; k++) {
-                        if (this.logData[k].rePosition === undefined) {
-                            continue;
-                        }
-                        if (this.logData[k].event === "keyDown" && this.logData[k].key === "Backspace") {
-                            FinalPasteLength--;
-                            k++;
-                        } else if (this.logData[k].rePosition > lastrePosition) {
-                            break;
-                        } else {
-                            lastrePosition = this.logData[k].rePosition;
-                        }
-                    }
-
-                    let pastedText = "";
-                    if (FinalPasteLength > 0 && this.originalContent) {
-                        const start = Math.min(pastePosition, this.originalContent.length);
-                        const end = Math.min(pastePosition + FinalPasteLength, this.originalContent.length);
-                        pastedText = this.originalContent.substring(start, end);
+                    let userComment = "";
+                    if (this.usercomments && this.usercomments[pasteCount]) {
+                        userComment = this.usercomments[pasteCount];
                     }
 
                     this.pasteTimestamps.push({
                         index: pasteCount,
                         time: timestamp,
                         formattedTime: this.formatTime(timestamp),
-                        pastedText: pastedText,
-                        startPosition: pastePosition,
-                        endPosition: pastePosition + FinalPasteLength,
+                        pastedText: userComment,
                         timestamp: timestamp
                     });
                     pasteCount++;
@@ -414,6 +361,29 @@ export default class Replay {
                     controlPressed = false;
                 }
             }
+        }
+
+        if (this.usercomments.length > 0 && this.pasteTimestamps.length === 0) {
+            for (let i = 0; i < this.usercomments.length; i++) {
+                this.pasteTimestamps.push({
+                    index: i,
+                    time: 0,
+                    formattedTime: this.formatTime(0),
+                    pastedText: this.usercomments[i],
+                    timestamp: 0
+                });
+            }
+        }
+
+        while (this.pasteTimestamps.length < this.usercomments.length) {
+            const lastIndex = this.pasteTimestamps.length;
+            this.pasteTimestamps.push({
+                index: lastIndex,
+                time: 0,
+                formattedTime: this.formatTime(0),
+                pastedText: this.usercomments[lastIndex],
+                timestamp: 0
+            });
         }
 
         if (this.pasteEventsPanel) {
@@ -446,11 +416,9 @@ export default class Replay {
         const navigationRow = document.createElement('div');
         navigationRow.classList.add('paste-events-navigation', 'tiny_cursive_navigation_row');
 
-
         const counterDisplay = document.createElement('div');
         counterDisplay.classList.add('paste-events-counter', 'tiny_cursive_counter_display');
         counterDisplay.textContent = 'Paste Events';
-
 
         const navButtons = document.createElement('div');
         navButtons.classList.add('tiny_cursive_nav_buttons', 'tiny_cursive_nav_buttons');
