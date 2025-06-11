@@ -63,8 +63,9 @@ export default class Replay {
                     .then(function(results) {
                         var html = results[0];
                         var str = results[1];
-                        var updatedHtml = html.replace('No Submission', str);
-                        $('.tiny_cursive').html(updatedHtml);
+                        var newElement = $(html);
+                        newElement.text(str);
+                        $('.tiny_cursive').html(newElement);
                         return true;
                     })
                     .catch(function(error) {
@@ -87,8 +88,9 @@ export default class Replay {
                 .then(function(results) {
                     var html = results[0];
                     var str = results[1];
-                    var updatedHtml = html.replace('No Submission', str);
-                    $('.tiny_cursive').html(updatedHtml);
+                    var newElement = $(html);
+                    newElement.text(str);
+                    $('.tiny_cursive').html(newElement);
                     return true;
                 })
                 .catch(function(error) {
@@ -233,7 +235,9 @@ export default class Replay {
             default:
                 return !["Shift", "Ctrl", "Alt", "ArrowDown", "ArrowUp", "Control", "ArrowRight",
                     "ArrowLeft", "Meta", "CapsLock", "Tab", "Escape", "Delete", "PageUp", "PageDown",
-                    "Insert", "Home", "End", "NumLock"]
+                    "Insert", "Home", "End", "NumLock", "Insert", "Home", "End", "NumLock", "AudioVolumeUp",
+                    "AudioVolumeDown", "MediaPlayPause", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9",
+                    "F10", "F11", "F12", "PrintScreen", "UnIdentified"]
                     .includes(key) ? textOutput + key : textOutput;
         }
     }

@@ -53,14 +53,14 @@
     border-bottom: 2px solid #dee2e6;
 }
 
-.tiny_cursive_table tbody + tbody {
+.tiny_cursive_table tbody+tbody {
     border-top: 2px solid #dee2e6;
 }
 
 .tiny_cursive_table-borderless th,
 .tiny_cursive_table-borderless td,
 .tiny_cursive_table-borderless thead th,
-.tiny_cursive_table-borderless tbody + tbody {
+.tiny_cursive_table-borderless tbody+tbody {
     border: 0;
 }
 
@@ -673,4 +673,9 @@
     color: black;
     padding-left: 25px;
     font-size: x-large;
+}
+
+.tiny_cursive_quality {
+    position: absolute;
+    top: 0.5%;
 }

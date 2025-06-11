@@ -31,15 +31,13 @@ require_once(__DIR__ . '/locallib.php');
 global $CFG, $DB, $PAGE, $OUTPUT;
 
 require_login(); // Teacher and admin can see this page.
-$courseid = required_param('courseid',  PARAM_INT);
+$courseid = required_param('courseid', PARAM_INT);
 $userid   = optional_param('userid', 0, PARAM_INT);
 $moduleid = optional_param('moduleid', 0, PARAM_INT);
 $orderby  = optional_param('orderby', 'id', PARAM_TEXT);
-$order    = optional_param('order', 'ASC', PARAM_TEXT);
 $page     = optional_param('page', 0, PARAM_INT);
 
 $limit    = 5;
-$cmid     = 0;
 $perpage  = $page * $limit;
 
 $params   = [
@@ -99,7 +97,6 @@ if ($formdata = $mform->get_data()) {
         $formdata->courseid,
         $formdata->moduleid,
         $orderby,
-        $order,
         $page,
         $limit
     );
@@ -119,7 +116,6 @@ if ($formdata = $mform->get_data()) {
         $courseid,
         $moduleid,
         $orderby,
-        $order,
         $page,
         $limit
     );

@@ -135,18 +135,6 @@ class observers {
     }
 
     /**
-     * Tiny cursive plugin oublog created observer.
-     *
-     * @param \mod_oublog\event\post_created $event The event object
-     * @return void
-     * @throws \dml_exception
-     */
-    public static function oublog_created(\mod_oublog\event\post_created $event) {
-        self::update_comment($event);
-        self::update_cursive_files($event);
-    }
-
-    /**
      * Tiny cursive plugin post updated observer.
      *
      * @param \mod_forum\event\post_updated $event
@@ -208,7 +196,7 @@ class observers {
      * @throws \dml_exception
      */
     public static function reset_tracking_data(\core\event\course_reset_ended $event) {
-        global $DB, $CFG;
+        global $DB;
 
         // Get the course ID from the event data.
         $data     = (object) $event->get_data();
@@ -236,8 +224,8 @@ class observers {
      * @return string The module name extracted from the component
      */
     public static function get_modules_name($eventdata) {
-        // Use array destructuring to get module name directly from component
+        // Use array destructuring to get module name directly from component.
         [, $modulename] = explode('_', $eventdata['component'], 2);
         return $modulename;
-    } 
+    }
 }
