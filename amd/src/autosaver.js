@@ -303,8 +303,8 @@ export const register = (editor, interval, userId, hasApiKey) => {
         console.log('Init');
         customTooltip();
     });
-    editor.on('SkinLoaded', () => {
-        console.log('SkinLoaded');
+    editor.on('SetContent', () => {
+        console.log('SetContent');
         customTooltip();
     });
     editor.on('LoadContent', () => {
