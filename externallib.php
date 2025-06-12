@@ -248,7 +248,7 @@ class cursive_json_func_data extends external_api {
             $DB->insert_record('tiny_cursive_comments', $dataobject);
             return true;
         } catch (moodle_exception $e) {
-            echo $e;
+            debugging($e->getMessage());
             return false;
         }
     }
@@ -439,7 +439,7 @@ class cursive_json_func_data extends external_api {
                 return json_encode(['usercomment' => $usercomment, 'data' => $data]);
 
             } else {
-                return json_encode(['usercomment' => 'comments', 'data' => $data]);
+                return json_encode(['usercomment' => get_string('comments', 'tiny_cursive'), 'data' => $data]);
             }
         } else {
             $conditions = ["resourceid" => $params['id']];
@@ -461,16 +461,11 @@ class cursive_json_func_data extends external_api {
             ]);
 
             if (!isset($data->filename)) {
-                $sql = 'SELECT filename from {tiny_cursive_files}
-                         WHERE resourceid = :resourceid
-                               AND cmid = :cmid
-                               AND modulename = :modulename';
-                $filename = $DB->get_record_sql($sql, [
-                    'resourceid' => $params['id'],
-                    'cmid' => $params['cmid'],
-                    'modulename' => $params['modulename'],
-                ]);
-
+                $conditions = [
+                            'resourceid' => $params['id'],
+                            'cmid'       => $params['cmid'],
+                            'modulename' => $params['modulename']];
+                $filename = $DB->get_record('tiny_cursive_files', $conditions, 'filename');
                 $data['filename'] = $filename->filename;
 
             }
@@ -483,7 +478,7 @@ class cursive_json_func_data extends external_api {
                 return json_encode(['usercomment' => $usercomment, 'data' => $data]);
 
             } else {
-                return json_encode(['usercomment' => 'comments', 'data' => $data]);
+                return json_encode(['usercomment' => get_string('comments', 'tiny_cursive'), 'data' => $data]);
             }
         }
     }
@@ -607,7 +602,7 @@ class cursive_json_func_data extends external_api {
             }
             return json_encode(['usercomment' => $usercomment, 'data' => $data]);
         } else {
-            return json_encode(['usercomment' => 'comments', 'data' => $data]);
+            return json_encode(['usercomment' => get_string('comments', 'tiny_cursive'), 'data' => $data]);
         }
 
     }
@@ -745,7 +740,7 @@ class cursive_json_func_data extends external_api {
             return json_encode(['usercomment' => $usercomment, 'data' => $data]);
 
         } else {
-            return json_encode(['usercomment' => 'comments', 'data' => $data]);
+            return json_encode(['usercomment' => get_string('comments', 'tiny_cursive'), 'data' => $data]);
         }
     }
 
@@ -814,7 +809,7 @@ class cursive_json_func_data extends external_api {
             return json_encode($usercomment);
 
         } else {
-            return json_encode([['usercomment' => 'comments']]);
+            return json_encode([['usercomment' => get_string('comments', 'tiny_cursive')]]);
         }
     }
 
@@ -936,7 +931,7 @@ class cursive_json_func_data extends external_api {
             return json_encode(['usercomment' => $usercomment, 'data' => $data]);
 
         } else {
-            return json_encode(['usercomment' => 'comments', 'data' => $data]);
+            return json_encode(['usercomment' => get_string('comments', 'tiny_cursive'), 'data' => $data]);
         }
     }
 
@@ -1254,7 +1249,7 @@ class cursive_json_func_data extends external_api {
 
             if ($content === false) {
                 $data->status = false;
-                $content = 'File not found! or Failed to read file';
+                $content = get_string('filenotfoundor', 'tiny_cursive');
             }
 
             $data->data = $content;
@@ -1346,7 +1341,8 @@ class cursive_json_func_data extends external_api {
         $params = ['fileid' => $vparams['fileid']];
         $rec = $DB->get_record_sql($sql, $params);
         if (isset($rec->effort_ratio)) {
-            $rec->effort_ratio = intval(floatval($rec->effort_ratio) * 100);
+
+            $rec->effort_ratio = round($rec->effort_ratio * 100, 2);
         }
 
         $sql = 'SELECT id AS fileid
@@ -1507,7 +1503,7 @@ class cursive_json_func_data extends external_api {
                                                 AND CC.userid = CF.userid
                                                 AND CC.questionid = CF.questionid
                  WHERE WD.file_id = :fileid
-              GROUP BY WD.id, CF.cmid, CF.resourceid, CF.modulename";
+              GROUP BY WD.id, CF.userid, CF.questionid, CF.cmid, CF.resourceid, CF.modulename";
 
         $params = ['fileid' => $vparams['fileid']];
         $data = $DB->get_record_sql($sql, $params);
@@ -2231,6 +2227,7 @@ class cursive_json_func_data extends external_api {
      * Gets submission data for a oublog
      *
      * @param int $id The oublog ID
+     * @param int $resourceid The post ID
      * @param string $modulename The name of the module
      * @param int $cmid The course module ID
      * @return string JSON encoded submission data
@@ -2250,7 +2247,8 @@ class cursive_json_func_data extends external_api {
             self::validate_context($context);
             require_capability("tiny/cursive:view", $context);
 
-            $rec = tiny_cursive_get_user_submissions_data($params['id'], $params['modulename'], $params['cmid'], 0,$params['resourceid']);
+            $rec = tiny_cursive_get_user_submissions_data($params['id'], $params['modulename'],
+             $params['cmid'], 0, $params['resourceid']);
 
             return json_encode($rec);
     }

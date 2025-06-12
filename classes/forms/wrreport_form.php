@@ -47,10 +47,10 @@ class wrreport_form extends moodleform {
         $mform->addElement('course', 'coursename', get_string('coursename', 'tiny_cursive'), $options);
         $mform->addRule('coursename', null, 'required', null, 'client');
         $options = [
-            'id' => 'ID',
-            'name' => 'Name',
-            'email' => 'Email',
-            'date' => 'Date',
+            'id'    => get_string('uid', 'tiny_cursive'),
+            'name'  => get_string('name', "tiny_cursive"),
+            'email' => get_string('email', 'tiny_cursive'),
+            'date'  => get_string('date', 'tiny_cursive'),
         ];
         $mform->addElement('select', 'orderby', get_string('orderby', 'tiny_cursive'), $options, $attributes);
         $mform->setType('orderby', PARAM_TEXT);

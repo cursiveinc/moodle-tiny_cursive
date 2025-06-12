@@ -46,14 +46,17 @@ function tiny_cursive_get_path_from_pluginfile(array $args): array {
 }
 
 /**
- * Serves the tiny_cursive files.
+ * Serves files from the tiny_cursive plugin's file storage area.
  *
- * @param stdClass $context context object
- * @param string $filearea file area
- * @param array $args extra arguments
- * @param bool $forcedownload whether or not force download
- * @param array $options additional options affecting the file serving
- * @package  mod_tiny_cursive
+ * This function handles file serving requests for files stored in the tiny_cursive
+ * plugin's file area. It retrieves and sends the requested file to the user.
+ *
+ * @param stdClass $context The context object for file access permissions
+ * @param string $filearea The file area identifier within tiny_cursive
+ * @param array $args Array of path segments identifying the file
+ * @param bool $forcedownload If true, forces file download rather than display
+ * @param array $options Additional options for file serving (e.g. caching, filters)
+ * @return void|bool Returns false if file not found, void otherwise
  */
 function tiny_cursive_pluginfile($context, $filearea, $args, $forcedownload, array $options = []) {
     $itemid = array_shift($args);
@@ -75,12 +78,14 @@ function tiny_cursive_pluginfile($context, $filearea, $args, $forcedownload, arr
 }
 
 /**
- * tiny_cursive_extend_navigation_course
+ * Extends the course navigation with a link to the Cursive writing report.
+ * This function adds a navigation node to access writing reports if the user has appropriate permissions
+ * and Cursive is enabled for the course.
  *
- * @param navigation_node $navigation
- * @param stdClass $course
+ * @param navigation_node $navigation The navigation node to extend
+ * @param stdClass $course The course object containing the course details
  * @return void
- * @throws moodle_exception
+ * @throws moodle_exception If there is an error creating the navigation node
  */
 function tiny_cursive_extend_navigation_course(\navigation_node $navigation, \stdClass $course) {
     global $CFG;
@@ -106,9 +111,11 @@ function tiny_cursive_extend_navigation_course(\navigation_node $navigation, \st
 }
 
 /**
- * tiny_cursive_extend_navigation
+ * Modifies the global navigation by removing the home node.
+ * This function is called when building the global navigation menu and ensures
+ * the home node is not displayed.
  *
- * @param global_navigation $navigation
+ * @param global_navigation $navigation The global navigation instance to modify
  * @return void
  */
 function tiny_cursive_extend_navigation(global_navigation $navigation) {
@@ -139,6 +146,10 @@ function tiny_cursive_myprofile_navigation(core_user\output\myprofile\tree $tree
     }
 
     if (\core\session\manager::is_loggedinas() || $USER->id != $user->id) {
+        return;
+    }
+
+    if (get_config('tiny_cursive', 'disabled')) {
         return;
     }
 
@@ -271,8 +282,10 @@ function tiny_cursive_file_urlcreate($context, $user) {
  * @return bool Returns true if tiny_cursive is enabled for the course, false otherwise
  * @throws dml_exception
  */
-function tiny_cursive_status($courseid) {
-
+function tiny_cursive_status($courseid = 0) {
+    if (get_config('tiny_cursive', 'disabled')) {
+        return false;
+    }
     return get_config('tiny_cursive', "cursive-$courseid");
 
 }
@@ -306,10 +319,8 @@ function cursive_approve_token($token, $moodleurl, $remoteurl) {
             'moodle_url' => $moodleurl,
         ];
 
-        // Execute the request.
         $result = $curl->post($remoteurl, $postfields, $options);
 
-        // Check for cURL errors.
         if ($result === false) {
             throw new moodle_exception('curlerror', 'tiny_cursive', '', null, $curl->error);
         }

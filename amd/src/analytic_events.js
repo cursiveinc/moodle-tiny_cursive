@@ -26,7 +26,8 @@
 import myModal from "./analytic_modal";
 import {call as getContent} from "core/ajax";
 import $ from 'jquery';
-import * as Str from 'core/str';
+import {get_string as getString} from 'core/str';
+import {get_strings as getStrings} from 'core/str';
 import Chart from 'core/chartjs';
 
 export default class AnalyticEvents {
@@ -72,7 +73,7 @@ export default class AnalyticEvents {
     checkDiff(userid, fileid, questionid = '', replayInstances = null) {
         const nodata = document.createElement('p');
         nodata.classList.add('tiny_cursive_nopayload', 'bg-light');
-        Str.get_string('nopaylod', 'tiny_cursive').then(str => {
+        getString('nopaylod', 'tiny_cursive').then(str => {
             nodata.textContent = str;
             return true;
         }).catch(error => window.console.log(error));
@@ -100,7 +101,7 @@ export default class AnalyticEvents {
                     let submittedText = atob(responsedata.submitted_text);
 
                     // Fetch the dynamic strings.
-                    Str.get_strings([
+                    getStrings([
                         {key: 'original_text', component: 'tiny_cursive'},
                         {key: 'editspastesai', component: 'tiny_cursive'}
                     ]).done(strings => {
@@ -109,13 +110,13 @@ export default class AnalyticEvents {
 
                         const commentBox = $('<div class="p-2 border rounded mb-2">');
                         var pasteCountDiv = $('<div></div>');
-                        Str.get_string('pastecount', 'tiny_cursive').then(str => {
+                        getString('pastecount', 'tiny_cursive').then(str => {
                             pasteCountDiv.append('<div><strong>' + str + ' :</strong> ' + responsedata.commentscount + '</div>');
                             return true;
                         }).catch(error => window.console.log(error));
 
                         var commentsDiv = $('<div class="border-bottom"></div>');
-                        Str.get_string('comments', 'tiny_cursive').then(str => {
+                        getString('comments', 'tiny_cursive').then(str => {
                             commentsDiv.append('<strong>' + str + '</strong>');
                             return true;
                         }).catch(error => window.console.error(error));
@@ -196,7 +197,7 @@ export default class AnalyticEvents {
         nodata.style.verticalAlign = 'middle';
         nodata.style.textTransform = 'uppercase';
         nodata.style.fontWeight = '500';
-        Str.get_string('nopaylod', 'tiny_cursive').then(str => {
+        getString('nopaylod', 'tiny_cursive').then(str => {
             nodata.textContent = str;
             return true;
         }).catch(error => window.console.error(error));
@@ -242,7 +243,7 @@ export default class AnalyticEvents {
                             templates.render('tiny_cursive/upgrade_to_pro', []).then(function(html) {
                                 $('#content' + userid).html(html);
                                 return true;
-                                }).fail(function(error) {
+                            }).fail(function(error) {
                                 window.console.error(error);
                             });
                         } else {
@@ -260,224 +261,237 @@ export default class AnalyticEvents {
                                 metricsData.verbosity, metricsData.word_count, metricsData.sent_word_count_mean
                             ];
 
-                            let chartvas = document.querySelector('#chart' + userid);
-                            const data = {
-                                labels: [
-                                    'Average Word Length',
-                                    'Edits',
-                                    'P-Burst Mean',
-                                    'Q Count',
-                                    'Sentence Count',
-                                    'Verbosity',
-                                    'Word Count',
-                                    'Word Count per Sentence Mean'
-                                ],
-                                datasets: [{
-                                    data: originalData.map(d => {
-                                        if (d > 100) {
-                                            return 100;
-                                        } else if (d < -100) {
-                                            return -100;
-                                        } else {
-                                            return d;
-                                        }
-                                    }),
-                                    backgroundColor: function(context) {
-                                        // Apply green or gray depending on value.
-                                        const value = context.raw;
+                            // eslint-disable-next-line promise/no-nesting
+                            Promise.all([
+                                getString('word_len_mean', 'tiny_cursive'),
+                                getString('edits', 'tiny_cursive'),
+                                getString('p_burst_mean', 'tiny_cursive'),
+                                getString('q_count', 'tiny_cursive'),
+                                getString('sentence_count', 'tiny_cursive'),
+                                getString('verbosity', 'tiny_cursive'),
+                                getString('word_count', 'tiny_cursive'),
+                                getString('sent_word_count_mean', 'tiny_cursive'),
+                                getString('average', 'tiny_cursive'),
+                            ]).then(([wordLength, edits, pBurstMean, qCount, sentenceCount, verbosity, wordCount,
+                                sentWordCountMean, average]) => {
+                                let chartvas = document.querySelector('#chart' + userid);
+                                let levels = [wordLength, edits, pBurstMean, qCount, sentenceCount, verbosity, wordCount,
+                                    sentWordCountMean];
 
-                                        if (value > 0 && value < 100) {
-                                            return '#43BB97';
-                                        } else if (value < 0) {
-                                            return '#AAAAAA';
-                                        } else {
-                                            return '#00432F'; // Green for positive, gray for negative.
-                                        }
-
-                                    },
-                                    barPercentage: 0.75,
-                                }]
-                            };
-
-                            const drawPercentage = {
-                                id: 'drawPercentage',
-                                afterDraw: (chart) => {
-                                    const {ctx, data} = chart;
-                                    ctx.save();
-                                    let value;
-                                    chart.getDatasetMeta(0).data.forEach((dataPoint, index) => {
-                                        value = parseInt(data.datasets[0].data[index]);
-                                        if (!value) {
-                                            value = 0;
-                                        }
-                                        value = originalData[index];
-
-                                        ctx.font = "bold 14px sans-serif";
-
-                                        if (value > 50 && value <= 100) {
-                                            ctx.fillStyle = 'white';
-                                            ctx.textAlign = 'right';
-                                            ctx.fillText(value + '%', dataPoint.x - 5, dataPoint.y + 5);
-                                        } else if (value <= 10 && value > 0) {
-                                            ctx.fillStyle = '#43bb97';
-                                            ctx.textAlign = 'left';
-                                            if (value >= 1) {
-                                                ctx.fillText('0' + value + '%', dataPoint.x + 5, dataPoint.y + 5);
+                                const data = {
+                                    labels: [
+                                        levels
+                                    ],
+                                    datasets: [{
+                                        data: originalData.map(d => {
+                                            if (d > 100) {
+                                                return 100;
+                                            } else if (d < -100) {
+                                                return -100;
                                             } else {
+                                                return d;
+                                            }
+                                        }),
+                                        backgroundColor: function(context) {
+                                            // Apply green or gray depending on value.
+                                            const value = context.raw;
+
+                                            if (value > 0 && value < 100) {
+                                                return '#43BB97';
+                                            } else if (value < 0) {
+                                                return '#AAAAAA';
+                                            } else {
+                                                return '#00432F'; // Green for positive, gray for negative.
+                                            }
+
+                                        },
+                                        barPercentage: 0.75,
+                                    }]
+                                };
+
+                                const drawPercentage = {
+                                    id: 'drawPercentage',
+                                    afterDraw: (chart) => {
+                                        const {ctx, data} = chart;
+                                        ctx.save();
+                                        let value;
+                                        chart.getDatasetMeta(0).data.forEach((dataPoint, index) => {
+                                            value = parseInt(data.datasets[0].data[index]);
+                                            if (!value) {
+                                                value = 0;
+                                            }
+                                            value = originalData[index];
+
+                                            ctx.font = "bold 14px sans-serif";
+
+                                            if (value > 50 && value <= 100) {
+                                                ctx.fillStyle = 'white';
+                                                ctx.textAlign = 'right';
+                                                ctx.fillText(value + '%', dataPoint.x - 5, dataPoint.y + 5);
+                                            } else if (value <= 10 && value > 0) {
+                                                ctx.fillStyle = '#43bb97';
+                                                ctx.textAlign = 'left';
+                                                if (value >= 1) {
+                                                    ctx.fillText('0' + value + '%', dataPoint.x + 5, dataPoint.y + 5);
+                                                } else {
+                                                    ctx.fillText(value + '%', dataPoint.x + 5, dataPoint.y + 5);
+                                                }
+                                                // eslint-disable-next-line no-empty
+                                            } else if (value == 0 || value == undefined) {
+                                            } else if (value > 100) {
+                                                ctx.fillStyle = 'white';
+                                                ctx.textAlign = 'right';
+                                                ctx.fillText(value + '%', dataPoint.x - 5, dataPoint.y + 5);
+                                            } else if (value < -50 && value >= -100) {
+                                                ctx.fillStyle = 'white';
+                                                ctx.textAlign = 'left';
+                                                ctx.fillText(value + '%', dataPoint.x + 5, dataPoint.y + 5);
+                                            } else if (value < -100) {
+                                                ctx.fillStyle = 'white';
+                                                ctx.textAlign = 'left';
+                                                ctx.fillText(value + '%', dataPoint.x + 5, dataPoint.y + 5);
+                                            } else if (value > -50 && value < 0) {
+                                                ctx.fillStyle = 'grey';
+                                                ctx.textAlign = 'right';
+                                                ctx.fillText(value + '%', dataPoint.x - 5, dataPoint.y + 5);
+                                            } else {
+                                                ctx.fillStyle = '#43bb97';
+                                                ctx.textAlign = 'left';
                                                 ctx.fillText(value + '%', dataPoint.x + 5, dataPoint.y + 5);
                                             }
-                                        // eslint-disable-next-line no-empty
-                                        } else if (value == 0 || value == undefined) {
-                                        } else if (value > 100) {
-                                            ctx.fillStyle = 'white';
-                                            ctx.textAlign = 'right';
-                                            ctx.fillText(value + '%', dataPoint.x - 5, dataPoint.y + 5);
-                                        } else if (value < -50 && value >= -100) {
-                                            ctx.fillStyle = 'white';
-                                            ctx.textAlign = 'left';
-                                            ctx.fillText(value + '%', dataPoint.x + 5, dataPoint.y + 5);
-                                        } else if (value < -100) {
-                                            ctx.fillStyle = 'white';
-                                            ctx.textAlign = 'left';
-                                            ctx.fillText(value + '%', dataPoint.x + 5, dataPoint.y + 5);
-                                        } else if (value > -50 && value < 0) {
-                                            ctx.fillStyle = 'grey';
-                                            ctx.textAlign = 'right';
-                                            ctx.fillText(value + '%', dataPoint.x - 5, dataPoint.y + 5);
-                                        } else {
-                                            ctx.fillStyle = '#43bb97';
-                                            ctx.textAlign = 'left';
-                                            ctx.fillText(value + '%', dataPoint.x + 5, dataPoint.y + 5);
-                                        }
 
-                                    });
-                                }
-                            };
-
-                            const chartAreaBg = {
-                                id: 'chartAreaBg',
-                                beforeDraw: (chart) => {
-                                    const {ctx, scales: {x, y}} = chart;
-                                    ctx.save();
-
-                                    const segmentPixel = y.getPixelForValue(y.ticks[0].value) -
-                                        y.getPixelForValue(y.ticks[1].value);
-                                    const doubleSegment = y.ticks[2].value - y.ticks[0].value;
-                                    let tickArray = [];
-
-                                    // Generate tick values.
-                                    for (let i = 0; i <= y.max; i += doubleSegment) {
-                                        if (i !== y.max) {
-                                            tickArray.push(i);
-                                        }
+                                        });
                                     }
+                                };
 
-                                    // Draw the background rectangles for each tick.
-                                    tickArray.forEach(tick => {
-                                        ctx.fillStyle = 'rgba(0, 0, 0, 0.02)';
-                                        ctx.fillRect(0, y.getPixelForValue(tick) + 80, x.width + x.width + 21, segmentPixel);
-                                    });
-                                }
-                            };
+                                const chartAreaBg = {
+                                    id: 'chartAreaBg',
+                                    beforeDraw: (chart) => {
+                                        const {ctx, scales: {x, y}} = chart;
+                                        ctx.save();
 
+                                        const segmentPixel = y.getPixelForValue(y.ticks[0].value) -
+                                            y.getPixelForValue(y.ticks[1].value);
+                                        const doubleSegment = y.ticks[2].value - y.ticks[0].value;
+                                        let tickArray = [];
 
-                            new Chart(chartvas, {
-                                type: 'bar',
-                                data: data,
-                                options: {
-                                    responsive: false,
-                                    maintainAspectRatio: false,
-                                    indexAxis: 'y',
-                                    elements: {
-                                        bar: {
-                                            borderRadius: 16,
-                                            borderWidth: 0,
-                                            zIndex: 1,
+                                        // Generate tick values.
+                                        for (let i = 0; i <= y.max; i += doubleSegment) {
+                                            if (i !== y.max) {
+                                                tickArray.push(i);
+                                            }
                                         }
-                                    },
-                                    scales: {
-                                        x: {
-                                            beginAtZero: true,
-                                            min: -100,
-                                            max: 100,
-                                            ticks: {
-                                                callback: function(value) {
-                                                    if (value === -100 || value === 100) {
-                                                        return value + '%';
-                                                    } else if (value === 0) {
-                                                        return 'Average';
-                                                    }
-                                                    return '';
-                                                },
-                                                display: true,
-                                                font: function(context) {
-                                                    if (context && context.tick && context.tick.value === 0) {
+
+                                        // Draw the background rectangles for each tick.
+                                        tickArray.forEach(tick => {
+                                            ctx.fillStyle = 'rgba(0, 0, 0, 0.02)';
+                                            ctx.fillRect(0, y.getPixelForValue(tick) + 80, x.width + x.width + 21, segmentPixel);
+                                        });
+                                    }
+                                };
+
+
+                                return new Chart(chartvas, {
+                                    type: 'bar',
+                                    data: data,
+                                    options: {
+                                        responsive: false,
+                                        maintainAspectRatio: false,
+                                        indexAxis: 'y',
+                                        elements: {
+                                            bar: {
+                                                borderRadius: 16,
+                                                borderWidth: 0,
+                                                zIndex: 1,
+                                            }
+                                        },
+                                        scales: {
+                                            x: {
+                                                beginAtZero: true,
+                                                min: -100,
+                                                max: 100,
+                                                ticks: {
+                                                    callback: function(value) {
+                                                        if (value === -100 || value === 100) {
+                                                            return value + '%';
+                                                        } else if (value === 0) {
+                                                            return average;
+                                                        }
+                                                        return '';
+                                                    },
+                                                    display: true,
+                                                    font: function(context) {
+                                                        if (context && context.tick && context.tick.value === 0) {
+                                                            return {
+                                                                weight: 'bold',
+                                                                size: 14,
+                                                                color: 'black'
+                                                            };
+                                                        }
                                                         return {
                                                             weight: 'bold',
-                                                            size: 14,
+                                                            size: 13,
                                                             color: 'black'
                                                         };
-                                                    }
-                                                    return {
-                                                        weight: 'bold',
-                                                        size: 13,
-                                                        color: 'black'
-                                                    };
+                                                    },
+                                                    color: 'black',
+
                                                 },
-                                                color: 'black',
+                                                grid: {
+                                                    display: true,
+                                                    color: function(context) {
+                                                        return context.tick.value === 0 ? 'black' : '#eaeaea';
+                                                    },
+                                                    tickLength: 0,
+                                                },
+                                                position: 'top'
 
                                             },
-                                            grid: {
-                                                display: true,
-                                                color: function(context) {
-                                                    return context.tick.value === 0 ? 'black' : '#eaeaea';
-                                                },
-                                                tickLength: 0,
-                                            },
-                                            position: 'top'
+                                            y: {
+                                                beginAtZero: true,
+                                                ticks: {
+                                                    display: true,
+                                                    align: 'center',
 
+                                                    crossAlign: 'far',
+                                                    font: {
+                                                        size: 18,
+                                                    },
+                                                    tickLength: 100,
+                                                    color: 'black',
+                                                },
+                                                grid: {
+                                                    display: true,
+                                                    tickLength: 1000,
+                                                },
+
+                                            }
                                         },
-                                        y: {
-                                            beginAtZero: true,
-                                            ticks: {
-                                                display: true,
-                                                align: 'center',
-
-                                                crossAlign: 'far',
-                                                font: {
-                                                    size: 18,
+                                        plugins: {
+                                            legend: {
+                                                display: false,
+                                            },
+                                            title: {
+                                                display: false,
+                                            },
+                                            tooltip: {
+                                                yAlign: 'bottom',
+                                                xAlign: 'center',
+                                                callbacks: {
+                                                    label: function(context) {
+                                                        const originalValue = originalData[context.dataIndex];
+                                                        return originalValue; // Show the original value.
+                                                    },
                                                 },
-                                                tickLength: 100,
-                                                color: 'black',
                                             },
-                                            grid: {
-                                                display: true,
-                                                tickLength: 1000,
-                                            },
-
                                         }
                                     },
-                                    plugins: {
-                                        legend: {
-                                            display: false,
-                                        },
-                                        title: {
-                                            display: false,
-                                        },
-                                        tooltip: {
-                                            yAlign: 'bottom',
-                                            xAlign: 'center',
-                                            callbacks: {
-                                                label: function(context) {
-                                                    const originalValue = originalData[context.dataIndex];
-                                                    return originalValue; // Show the original value.
-                                                },
-                                            },
-                                        },
-                                    }
-                                },
-                                plugins: [chartAreaBg, drawPercentage]
+                                    plugins: [chartAreaBg, drawPercentage]
+                                });
+                            }).catch(error => {
+                                window.console.log(error);
                             });
+
                         }
                     }
                 }).fail(error => {
@@ -509,7 +523,7 @@ export default class AnalyticEvents {
     authorshipStatus(firstFile, score, scoreSetting) {
         var icon = 'fa fa-circle-o';
         var color = 'font-size:32px;color:black';
-            score = parseFloat(score);
+        score = parseFloat(score);
 
         if (firstFile) {
             icon = 'fa fa-solid fa-info-circle';
