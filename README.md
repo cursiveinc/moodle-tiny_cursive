@@ -72,7 +72,7 @@ Currently supported Moodle activity modules:
 > **Note:** Across all modules, only **essay-type** responses are supported.
 
 
->**Note:** Users who want to use and get Cursive support in the **OU Blog** plugin must install the support plugin. Check for more updates about it at https://cursivetechnology.com.
+>**Note:** Plugin **OU Blog** support will come in our next release. Check for more updates about it at https://cursivetechnology.com.
 
 ## License
 #### 2025 Cursive Technology, Inc.
