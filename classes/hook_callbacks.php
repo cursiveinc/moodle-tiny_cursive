@@ -65,10 +65,11 @@ class hook_callbacks {
         }
                     
         $cmid = tiny_cursive_get_cmid($COURSE->id) ?? 0;
+        $context = null;
         if ($cmid) {
             $context = context_module::instance($cmid);
         }
-        if (!has_capability('tiny/cursive:writingreport', $context, $USER->id)) {
+        if ($context && !has_capability('tiny/cursive:writingreport', $context, $USER->id)) {
             return;
         }
 
