@@ -82,7 +82,7 @@ if ($courseid != 0) {
                         CAST(AVG(COALESCE(uw.backspace_percent,0)) AS DECIMAL(10,2)) as backspace_percent,
                         CAST(AVG(COALESCE(uw.score,0)) AS DECIMAL(10,2)) as score,
                         CAST(AVG(COALESCE(uw.copy_behavior,0)) AS DECIMAL(10,2)) as copybehavior,
-                        MAX(wd.meta) AS meta
+                        CAST(AVG(COALESCE(CAST(wd.meta AS DECIMAL(10,2)),0)) AS DECIMAL(10,2)) as effort
                   FROM {tiny_cursive_files} uf
                   JOIN {user} u ON u.id = uf.userid
              LEFT JOIN {tiny_cursive_user_writing} uw ON uw.file_id = uf.id
@@ -111,10 +111,6 @@ if ($courseid != 0) {
 
     foreach ($ress as $key => $res) {
         if ($res != null) {
-            $effort = 0;
-            if (isset($res->meta) && is_numeric($res->meta)) {
-                $effort = round((float)$res->meta, 2);
-            }
             $userrow = [
                 $res->fullname,
                 $res->email,
@@ -129,7 +125,7 @@ if ($courseid != 0) {
                 $res->backspace_percent,
                 $res->score,
                 $res->copybehavior,
-                $effort,
+                $res->effort,
             ];
             $exportcsv->add_data($userrow);
         }

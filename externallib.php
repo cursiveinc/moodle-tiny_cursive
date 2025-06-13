@@ -1503,7 +1503,7 @@ class cursive_json_func_data extends external_api {
                                                 AND CC.userid = CF.userid
                                                 AND CC.questionid = CF.questionid
                  WHERE WD.file_id = :fileid
-              GROUP BY WD.id, CF.userid, CF.questionid, CF.cmid, CF.resourceid, CF.modulename";
+              GROUP BY WD.id, CF.cmid, CF.resourceid, CF.modulename";
 
         $params = ['fileid' => $vparams['fileid']];
         $data = $DB->get_record_sql($sql, $params);
