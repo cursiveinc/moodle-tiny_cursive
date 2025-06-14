@@ -36,7 +36,9 @@ $fname      = clean_param(optional_param('fname', '', PARAM_FILE), PARAM_FILE);
 if ($cmid <= 0 || $userid <= 0) {
     throw new moodle_exception('invalidparameters', 'tiny_cursive');
 }
-
+if (intval($USER->id) !== $userid && !is_siteadmin()) {
+    throw new moodle_exception(get_string('warning', 'tiny_cursive'));
+}
 $context    = context_module::instance($cmid);
 require_capability('tiny/cursive:writingreport', $context);
 
