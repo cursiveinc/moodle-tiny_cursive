@@ -46,7 +46,7 @@ export default new Promise((resolve, reject) => {
                     methodname: "cursive_get_config",
                     args: {courseid: M.cfg.courseId, cmid: M.cfg.contextInstanceId}
                 }])[0].done((data) => {
-                    if (data.status && page.includes(document.body.id)) {
+                    if (data.status && page.includes(document.body.id) && data.mod_state) {
 
                         Autosaver.register(editor, data.sync_interval, data.userid);
                     }
