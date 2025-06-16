@@ -25,7 +25,7 @@
 
 require(__DIR__ . '/../../../../../config.php');
 require_once(__DIR__ . '/locallib.php');
-global $DB;
+global $DB, $USER;
 require_login();
 
 $resourceid = optional_param('resourceid', 0, PARAM_INT);
