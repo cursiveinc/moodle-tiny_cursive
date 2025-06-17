@@ -31,6 +31,7 @@ use core\hook\output\before_footer_html_generation;
 use core_component;
 use core_course\hook\after_form_definition;
 use core_course\hook\after_form_submission;
+use tiny_cursive\constants as MODULES;
 
 
 /**
@@ -50,93 +51,49 @@ class hook_callbacks {
      */
     public static function before_footer_html_generation(before_footer_html_generation $hook) {
         global $PAGE, $COURSE, $USER, $CFG;
+
         require_once($CFG->dirroot . '/lib/editor/tiny/plugins/cursive/locallib.php');
         require_once($CFG->dirroot . '/lib/editor/tiny/plugins/cursive/lib.php');
-        $plugins = core_component::get_plugin_list('local');
-        $cursivestatus = tiny_cursive_status($COURSE->id);
-        $capcheck = null;
 
-        if (!empty($COURSE) && !during_initial_install() && $cursivestatus) {
-
-            $cmid = isset($COURSE->id) ? tiny_cursive_get_cmid($COURSE->id) : 0;
-            $confidencethreshold = get_config('tiny_cursive', 'confidence_threshold');
-            $confidencethreshold = !empty($confidencethreshold) ? floatval($confidencethreshold) : 0.65;
-            $showcomments = get_config('tiny_cursive', 'showcomments');
-
-            $context = context_course::instance($COURSE->id);
-            $userrole = '';
-            if (has_capability('report/courseoverview:view', $context, $USER->id, false) || is_siteadmin()) {
-                $userrole = 'teacher_admin';
-            }
-
-            $PAGE->requires->js_call_amd('tiny_cursive/settings', 'init', [$showcomments, $userrole]);
-
-            if ($cmid) {
-                $context = context_module::instance($cmid);
-            }
-
-            $capcheck = has_capability('tiny/cursive:writingreport', $context, $USER->id);
-            if ($capcheck) {
-                switch ($PAGE->bodyid) {
-                    case 'page-mod-forum-discuss':
-                    case 'page-mod-forum-view':
-                        $PAGE->requires->js_call_amd(
-                            'tiny_cursive/append_fourm_post',
-                            'init',
-                            [$confidencethreshold, $showcomments],
-                        );
-                        break;
-
-                    case 'page-mod-assign-grader':
-                        $PAGE->requires->js_call_amd(
-                            'tiny_cursive/show_url_in_submission_grade',
-                            'init',
-                            [$confidencethreshold, $showcomments],
-                        );
-                        break;
-
-                    case 'page-mod-assign-grading':
-                        $PAGE->requires->js_call_amd(
-                            'tiny_cursive/append_submissions_table',
-                            'init',
-                            [$confidencethreshold, $showcomments],
-                        );
-                        break;
-
-                    case 'page-mod-quiz-review':
-                        $PAGE->requires->js_call_amd(
-                            'tiny_cursive/show_url_in_quiz_detail',
-                            'init',
-                            [$confidencethreshold, $showcomments],
-                        );
-                        break;
-
-                    case 'page-course-view-participants':
-                        $PAGE->requires->js_call_amd(
-                            'tiny_cursive/append_participants_table',
-                            'init',
-                            [$confidencethreshold, $showcomments],
-                        );
-                        break;
-                    case 'page-mod-lesson-essay':
-                        $PAGE->requires->js_call_amd(
-                            'tiny_cursive/append_lesson_grade_table',
-                            'init',
-                            [$confidencethreshold, $showcomments],
-                        );
-                        break;
-                    case 'page-mod-oublog-viewpost':
-                        if (isset($plugins['cursive_oublog'])) {
-                            $PAGE->requires->js_call_amd(
-                                'tiny_cursive/append_oublogs_post',
-                                'init',
-                                [$confidencethreshold, $showcomments],
-                            );
-                        }
-                }
-            }
-
+        if (empty($COURSE) || during_initial_install()) {
+            return;
         }
+
+        $cursivestatus = tiny_cursive_status($COURSE->id);
+        if (!$cursivestatus) {
+            return;
+        }
+                    
+        $cmid = tiny_cursive_get_cmid($COURSE->id) ?? 0;
+        if ($cmid) {
+            $context = context_module::instance($cmid);
+        }
+        if (!has_capability('tiny/cursive:writingreport', $context, $USER->id)) {
+            return;
+        }
+
+        $context  = context_course::instance($COURSE->id);
+        $userrole = (has_capability('report/courseoverview:view', $context, $USER->id, false) || is_siteadmin())
+            ? 'teacher_admin' : '';
+
+        $plugins             = core_component::get_plugin_list('local');
+        $PAGE->requires->js_call_amd('tiny_cursive/settings', 'init', [MODULES::show_comments(), $userrole]);
+
+        if(array_key_exists($PAGE->bodyid, MODULES::BODY_IDS)) {
+
+            if (MODULES::BODY_IDS[$PAGE->bodyid][1] === "oublog" && !isset($plugins['cursive_oublog'])) {
+                return;
+            }
+
+            if (MODULES::is_active()) {
+                $PAGE->requires->js_call_amd(
+                        "tiny_cursive/".MODULES::BODY_IDS[$PAGE->bodyid][0],
+                        'init',
+                        [MODULES::confidence_threshold(), MODULES::show_comments()],
+                    );
+            }
+        }
+
     }
 
     /**
@@ -180,7 +137,6 @@ class hook_callbacks {
         $courseid = $hook->get_data()->id;
         $status   = $hook->get_data()->cursive_status ?? false;
         $name     = "cursive-$courseid";
-
         set_config($name, $status, 'tiny_cursive');
     }
 
