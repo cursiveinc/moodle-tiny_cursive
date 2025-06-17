@@ -28,6 +28,7 @@ use core_external\external_api;
 use core_external\external_function_parameters;
 use core_external\external_single_structure;
 use core_external\external_value;
+use tiny_cursive\constants as MODULES;
 
 defined('MOODLE_INTERNAL') || die;
 
@@ -1772,8 +1773,16 @@ class cursive_json_func_data extends external_api {
         $syncinterval = get_config('tiny_cursive', "syncinterval");
         $apikey = cursive_approve_token(get_config( 'tiny_cursive', 'secretkey'), $moodleurl, $remoteurl);
         $apikey = json_decode($apikey);
-        return ['status' => $config, 'sync_interval' => $syncinterval, 'userid' => $USER->id, 'apikey_status' =>
-                                                                                isset($apikey->status) ? true : false];
+
+        $data   = [
+            'status'        => $config,
+            'sync_interval' => $syncinterval,
+            'userid'        => $USER->id,
+            'apikey_status' => isset($apikey->status) ? true : false,
+            'mod_state'     => MODULES::is_active(),
+            'plugins'       => json_encode(MODULES::NAMES),
+        ];
+        return $data;
     }
 
     /**
@@ -1787,6 +1796,8 @@ class cursive_json_func_data extends external_api {
             'sync_interval' => new external_value(PARAM_INT, 'Data Sync interval'),
             'userid' => new external_value(PARAM_INT, 'userid'),
             'apikey_status' => new external_value(PARAM_BOOL, 'api key status'),
+            'mod_state' => new external_value(PARAM_BOOL, "Cursive Module wise active/deactive state"),
+            'plugins' => new external_value(PARAM_TEXT, "Supported Plugins Names"),
         ]);
     }
 

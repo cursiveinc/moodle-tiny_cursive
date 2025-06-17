@@ -135,7 +135,7 @@ function tiny_cursive_extend_navigation(global_navigation $navigation) {
  * @return void
  */
 function tiny_cursive_coursemodule_standard_elements($formwrapper, $mform) {
-
+    global $PAGE;
     $cursive   = tiny_cursive_status($formwrapper->get_current()->course);
     if (!$cursive) {
         return;
@@ -143,7 +143,7 @@ function tiny_cursive_coursemodule_standard_elements($formwrapper, $mform) {
 
     $module    = $formwrapper->get_current()->modulename;
     $courseid  = $formwrapper->get_current()->course;
-    $instance  = $formwrapper->get_current()->instance;
+    $instance  = $formwrapper->get_current()->coursemodule;
     $key       = "CUR$courseid$instance";
     $state     = get_config('tiny_cursive', $key);
 
@@ -151,8 +151,8 @@ function tiny_cursive_coursemodule_standard_elements($formwrapper, $mform) {
     if (in_array($module,MODULES::NAMES)) {
         $mform->addElement('header', 'cursiveheader', 'Cursive', 'local_callbacks');
         $options = [
-            0 => get_string('enable', 'tiny_cursive'),
-            1 => get_string('disable', 'tiny_cursive'),
+           0 => get_string('disabled', 'tiny_cursive'),
+           1 => get_string('enabled', 'tiny_cursive'),
         ];
         $mform->addElement('select', 'cursive', get_string('cursive_status', 'tiny_cursive'), $options);
         $mform->setType('cursive', PARAM_INT);
@@ -178,10 +178,10 @@ function tiny_cursive_coursemodule_edit_post_actions($formdata,$course) {
     }
 
     // MODULES::NAMES is cursive supported plugin list defined in tiny_cursive\constant class.
-    if (in_array($formdata->name,MODULES::NAMES)) {
+    if (in_array($formdata->modulename,MODULES::NAMES)) {
         $state    = $formdata->cursive;
         $courseid = $course->id;
-        $instance = $formdata->instance;
+        $instance = $formdata->coursemodule;
         $key      = "CUR$courseid$instance";
         set_config($key,$state, 'tiny_cursive');
     }

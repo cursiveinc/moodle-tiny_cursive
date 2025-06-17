@@ -24,26 +24,26 @@ import {call} from 'core/ajax';
 import {create} from 'core/modal_factory';
 import {get_string as getString} from 'core/str';
 import {save, cancel, hidden} from 'core/modal_events';
-import jQuery from 'jquery';
-import {iconUrl, iconGrayUrl} from 'tiny_cursive/common';
+import $ from 'jquery';
+import {iconUrl, iconGrayUrl, tooltipCss} from 'tiny_cursive/common';
 
-export const register = (editor, interval, userId, hasApiKey) => {
+export const register = (editor, interval, userId, hasApiKey, MODULES) => {
 
-    var isStudent = !(jQuery('#body').hasClass('teacher_admin'));
-    var intervention = jQuery('#body').hasClass('intervention');
-    var userid = userId;
+    var isStudent = !($('#body').hasClass('teacher_admin'));
+    var intervention = $('#body').hasClass('intervention');
     var host = M.cfg.wwwroot;
+    var userid = userId;
     var courseid = M.cfg.courseId;
-    var filename = "";
-    var quizSubmit = jQuery('#mod_quiz-next-nav');
-    var ed = "";
-    var event = "";
-    var resourceId = 0;
-    var modulename = "";
     var editorid = editor?.id;
     var cmid = M.cfg.contextInstanceId;
+    var ed = "";
+    var event = "";
+    var filename = "";
+    var modulename = "";
     var questionid = 0;
-    let assignSubmit = jQuery('#id_submitbutton');
+    var resourceId = 0;
+    var quizSubmit = $('#mod_quiz-next-nav');
+    let assignSubmit = $('#id_submitbutton');
     var syncInterval = interval ? interval * 1000 : 10000; // Default: Sync Every 10s.
 
     const postOne = async(methodname, args) => {
@@ -93,84 +93,32 @@ export const register = (editor, interval, userId, hasApiKey) => {
 
             return create({
                 type: 'SAVE_CANCEL',
-                title: `<div><div style='color:dark;font-weight:500;line-height:0.5'>${title}</div><span style='color:
-                        gray;font-weight: 400;line-height: 1.2;font-size: 14px;display: inline-block;
-                        margin-top: .5rem;'>${titledes}</span></div>`,
+                title: `<div><div class="tiny-cursive-title-text">${title}</div>
+                <span class="tiny-cursive-title-description ">${titledes}</span></div>`,
                 body: `<textarea  class="form-control inputUrl" value="" id="inputUrl" placeholder="${placeholder}"></textarea>`,
-
                 removeOnClose: true,
             })
                 .done(modal => {
-                    modal.getRoot().append(`
-                        <style>
-                                .close {
-                                    display: none ! important;
-                                }
-                                body.tox-fullscreen .modal-dialog {
-                                    max-width: 500px;
-                                    max-height:300px;
-                                    padding:1rem;
-                                }
-                                body.tox-fullscreen .modal-dialog .modal-header {
-                                    height: auto;
-                                    padding: 1rem
-                                }
-                         </style>`);
+                    modal.getRoot().addClass('tiny-cursive-modal');
                     modal.show();
                     var lastEvent = '';
                     // eslint-disable-next-line
                     modal.getRoot().on(save, function() {
+
                         var number = document.getElementById("inputUrl").value.trim();
+                        let ur = e.srcElement.baseURI;
+                        let parm = new URL(ur);
+                        let modulesInfo = getModulesInfo(ur, parm, MODULES);
+
+                        resourceId = modulesInfo.resourceId;
+                        modulename = modulesInfo.name;
+
                         if (number === "" || number === null || number === undefined) {
                             editor.execCommand('Undo');
                             // eslint-disable-next-line
                             getString('pastewarning', 'tiny_cursive').then(str => alert(str));
-
                         } else {
                             editor.execCommand('Paste');
-                        }
-                        let ur = e.srcElement.baseURI;
-                        let resourceId = 0;
-                        let parm = new URL(ur);
-                        let modulename = "";
-                        let editorid = editor?.id;
-                        let courseid = M.cfg.courseId;
-                        let cmid = M.cfg.contextInstanceId;
-
-                        // eslint-disable-next-line
-                        if (ur.includes("attempt.php") || ur.includes("forum") || ur.includes("assign") || ur.includes("lesson") | ur.includes("oublog")) { } else {
-                            return false;
-                        }
-                        if (ur.includes("forum") && !ur.includes("assign")) {
-                            resourceId = parm.searchParams.get('edit');
-                        }
-                        if (!ur.includes("forum") && !ur.includes("assign")) {
-                            resourceId = parm.searchParams.get('attempt');
-                        }
-
-                        if (resourceId === null) {
-                            resourceId = 0;
-                        }
-                        if (ur.includes("forum")) {
-                            modulename = "forum";
-                        }
-                        if (ur.includes("assign")) {
-                            modulename = "assign";
-                            resourceId = cmid;
-                        }
-                        if (ur.includes("attempt")) {
-                            modulename = "quiz";
-                        }
-                        if (ur.includes("lesson")) {
-                            modulename = "lesson";
-                            resourceId = cmid;
-                        }
-                        if (ur.includes("oublog")) {
-                            modulename = "oublog";
-                            resourceId = 0;
-                        }
-                        if (cmid === null) {
-                            cmid = 0;
                         }
 
                         postOne('cursive_user_comments', {
@@ -182,14 +130,15 @@ export const register = (editor, interval, userId, hasApiKey) => {
                             timemodified: Date.now(),
                             editorid: editorid ? editorid : ""
                         });
+
                         lastEvent = 'save';
                         modal.destroy();
                     });
                     modal.getRoot().on(cancel, function() {
-
                         editor.execCommand('Undo');
                         lastEvent = 'cancel';
                     });
+
                     modal.getRoot().on(hidden, function() {
                         if (lastEvent != 'cancel' && lastEvent != 'save') {
                             editor.execCommand('Undo');
@@ -201,44 +150,15 @@ export const register = (editor, interval, userId, hasApiKey) => {
 
     };
     // eslint-disable-next-line
-    const sendKeyEvent = (events, eds) => {
-        let ur = eds.srcElement.baseURI;
-        let parm = new URL(ur);
-        ed = eds;
+    const sendKeyEvent = (events, editor) => {
+        ed = editor;
         event = events;
-        // eslint-disable-next-line
-        if (ur.includes("attempt.php") || ur.includes("forum") || ur.includes("assign") || ur.includes('lesson') || ur.includes("oublog")) { } else {
-            return false;
-        }
+        let ur = editor.srcElement.baseURI;
+        let parm = new URL(ur);
+        let modulesInfo = getModulesInfo(ur, parm, MODULES);
 
-        if (ur.includes("forum") && !ur.includes("assign")) {
-            resourceId = parm.searchParams.get('edit');
-        } else {
-
-            resourceId = parm.searchParams.get('attempt');
-        }
-        if (resourceId === null) {
-            resourceId = 0;
-        }
-
-        if (ur.includes("forum")) {
-            modulename = "forum";
-        }
-        if (ur.includes("assign")) {
-            modulename = "assign";
-            resourceId = cmid;
-        }
-        if (ur.includes("attempt")) {
-            modulename = "quiz";
-        }
-        if (ur.includes("lesson")) {
-            modulename = "lesson";
-            resourceId = cmid;
-        }
-        if (ur.includes("oublog")) {
-            modulename = "oublog";
-            resourceId = 0;
-        }
+        resourceId = modulesInfo.resourceId;
+        modulename = modulesInfo.name;
 
         filename = `${userid}_${resourceId}_${cmid}_${modulename}_attempt`;
 
@@ -253,8 +173,8 @@ export const register = (editor, interval, userId, hasApiKey) => {
             let data = JSON.parse(localStorage.getItem(filename));
             data.push({
                 resourceId: resourceId,
-                key: ed.key,
-                keyCode: ed.keyCode,
+                key: editor.key,
+                keyCode: editor.keyCode,
                 event: event,
                 courseId: courseid,
                 unixTimestamp: Date.now(),
@@ -266,8 +186,8 @@ export const register = (editor, interval, userId, hasApiKey) => {
             let data = [];
             data.push({
                 resourceId: resourceId,
-                key: ed.key,
-                keyCode: ed.keyCode,
+                key: editor.key,
+                keyCode: editor.keyCode,
                 event: event,
                 courseId: courseid,
                 unixTimestamp: Date.now(),
@@ -295,26 +215,17 @@ export const register = (editor, interval, userId, hasApiKey) => {
         }
     });
     editor.on('keyDown', (editor) => {
-        sendKeyEvent("keyDown", editor);
         customTooltip();
+        sendKeyEvent("keyDown", editor);
     });
     // eslint-disable-next-line
     editor.on('init', () => {
-        console.log('Init');
         customTooltip();
     });
     editor.on('SetContent', () => {
-        console.log('SetContent');
         customTooltip();
     });
-    editor.on('LoadContent', () => {
-        console.log('LoadContent');
-        customTooltip();
-    });
-    editor.on('PreInit', () => {
-        console.log('PreInit');
-        customTooltip();
-    })
+
 
     /**
      * Synchronizes data from localStorage to server
@@ -358,37 +269,45 @@ export const register = (editor, interval, userId, hasApiKey) => {
      * @function customTooltip
      */
     function customTooltip() {
-        if (document.querySelector('#tiny_cursive_StateIcon')) {
-            return;
-        }
         try {
             const tooltipText = getTooltipText();
-            const menubarDiv = document.querySelector('div[role="menubar"].tox-menubar');
-            // const cursiveIcon = document.querySelector('#tiny_cursive_StateIcon');
+            const menubarDiv = document.querySelectorAll('div[role="menubar"].tox-menubar');
+            let classArray = [];
+
+            if(menubarDiv.length) {
+                menubarDiv.forEach(function(element, index) {
+                    index+=1;
+                    let className = 'cursive-menu-'+index;
+                    element.classList.add(className);
+                    classArray.push(className);
+                });
+            }
 
             const cursiveIcon = document.createElement('img');
             cursiveIcon.src = hasApiKey ? iconUrl: iconGrayUrl;
 
-            // cursiveIcon.id = "tiny_cursive_StateIcon";
-
             cursiveIcon.setAttribute('class', 'tiny_cursive_StateButton');
             cursiveIcon.style.display = 'inline-block';
 
-            cursiveState(cursiveIcon, menubarDiv);
+            cursiveState(cursiveIcon, menubarDiv, classArray);
 
-            tooltipText.then((text) => {
-                setTooltip(text, document.querySelector('#tiny_cursive_StateIcon'));
-            });
+            for(let index in classArray) {
+                const elementId = "tiny_cursive_StateIcon"+index;
+                const tooltipId = `tiny_cursive_tooltip${index}`;
 
-            jQuery('#tiny_cursive_StateIcon').on('mouseenter', function () {
+                tooltipText.then((text) => {
+                    setTooltip(text, document.querySelector(`#${elementId}`), tooltipId);
+                });
 
-                jQuery(this).css('position', 'relative');
-                jQuery('.tiny_cursive_tooltip').css(tooltipCss());
-            });
+                $(`#${elementId}`).on('mouseenter', function () {
+                    $(this).css('position', 'relative');
+                    $(`#${tooltipId}`).css(tooltipCss);
+                });
 
-            jQuery('#tiny_cursive_StateIcon').on('mouseleave', function () {
-                jQuery('.tiny_cursive_tooltip').css('display', 'none');
-            });
+                $(`#${elementId}`).on('mouseleave', function () {
+                    $(`#${tooltipId}`).css('display', 'none');
+                });
+            }
         } catch (error) {
             window.console.error('Error setting up custom tooltip:', error);
         }
@@ -408,51 +327,37 @@ export const register = (editor, interval, userId, hasApiKey) => {
             getString('cursive:state:active', 'tiny_cursive'),
             getString('cursive:state:active:des', 'tiny_cursive'),
         ]);
-        return { buttonTitle, buttonDes };
+        return {buttonTitle, buttonDes};
     }
 
     /**
      * Updates the Cursive icon state and positions it in the menubar
      * @param {HTMLElement} cursiveIcon - The Cursive icon element to modify
      * @param {HTMLElement} menubarDiv - The menubar div element
+     * @param {Array} classArray - Array of class names for the menubar div elements
      */
-    function cursiveState(cursiveIcon, menubarDiv) {
+    function cursiveState(cursiveIcon, menubarDiv, classArray) {
         if (menubarDiv) {
-            const rightWrapper = document.createElement('div');
-            const imgWrapper   = document.createElement('span');
+            for (let index in classArray) {
+                const rightWrapper = document.createElement('div');
+                const imgWrapper   = document.createElement('span');
+                const iconClone = cursiveIcon.cloneNode(true);
+                const targetMenu = document.querySelector('.' + classArray[index]);
+                let elementId = "tiny_cursive_StateIcon"+index;
 
-            rightWrapper.style.marginLeft = 'auto';
-            rightWrapper.style.display = 'flex';
-            rightWrapper.style.alignItems = 'center';
-            imgWrapper.id = 'tiny_cursive_StateIcon';
+                rightWrapper.style.marginLeft = 'auto';
+                rightWrapper.style.display = 'flex';
+                rightWrapper.style.alignItems = 'center';
+                imgWrapper.id = elementId;
 
-            imgWrapper.appendChild(cursiveIcon);
-            rightWrapper.appendChild(imgWrapper);
-            menubarDiv.appendChild(rightWrapper);
+                imgWrapper.appendChild(iconClone);
+                rightWrapper.appendChild(imgWrapper);
+
+                if (targetMenu && !targetMenu.querySelector(`#${elementId}`)) {
+                    targetMenu.appendChild(rightWrapper);
+                }
+            }
         }
-    }
-
-    /**
-     * Returns CSS styles object for tooltip positioning and appearance
-     * @function tooltipCss
-     * @returns {Object} Object containing CSS properties and values for tooltip styling
-     */
-    function tooltipCss() {
-        return {
-            display: 'block',
-            position: 'absolute',
-            transform: 'translateX(-100%)',
-            backgroundColor: 'white',
-            color: 'black',
-            border: '1px solid #ccc',
-            marginBottom: '6px',
-            padding: '10px',
-            textAlign: 'justify',
-            minWidth: '200px',
-            borderRadius: '1px',
-            pointerEvents: 'none',
-            zIndex: 10000
-        };
     }
 
     /**
@@ -461,8 +366,12 @@ export const register = (editor, interval, userId, hasApiKey) => {
      * @param {string} text.buttonTitle - Title text for the tooltip
      * @param {string} text.buttonDes - Description text for the tooltip
      * @param {HTMLElement} cursiveIcon - The Cursive icon element to attach tooltip to
+     * @param {string} tooltipId - ID for the tooltip element
      */
-    function setTooltip(text, cursiveIcon) {
+    function setTooltip(text, cursiveIcon, tooltipId) {
+        if(document.querySelector(`#${tooltipId}`)) {
+            return;
+        }
 
         const tooltipSpan = document.createElement('span');
         const description = document.createElement('span');
@@ -470,7 +379,7 @@ export const register = (editor, interval, userId, hasApiKey) => {
         const tooltipTitle = document.createElement('strong');
 
         tooltipSpan.style.display = 'none';
-        cursiveIcon.style.width = "auto";
+        // cursiveIcon.style.width = "auto";
 
         tooltipTitle.textContent = text.buttonTitle;
         tooltipTitle.style.fontSize = '16px';
@@ -478,11 +387,50 @@ export const register = (editor, interval, userId, hasApiKey) => {
         description.textContent = text.buttonDes;
         description.style.fontSize = '14px';
 
-        tooltipSpan.setAttribute('class', 'tiny_cursive_tooltip shadow');
+        tooltipSpan.id = tooltipId;
+        tooltipSpan.classList.add(`shadow`);
         tooltipSpan.appendChild(tooltipTitle);
         tooltipSpan.appendChild(linebreak);
         tooltipSpan.appendChild(description);
         cursiveIcon.appendChild(tooltipSpan);
+    }
+
+    /**
+     * Extracts module information from URL parameters
+     * @param {string} ur - The base URL to analyze
+     * @param {URL} parm - URL object containing search parameters
+     * @param {Array} MODULES - Array of valid module names to check against
+     * @returns {Object|boolean} Object containing resourceId and module name if found, false if no valid module
+     */
+    function getModulesInfo(ur, parm, MODULES) {
+
+        if (!MODULES.some(module => ur.includes(module))) {
+            return false;
+        }
+
+        if (ur.includes("forum") && !ur.includes("assign")) {
+            resourceId = parm.searchParams.get('edit');
+        } else {
+            resourceId = parm.searchParams.get('attempt');
+        }
+
+        if (resourceId === null) {
+            resourceId = 0;
+        }
+
+        for (const module of MODULES) {
+            if (ur.includes(module)) {
+                modulename = module;
+                if (module === "lesson" || module === "assign") {
+                    resourceId = cmid;
+                } else if (module === "oublog") {
+                    resourceId = 0;
+                }
+                break;
+            }
+        }
+
+        return {resourceId: resourceId, name: modulename};
     }
 
     window.addEventListener('unload', () => {

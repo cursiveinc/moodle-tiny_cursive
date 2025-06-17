@@ -539,6 +539,20 @@
     z-index: 2;
 }
 
+.tiny-cursive-title-text {
+    color: dark;
+    font-weight: 500;
+    line-height: 0.5;
+}
+
+.tiny-cursive-title-description {
+    color: gray;
+    font-weight: 400;
+    line-height: 1.2;
+    font-size: 14px;
+    display: inline-block;
+    margin-top: 0.5rem;
+}
 
 .tiny_cursive-content {
     background: rgba(255, 255, 255, 0.9);
@@ -553,38 +567,6 @@
 .tiny_cursive-logo img {
     width: 60px;
     margin-bottom: 20px;
-}
-
-.tiny_cursive-card-title {
-    font-size: 24px;
-    font-weight: bold;
-    margin-bottom: 10px;
-}
-
-.tiny_cursive-card-description {
-    font-size: 16px;
-    color: #555;
-    margin-bottom: 20px;
-}
-
-.tiny_cursive-card-upgrade-button a {
-    background: linear-gradient(90deg, #007bff, #6a1b9a);
-    color: white;
-    border: none;
-    border-radius: 25px;
-    padding: 10px 20px;
-    font-size: 16px;
-    cursor: pointer;
-    transition: 0.3s ease-in-out;
-
-}
-
-.tiny_cursive-card-upgrade-button a:hover {
-    background: linear-gradient(90deg, #6610f2, #007bff);
-    transform: scale(1.05);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-    color: white;
-    text-decoration: none;
 }
 
 .tiny_cursive-writing-report-header {
@@ -668,14 +650,23 @@
     transform: scale(1.05);
 }
 
-.tiny_cursive_chartIcon {
-    /* Font-size: 36px; */
-    color: black;
-    padding-left: 25px;
-    font-size: x-large;
-}
-
 .tiny_cursive_quality {
     position: absolute;
     top: 0.5%;
+}
+
+/* Styles scoped to tiny_cursive plugin modal */
+body.tox-fullscreen .tiny-cursive-modal .modal-dialog {
+    max-width: 500px;
+    max-height: 300px;
+    padding: 1rem;
+}
+
+body.tox-fullscreen .tiny-cursive-modal .modal-dialog .modal-header {
+    height: auto;
+    padding: 1rem;
+}
+
+body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
+    display: none !important;
 }

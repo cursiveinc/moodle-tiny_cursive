@@ -78,8 +78,9 @@ class constants {
         global $PAGE;
         $instance = $PAGE->cm->id;
         $courseid = $PAGE->cm->course;
-        $key = "CUR$courseid$instance";
+        $key      = "CUR$courseid$instance";
+        $state    = get_config('tiny_cursive', $key);
 
-        return $key ? true : false;
+        return $state ? true : false;
     }
 }
