@@ -58,7 +58,6 @@ export default class Replay {
                 if (data.status) {
                     var val = JSON.parse(data.data);
                     this.logData = val;
-
                     if (data.comments) {
                         var comments = JSON.parse(data.comments);
                         this.usercomments = Array.isArray(comments) ? [...comments] : [];
