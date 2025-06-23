@@ -617,7 +617,7 @@ export default class Replay {
             let updatedDeleted = [...this.deletedChars];
 
             // Always update cursor position based on rePosition if available
-            if (event.rePosition !== undefined) {
+            if (event.rePosition !== undefined && this.currentEventIndex === 0) {
                 cursor = Math.max(0, Math.min(event.rePosition, text.length));
             }
 
@@ -628,14 +628,14 @@ export default class Replay {
                     this.isControlKeyPressed = true;
                 }
                 else if (event.key !== "v") {
-                    if (event.key !== "Control") {
+                    if (event.key !== "Control" && event.key !== 'Backspace') {
                         this.isControlKeyPressed = false;
                     }
                     if (event.key !== "Backspace" && event.key !== "ArrowLeft" && event.key !== "ArrowRight") {
                         this.isPasteEvent = false;
                     }
                 }
-                else if (event.key == 'v' && this.isControlKeyPressed) {
+                else if (event.key === 'v' && this.isControlKeyPressed) {
                     this.isPasteEvent = true;
                     this.isControlKeyPressed = false;
                 }
@@ -784,7 +784,7 @@ export default class Replay {
                 break;
             }
 
-            if (event.rePosition !== undefined) {
+            if (event.rePosition !== undefined && this.currentEventIndex === 0) {
                 cursor = Math.max(0, Math.min(event.rePosition, text.length));
             }
 
@@ -795,14 +795,14 @@ export default class Replay {
                     this.isControlKeyPressed = true;
                 }
                 else if (event.key !== "v") {
-                    if (event.key !== "Control") {
+                    if (event.key !== "Control" && event.key !== 'Backspace') {
                         this.isControlKeyPressed = false;
                     }
                     if (event.key !== "Backspace" && event.key !== "ArrowLeft" && event.key !== "ArrowRight") {
                         this.isPasteEvent = false;
                     }
                 }
-                else if (event.key == 'v' && this.isControlKeyPressed) {
+                else if (event.key === 'v' && this.isControlKeyPressed) {
                     this.isPasteEvent = true;
                     this.isControlKeyPressed = false;
                 }
