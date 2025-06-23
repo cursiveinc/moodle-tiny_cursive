@@ -125,7 +125,8 @@ export default class AnalyticEvents {
 
                         let comments = responsedata.comments;
                         for (let index in comments) {
-                            var commentDiv = $('<div class="shadow-sm p-1 my-1"></div>').text(comments[index].usercomment);
+                            var commentDiv = $('<div style="word-wrap: break-word" class="shadow-sm p-1 my-1"></div>')
+                            .text(comments[index].usercomment);
                             commentsList.append(commentDiv);
                         }
                         commentBox.append(pasteCountDiv).append(commentsDiv).append(commentsList);

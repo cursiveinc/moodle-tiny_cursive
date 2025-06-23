@@ -69,6 +69,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
         } else {
             assignSubmit.off('click').click();
         }
+        localStorage.removeItem('lastCopyCutContent');
     });
 
     quizSubmit.on('click', async function(e) {
@@ -81,6 +82,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
         } else {
             quizSubmit.off('click').click();
         }
+        localStorage.removeItem('lastCopyCutContent');
     });
 
     const getModal = (e) => {
@@ -204,8 +206,16 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
     });
     editor.on('Paste', async(e) => {
         customTooltip();
+        const pastedContent = (e.clipboardData || e.originalEvent.clipboardData).getData('text').trim();
+
+        if (!pastedContent) {
+            return;
+        }
+
         if (isStudent && intervention) {
-            getModal(e);
+            if (pastedContent !== localStorage.getItem('lastCopyCutContent')) {
+                getModal(e);
+            }
         }
     });
     editor.on('Redo', async(e) => {
@@ -217,6 +227,14 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
     editor.on('keyDown', (editor) => {
         customTooltip();
         sendKeyEvent("keyDown", editor);
+    });
+     editor.on('Cut', () => {
+        const selectedContent = editor.selection.getContent({format: 'text'});
+        localStorage.setItem('lastCopyCutContent', selectedContent.trim());
+    });
+    editor.on('Copy', () => {
+        const selectedContent = editor.selection.getContent({format: 'text'});
+        localStorage.setItem('lastCopyCutContent', selectedContent.trim());
     });
     // eslint-disable-next-line
     editor.on('init', () => {
