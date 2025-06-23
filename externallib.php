@@ -440,7 +440,7 @@ class cursive_json_func_data extends external_api {
                 return json_encode(['usercomment' => $usercomment, 'data' => $data]);
 
             } else {
-                return json_encode(['usercomment' => get_string('comments', 'tiny_cursive'), 'data' => $data]);
+                return json_encode(['usercomment' => 'comments', 'data' => $data]);
             }
         } else {
             $conditions = ["resourceid" => $params['id']];
@@ -479,7 +479,7 @@ class cursive_json_func_data extends external_api {
                 return json_encode(['usercomment' => $usercomment, 'data' => $data]);
 
             } else {
-                return json_encode(['usercomment' => get_string('comments', 'tiny_cursive'), 'data' => $data]);
+                return json_encode(['usercomment' => 'comments', 'data' => $data]);
             }
         }
     }
@@ -603,7 +603,7 @@ class cursive_json_func_data extends external_api {
             }
             return json_encode(['usercomment' => $usercomment, 'data' => $data]);
         } else {
-            return json_encode(['usercomment' => get_string('comments', 'tiny_cursive'), 'data' => $data]);
+            return json_encode(['usercomment' => 'comments', 'data' => $data]);
         }
 
     }
@@ -741,7 +741,7 @@ class cursive_json_func_data extends external_api {
             return json_encode(['usercomment' => $usercomment, 'data' => $data]);
 
         } else {
-            return json_encode(['usercomment' => get_string('comments', 'tiny_cursive'), 'data' => $data]);
+            return json_encode(['usercomment' => 'comments', 'data' => $data]);
         }
     }
 
@@ -810,7 +810,7 @@ class cursive_json_func_data extends external_api {
             return json_encode($usercomment);
 
         } else {
-            return json_encode([['usercomment' => get_string('comments', 'tiny_cursive')]]);
+            return json_encode([['usercomment' => 'comments']]);
         }
     }
 
@@ -932,7 +932,7 @@ class cursive_json_func_data extends external_api {
             return json_encode(['usercomment' => $usercomment, 'data' => $data]);
 
         } else {
-            return json_encode(['usercomment' => get_string('comments', 'tiny_cursive'), 'data' => $data]);
+            return json_encode(['usercomment' => 'comments', 'data' => $data]);
         }
     }
 
