@@ -72,6 +72,8 @@ Currently supported Moodle activity modules:
 > **Note:** Across all modules, only **essay-type** responses are supported.
 
 
+>**Note:** Plugin **OU Blog** support will come in our next release. Check for more updates about it at https://cursivetechnology.com.
+
 ## License
 #### 2023 Cursive Technology, Inc.
 

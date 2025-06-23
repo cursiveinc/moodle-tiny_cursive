@@ -21,30 +21,36 @@
  * @copyright  2024 CTI <your@email.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
+import {get_string as getString} from 'core/str';
 export const init = () => {
     const courseNameElement = document.querySelector('#id_courseid option[selected]');
 
     if (!courseNameElement) {
         window.history.back();
     }
-    const forumTestingText = courseNameElement.textContent.trim();
-    const h5Element = document.createElement('div');
+    getString('coursename', 'tiny_cursive').then(courseName => {
+        const forumTestingText = courseNameElement.textContent.trim();
+        const h5Element = document.createElement('div');
 
-    h5Element.classList.add('row', 'align-items-center', 'pb-4');
-    const label = document.createElement('label');
+        h5Element.classList.add('row', 'align-items-center', 'pb-4');
+        const label = document.createElement('label');
 
-    label.textContent = 'Course Name';
-    label.classList.add('col-md-3', 'col-form-label', 'd-flex', 'pb-0', 'pr-md-0');
-    h5Element.appendChild(label);
+        label.textContent = courseName;
+        label.classList.add('col-md-3', 'col-form-label', 'd-flex', 'pb-0', 'pr-md-0');
+        h5Element.appendChild(label);
 
-    const label2 = document.createElement('label');
-    label2.textContent = forumTestingText;
-    label2.classList.add('col-md-9', 'col-form-label', 'd-flex', 'pb-0', 'pr-md-0');
-    h5Element.appendChild(label2);
+        const label2 = document.createElement('label');
+        label2.textContent = forumTestingText;
+        label2.classList.add('col-md-9', 'col-form-label', 'd-flex', 'pb-0', 'pr-md-0');
+        h5Element.appendChild(label2);
 
-    const moduleIdElement = document.getElementById('fitem_id_moduleid');
-    const parentElement = moduleIdElement.parentElement;
-    parentElement.insertBefore(h5Element, moduleIdElement);
-    document.getElementById('fitem_id_courseid').style.display = 'none';
+        const moduleIdElement = document.getElementById('fitem_id_moduleid');
+        const parentElement = moduleIdElement.parentElement;
+        parentElement.insertBefore(h5Element, moduleIdElement);
+        document.getElementById('fitem_id_courseid').style.display = 'none';
+        return h5Element;
+    }).catch(error =>{
+        window.console.log(error);
+    });
+
 };

@@ -59,10 +59,10 @@ class user_report_form extends moodleform {
         $mform->addElement('select', 'userid', get_string('userename', 'tiny_cursive'), $users, $attributes);
         $mform->setType('userid', PARAM_TEXT);
         $options = [
-            'id' => 'ID',
-            'name' => 'Name',
-            'email' => 'Email',
-            'date' => 'Date',
+            'id'    => get_string('uid', 'tiny_cursive'),
+            'name'  => get_string('name', "tiny_cursive"),
+            'email' => get_string('email', 'tiny_cursive'),
+            'date'  => get_string('date', 'tiny_cursive'),
         ];
         $mform->addElement('select', 'orderby', get_string('orderby', 'tiny_cursive'), $options, $attributes);
         $mform->setType('orderby', PARAM_TEXT);

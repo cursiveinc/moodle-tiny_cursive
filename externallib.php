@@ -28,6 +28,7 @@ use core_external\external_api;
 use core_external\external_function_parameters;
 use core_external\external_single_structure;
 use core_external\external_value;
+use tiny_cursive\constants as MODULES;
 
 defined('MOODLE_INTERNAL') || die;
 
@@ -248,7 +249,7 @@ class cursive_json_func_data extends external_api {
             $DB->insert_record('tiny_cursive_comments', $dataobject);
             return true;
         } catch (moodle_exception $e) {
-            echo $e;
+            debugging($e->getMessage());
             return false;
         }
     }
@@ -461,16 +462,11 @@ class cursive_json_func_data extends external_api {
             ]);
 
             if (!isset($data->filename)) {
-                $sql = 'SELECT filename from {tiny_cursive_files}
-                         WHERE resourceid = :resourceid
-                               AND cmid = :cmid
-                               AND modulename = :modulename';
-                $filename = $DB->get_record_sql($sql, [
-                    'resourceid' => $params['id'],
-                    'cmid' => $params['cmid'],
-                    'modulename' => $params['modulename'],
-                ]);
-
+                $conditions = [
+                            'resourceid' => $params['id'],
+                            'cmid'       => $params['cmid'],
+                            'modulename' => $params['modulename']];
+                $filename = $DB->get_record('tiny_cursive_files', $conditions, 'filename');
                 $data['filename'] = $filename->filename;
 
             }
@@ -1242,36 +1238,36 @@ class cursive_json_func_data extends external_api {
         $cmid = $parts[2];
         $userid = $parts[0];
         $resourceid = $parts[1];
-    
+
         $context = context_module::instance($cmid);
         self::validate_context($context);
         require_capability("tiny/cursive:writingreport", $context);
 
         $conditions = ["userid" => $userid, 'resourceid' => $resourceid, 'cmid' => $cmid];
 
-
         $data = new stdClass;
         try {
-            $filedata = $DB->get_record('tiny_cursive_files', ['filename' => $params['filepath']]);
-            $comments = $DB->get_records('tiny_cursive_comments', $conditions, '', 'usercomment');
-            $content = $filedata->content ? $filedata->content : $content = false;
-            $originalContent = $filedata->original_content ? $filedata->original_content : $originalContent = false;
-            $data->status = true;
-            $commentsList = [];
+            $filedata        = $DB->get_record('tiny_cursive_files', ['filename' => $params['filepath']]);
+            $comments        = $DB->get_records('tiny_cursive_comments', $conditions, '', 'usercomment');
+            $content         = $filedata->content ? $filedata->content : $content = false;
+            $originalcontent = $filedata->original_content ? $filedata->original_content : $originalcontent = false;
+            $data->status    = true;
+            $commentslist    = [];
+
             foreach ($comments as $comment) {
-                $commentsList [] = $comment->usercomment;
+                $commentslist[] = $comment->usercomment;
             }
 
-            $commentsList = array_values($commentsList);
-            $data->comments = json_encode($commentsList);
+            $commentslist = array_values($commentslist);
+            $data->comments = json_encode($commentslist);
 
             if ($content === false) {
                 $data->status = false;
-                $content = get_string('filenotfound', 'tiny_cursive');
+                $content = get_string('filenotfoundor', 'tiny_cursive');
             }
 
             $data->data = $content;
-            $data->original = $originalContent;
+            $data->original = $originalcontent;
         } catch (moodle_exception $e) {
             $data->data = $e->getMessage();
         }
@@ -1288,7 +1284,7 @@ class cursive_json_func_data extends external_api {
             'status' => new external_value(PARAM_BOOL, "file status"),
             'data' => new external_value(PARAM_TEXT, 'Reply Json'),
             'comments' => new external_value(PARAM_TEXT, 'Comments'),
-            'original' => new external_value(PARAM_TEXT, 'Original Content')
+            'original' => new external_value(PARAM_TEXT, 'Original Content'),
         ]);
     }
 
@@ -1362,7 +1358,8 @@ class cursive_json_func_data extends external_api {
         $params = ['fileid' => $vparams['fileid']];
         $rec = $DB->get_record_sql($sql, $params);
         if (isset($rec->effort_ratio)) {
-            $rec->effort_ratio = intval(floatval($rec->effort_ratio) * 100);
+
+            $rec->effort_ratio = round($rec->effort_ratio * 100, 2);
         }
 
         $sql = 'SELECT id AS fileid
@@ -1523,7 +1520,7 @@ class cursive_json_func_data extends external_api {
                                                 AND CC.userid = CF.userid
                                                 AND CC.questionid = CF.questionid
                  WHERE WD.file_id = :fileid
-              GROUP BY WD.id, CF.cmid, CF.resourceid, CF.modulename";
+              GROUP BY WD.id, CF.userid, CF.questionid, CF.cmid, CF.resourceid, CF.modulename";
 
         $params = ['fileid' => $vparams['fileid']];
         $data = $DB->get_record_sql($sql, $params);
@@ -1792,8 +1789,16 @@ class cursive_json_func_data extends external_api {
         $syncinterval = get_config('tiny_cursive', "syncinterval");
         $apikey = cursive_approve_token(get_config( 'tiny_cursive', 'secretkey'), $moodleurl, $remoteurl);
         $apikey = json_decode($apikey);
-        return ['status' => $config, 'sync_interval' => $syncinterval, 'userid' => $USER->id, 'apikey_status' =>
-                                                                                isset($apikey->status) ? true : false];
+
+        $data   = [
+            'status'        => $config,
+            'sync_interval' => $syncinterval,
+            'userid'        => $USER->id,
+            'apikey_status' => isset($apikey->status) ? true : false,
+            'mod_state'     => MODULES::is_active(),
+            'plugins'       => json_encode(MODULES::NAMES),
+        ];
+        return $data;
     }
 
     /**
@@ -1807,6 +1812,8 @@ class cursive_json_func_data extends external_api {
             'sync_interval' => new external_value(PARAM_INT, 'Data Sync interval'),
             'userid' => new external_value(PARAM_INT, 'userid'),
             'apikey_status' => new external_value(PARAM_BOOL, 'api key status'),
+            'mod_state' => new external_value(PARAM_BOOL, "Cursive Module wise active/deactive state"),
+            'plugins' => new external_value(PARAM_TEXT, "Supported Plugins Names"),
         ]);
     }
 
@@ -2247,6 +2254,7 @@ class cursive_json_func_data extends external_api {
      * Gets submission data for a oublog
      *
      * @param int $id The oublog ID
+     * @param int $resourceid The post ID
      * @param string $modulename The name of the module
      * @param int $cmid The course module ID
      * @return string JSON encoded submission data
