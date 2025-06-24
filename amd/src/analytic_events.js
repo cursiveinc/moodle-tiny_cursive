@@ -180,6 +180,8 @@ export default class AnalyticEvents {
 
     replyWriting(userid, filepath, questionid = '', replayInstances = null) {
         $('body').on('click', '#rep' + userid + questionid, function(e) {
+            $('#replayControls_' + userid + questionid).removeClass('d-none');
+            $('#content' + userid).addClass('tiny_cursive_outputElement');
             $(this).prop('disabled', true);
             $('#quality' + userid + questionid).prop('disabled', false);
             $('#content' + userid).attr('data-label', 'replay');

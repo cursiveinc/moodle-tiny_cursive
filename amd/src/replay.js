@@ -47,8 +47,6 @@ export default class Replay {
         const element = document.getElementById(elementId);
         if (element) {
             this.outputElement = element;
-            this.outputElement.classList.add('tiny_cursive_outputElement');
-
         } else {
             throw new Error(`Element with id '${elementId}' not found`);
         }
@@ -154,56 +152,48 @@ export default class Replay {
             clearInterval(this.replayIntervalId);
             this.replayIntervalId = null;
         }
+
         const container = document.getElementById(controllerId);
         if (!container) {
-            window.console.error("Container element not found with ID:", controllerId);
+            window.console.error("Container not found with ID:", controllerId);
             return;
         }
-        // Clean up any existing controls first
-        const existingControls = container.querySelectorAll('.replay-control');
-        existingControls.forEach(control => control.remove());
 
-        // Check if there's an existing paste events panel
-        const existingPanels = container.querySelectorAll('.paste-events-panel');
-        existingPanels.forEach(panel => panel.remove());
+        const controlContainer = container.querySelector('.tiny_cursive_replay_control');
+        if (!controlContainer) {
+            window.console.error("Replay control container not found in:", controllerId);
+            return;
+        }
+        controlContainer.innerHTML = '';
 
-        // Create a container for all controls
-        const controlContainer = document.createElement('div');
-        controlContainer.classList.add('tiny_cursive_replay_control', 'replay-control');
-
-        // Create first row for play button and scrubber
         const topRow = document.createElement('div');
         topRow.classList.add('tiny_cursive_top_row');
 
-        // Create play button
+        // Play button
         this.playButton = document.createElement('button');
         this.playButton.classList.add('tiny_cursive_play_button');
-
         const playSvg = document.createElement('i');
         playSvg.className = '';
-
         this.playButton.innerHTML = `<span class="play-icon">${playSvg.outerHTML}</span>`;
-        this.playButton.classList.add('tiny_cursive_play_button');
 
         this.playButton.addEventListener('click', () => {
             if (this.replayInProgress) {
                 this.stopReplay();
-                const playSvg = document.createElement('img');
-                playSvg.src = M.util.image_url('playicon', 'tiny_cursive');
-                this.playButton.querySelector('.play-icon').innerHTML = playSvg.outerHTML;
+                const playImg = document.createElement('img');
+                playImg.src = M.util.image_url('playicon', 'tiny_cursive');
+                this.playButton.querySelector('.play-icon').innerHTML = playImg.outerHTML;
             } else {
                 this.startReplay(false);
             }
         });
         topRow.appendChild(this.playButton);
 
-        // Create timeline scrubber
+        // Scrubber
         const scrubberContainer = document.createElement('div');
         scrubberContainer.classList.add('tiny_cursive_scrubber_container');
 
         this.scrubberElement = document.createElement('input');
         this.scrubberElement.classList.add('tiny_cursive_timeline_scrubber', 'timeline-scrubber');
-        this.scrubberElement.id = 'timelineScrubber';
         this.scrubberElement.type = 'range';
         this.scrubberElement.max = '100';
         this.scrubberElement.min = '0';
@@ -217,20 +207,24 @@ export default class Replay {
         scrubberContainer.appendChild(this.scrubberElement);
         topRow.appendChild(scrubberContainer);
 
-        // Create second row for speed controls and time display
+        // Time display
+        this.timeDisplay = document.createElement('div');
+        this.timeDisplay.classList.add('tiny_cursive_time_display');
+        this.timeDisplay.textContent = '00:00 / 00:00';
+        topRow.appendChild(this.timeDisplay);
+
         const bottomRow = document.createElement('div');
         bottomRow.classList.add('tiny_cursive_bottom_row');
 
-        // Create Speed controls
+        // Speed controls
         const speedContainer = document.createElement('div');
         speedContainer.classList.add('tiny_cursive_speed_controls', 'speed-controls');
 
         const speedLabel = document.createElement('span');
         speedLabel.classList.add('tiny_cursive_speed_label');
-        speedContainer.appendChild(speedLabel);
         speedLabel.textContent = 'Speed: ';
+        speedContainer.appendChild(speedLabel);
 
-        // Create a single button like container for speed options
         const speedGroup = document.createElement('div');
         speedGroup.classList.add('tiny_cursive_speed_group');
 
@@ -244,36 +238,22 @@ export default class Replay {
             speedBtn.dataset.speed = speedValue;
 
             speedBtn.addEventListener('click', () => {
-                document.querySelectorAll('.tiny_cursive_speed_btn').forEach(btn => {
-                    btn.classList.remove('active');
-                });
+                document.querySelectorAll('.tiny_cursive_speed_btn').forEach(btn => btn.classList.remove('active'));
                 speedBtn.classList.add('active');
                 this.speed = parseFloat(speedBtn.dataset.speed);
-                // Restart to apply the new speed
-                const wasPlaying = this.replayInProgress;
-                if (wasPlaying) {
+                if (this.replayInProgress) {
                     this.stopReplay();
                     this.startReplay(false);
                 }
             });
+
             speedGroup.appendChild(speedBtn);
         });
 
         speedContainer.appendChild(speedGroup);
         bottomRow.appendChild(speedContainer);
 
-        // Add rows to container
-        controlContainer.appendChild(topRow);
-        controlContainer.appendChild(bottomRow);
-
-        // Add time display
-        this.timeDisplay = document.createElement('div');
-        this.timeDisplay.classList.add('tiny_cursive_time_display');
-        this.timeDisplay.textContent = '00:00 / 00:00';
-
-        topRow.appendChild(this.timeDisplay);
-
-        // Create Paste Events Panel toggle button
+        // Paste Events Toggle
         const pasteEventsToggle = document.createElement('div');
         pasteEventsToggle.classList.add('tiny_cursive_paste_events_toggle', 'paste-events-toggle');
 
@@ -303,7 +283,6 @@ export default class Replay {
         pasteEventsToggle.appendChild(pasteEventCount);
         pasteEventsToggle.appendChild(chevronIcon);
 
-        // Create Paste Events Panel
         const pasteEventsPanel = document.createElement('div');
         pasteEventsPanel.classList.add('tiny_cursive_paste_events_panel', 'paste-events-panel');
         pasteEventsPanel.style.display = 'none';
@@ -318,13 +297,12 @@ export default class Replay {
 
         bottomRow.appendChild(pasteEventsToggle);
 
+        controlContainer.appendChild(topRow);
+        controlContainer.appendChild(bottomRow);
         controlContainer.appendChild(pasteEventsPanel);
 
         this.pasteEventsPanel = pasteEventsPanel;
         this.pasteEventCount = pasteEventCount;
-
-        // Add the controls container to main container
-        container.insertBefore(controlContainer, container.firstChild);
     }
 
     identifyPasteEvents() {

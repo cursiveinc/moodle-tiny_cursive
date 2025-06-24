@@ -685,12 +685,13 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     padding: 10px;
     border: 1px solid #e0e0e0;
     border-radius: 4px;
-    height: 385px;
+    height: 375px;
     min-height: 100px;
     background-color: #fff;
 }
 
 .tiny_cursive_replay_control {
+    height: 115px;
     display: flex;
     flex-direction: column;
     gap: 10px;
