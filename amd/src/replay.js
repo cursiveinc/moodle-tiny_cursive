@@ -671,7 +671,6 @@ export default class Replay {
                         // Remove the word from text
                         text = text.substring(0, cursor) + text.substring(wordEnd);
                     }
-                    this.isControlKeyPressed = false;
                 }
                 // Handle Ctrl+ArrowLeft
                 else if (event.key === "ArrowLeft" && this.isControlKeyPressed) {
