@@ -93,6 +93,8 @@ function tiny_cursive_extend_navigation_course(\navigation_node $navigation, \st
 
     $url     = new moodle_url($CFG->wwwroot . '/lib/editor/tiny/plugins/cursive/tiny_cursive_report.php',
        ['courseid' => $course->id]);
+    $vis_url = new moodle_url($CFG->wwwroot . '/lib/editor/tiny/plugins/cursive/visualization.php',
+       ['course' => $course->id]);
     $cmid    = tiny_cursive_get_cmid($course->id);
     $cursive = tiny_cursive_status($course->id);
 
@@ -107,6 +109,15 @@ function tiny_cursive_extend_navigation_course(\navigation_node $navigation, \st
                 null,
                 null,
                 new pix_icon('i/report', '')
+            );
+
+            $navigation->add(
+                "Cursive data visualization",
+                $vis_url,
+                navigation_node::TYPE_SETTING,
+                null,
+                null,
+                new pix_icon('cursive', 'cursive icon','tiny_cursive')
             );
         }
     }

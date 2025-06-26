@@ -142,4 +142,41 @@ if ($ADMIN->fulltree) {
             get_string('cursivedisable_des', 'tiny_cursive'),
         )
     );
+
+    $settings->add(
+        new admin_setting_heading(
+            'cursive_more_info',
+            'Cursive More Info',
+            "Allows administrators to customize the notification text and link shown when enabling Cursive on the course settings page. Both the message and URL can be edited via the Language customization page."
+        ));
+
+        $settings->add(
+        new admin_setting_configtext(
+            'tiny_cursive/note_text',
+            get_string('note_text_title', 'tiny_cursive'),
+            "",
+            get_string('cursive_enable_notice', 'tiny_cursive'),
+            PARAM_TEXT
+        )
+    );
+
+    $settings->add(
+            new admin_setting_configtext(
+                'tiny_cursive/note_url_text',
+                get_string('note_url_text', 'tiny_cursive'),
+                "",
+                get_string('cursive_more_info', 'tiny_cursive'),
+                PARAM_TEXT
+            )
+        );
+
+    $settings->add(
+        new admin_setting_configtext(
+            'tiny_cursive/note_url',
+            get_string('note_url_title', 'tiny_cursive'),
+            "",
+            "https://cursivetechnology.com/moodle-integration-how-it-works",
+            PARAM_TEXT
+        )
+    );
 }
