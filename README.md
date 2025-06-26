@@ -69,7 +69,7 @@ Currently supported Moodle activity modules:
 | 4 | Lesson     | Essay-style lesson questions |
 | 5 | OU Blog    | Blog posts and entries |
 
-> **Note:** Across all modules, only **essay-type** responses are supported.
+> **Note:** Across all modules, only **essay-type** responses are supported. And supported both MySQL and PostgreSQL Database.
 
 
 >**Note:** Users who want to use and get Cursive support in the **OU Blog** plugin must install the support plugin. Check for more updates about it at https://cursivetechnology.com.
