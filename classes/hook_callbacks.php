@@ -89,11 +89,11 @@ class hook_callbacks {
 
             if (MODULES::is_active()) {
                 $apikey = cursive_approve_token();
-                $apikey = json_decode($apikey, true);
+                $apikey = json_decode($apikey);
                 $PAGE->requires->js_call_amd(
                         "tiny_cursive/".MODULES::BODY_IDS[$PAGE->bodyid][0],
                         'init',
-                        [MODULES::confidence_threshold(), MODULES::show_comments(), isset($apikey->status) ? true : false],
+                        [MODULES::confidence_threshold(), MODULES::show_comments(), $apikey->status ?? false],
                     );
             }
         }

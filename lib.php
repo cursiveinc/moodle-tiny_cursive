@@ -372,6 +372,8 @@ function tiny_cursive_status($courseid = 0) {
  */
 function cursive_approve_token() {
     global $CFG;
+    require_once("$CFG->libdir/filelib.php");
+
     try {
         // Use Moodle's cURL library.
         $token     = get_config( 'tiny_cursive', 'secretkey');

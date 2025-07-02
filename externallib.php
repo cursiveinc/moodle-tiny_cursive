@@ -288,7 +288,7 @@ class cursive_json_func_data extends external_api {
      */
     public static function cursive_approve_token_func($token) {
         global $CFG;
-        require_once("$CFG->libdir/filelib.php");
+
         require_once($CFG->dirroot . '/lib/editor/tiny/plugins/cursive/lib.php');
         $params = self::validate_parameters(
             self::cursive_approve_token_func_parameters(),
