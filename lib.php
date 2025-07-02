@@ -149,6 +149,9 @@ function tiny_cursive_coursemodule_standard_elements($formwrapper, $mform) {
     $key       = "CUR$courseid$instance";
     $state     = get_config('tiny_cursive', $key);
 
+    if ($state === "1" || $state === false) {
+        $state = true;
+    }
     // MODULES::NAMES is cursive supported plugin list defined in tiny_cursive\constant class.
     if (in_array($module, MODULES::NAMES)) {
         $mform->addElement('header', 'cursiveheader', 'Cursive', 'local_callbacks');
@@ -158,6 +161,7 @@ function tiny_cursive_coursemodule_standard_elements($formwrapper, $mform) {
         ];
         $mform->addElement('select', 'cursive', get_string('cursive_status', 'tiny_cursive'), $options);
         $mform->setType('cursive', PARAM_INT);
+
         $mform->setdefault('cursive', $state);
     }
 }
@@ -369,6 +373,10 @@ function tiny_cursive_status($courseid = 0) {
 function cursive_approve_token($token, $moodleurl, $remoteurl) {
     try {
         // Use Moodle's cURL library.
+        if (empty($token)) {
+            return "";
+        }
+
         $curl    = new curl();
         $options = [
             'CURLOPT_RETURNTRANSFER' => true,

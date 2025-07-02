@@ -52,16 +52,16 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
     };
 
     var usersTable = {
-        init: function(scoreSetting, showcomment) {
+        init: function(scoreSetting, showcomment, hasApiKey) {
             str
                 .get_strings([
                     {key: "field_require", component: "tiny_cursive"},
                 ])
                 .done(function() {
-                    usersTable.getToken(scoreSetting, showcomment);
+                    usersTable.getToken(scoreSetting, showcomment, hasApiKey);
                 });
         },
-        getToken: function(scoreSetting, showcomment) {
+        getToken: function(scoreSetting, showcomment, hasApiKey) {
             $('#page-mod-forum-discuss').find("article").get().forEach(function(entry) {
                 var replyButton = $('a[data-region="post-action"][title="Reply"]');
                 if (replyButton.length > 0) {
@@ -89,27 +89,9 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
 
                         let analyticButtonDiv = document.createElement('div');
                         analyticButtonDiv.append(analyticButton(ids));
-                        analyticButtonDiv.classList.add('text-center', 'my-3');
+                        analyticButtonDiv.classList.add('text-center', 'my-2');
                         analyticButtonDiv.dataset.region = "analytic-div" + ids;
 
-                        if (data.usercomment != 'comments' && parseInt(showcomment)) {
-
-                           str.get_string('refer', 'tiny_cursive').then(str =>{
-                            let comments = "";
-                            data.usercomment.forEach(element => {
-                                // Create the anchor element
-                                comments += '<div class="border-bottom p-3" style="font-weight:600;color:#0f6cbf">'
-                                    + element.usercomment + '</div>';
-                            });
-
-                            $("#" + entry.id).find('#post-content-' + ids).prepend($('<div>')
-                                .addClass('tiny_cursive-quiz-references rounded mb-2')
-                                        .append(comments)).prepend($('<h4>').append(str));
-                            return comments;
-                            }).catch(error => {
-                                window.console.error(error);
-                            });
-                        }
                         $("#" + entry.id).find('#post-content-' + ids).prepend(analyticButtonDiv);
 
                         let myEvents = new AnalyticEvents();
@@ -118,14 +100,14 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
                             formattime: myEvents.formatedTime(data.data),
                             page: scoreSetting,
                             userid: ids,
+                            apikey: hasApiKey
                         };
 
                         let authIcon = myEvents.authorshipStatus(data.data.first_file, data.data.score, scoreSetting);
-                        myEvents.createModal(ids, context, '', authIcon);
+                        myEvents.createModal(ids, context, '', replayInstances, authIcon);
                         myEvents.analytics(ids, templates, context, '', replayInstances, authIcon);
                         myEvents.checkDiff(ids, data.data.file_id, '', replayInstances);
                         myEvents.replyWriting(ids, filepath, '', replayInstances);
-                        myEvents.quality(ids, templates, context, '', replayInstances, cmid);
                     }
 
                 });

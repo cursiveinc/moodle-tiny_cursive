@@ -185,6 +185,8 @@ export default class Replay {
             } else {
                 this.startReplay(false);
             }
+            $('.tiny_cursive-nav-tab').find('.active').removeClass('active');
+            $('a[id^="rep"]').addClass('active');
         });
         topRow.appendChild(this.playButton);
 
@@ -615,11 +617,11 @@ export default class Replay {
                     this.isControlKeyPressed = true;
                 }
                 else if (event.key !== "v") {
-                    if (event.key !== "Control" && event.key !== 'Backspace' && event.key !== 'Delete' && 
+                    if (event.key !== "Control" && event.key !== 'Backspace' && event.key !== 'Delete' &&
                         event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') {
                         this.isControlKeyPressed = false;
                     }
-                    if (event.key !== "Backspace" && event.key !== "Delete" && 
+                    if (event.key !== "Backspace" && event.key !== "Delete" &&
                         event.key !== "ArrowLeft" && event.key !== "ArrowRight") {
                         this.isPasteEvent = false;
                     }
@@ -658,7 +660,7 @@ export default class Replay {
                     if (cursor < text.length) {
                         const wordEnd = this.findNextWordBoundary(text, cursor);
                         const wordToDelete = text.substring(cursor, wordEnd);
-                        
+
                         for (let i = 0; i < wordToDelete.length; i++) {
                             updatedDeleted.push({
                                 index: cursor + i,
@@ -667,7 +669,7 @@ export default class Replay {
                                 expiresAt: this.currentTime + 2000
                             });
                         }
-                        
+
                         // Remove the word from text
                         text = text.substring(0, cursor) + text.substring(wordEnd);
                     }
@@ -778,13 +780,13 @@ export default class Replay {
         if (!text || cursor >= text.length) {
             return cursor;
         }
-    
+
         if (text[cursor] === ' ') {
             while (cursor < text.length && text[cursor] === ' ') {
                 cursor++;
             }
         }
-    
+
         if (cursor >= text.length) {
             let lastNonSpace = text.length - 1;
             while (lastNonSpace >= 0 && text[lastNonSpace] === ' ') {
@@ -793,24 +795,24 @@ export default class Replay {
             cursor = lastNonSpace + 1;
             return cursor;
         }
-    
+
         let wordEnd = cursor;
         while (wordEnd < text.length && text[wordEnd] !== ' ') {
             wordEnd++;
         }
-    
+
         return wordEnd;
     }
-    
+
     findPreviousWordBoundary(text, cursor) {
         let pos = cursor;
-        
+
         if (pos <= 0) {
             return 0;
         }
-        
+
         pos--;
-        
+
         while (pos > 0 && (text[pos] === ' ' || text[pos] === '\n')) {
             pos--;
         }
@@ -818,7 +820,7 @@ export default class Replay {
         while (pos > 0 && text[pos - 1] !== ' ' && text[pos - 1] !== '\n') {
             pos--;
         }
-        
+
         return pos;
     }
 
@@ -865,15 +867,15 @@ export default class Replay {
                 this.currentEventIndex = i;
                 break;
             }
-    
+
             // Use rePosition for first event or mouse events
             if (event.rePosition !== undefined && (i === 0 || event.event === 'mouseDown' || event.event === 'mouseUp')) {
                 cursor = Math.max(0, Math.min(event.rePosition, text.length));
             }
-    
+
             if (event.event && event.event.toLowerCase() === "keydown") {
                 const charToInsert = this.applyKey(event.key);
-    
+
                 if (event.key === "Control") {
                     this.isControlKeyPressed = true;
                 } else if (event.key !== "v") {
@@ -889,7 +891,7 @@ export default class Replay {
                     this.isPasteEvent = true;
                     this.isControlKeyPressed = false;
                 }
-    
+
                 // Handle Ctrl+Backspace
                 if (event.key === "Backspace" && this.isControlKeyPressed) {
                     if (cursor > 0) {
@@ -921,7 +923,7 @@ export default class Replay {
                     if (cursor < text.length) {
                         const wordEnd = this.findNextWordBoundary(text, cursor);
                         const wordToDelete = text.substring(cursor, wordEnd);
-    
+
                         for (let j = 0; j < wordToDelete.length; j++) {
                             updatedDeleted.push({
                                 index: cursor + j,
@@ -930,7 +932,7 @@ export default class Replay {
                                 expiresAt: targetTime + 2000
                             });
                         }
-    
+
                         text = text.substring(0, cursor) + text.substring(wordEnd);
                     }
                     this.isControlKeyPressed = false;
@@ -990,13 +992,13 @@ export default class Replay {
                     cursor++;
                 }
             }
-    
+
             this.currentEventIndex = i + 1;
         }
         // Filter expired highlights and deletions
         this.highlightedChars = updatedHighlights.filter(h => !h.expiresAt || h.expiresAt > targetTime);
         this.deletedChars = updatedDeleted.filter(d => !d.expiresAt || d.expiresAt > targetTime);
-    
+
         this.text = text;
         this.cursorPosition = cursor;
         this.updateDisplayText(text, cursor, this.highlightedChars, this.deletedChars);

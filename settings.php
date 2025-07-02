@@ -34,11 +34,31 @@ $ADMIN->add('editortiny', new admin_category('tiny_cursive', new lang_string('pl
 
 if ($ADMIN->fulltree) {
 
+
+    $information = html_writer::tag('p',
+        get_string('pluginname_desc_new', 'tiny_cursive') . ' ' .
+        html_writer::link(
+            'https://sjcgf.share.hsforms.com/2SHQOFefUSriOMeP9SzMmmw',
+            get_string('pluginname_desc_new_link', 'tiny_cursive'),
+            ['target' => '_blank', 'rel' => 'noopener']
+        ) . '. ' . get_string('pluginname_desc_new_2', 'tiny_cursive')
+    );
+
+    $information .= html_writer::tag('p',
+        get_string('pluginname_desc_new_3', 'tiny_cursive') . ' ' .
+        html_writer::link(
+            'mailto:info@cursivetechnology.com',
+            'info@cursivetechnology.com'
+        ),
+        ['style' => 'margin-bottom: 2rem;']
+    );
+
+
     $settings->add(
         new admin_setting_heading(
             'cursive_settings',
-            '',
-            get_string('pluginname_desc', 'tiny_cursive')
+            "",
+            $information
         )
     );
 

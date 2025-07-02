@@ -75,10 +75,19 @@ class constants {
      */
     public static function is_active() {
         global $PAGE;
-        $instance = $PAGE->cm->id;
-        $courseid = $PAGE->cm->course;
+
+        $instance = $PAGE->cm->id ?? 0;
+        $courseid = $PAGE->cm->course ?? $PAGE->course->id;
         $key      = "CUR$courseid$instance";
         $state    = get_config('tiny_cursive', $key);
+
+        if ($state === "1" || $state === false) {
+            $state = true;
+        }
+        // Condition changed for course participants list.
+        if ($PAGE->bodyid === array_keys(self::BODY_IDS)[5] && get_config('tiny_cursive', "cursive-$courseid")) {
+            $state = true;
+        }
 
         return $state ? true : false;
     }
