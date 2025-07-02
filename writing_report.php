@@ -24,9 +24,8 @@
  */
 
 require(__DIR__ . '/../../../../../config.php');
-require_once($CFG->dirroot . '/mod/quiz/lib.php');
-require_once($CFG->dirroot . '/mod/quiz/locallib.php');
 require_once(__DIR__ . '/locallib.php');
+require_once(__DIR__ . '/lib.php');
 
 global $CFG, $DB, $PAGE, $OUTPUT;
 require_login(null, false);
@@ -71,8 +70,8 @@ $user = $DB->get_record('user', ['id' => $userid]);
 if (!$user) {
     throw new moodle_exception('invaliduser', 'error');
 }
-
-$PAGE->requires->js_call_amd('tiny_cursive/cursive_writing_reports', 'init', []);
+$apikey = json_decode(cursive_approve_token());
+$PAGE->requires->js_call_amd('tiny_cursive/cursive_writing_reports', 'init', ["", $apikey->status ?? false]);
 
 $PAGE->set_context(context_system::instance());
 $PAGE->set_url($url);

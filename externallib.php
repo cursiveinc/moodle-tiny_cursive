@@ -301,10 +301,7 @@ class cursive_json_func_data extends external_api {
         self::validate_context($context);
         require_capability('tiny/cursive:editsettings', $context);
 
-        $remoteurl = get_config('tiny_cursive', 'python_server') . '/verify-token';
-        $moodleurl = $CFG->wwwroot;
-
-        $result = cursive_approve_token($params['token'], $moodleurl, $remoteurl);
+        $result = cursive_approve_token();
 
         return $result;
     }
@@ -1787,7 +1784,7 @@ class cursive_json_func_data extends external_api {
 
         $config = tiny_cursive_status($params['courseid']);
         $syncinterval = get_config('tiny_cursive', "syncinterval");
-        $apikey = cursive_approve_token(get_config( 'tiny_cursive', 'secretkey'), $moodleurl, $remoteurl);
+        $apikey = cursive_approve_token();
         $apikey = json_decode($apikey);
 
         $data   = [

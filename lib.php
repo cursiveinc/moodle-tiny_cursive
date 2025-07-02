@@ -370,9 +370,14 @@ function tiny_cursive_status($courseid = 0) {
  * @return string The response from the remote server
  * @throws moodle_exception If token verification fails
  */
-function cursive_approve_token($token, $moodleurl, $remoteurl) {
+function cursive_approve_token() {
+    global $CFG;
     try {
         // Use Moodle's cURL library.
+        $token     = get_config( 'tiny_cursive', 'secretkey');
+        $remoteurl = get_config('tiny_cursive', 'python_server') . '/verify-token';
+        $moodleurl = $CFG->wwwroot;
+
         if (empty($token)) {
             return "";
         }

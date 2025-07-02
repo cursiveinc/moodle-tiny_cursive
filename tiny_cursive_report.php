@@ -24,11 +24,11 @@
  */
 use tiny_cursive\forms\user_report_form;
 require(__DIR__ . '/../../../../../config.php');
-require_once($CFG->dirroot . '/mod/quiz/lib.php');
-require_once($CFG->dirroot . '/mod/quiz/locallib.php');
-require_once(__DIR__ . '/locallib.php');
 
-global $CFG, $DB, $PAGE, $OUTPUT;
+require_once(__DIR__ . '/locallib.php');
+require_once(__DIR__ . '/lib.php');
+
+global $DB, $PAGE, $OUTPUT;
 
 require_login(); // Teacher and admin can see this page.
 $courseid = required_param('courseid', PARAM_INT);
@@ -66,8 +66,9 @@ if ($courseid && $courseid != 0) {
 
 require_capability('tiny/cursive:view', $context);
 
+$apikey = json_decode(cursive_approve_token());
 $PAGE->requires->js_call_amd('tiny_cursive/key_logger', 'init', [1]);
-$PAGE->requires->js_call_amd('tiny_cursive/cursive_writing_reports', 'init', []);
+$PAGE->requires->js_call_amd('tiny_cursive/cursive_writing_reports', 'init', ["", $apikey->status ?? false]);
 
 $PAGE->set_context(context_system::instance());
 $PAGE->set_title(get_string('tiny_cursive', 'tiny_cursive'));

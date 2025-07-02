@@ -51,7 +51,7 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", './anal
 
     };
     var usersTable = {
-        init: function(page) {
+        init: function(page, hasApiKey) {
             str
                 .get_strings([
                     {key: "field_require", component: "tiny_cursive"},
@@ -64,7 +64,7 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", './anal
             (async function() {
                 try {
                     let scoreSetting = await str.get_string('confidence_threshold', 'tiny_cursive');
-                    analyticsEvents(scoreSetting);
+                    analyticsEvents(scoreSetting, hasApiKey);
                 } catch (error) {
                     window.console.error('Error fetching string:', error);
                 }

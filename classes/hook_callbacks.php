@@ -60,8 +60,6 @@ class hook_callbacks {
         }
 
         $cursivestatus = tiny_cursive_status($COURSE->id);
-        $remoteurl     = get_config('tiny_cursive', 'python_server') . '/verify-token';
-        $moodleurl     = $CFG->wwwroot;
         $context       = "";
 
         if (!$cursivestatus) {
@@ -90,7 +88,7 @@ class hook_callbacks {
             }
 
             if (MODULES::is_active()) {
-                $apikey = cursive_approve_token(get_config( 'tiny_cursive', 'secretkey'), $moodleurl, $remoteurl);
+                $apikey = cursive_approve_token();
                 $apikey = json_decode($apikey, true);
                 $PAGE->requires->js_call_amd(
                         "tiny_cursive/".MODULES::BODY_IDS[$PAGE->bodyid][0],
