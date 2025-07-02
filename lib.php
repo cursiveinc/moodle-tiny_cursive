@@ -137,9 +137,15 @@ function tiny_cursive_extend_navigation(global_navigation $navigation) {
  * @return void
  */
 function tiny_cursive_coursemodule_standard_elements($formwrapper, $mform) {
+    global $PAGE;
 
     $cursive   = tiny_cursive_status($formwrapper->get_current()->course);
+    $plugins   = core_component::get_plugin_list('local');
+
     if (!$cursive) {
+        return;
+    }
+    if (!isset($plugins['cursive_oublog']) && $PAGE->bodyid === "page-mod-oublog-mod") {
         return;
     }
 
@@ -177,9 +183,13 @@ function tiny_cursive_coursemodule_standard_elements($formwrapper, $mform) {
  * @return stdClass The modified form data
  */
 function tiny_cursive_coursemodule_edit_post_actions($formdata, $course) {
+    global $PAGE;
 
     $cursive = tiny_cursive_status($course->id);
     if (!$cursive) {
+        return $formdata;
+    }
+    if (!isset($plugins['cursive_oublog']) && $PAGE->bodyid === "page-mod-oublog-mod") {
         return $formdata;
     }
 
