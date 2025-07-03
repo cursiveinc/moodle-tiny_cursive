@@ -121,7 +121,7 @@ export const init = (scoreSetting, showcomment, hasApiKey) => {
             analyticButtonDiv.dataset.region = "analytic-div" + userid;
             analyticsColumn.append(analyticButtonDiv);
             if (grade) {
-                // Append before the response editor
+                analyticButtonDiv.classList.add('w-100');
                 $('#fitem_id_response_editor .felement').prepend(analyticButtonDiv);
             } else {
                 $emailLink.closest('tr').find('td:eq(1)').after(analyticsColumn);
