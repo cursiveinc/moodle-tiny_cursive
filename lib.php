@@ -372,13 +372,12 @@ function tiny_cursive_status($courseid = 0) {
 }
 
 /**
- * Verifies a token by sending it to a remote server for approval
+ * Verifies a token by sending it to a remote server for approval.
+ * This function retrieves the secret key and Moodle URL, then sends them to the remote
+ * verification server for authentication. It uses Moodle's curl library to make the request.
  *
- * @param string $token The authentication token to verify
- * @param string $moodleurl The URL of the Moodle installation
- * @param string $remoteurl The URL of the remote verification server
- * @return string The response from the remote server
- * @throws moodle_exception If token verification fails
+ * @return string The response from the remote verification server, empty string if no token configured
+ * @throws moodle_exception If token verification fails or there is a curl error
  */
 function cursive_approve_token() {
     global $CFG;

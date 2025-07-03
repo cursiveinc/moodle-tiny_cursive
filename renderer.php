@@ -47,18 +47,7 @@ class tiny_cursive_renderer extends plugin_renderer_base {
         $totalcount = $users['count'];
         $data       = $users['data'];
 
-        $table      = new html_table();
-        $table->attributes['class'] = 'table table-hover mx-2 my-3 overflow-hidden';
-        $table->attributes['style'] = 'width: 98%;';
-        $table->head = [
-            get_string('attemptid', 'tiny_cursive'),
-            get_string('fullname', 'tiny_cursive'),
-            get_string('email', 'tiny_cursive'),
-            get_string('module_name', 'tiny_cursive'),
-            get_string('last_modified', 'tiny_cursive'),
-            get_string('analytics', 'tiny_cursive'),
-            get_string("download", 'tiny_cursive'),
-        ];
+        $userdata      = [];
         foreach ($data as $user) {
 
             $modinfo  = get_fast_modinfo($courseid);
@@ -66,19 +55,19 @@ class tiny_cursive_renderer extends plugin_renderer_base {
             $module   = get_coursemodule_from_id($cm?->modname, $user->cmid, 0, false, MUST_EXIST);
             $filepath = $user->filename;
 
-            $row   = [];
-            $row[] = $user->fileid;
-            $row[] = fullname($user);
-            $row[] = $user->email;
-            $row[] = $module->name;
-            $row[] = date("l jS \of F Y h:i:s A", $user->timemodified);
-            $row[] = html_writer::div(
+            $row               = [];
+            $row['fileid']     = $user->fileid;
+            $row['username']   = fullname($user);
+            $row['email']      = $user->email;
+            $row['modulename'] = $module->name;
+            $row['timestamp']  = date("l jS \of F Y h:i:s A", $user->timemodified);
+            $row['analytics']  = html_writer::div(
                 get_string('analytics', 'tiny_cursive'), 'analytic-modal', [
                         'data-cmid' => $user->cmid,
                         'data-filepath' => $filepath,
                         'data-id' => $user->attemptid,
                     ]);
-            $row[] = html_writer::link(
+            $row['download']   = html_writer::link(
                 new moodle_url('/lib/editor/tiny/plugins/cursive/download_json.php', [
                     'fname'   => $user->filename,
                     'quizid'  => 2,
@@ -87,15 +76,17 @@ class tiny_cursive_renderer extends plugin_renderer_base {
                 ]),
                 get_string('download', 'tiny_cursive'),
                 [
-                    'class' => 'btn btn-primary',
-                    'style' => 'margin-right:50px;',
+                    'class' => 'tiny_cursive-writing-report-download-btn download-btn',
                     'aria-describedby' => get_string('download_attempt_json', 'tiny_cursive'),
                     'role'  => 'button',
                 ],
             );
-            $table->data[] = $row;
+            $userdata[] = $row;
         }
-        echo html_writer::table($table);
+
+        echo $this->output->render_from_template('tiny_cursive/writing_activity_report', [
+            'userdata' => $userdata,
+        ]);
         echo $this->output->paging_bar($totalcount, $page, $limit, $baseurl);
     }
 
