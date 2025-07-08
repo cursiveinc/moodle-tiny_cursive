@@ -90,7 +90,7 @@ export default class Replay {
                             templates.render('tiny_cursive/no_submission'),
                             Str.get_string('warningpayload', 'tiny_cursive')
                         ])
-                            .then(function (results) {
+                            .then(function(results) {
                                 var html = results[0];
                                 var str = results[1];
                                 var newElement = $(html);
@@ -98,7 +98,7 @@ export default class Replay {
                                 $('.tiny_cursive').html(newElement);
                                 return true;
                             })
-                            .catch(function (error) {
+                            .catch(function(error) {
                                 window.console.error(error);
                             });
                     } catch (error) {
@@ -114,14 +114,14 @@ export default class Replay {
                         templates.render('tiny_cursive/no_submission'),
                         Str.get_string('warningpayload', 'tiny_cursive')
                     ])
-                        .then(function (results) {
+                        .then(function(results) {
                             var html = results[0];
                             var str = results[1];
                             var newElement = $(html);
                             newElement.text(str);
-                            $('.tiny_cursive').html(newElement);
+                            return $('.tiny_cursive').html(newElement);
                         })
-                        .catch(function (error) {
+                        .catch(function(error) {
                             window.console.error(error);
                         });
                 } catch (error) {
@@ -586,6 +586,7 @@ export default class Replay {
     }
 
     // Called by startReplay() to recursively call through keydown events
+    // Refactored replayLog and helpers
     replayLog() {
         if (!this.replayInProgress) {
             this.updateDisplayText(this.text, this.cursorPosition, [], []);
@@ -594,170 +595,201 @@ export default class Replay {
 
         while (this.currentEventIndex < this.logData.length) {
             const event = this.logData[this.currentEventIndex];
-
             if (event.normalizedTime && event.normalizedTime > this.currentTime) {
                 break;
             }
 
-            let text = this.text || '';
-            let cursor = this.cursorPosition || 0;
-            let updatedHighlights = [...this.highlightedChars];
-            let updatedDeleted = [...this.deletedChars];
+            const {updatedText, updatedCursor, updatedHighlights, updatedDeleted} =
+                this.processEvent(event, this.text, this.cursorPosition, this.highlightedChars, this.deletedChars);
 
-            // Use rePosition for the first event or mouse events
-            if (event.rePosition !== undefined && (this.currentEventIndex === 0
-                || event.event === 'mouseDown' || event.event === 'mouseUp')) {
-                cursor = Math.max(0, Math.min(event.rePosition, text.length));
-            }
-
-            if (event.event && event.event.toLowerCase() === "keydown") {
-                const charToInsert = this.applyKey(event.key);
-
-                if (event.key === "Control") {
-                    this.isControlKeyPressed = true;
-                }
-                else if (event.key !== "v") {
-                    if (event.key !== "Control" && event.key !== 'Backspace' && event.key !== 'Delete' &&
-                        event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') {
-                        this.isControlKeyPressed = false;
-                    }
-                    if (event.key !== "Backspace" && event.key !== "Delete" &&
-                        event.key !== "ArrowLeft" && event.key !== "ArrowRight") {
-                        this.isPasteEvent = false;
-                    }
-                }
-                else if (event.key === 'v' && this.isControlKeyPressed) {
-                    this.isPasteEvent = true;
-                    this.isControlKeyPressed = false;
-                }
-                if (event.key === "Backspace" && this.isControlKeyPressed) {
-                    // Handle Control+Backspace word deletion
-                    if (cursor > 0) {
-                        let wordStart = cursor;
-                        while (wordStart > 0 && text[wordStart - 1] === ' ') {
-                            wordStart--;
-                        }
-                        while (wordStart > 0 && text[wordStart - 1] !== ' ') {
-                            wordStart--;
-                        }
-
-                        const wordToDelete = text.substring(wordStart, cursor);
-                        for (let i = 0; i < wordToDelete.length; i++) {
-                            updatedDeleted.push({
-                                index: wordStart + i,
-                                char: wordToDelete[i],
-                                time: this.currentTime,
-                                expiresAt: this.currentTime + 2000
-                            });
-                        }
-                        // Remove the word
-                        text = text.substring(0, wordStart) + text.substring(cursor);
-                        cursor = wordStart;
-                    }
-                }
-                // Handle Ctrl+Delete
-                else if (event.key === "Delete" && this.isControlKeyPressed) {
-                    if (cursor < text.length) {
-                        const wordEnd = this.findNextWordBoundary(text, cursor);
-                        const wordToDelete = text.substring(cursor, wordEnd);
-
-                        for (let i = 0; i < wordToDelete.length; i++) {
-                            updatedDeleted.push({
-                                index: cursor + i,
-                                char: wordToDelete[i],
-                                time: this.currentTime,
-                                expiresAt: this.currentTime + 2000
-                            });
-                        }
-
-                        // Remove the word from text
-                        text = text.substring(0, cursor) + text.substring(wordEnd);
-                    }
-                }
-                // Handle Ctrl+ArrowLeft
-                else if (event.key === "ArrowLeft" && this.isControlKeyPressed) {
-                    cursor = this.findPreviousWordBoundary(text, cursor);
-                }
-                // Handle Ctrl+ArrowRight
-                else if (event.key === "ArrowRight" && this.isControlKeyPressed) {
-                    cursor = this.findNextWordBoundary(text, cursor);
-                }
-                // Handle regular Backspace
-                else if (event.key === "Backspace" && !this.isPasteEvent) {
-                    if (cursor > 0) {
-                        // Store the character being deleted
-                        updatedDeleted.push({
-                            index: cursor - 1,
-                            char: text[cursor - 1],
-                            time: this.currentTime,
-                            expiresAt: this.currentTime + 2000 // Make deletions visible for 2 seconds
-                        });
-                        // Remove the character before cursor
-                        text = text.substring(0, cursor - 1) + text.substring(cursor);
-                        cursor--;
-                    }
-                }
-                // Handle Delete key
-                else if (event.key === "Delete" && !this.isControlKeyPressed) {
-                    if (cursor < text.length) {
-                        updatedDeleted.push({
-                            index: cursor,
-                            char: text[cursor],
-                            time: this.currentTime,
-                            expiresAt: this.currentTime + 2000
-                        });
-                        text = text.substring(0, cursor) + text.substring(cursor + 1);
-                    }
-                }
-                // Handle ArrowLeft
-                else if (event.key === "ArrowLeft" && !this.isControlKeyPressed) {
-                    cursor = Math.max(0, cursor - 1);
-                }
-                // Handle ArrowRight
-                else if (event.key === "ArrowRight" && !this.isControlKeyPressed) {
-                    cursor = Math.min(text.length, cursor + 1);
-                }
-                // Handle character insertion
-                else if (charToInsert !== null && charToInsert !== "") {
-                    // Insert the character at cursor position
-                    text = text.substring(0, cursor) + charToInsert + text.substring(cursor);
-                    // Highlight non-space characters
-                    if (charToInsert.trim() !== "") {
-                        updatedHighlights.push({
-                            index: cursor,
-                            char: charToInsert,
-                            time: this.currentTime,
-                            expiresAt: this.currentTime + 1500 // Make highlights visible for 1.5 seconds
-                        });
-                    }
-                    cursor++;
-                }
-            }
-
-            this.text = text;
-            this.cursorPosition = cursor;
-
-            // Filter out expired highlights and deletions
-            this.highlightedChars = updatedHighlights.filter(h =>
-                !h.expiresAt || h.expiresAt > this.currentTime
-            );
-
-            this.deletedChars = updatedDeleted.filter(d =>
-                !d.expiresAt || d.expiresAt > this.currentTime
-            );
+            this.text = updatedText;
+            this.cursorPosition = updatedCursor;
+            this.highlightedChars = updatedHighlights;
+            this.deletedChars = updatedDeleted;
 
             this.currentEventIndex++;
         }
 
         this.updateDisplayText(this.text, this.cursorPosition, this.highlightedChars, this.deletedChars);
+        this.updateReplayStatus();
+    }
 
-        // Update timeline
+    processEvent(event, text, cursor, highlights, deletions) {
+        let updatedHighlights = [...highlights];
+        let updatedDeleted = [...deletions];
+
+        if (event.rePosition !== undefined && (this.currentEventIndex === 0
+            || event.event === 'mouseDown' || event.event === 'mouseUp')) {
+            cursor = Math.max(0, Math.min(event.rePosition, text.length));
+        }
+
+        if (event.event?.toLowerCase() === "keydown") {
+            ({text, cursor, updatedHighlights, updatedDeleted} =
+                this.handleKeydown(event, text, cursor, updatedHighlights, updatedDeleted));
+        }
+
+        updatedHighlights = updatedHighlights.filter(h => !h.expiresAt || h.expiresAt > this.currentTime);
+        updatedDeleted = updatedDeleted.filter(d => !d.expiresAt || d.expiresAt > this.currentTime);
+
+        return {updatedText: text, updatedCursor: cursor, updatedHighlights, updatedDeleted};
+    }
+
+    handleKeydown(event, text, cursor, highlights, deletions) {
+        const key = event.key;
+        const charToInsert = this.applyKey(key);
+
+        // Update Control and Paste states
+        if (key === "Control") {
+            this.isControlKeyPressed = true;
+        } else if (key === "v" && this.isControlKeyPressed) {
+            this.isPasteEvent = true;
+            this.isControlKeyPressed = false;
+        } else if (key !== "v") {
+            this.isControlKeyPressed = false;
+        }
+
+        // Helper to update highlights when inserting a char
+        const insertChar = (char) => {
+            text = text.slice(0, cursor) + char + text.slice(cursor);
+            if (char.trim()) {
+                highlights.push({
+                    index: cursor,
+                    "char": char,
+                    time: this.currentTime,
+                    expiresAt: this.currentTime + 1500
+                });
+            }
+            cursor++;
+        };
+
+        if (this.isControlKeyPressed) {
+            switch (key) {
+                case "Backspace":
+                    ({text, cursor, deletions} = this.handleCtrlBackspace(text, cursor, deletions));
+                    this.isControlKeyPressed = false;
+                    break;
+                case "Delete":
+                    ({text, deletions} = this.handleCtrlDelete(text, cursor, deletions));
+                    this.isControlKeyPressed = false;
+                    break;
+                case "ArrowLeft":
+                    cursor = this.findPreviousWordBoundary(text, cursor);
+                    break;
+                case "ArrowRight":
+                    cursor = this.findNextWordBoundary(text, cursor);
+                    break;
+                default:
+                    break;
+            }
+        } else {
+            switch (key) {
+                case "Backspace":
+                    if (!this.isPasteEvent) {
+                        ({text, cursor, deletions} = this.handleBackspace(text, cursor, deletions));
+                    }
+                    break;
+                case "Delete":
+                    ({text, deletions} = this.handleDelete(text, cursor, deletions));
+                    break;
+                case "ArrowLeft":
+                    cursor = Math.max(0, cursor - 1);
+                    break;
+                case "ArrowRight":
+                    cursor = Math.min(text.length, cursor + 1);
+                    break;
+                default:
+                    if (charToInsert) {
+                        insertChar(charToInsert);
+                    }
+                    break;
+            }
+        }
+
+        return {text, cursor, updatedHighlights: highlights, updatedDeleted: deletions};
+    }
+
+    handleCtrlBackspace(text, cursor, deletions) {
+        if (cursor === 0) {
+            return {text, cursor, deletions};
+        }
+
+        let wordStart = cursor;
+        while (wordStart > 0 && text[wordStart - 1] === ' ') {
+            wordStart--;
+        }
+        while (wordStart > 0 && text[wordStart - 1] !== ' ') {
+            wordStart--;
+        }
+
+        const word = text.slice(wordStart, cursor);
+        for (let i = 0; i < word.length; i++) {
+            deletions.push({
+                index: wordStart + i,
+                "char": word[i],
+                time: this.currentTime,
+                expiresAt: this.currentTime + 2000
+            });
+        }
+        return {
+            text: text.slice(0, wordStart) + text.slice(cursor),
+            cursor: wordStart,
+            deletions
+        };
+    }
+
+    handleCtrlDelete(text, cursor, deletions) {
+        const wordEnd = this.findNextWordBoundary(text, cursor);
+        const word = text.slice(cursor, wordEnd);
+        for (let i = 0; i < word.length; i++) {
+            deletions.push({
+                index: cursor + i,
+                "char": word[i],
+                time: this.currentTime,
+                expiresAt: this.currentTime + 2000
+            });
+        }
+        return {text: text.slice(0, cursor) + text.slice(wordEnd), deletions};
+    }
+
+    handleBackspace(text, cursor, deletions) {
+        if (cursor === 0) {
+            return {text, cursor, deletions};
+        }
+        deletions.push({
+            index: cursor - 1,
+            "char": text[cursor - 1],
+            time: this.currentTime,
+            expiresAt: this.currentTime + 2000
+        });
+        return {
+            text: text.slice(0, cursor - 1) + text.slice(cursor),
+            cursor: cursor - 1,
+            deletions
+        };
+    }
+
+    handleDelete(text, cursor, deletions) {
+        if (cursor >= text.length) {
+            return {text, deletions};
+        }
+        deletions.push({
+            index: cursor,
+            "char": text[cursor],
+            time: this.currentTime,
+            expiresAt: this.currentTime + 2000
+        });
+        return {
+            text: text.slice(0, cursor) + text.slice(cursor + 1),
+            deletions
+        };
+    }
+
+    updateReplayStatus() {
         if (this.totalDuration > 0) {
             const percentComplete = Math.min((this.currentTime / this.totalDuration) * 100, 100);
             this.setScrubberVal(percentComplete);
         }
 
-        // Continue or stop replay
         if (this.replayInProgress) {
             const baseIncrement = 100;
             const incrementTime = baseIncrement / this.speed;
@@ -847,6 +879,32 @@ export default class Replay {
         }
 
         const targetTime = (this.totalDuration * percentage) / 100;
+        this.initializeReplayState(targetTime);
+
+        for (let i = 0; i < this.logData.length; i++) {
+            const event = this.logData[i];
+            if (event.normalizedTime && event.normalizedTime > targetTime) {
+                this.currentEventIndex = i;
+                break;
+            }
+            this.handleReplayEvent(event, i, targetTime);
+        }
+
+        this.highlightedChars = this.removeExpiredHighlights(this.tempHighlights, targetTime);
+        this.deletedChars = this.removeExpiredDeletions(this.tempDeletions, targetTime);
+
+        this.text = this.replayText;
+        this.cursorPosition = this.replayCursor;
+        this.updateDisplayText(this.text, this.cursorPosition, this.highlightedChars, this.deletedChars);
+        this.setScrubberVal(percentage);
+
+        if (wasPlaying) {
+            this.replayInProgress = true;
+            this.replayLog();
+        }
+    }
+
+    initializeReplayState(targetTime) {
         this.currentTime = targetTime;
         this.currentEventIndex = 0;
         this.text = '';
@@ -856,158 +914,152 @@ export default class Replay {
         this.isControlKeyPressed = false;
         this.isPasteEvent = false;
 
-        let text = '';
-        let cursor = 0;
-        let updatedHighlights = [];
-        let updatedDeleted = [];
+        this.replayText = '';
+        this.replayCursor = 0;
+        this.tempHighlights = [];
+        this.tempDeletions = [];
+    }
 
-        for (let i = 0; i < this.logData.length; i++) {
-            const event = this.logData[i];
-            if (event.normalizedTime && event.normalizedTime > targetTime) {
-                this.currentEventIndex = i;
-                break;
-            }
-
-            // Use rePosition for first event or mouse events
-            if (event.rePosition !== undefined && (i === 0 || event.event === 'mouseDown' || event.event === 'mouseUp')) {
-                cursor = Math.max(0, Math.min(event.rePosition, text.length));
-            }
-
-            if (event.event && event.event.toLowerCase() === "keydown") {
-                const charToInsert = this.applyKey(event.key);
-
-                if (event.key === "Control") {
-                    this.isControlKeyPressed = true;
-                } else if (event.key !== "v") {
-                    if (event.key !== "Control" && event.key !== 'Backspace' && event.key !== 'Delete' &&
-                        event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') {
-                        this.isControlKeyPressed = false;
-                    }
-                    if (event.key !== "Backspace" && event.key !== "Delete" &&
-                        event.key !== "ArrowLeft" && event.key !== "ArrowRight") {
-                        this.isPasteEvent = false;
-                    }
-                } else if (event.key === 'v' && this.isControlKeyPressed) {
-                    this.isPasteEvent = true;
-                    this.isControlKeyPressed = false;
-                }
-
-                // Handle Ctrl+Backspace
-                if (event.key === "Backspace" && this.isControlKeyPressed) {
-                    if (cursor > 0) {
-                        let wordStart = cursor;
-                        while (wordStart > 0 && text[wordStart - 1] === ' ') {
-                            wordStart--;
-                        }
-                        while (wordStart > 0 && text[wordStart - 1] !== ' ') {
-                            wordStart--;
-                        }
-
-                        const wordToDelete = text.substring(wordStart, cursor);
-                        for (let j = 0; j < wordToDelete.length; j++) {
-                            updatedDeleted.push({
-                                index: wordStart + j,
-                                char: wordToDelete[j],
-                                time: targetTime,
-                                expiresAt: targetTime + 2000
-                            });
-                        }
-
-                        text = text.substring(0, wordStart) + text.substring(cursor);
-                        cursor = wordStart;
-                    }
-                    this.isControlKeyPressed = false;
-                }
-                // Handle Ctrl+Delete
-                else if (event.key === "Delete" && this.isControlKeyPressed) {
-                    if (cursor < text.length) {
-                        const wordEnd = this.findNextWordBoundary(text, cursor);
-                        const wordToDelete = text.substring(cursor, wordEnd);
-
-                        for (let j = 0; j < wordToDelete.length; j++) {
-                            updatedDeleted.push({
-                                index: cursor + j,
-                                char: wordToDelete[j],
-                                time: targetTime,
-                                expiresAt: targetTime + 2000
-                            });
-                        }
-
-                        text = text.substring(0, cursor) + text.substring(wordEnd);
-                    }
-                    this.isControlKeyPressed = false;
-                }
-                // Handle Ctrl+ArrowLeft
-                else if (event.key === "ArrowLeft" && this.isControlKeyPressed) {
-                    cursor = this.findPreviousWordBoundary(text, cursor);
-                }
-                // Handle Ctrl+ArrowRight
-                else if (event.key === "ArrowRight" && this.isControlKeyPressed) {
-                    cursor = this.findNextWordBoundary(text, cursor);
-                }
-                // Handle regular Backspace
-                else if (event.key === "Backspace" && !this.isPasteEvent) {
-                    if (cursor > 0) {
-                        updatedDeleted.push({
-                            index: cursor - 1,
-                            char: text[cursor - 1],
-                            time: targetTime,
-                            expiresAt: targetTime + 2000
-                        });
-                        text = text.substring(0, cursor - 1) + text.substring(cursor);
-                        cursor--;
-                    }
-                }
-                // Handle Delete key
-                else if (event.key === "Delete" && !this.isControlKeyPressed) {
-                    if (cursor < text.length) {
-                        updatedDeleted.push({
-                            index: cursor,
-                            char: text[cursor],
-                            time: targetTime,
-                            expiresAt: targetTime + 2000
-                        });
-                        text = text.substring(0, cursor) + text.substring(cursor + 1);
-                    }
-                }
-                // Handle ArrowLeft
-                else if (event.key === "ArrowLeft" && !this.isControlKeyPressed) {
-                    cursor = Math.max(0, cursor - 1);
-                }
-                // Handle ArrowRight
-                else if (event.key === "ArrowRight" && !this.isControlKeyPressed) {
-                    cursor = Math.min(text.length, cursor + 1);
-                }
-                // Handle character insertion
-                else if (charToInsert && charToInsert.length > 0) {
-                    text = text.substring(0, cursor) + charToInsert + text.substring(cursor);
-                    if (charToInsert.trim() !== "") {
-                        updatedHighlights.push({
-                            index: cursor,
-                            char: charToInsert,
-                            time: targetTime,
-                            expiresAt: targetTime + 1500
-                        });
-                    }
-                    cursor++;
-                }
-            }
-
-            this.currentEventIndex = i + 1;
+    handleReplayEvent(event, index, targetTime) {
+        if (event.rePosition !== undefined && (index === 0 || event.event === 'mouseDown' || event.event === 'mouseUp')) {
+            this.replayCursor = Math.max(0, Math.min(event.rePosition, this.replayText.length));
         }
-        // Filter expired highlights and deletions
-        this.highlightedChars = updatedHighlights.filter(h => !h.expiresAt || h.expiresAt > targetTime);
-        this.deletedChars = updatedDeleted.filter(d => !d.expiresAt || d.expiresAt > targetTime);
 
-        this.text = text;
-        this.cursorPosition = cursor;
-        this.updateDisplayText(text, cursor, this.highlightedChars, this.deletedChars);
-        this.setScrubberVal(percentage);
-
-        if (wasPlaying) {
-            this.replayInProgress = true;
-            this.replayLog();
+        if (event.event?.toLowerCase() === "keydown") {
+            this.handleKeyInputDuringReplay(event, targetTime);
         }
+
+        this.currentEventIndex = index + 1;
+    }
+
+    handleKeyInputDuringReplay(event, targetTime) {
+        const key = event.key;
+        const charToInsert = this.applyKey(key);
+
+        this.updateModifierKeyStates(key);
+
+        if (key === "Backspace" && this.isControlKeyPressed) {
+            this.deletePreviousWordReplay(targetTime);
+        } else if (key === "Delete" && this.isControlKeyPressed) {
+            this.deleteNextWordReplay(targetTime);
+        } else if (key === "ArrowLeft" && this.isControlKeyPressed) {
+            this.replayCursor = this.findPreviousWordBoundary(this.replayText, this.replayCursor);
+        } else if (key === "ArrowRight" && this.isControlKeyPressed) {
+            this.replayCursor = this.findNextWordBoundary(this.replayText, this.replayCursor);
+        } else if (key === "Backspace") {
+            this.deleteCharacterBeforeCursor(targetTime);
+        } else if (key === "Delete") {
+            this.deleteCharacterAtCursor(targetTime);
+        } else if (key === "ArrowLeft") {
+            this.replayCursor = Math.max(0, this.replayCursor - 1);
+        } else if (key === "ArrowRight") {
+            this.replayCursor = Math.min(this.replayText.length, this.replayCursor + 1);
+        } else if (charToInsert?.length > 0) {
+            this.insertCharacterReplay(charToInsert, targetTime);
+        }
+    }
+
+    updateModifierKeyStates(key) {
+        if (key === "Control") {
+            this.isControlKeyPressed = true;
+        } else if (key !== "v") {
+            this.isControlKeyPressed = false;
+            this.isPasteEvent = false;
+        } else if (key === "v" && this.isControlKeyPressed) {
+            this.isPasteEvent = true;
+            this.isControlKeyPressed = false;
+        }
+    }
+
+    deletePreviousWordReplay(targetTime) {
+        if (this.replayCursor > 0) {
+            let start = this.replayCursor;
+            while (start > 0 && this.replayText[start - 1] === ' ') {
+                start--;
+            }
+            while (start > 0 && this.replayText[start - 1] !== ' ') {
+                start--;
+            }
+
+            const deletedWord = this.replayText.substring(start, this.replayCursor);
+            for (let i = 0; i < deletedWord.length; i++) {
+                this.tempDeletions.push({
+                    index: start + i,
+                    "char": deletedWord[i],
+                    time: targetTime,
+                    expiresAt: targetTime + 2000
+                });
+            }
+
+            this.replayText = this.replayText.slice(0, start) + this.replayText.slice(this.replayCursor);
+            this.replayCursor = start;
+        }
+        this.isControlKeyPressed = false;
+    }
+
+    deleteNextWordReplay(targetTime) {
+        if (this.replayCursor < this.replayText.length) {
+            const end = this.findNextWordBoundary(this.replayText, this.replayCursor);
+            const word = this.replayText.slice(this.replayCursor, end);
+
+            for (let i = 0; i < word.length; i++) {
+                this.tempDeletions.push({
+                    index: this.replayCursor + i,
+                    "char": word[i],
+                    time: targetTime,
+                    expiresAt: targetTime + 2000
+                });
+            }
+
+            this.replayText = this.replayText.slice(0, this.replayCursor) + this.replayText.slice(end);
+        }
+        this.isControlKeyPressed = false;
+    }
+
+    deleteCharacterBeforeCursor(targetTime) {
+        if (this.replayCursor > 0 && !this.isPasteEvent) {
+            this.tempDeletions.push({
+                index: this.replayCursor - 1,
+                "char": this.replayText[this.replayCursor - 1],
+                time: targetTime,
+                expiresAt: targetTime + 2000
+            });
+            this.replayText = this.replayText.slice(0, this.replayCursor - 1) + this.replayText.slice(this.replayCursor);
+            this.replayCursor--;
+        }
+    }
+
+    deleteCharacterAtCursor(targetTime) {
+        if (this.replayCursor < this.replayText.length) {
+            this.tempDeletions.push({
+                index: this.replayCursor,
+                "char": this.replayText[this.replayCursor],
+                time: targetTime,
+                expiresAt: targetTime + 2000
+            });
+            this.replayText = this.replayText.slice(0, this.replayCursor) + this.replayText.slice(this.replayCursor + 1);
+        }
+    }
+
+    insertCharacterReplay(char, targetTime) {
+        this.replayText = this.replayText.slice(0, this.replayCursor) + char + this.replayText.slice(this.replayCursor);
+        if (char.trim() !== "") {
+            this.tempHighlights.push({
+                index: this.replayCursor,
+                "char": char,
+                time: targetTime,
+                expiresAt: targetTime + 1500
+            });
+        }
+        this.replayCursor++;
+    }
+
+    removeExpiredHighlights(highlights, time) {
+        return highlights.filter(h => !h.expiresAt || h.expiresAt > time);
+    }
+
+    removeExpiredDeletions(deletions, time) {
+        return deletions.filter(d => !d.expiresAt || d.expiresAt > time);
     }
 
 
@@ -1026,7 +1078,7 @@ export default class Replay {
                     opacity = Math.max(0, timeRemaining / 500);
                 }
             }
-            highlightMap[h.index] = { char: h.char, opacity: opacity };
+            highlightMap[h.index] = {"char": h.char, opacity: opacity};
         });
 
         deletions.forEach(d => {
@@ -1037,7 +1089,7 @@ export default class Replay {
                     opacity = Math.max(0, (timeRemaining / 500) * 0.5);
                 }
             }
-            deletionMap[d.index] = { char: d.char, opacity: opacity };
+            deletionMap[d.index] = {"char": d.char, opacity: opacity};
         });
 
         // Find if we have out-of-bounds deletions (from Control+Backspace)

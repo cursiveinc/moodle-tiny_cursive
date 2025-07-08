@@ -1,4 +1,3 @@
-
 .tiny_cursive-analytics-btn {
     background-color: #306ab3;
     border-radius: 8vw;
@@ -52,7 +51,7 @@
     border-bottom: 2px solid #dee2e6;
 }
 
-.tiny_cursive_table tbody+tbody {
+.tiny_cursive_table tbody + tbody {
     border-top: 2px solid #dee2e6;
 }
 
@@ -60,7 +59,7 @@
 .tiny_cursive_table-borderless th,
 .tiny_cursive_table-borderless td,
 .tiny_cursive_table-borderless thead th,
-.tiny_cursive_table-borderless tbody+tbody {
+.tiny_cursive_table-borderless tbody + tbody {
     border: 0;
 }
 
@@ -544,7 +543,7 @@
 }
 
 .tiny-cursive-title-text {
-    color: dark;
+    color: #000;
     font-weight: 500;
     line-height: 0.5;
 }
@@ -672,7 +671,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .modal-header {
 }
 
 body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
-    display: none !important;
+    display: none;
 }
 
 .tiny_cursive_outputElement {
@@ -721,28 +720,24 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     top: 15px;
     left: 15px;
     position: absolute;
-    background-image: linear-gradient(
-        100deg,
-        transparent,
-        rgba(255, 255, 255, 0.5) 50%,
-        transparent 80%
-      ),
-      linear-gradient(#ddd 56px, transparent 0),
-      linear-gradient(#ddd 24px, transparent 0),
-      linear-gradient(#ddd 18px, transparent 0),
-      linear-gradient(#ddd 66px, transparent 0);
+    background-image:
+        linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.5) 50%, transparent 80%),
+        linear-gradient(#ddd 56px, transparent 0),
+        linear-gradient(#ddd 24px, transparent 0),
+        linear-gradient(#ddd 18px, transparent 0),
+        linear-gradient(#ddd 66px, transparent 0);
     background-repeat: no-repeat;
     background-size: 75px 130px, 55px 56px, 160px 30px, 260px 20px, 290px 56px;
-    background-position: 0% 0, 0 0, 70px 5px, 70px 38px, 0px 66px;
+    background-position: 0 0, 0 0, 70px 5px, 70px 38px, 0 66px;
     box-sizing: border-box;
     animation: animloader 1s linear infinite;
-  }
-  
-  @keyframes animloader {
+}
+
+@keyframes animloader {
     100% {
-      background-position: 150% 0, 0 0, 70px 5px, 70px 38px, 0px 66px;
+        background-position: 150% 0, 0 0, 70px 5px, 70px 38px, 0 66px;
     }
-  }
+}
 
 .tiny_cursive_top_row {
     display: flex;
@@ -989,117 +984,133 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
 }
 
 .tiny_cursive-speed-btn.active {
-    background: #4285f4 !important;
-    color: white !important;
+    background: #4285f4;
+    color: white;
     font-weight: 500;
 }
+
 .tiny_cursive_event_panel {
-  max-height: 400px;
-  margin-bottom: 15px;
-  padding-bottom: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    max-height: 400px;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
+
 .tiny_cursive_paste_events_carousel {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    position: relative;
 }
+
 .tiny_cursive_navigation_row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 15px;
-  border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    border-bottom: 1px solid #f0f0f0;
 }
+
 .tiny_cursive_counter_display {
-  font-weight: bold;
-  color: #4285f4;
+    font-weight: bold;
+    color: #4285f4;
 }
+
 .tiny_cursive_nav_buttons {
-  display: flex;
-  gap: 10px;
+    display: flex;
+    gap: 10px;
 }
+
 .tiny_cursive_nav_button {
-  border: none;
-  background: #f1f3f4;
-  border-radius: 50%;
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: #4285f4;
-  transition: background-color 0.2s;
-  opacity: 1;
+    border: none;
+    background: #f1f3f4;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #4285f4;
+    transition: background-color 0.2s;
+    opacity: 1;
 }
 
 .tiny_cursive_nav_button:disabled {
-  opacity: 0.5;
-  cursor: default;
+    opacity: 0.5;
+    cursor: default;
 }
+
 .tiny_cursive_nav_button:not(:disabled):hover {
-  background: #e0e0e0;
+    background: #e0e0e0;
 }
+
 .tiny_cursive_content_container {
-  padding: 15px;
-  overflow: auto;
-  position: relative;
+    padding: 15px;
+    overflow: auto;
+    position: relative;
 }
+
 .tiny_cursive_event_row {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
+
 .tiny_cursive_header_row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
 }
+
 .tiny_cursive_text_container {
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1;
-  margin-right: 10px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    margin-right: 10px;
 }
+
 .tiny_cursive_paste_event_timestamp {
-  font-family: monospace;
-  font-size: 12px;
-  color: #666;
-  font-weight: bold;
+    font-family: monospace;
+    font-size: 12px;
+    color: #666;
+    font-weight: bold;
 }
+
 .tiny_cursive_pasted_text_container {
-  font-family: monospace;
-  font-size: 14px;
-  word-break: break-word;
-  /* white-space: pre-wrap; */
-  color: #333;
-  margin-top: 8px;
+    font-family: monospace;
+    font-size: 14px;
+    word-break: break-word;
+    /* white-space: pre-wrap; */
+    color: #333;
+    margin-top: 8px;
 }
+
 .tiny_cursive_seekplay_button {
-  min-width: 32px;
-  height: 32px;
-  border-radius: 0;
-  background: transparent;
-  color: white;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: transform 0.1s ease;
+    min-width: 32px;
+    height: 32px;
+    border-radius: 0;
+    background: transparent;
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: transform 0.1s ease;
 }
 
 .tiny_cursive_seekplay_button:hover {
-  transform: scale(1.05);
+    transform: scale(1.05);
 }
+
 .tiny_cursive_eventplay_button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+    opacity: 0.5;
+    cursor: not-allowed;
 }
+
 .tiny_cursive-writing-report-body table td,
 .tiny_cursive-writing-activity-report-body table td {
     vertical-align: middle;
