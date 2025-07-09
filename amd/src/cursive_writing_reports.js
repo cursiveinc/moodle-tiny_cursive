@@ -51,7 +51,7 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", './anal
 
     };
     var usersTable = {
-        init: function(page) {
+        init: function(page, hasApiKey) {
             str
                 .get_strings([
                     {key: "field_require", component: "tiny_cursive"},
@@ -64,7 +64,7 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", './anal
             (async function() {
                 try {
                     let scoreSetting = await str.get_string('confidence_threshold', 'tiny_cursive');
-                    analyticsEvents(scoreSetting);
+                    analyticsEvents(scoreSetting, hasApiKey);
                 } catch (error) {
                     window.console.error('Error fetching string:', error);
                 }
@@ -79,8 +79,9 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", './anal
              * the modal.
              *
              * @param {Object} scoreSetting - Configuration settings related to scoring.
+             * @param {boolean} hasApiKey - api key status
              */
-            function analyticsEvents(scoreSetting) {
+            function analyticsEvents(scoreSetting, hasApiKey) {
 
                 $(".analytic-modal").each(function() {
                     var mid = $(this).data("id");
@@ -101,13 +102,14 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", './anal
 
                         context.formattime = myEvents.formatedTime(data);
                         context.tabledata = data;
+                        context.apikey = hasApiKey;
                         // Perform actions that require context.tabledata
                         let authIcon = myEvents.authorshipStatus(data.first_file, data.score, scoreSetting);
-                        myEvents.createModal(mid, context, '', authIcon);
+                        myEvents.createModal(mid, context, '', replayInstances, authIcon);
                         myEvents.analytics(mid, templates, context, '', replayInstances, authIcon);
                         myEvents.checkDiff(mid, mid, '', replayInstances);
                         myEvents.replyWriting(mid, filepath, '', replayInstances);
-                        myEvents.quality(mid, templates, context, '', replayInstances, cmid);
+
                     }).fail(error => {
                         throw new Error('Error: ' + error.message);
                     });

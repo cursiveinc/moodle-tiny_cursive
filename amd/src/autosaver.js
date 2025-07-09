@@ -24,28 +24,30 @@ import {call} from 'core/ajax';
 import {create} from 'core/modal_factory';
 import {get_string as getString} from 'core/str';
 import {save, cancel, hidden} from 'core/modal_events';
-import jQuery from 'jquery';
+import $ from 'jquery';
+import {iconUrl, iconGrayUrl, tooltipCss} from 'tiny_cursive/common';
 
-export const register = (editor, interval, userId) => {
+export const register = (editor, interval, userId, hasApiKey, MODULES) => {
 
-    var isStudent = !(jQuery('#body').hasClass('teacher_admin'));
-    var intervention = jQuery('#body').hasClass('intervention');
-    var userid = userId;
+    var isStudent = !($('#body').hasClass('teacher_admin'));
+    var intervention = $('#body').hasClass('intervention');
     var host = M.cfg.wwwroot;
+    var userid = userId;
     var courseid = M.cfg.courseId;
-    var filename = "";
-    var quizSubmit = jQuery('#mod_quiz-next-nav');
-    var ed = "";
-    var event = "";
-    var resourceId = 0;
-    var modulename = "";
     var editorid = editor?.id;
     var cmid = M.cfg.contextInstanceId;
+    var ed = "";
+    var event = "";
+    var filename = "";
+    var modulename = "";
     var questionid = 0;
-    let assignSubmit = jQuery('#id_submitbutton');
+    var resourceId = 0;
+    var quizSubmit = $('#mod_quiz-next-nav');
+    let assignSubmit = $('#id_submitbutton');
     var syncInterval = interval ? interval * 1000 : 10000; // Default: Sync Every 10s.
+    var lastCaretPos = 1;
 
-    const postOne = async(methodname, args) => {
+    const postOne = async (methodname, args) => {
         try {
             const response = await call([{
                 methodname,
@@ -58,7 +60,7 @@ export const register = (editor, interval, userId) => {
         }
     };
 
-    assignSubmit.on('click', async function(e) {
+    assignSubmit.on('click', async function (e) {
         e.preventDefault();
         if (filename) {
             // eslint-disable-next-line
@@ -68,9 +70,10 @@ export const register = (editor, interval, userId) => {
         } else {
             assignSubmit.off('click').click();
         }
+        localStorage.removeItem('lastCopyCutContent');
     });
 
-    quizSubmit.on('click', async function(e) {
+    quizSubmit.on('click', async function (e) {
         e.preventDefault();
         if (filename) {
             // eslint-disable-next-line
@@ -80,6 +83,7 @@ export const register = (editor, interval, userId) => {
         } else {
             quizSubmit.off('click').click();
         }
+        localStorage.removeItem('lastCopyCutContent');
     });
 
     const getModal = (e) => {
@@ -88,88 +92,36 @@ export const register = (editor, interval, userId) => {
             getString('tiny_cursive_srcurl', 'tiny_cursive'),
             getString('tiny_cursive_srcurl_des', 'tiny_cursive'),
             getString('tiny_cursive_placeholder', 'tiny_cursive')
-        ]).then(function([title, titledes, placeholder]) {
+        ]).then(function ([title, titledes, placeholder]) {
 
             return create({
                 type: 'SAVE_CANCEL',
-                title: `<div><div style='color:dark;font-weight:500;line-height:0.5'>${title}</div><span style='color:
-                        gray;font-weight: 400;line-height: 1.2;font-size: 14px;display: inline-block;
-                        margin-top: .5rem;'>${titledes}</span></div>`,
+                title: `<div><div class="tiny-cursive-title-text">${title}</div>
+                <span class="tiny-cursive-title-description ">${titledes}</span></div>`,
                 body: `<textarea  class="form-control inputUrl" value="" id="inputUrl" placeholder="${placeholder}"></textarea>`,
-
                 removeOnClose: true,
             })
                 .done(modal => {
-                    modal.getRoot().append(`
-                        <style>
-                                .close { 
-                                    display: none ! important; 
-                                } 
-                                body.tox-fullscreen .modal-dialog {
-                                    max-width: 500px;
-                                    max-height:300px;
-                                    padding:1rem;
-                                } 
-                                body.tox-fullscreen .modal-dialog .modal-header {
-                                    height: auto;
-                                    padding: 1rem
-                                }
-                         </style>`);
+                    modal.getRoot().addClass('tiny-cursive-modal');
                     modal.show();
                     var lastEvent = '';
                     // eslint-disable-next-line
                     modal.getRoot().on(save, function() {
+
                         var number = document.getElementById("inputUrl").value.trim();
+                        let ur = e.srcElement.baseURI;
+                        let parm = new URL(ur);
+                        let modulesInfo = getModulesInfo(ur, parm, MODULES);
+
+                        resourceId = modulesInfo.resourceId;
+                        modulename = modulesInfo.name;
+
                         if (number === "" || number === null || number === undefined) {
                             editor.execCommand('Undo');
                             // eslint-disable-next-line
                             getString('pastewarning', 'tiny_cursive').then(str => alert(str));
-
                         } else {
                             editor.execCommand('Paste');
-                        }
-                        let ur = e.srcElement.baseURI;
-                        let resourceId = 0;
-                        let parm = new URL(ur);
-                        let modulename = "";
-                        let editorid = editor?.id;
-                        let courseid = M.cfg.courseId;
-                        let cmid = M.cfg.contextInstanceId;
-
-                        // eslint-disable-next-line
-                        if (ur.includes("attempt.php") || ur.includes("forum") || ur.includes("assign") || ur.includes("lesson") | ur.includes("oublog")) { } else {
-                            return false;
-                        }
-                        if (ur.includes("forum") && !ur.includes("assign")) {
-                            resourceId = parm.searchParams.get('edit');
-                        }
-                        if (!ur.includes("forum") && !ur.includes("assign")) {
-                            resourceId = parm.searchParams.get('attempt');
-                        }
-
-                        if (resourceId === null) {
-                            resourceId = 0;
-                        }
-                        if (ur.includes("forum")) {
-                            modulename = "forum";
-                        }
-                        if (ur.includes("assign")) {
-                            modulename = "assign";
-                            resourceId = cmid;
-                        }
-                        if (ur.includes("attempt")) {
-                            modulename = "quiz";
-                        }
-                        if (ur.includes("lesson")) {
-                            modulename = "lesson";
-                            resourceId = cmid;
-                        }
-                        if (ur.includes("oublog")) {
-                            modulename = "oublog";
-                            resourceId = 0;
-                        }
-                        if (cmid === null) {
-                            cmid = 0;
                         }
 
                         postOne('cursive_user_comments', {
@@ -181,14 +133,15 @@ export const register = (editor, interval, userId) => {
                             timemodified: Date.now(),
                             editorid: editorid ? editorid : ""
                         });
+
                         lastEvent = 'save';
                         modal.destroy();
                     });
                     modal.getRoot().on(cancel, function() {
-
                         editor.execCommand('Undo');
                         lastEvent = 'cancel';
                     });
+
                     modal.getRoot().on(hidden, function() {
                         if (lastEvent != 'cancel' && lastEvent != 'save') {
                             editor.execCommand('Undo');
@@ -200,103 +153,201 @@ export const register = (editor, interval, userId) => {
 
     };
     // eslint-disable-next-line
-    const sendKeyEvent = (events, eds) => {
-        let ur = eds.srcElement.baseURI;
-        let parm = new URL(ur);
-        ed = eds;
+    const sendKeyEvent = (events, editor) => {
+        ed = editor;
         event = events;
-        // eslint-disable-next-line
-        if (ur.includes("attempt.php") || ur.includes("forum") || ur.includes("assign") || ur.includes('lesson') || ur.includes("oublog")) { } else {
-            return false;
-        }
+        let ur = editor.srcElement.baseURI;
+        let parm = new URL(ur);
+        let modulesInfo = getModulesInfo(ur, parm, MODULES);
 
-        if (ur.includes("forum") && !ur.includes("assign")) {
-            resourceId = parm.searchParams.get('edit');
-        } else {
-
-            resourceId = parm.searchParams.get('attempt');
-        }
-        if (resourceId === null) {
-            resourceId = 0;
-        }
-
-        if (ur.includes("forum")) {
-            modulename = "forum";
-        }
-        if (ur.includes("assign")) {
-            modulename = "assign";
-            resourceId = cmid;
-        }
-        if (ur.includes("attempt")) {
-            modulename = "quiz";
-        }
-        if (ur.includes("lesson")) {
-            modulename = "lesson";
-            resourceId = cmid;
-        }
-        if (ur.includes("oublog")) {
-            modulename = "oublog";
-            resourceId = 0;
-        }
+        resourceId = modulesInfo.resourceId;
+        modulename = modulesInfo.name;
 
         filename = `${userid}_${resourceId}_${cmid}_${modulename}_attempt`;
 
         if (modulename === 'quiz') {
             questionid = editorid.split(':')[1].split('_')[0];
             filename = `${userid}_${resourceId}_${cmid}_${questionid}_${modulename}_attempt`;
-
         }
 
         if (localStorage.getItem(filename)) {
-
             let data = JSON.parse(localStorage.getItem(filename));
             data.push({
                 resourceId: resourceId,
-                key: ed.key,
-                keyCode: ed.keyCode,
+                key: editor.key,
+                keyCode: editor.keyCode,
                 event: event,
                 courseId: courseid,
                 unixTimestamp: Date.now(),
                 clientId: host,
-                personId: userid
+                personId: userid,
+                position: ed.caretPosition,
+                rePosition: ed.rePosition
             });
             localStorage.setItem(filename, JSON.stringify(data));
         } else {
-            let data = [];
-            data.push({
+            let data = [{
                 resourceId: resourceId,
-                key: ed.key,
-                keyCode: ed.keyCode,
+                key: editor.key,
+                keyCode: editor.keyCode,
                 event: event,
                 courseId: courseid,
                 unixTimestamp: Date.now(),
                 clientId: host,
-                personId: userid
-            });
+                personId: userid,
+                position: ed.caretPosition,
+                rePosition: ed.rePosition
+            }];
             localStorage.setItem(filename, JSON.stringify(data));
         }
-
     };
+
     editor.on('keyUp', (editor) => {
+        customTooltip();
+        let position = getCaretPosition(true);
+        editor.caretPosition = position.caretPosition;
+        editor.rePosition = position.rePosition;
         sendKeyEvent("keyUp", editor);
     });
     editor.on('Paste', async(e) => {
+        customTooltip();
+        const pastedContent = (e.clipboardData || e.originalEvent.clipboardData).getData('text').trim();
+
+        if (!pastedContent) {
+            return;
+        }
+
         if (isStudent && intervention) {
-            getModal(e);
+            if (pastedContent !== localStorage.getItem('lastCopyCutContent')) {
+                getModal(e);
+            }
         }
     });
     editor.on('Redo', async(e) => {
+        customTooltip();
         if (isStudent && intervention) {
             getModal(e);
         }
     });
     editor.on('keyDown', (editor) => {
+        customTooltip();
+        let position = getCaretPosition();
+        editor.caretPosition = position.caretPosition;
+        editor.rePosition = position.rePosition;
         sendKeyEvent("keyDown", editor);
+    });
+     editor.on('Cut', () => {
+        const selectedContent = editor.selection.getContent({format: 'text'});
+        localStorage.setItem('lastCopyCutContent', selectedContent.trim());
+    });
+    editor.on('Copy', () => {
+        const selectedContent = editor.selection.getContent({format: 'text'});
+        localStorage.setItem('lastCopyCutContent', selectedContent.trim());
+    });
+    editor.on('mouseDown', async (editor) => {
+        constructMouseEvent(editor);
+        sendKeyEvent("mouseDown", editor);
+    });
+    editor.on('mouseUp', async (editor) => {
+        constructMouseEvent(editor);
+        sendKeyEvent("mouseUp", editor);
     });
     // eslint-disable-next-line
     editor.on('init', () => {
-
+        customTooltip();
     });
+    editor.on('SetContent', () => {
+        customTooltip();
+    });
+
+    /**
+     * Constructs a mouse event object with caret position and button information
+     * @param {Object} editor - The TinyMCE editor instance
+     * @function constructMouseEvent
+     * @description Sets caret position, reposition, key and keyCode properties on the editor object based on current mouse state
+     */
+    function constructMouseEvent(editor) {
+        let position = getCaretPosition();
+        editor.caretPosition = position.caretPosition;
+        editor.rePosition = position.rePosition;
+        editor.key = getMouseButton(editor);
+        editor.keyCode = editor.button;
+    }
+
+    /**
+     * Gets the string representation of a mouse button based on its numeric value
+     * @param {Object} editor - The editor object containing button information
+     * @returns {string} The string representation of the mouse button ('left', 'middle', or 'right')
+     */
+    function getMouseButton(editor) {
+
+        switch (editor.button) {
+            case 0:
+                return 'left';
+            case 1:
+                return 'middle';
+            case 2:
+                return 'right';
+        }
+    }
+
+    /**
+     * Gets the current caret position in the editor
+     * @param {boolean} skip - If true, returns the last known caret position instead of calculating a new one
+     * @returns {Object} Object containing:
+     *   - caretPosition: Sequential position number stored in session
+     *   - rePosition: Absolute character offset from start of content
+     * @throws {Error} Logs warning to console if error occurs during calculation
+     */
+    function getCaretPosition(skip = false) {
+        try {
+            if (!editor || !editor.selection) {
+                return { caretPosition: 0, rePosition: 0 };
+            }
+            const rng = editor.selection.getRng();
+
+            let absolutePosition = 0;
+            let node = rng.startContainer;
+
+            absolutePosition = rng.startOffset;
+
+            // Calculate position by walking through previous nodes
+            while (node && node !== editor.getBody()) {
+                while (node.previousSibling) {
+                    node = node.previousSibling;
+                    if (node.textContent) {
+                        absolutePosition += node.textContent.length;
+                    }
+                }
+                node = node.parentNode;
+            }
+
+            if (skip) {
+                return {
+                    caretPosition: lastCaretPos,
+                    rePosition: absolutePosition
+                };
+            }
+
+            const storageKey = `${userid}_${resourceId}_${cmid}_position`;
+            let storedPos = parseInt(sessionStorage.getItem(storageKey), 10);
+            if (isNaN(storedPos)) {
+                storedPos = 0;
+            }
+            storedPos++;
+            lastCaretPos = storedPos;
+            sessionStorage.setItem(storageKey, storedPos);
+
+            return {
+                caretPosition: storedPos,
+                rePosition: absolutePosition
+            };
+        } catch (e) {
+            window.console.warn('Error getting caret position:', e);
+            return { caretPosition: 0, rePosition: 0 };
+        }
+    }
+
 
     /**
      * Synchronizes data from localStorage to server
@@ -314,7 +365,7 @@ export const register = (editor, interval, userId) => {
             return;
         } else {
             localStorage.removeItem(filename);
-            let originalText = editor.getContent({format: 'text'});
+            let originalText = editor.getContent({ format: 'text' });
             try {
                 // eslint-disable-next-line
                 return await postOne('cursive_write_local_to_json', {
@@ -332,6 +383,176 @@ export const register = (editor, interval, userId) => {
                 window.console.error('Error submitting data:', error);
             }
         }
+    }
+    /**
+     * Sets up custom tooltip functionality for the Cursive icon
+     * Initializes tooltip text, positions the icon in the menubar,
+     * and sets up mouse event handlers for showing/hiding the tooltip
+     * @function customTooltip
+     */
+    function customTooltip() {
+        try {
+            const tooltipText = getTooltipText();
+            const menubarDiv = document.querySelectorAll('div[role="menubar"].tox-menubar');
+            let classArray = [];
+
+            if(menubarDiv.length) {
+                menubarDiv.forEach(function(element, index) {
+                    index+=1;
+                    let className = 'cursive-menu-'+index;
+                    element.classList.add(className);
+                    classArray.push(className);
+                });
+            }
+
+            const cursiveIcon = document.createElement('img');
+            cursiveIcon.src = hasApiKey ? iconUrl: iconGrayUrl;
+
+            cursiveIcon.setAttribute('class', 'tiny_cursive_StateButton');
+            cursiveIcon.style.display = 'inline-block';
+
+            cursiveState(cursiveIcon, menubarDiv, classArray);
+
+            for(let index in classArray) {
+                const elementId = "tiny_cursive_StateIcon"+index;
+                const tooltipId = `tiny_cursive_tooltip${index}`;
+
+                tooltipText.then((text) => {
+                    setTooltip(text, document.querySelector(`#${elementId}`), tooltipId);
+                });
+
+                $(`#${elementId}`).on('mouseenter', function () {
+                    $(this).css('position', 'relative');
+                    $(`#${tooltipId}`).css(tooltipCss);
+                });
+
+                $(`#${elementId}`).on('mouseleave', function () {
+                    $(`#${tooltipId}`).css('display', 'none');
+                });
+            }
+        } catch (error) {
+            window.console.error('Error setting up custom tooltip:', error);
+        }
+    }
+
+    /**
+     * Retrieves tooltip text strings from language files
+     * @async
+     * @function getTooltipText
+     * @returns {Promise<Object>} Object containing buttonTitle and buttonDes strings
+     */
+    async function getTooltipText() {
+        const [
+            buttonTitle,
+            buttonDes,
+        ] = await Promise.all([
+            getString('cursive:state:active', 'tiny_cursive'),
+            getString('cursive:state:active:des', 'tiny_cursive'),
+        ]);
+        return {buttonTitle, buttonDes};
+    }
+
+    /**
+     * Updates the Cursive icon state and positions it in the menubar
+     * @param {HTMLElement} cursiveIcon - The Cursive icon element to modify
+     * @param {HTMLElement} menubarDiv - The menubar div element
+     * @param {Array} classArray - Array of class names for the menubar div elements
+     */
+    function cursiveState(cursiveIcon, menubarDiv, classArray) {
+        if (menubarDiv) {
+            for (let index in classArray) {
+                const rightWrapper = document.createElement('div');
+                const imgWrapper   = document.createElement('span');
+                const iconClone = cursiveIcon.cloneNode(true);
+                const targetMenu = document.querySelector('.' + classArray[index]);
+                let elementId = "tiny_cursive_StateIcon"+index;
+
+                rightWrapper.style.marginLeft = 'auto';
+                rightWrapper.style.display = 'flex';
+                rightWrapper.style.alignItems = 'center';
+                imgWrapper.id = elementId;
+
+                imgWrapper.appendChild(iconClone);
+                rightWrapper.appendChild(imgWrapper);
+
+                if (targetMenu && !targetMenu.querySelector(`#${elementId}`)) {
+                    targetMenu.appendChild(rightWrapper);
+                }
+            }
+        }
+    }
+
+    /**
+     * Sets up tooltip content and styling for the Cursive icon
+     * @param {Object} text - Object containing tooltip text strings
+     * @param {string} text.buttonTitle - Title text for the tooltip
+     * @param {string} text.buttonDes - Description text for the tooltip
+     * @param {HTMLElement} cursiveIcon - The Cursive icon element to attach tooltip to
+     * @param {string} tooltipId - ID for the tooltip element
+     */
+    function setTooltip(text, cursiveIcon, tooltipId) {
+        if(document.querySelector(`#${tooltipId}`)) {
+            return;
+        }
+
+        const tooltipSpan = document.createElement('span');
+        const description = document.createElement('span');
+        const linebreak = document.createElement('br');
+        const tooltipTitle = document.createElement('strong');
+
+        tooltipSpan.style.display = 'none';
+        // cursiveIcon.style.width = "auto";
+
+        tooltipTitle.textContent = text.buttonTitle;
+        tooltipTitle.style.fontSize = '16px';
+        tooltipTitle.style.fontWeight = 'bold';
+        description.textContent = text.buttonDes;
+        description.style.fontSize = '14px';
+
+        tooltipSpan.id = tooltipId;
+        tooltipSpan.classList.add(`shadow`);
+        tooltipSpan.appendChild(tooltipTitle);
+        tooltipSpan.appendChild(linebreak);
+        tooltipSpan.appendChild(description);
+        cursiveIcon.appendChild(tooltipSpan);
+    }
+
+    /**
+     * Extracts module information from URL parameters
+     * @param {string} ur - The base URL to analyze
+     * @param {URL} parm - URL object containing search parameters
+     * @param {Array} MODULES - Array of valid module names to check against
+     * @returns {Object|boolean} Object containing resourceId and module name if found, false if no valid module
+     */
+    function getModulesInfo(ur, parm, MODULES) {
+
+        if (!MODULES.some(module => ur.includes(module))) {
+            return false;
+        }
+
+        if (ur.includes("forum") && !ur.includes("assign")) {
+            resourceId = parm.searchParams.get('edit');
+        } else {
+            resourceId = parm.searchParams.get('attempt');
+        }
+
+        if (resourceId === null) {
+            resourceId = 0;
+        }
+
+        for (const module of MODULES) {
+            if (ur.includes(module)) {
+                modulename = module;
+                if (module === "lesson" || module === "assign") {
+                    resourceId = cmid;
+                } else if (module === "oublog") {
+                    resourceId = 0;
+                }
+                break;
+            }
+        }
+
+        return {resourceId: resourceId, name: modulename};
     }
 
     window.addEventListener('unload', () => {

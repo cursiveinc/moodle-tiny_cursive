@@ -441,7 +441,7 @@ function tiny_cursive_check_subscriptions() {
             set_config('has_subscription', $result->status, 'tiny_cursive');
             return ['status' => true];
         }
-    } catch (dml_exception $e) {
+    } catch (moodle_exception $e) {
         throw new moodle_exception($e->getMessage());
     }
 }

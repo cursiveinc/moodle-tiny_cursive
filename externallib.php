@@ -28,6 +28,7 @@ use core_external\external_api;
 use core_external\external_function_parameters;
 use core_external\external_single_structure;
 use core_external\external_value;
+use tiny_cursive\constants as MODULES;
 
 defined('MOODLE_INTERNAL') || die;
 
@@ -287,7 +288,7 @@ class cursive_json_func_data extends external_api {
      */
     public static function cursive_approve_token_func($token) {
         global $CFG;
-        require_once("$CFG->libdir/filelib.php");
+
         require_once($CFG->dirroot . '/lib/editor/tiny/plugins/cursive/lib.php');
         $params = self::validate_parameters(
             self::cursive_approve_token_func_parameters(),
@@ -300,10 +301,7 @@ class cursive_json_func_data extends external_api {
         self::validate_context($context);
         require_capability('tiny/cursive:editsettings', $context);
 
-        $remoteurl = get_config('tiny_cursive', 'python_server') . '/verify-token';
-        $moodleurl = $CFG->wwwroot;
-
-        $result = cursive_approve_token($params['token'], $moodleurl, $remoteurl);
+        $result = cursive_approve_token();
 
         return $result;
     }
@@ -439,7 +437,7 @@ class cursive_json_func_data extends external_api {
                 return json_encode(['usercomment' => $usercomment, 'data' => $data]);
 
             } else {
-                return json_encode(['usercomment' => get_string('comments', 'tiny_cursive'), 'data' => $data]);
+                return json_encode(['usercomment' => 'comments', 'data' => $data]);
             }
         } else {
             $conditions = ["resourceid" => $params['id']];
@@ -478,7 +476,7 @@ class cursive_json_func_data extends external_api {
                 return json_encode(['usercomment' => $usercomment, 'data' => $data]);
 
             } else {
-                return json_encode(['usercomment' => get_string('comments', 'tiny_cursive'), 'data' => $data]);
+                return json_encode(['usercomment' => 'comments', 'data' => $data]);
             }
         }
     }
@@ -602,7 +600,7 @@ class cursive_json_func_data extends external_api {
             }
             return json_encode(['usercomment' => $usercomment, 'data' => $data]);
         } else {
-            return json_encode(['usercomment' => get_string('comments', 'tiny_cursive'), 'data' => $data]);
+            return json_encode(['usercomment' => 'comments', 'data' => $data]);
         }
 
     }
@@ -740,7 +738,7 @@ class cursive_json_func_data extends external_api {
             return json_encode(['usercomment' => $usercomment, 'data' => $data]);
 
         } else {
-            return json_encode(['usercomment' => get_string('comments', 'tiny_cursive'), 'data' => $data]);
+            return json_encode(['usercomment' => 'comments', 'data' => $data]);
         }
     }
 
@@ -809,7 +807,7 @@ class cursive_json_func_data extends external_api {
             return json_encode($usercomment);
 
         } else {
-            return json_encode([['usercomment' => get_string('comments', 'tiny_cursive')]]);
+            return json_encode([['usercomment' => 'comments']]);
         }
     }
 
@@ -931,7 +929,7 @@ class cursive_json_func_data extends external_api {
             return json_encode(['usercomment' => $usercomment, 'data' => $data]);
 
         } else {
-            return json_encode(['usercomment' => get_string('comments', 'tiny_cursive'), 'data' => $data]);
+            return json_encode(['usercomment' => 'comments', 'data' => $data]);
         }
     }
 
@@ -1235,17 +1233,30 @@ class cursive_json_func_data extends external_api {
         );
         $parts = explode('_', $params['filepath']);
         $cmid = $parts[2];
+        $userid = $parts[0];
+        $resourceid = $parts[1];
 
         $context = context_module::instance($cmid);
         self::validate_context($context);
         require_capability("tiny/cursive:writingreport", $context);
 
+        $conditions = ["userid" => $userid, 'resourceid' => $resourceid, 'cmid' => $cmid];
+
         $data = new stdClass;
         try {
+            $filedata        = $DB->get_record('tiny_cursive_files', ['filename' => $params['filepath']]);
+            $comments        = $DB->get_records('tiny_cursive_comments', $conditions, '', 'usercomment');
+            $content         = $filedata->content ? $filedata->content : $content = false;
+            $originalcontent = $filedata->original_content ? $filedata->original_content : $originalcontent = false;
+            $data->status    = true;
+            $commentslist    = [];
 
-            $filedata = $DB->get_record('tiny_cursive_files', ['filename' => $params['filepath']]);
-            $content = $filedata->content ? $filedata->content : $content = false;
-            $data->status = true;
+            foreach ($comments as $comment) {
+                $commentslist[] = $comment->usercomment;
+            }
+
+            $commentslist = array_values($commentslist);
+            $data->comments = json_encode($commentslist);
 
             if ($content === false) {
                 $data->status = false;
@@ -1253,6 +1264,7 @@ class cursive_json_func_data extends external_api {
             }
 
             $data->data = $content;
+            $data->original = $originalcontent;
         } catch (moodle_exception $e) {
             $data->data = $e->getMessage();
         }
@@ -1268,6 +1280,8 @@ class cursive_json_func_data extends external_api {
         return new external_single_structure([
             'status' => new external_value(PARAM_BOOL, "file status"),
             'data' => new external_value(PARAM_TEXT, 'Reply Json'),
+            'comments' => new external_value(PARAM_TEXT, 'Comments'),
+            'original' => new external_value(PARAM_TEXT, 'Original Content'),
         ]);
     }
 
@@ -1770,10 +1784,18 @@ class cursive_json_func_data extends external_api {
 
         $config = tiny_cursive_status($params['courseid']);
         $syncinterval = get_config('tiny_cursive', "syncinterval");
-        $apikey = cursive_approve_token(get_config( 'tiny_cursive', 'secretkey'), $moodleurl, $remoteurl);
+        $apikey = cursive_approve_token();
         $apikey = json_decode($apikey);
-        return ['status' => $config, 'sync_interval' => $syncinterval, 'userid' => $USER->id, 'apikey_status' =>
-                                                                                isset($apikey->status) ? true : false];
+
+        $data   = [
+            'status'        => $config,
+            'sync_interval' => $syncinterval,
+            'userid'        => $USER->id,
+            'apikey_status' => isset($apikey->status) ? true : false,
+            'mod_state'     => MODULES::is_active(),
+            'plugins'       => json_encode(MODULES::NAMES),
+        ];
+        return $data;
     }
 
     /**
@@ -1787,6 +1809,8 @@ class cursive_json_func_data extends external_api {
             'sync_interval' => new external_value(PARAM_INT, 'Data Sync interval'),
             'userid' => new external_value(PARAM_INT, 'userid'),
             'apikey_status' => new external_value(PARAM_BOOL, 'api key status'),
+            'mod_state' => new external_value(PARAM_BOOL, "Cursive Module wise active/deactive state"),
+            'plugins' => new external_value(PARAM_TEXT, "Supported Plugins Names"),
         ]);
     }
 

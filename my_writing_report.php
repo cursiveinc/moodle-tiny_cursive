@@ -25,10 +25,10 @@
 
 require(__DIR__ . '/../../../../../config.php');
 global $CFG, $DB, $USER, $PAGE;
-require_once($CFG->dirroot . '/mod/quiz/lib.php');
-require_once($CFG->dirroot . '/mod/quiz/locallib.php');
+
 require_once(__DIR__ . '/../../../../../user/lib.php');
 require_once(__DIR__ . '/locallib.php');
+require_once(__DIR__ . '/lib.php');
 
 require_login();
 
@@ -85,9 +85,9 @@ if ($courseid) {
 } else {
     $context = context_system::instance();
 }
-
+$apikey = json_decode(cursive_approve_token());
 $PAGE->requires->js_call_amd('tiny_cursive/key_logger', 'init', [1]);
-$PAGE->requires->js_call_amd('tiny_cursive/cursive_writing_reports', 'init', []);
+$PAGE->requires->js_call_amd('tiny_cursive/cursive_writing_reports', 'init', ["", $apikey->status ?? false]);
 
 $PAGE->set_context(context_system::instance());
 $PAGE->set_url($url);

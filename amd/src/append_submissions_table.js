@@ -62,15 +62,15 @@ define([
     };
 
     var usersTable = {
-        init: function(scoreSetting, showcomment) {
+        init: function(scoreSetting, showcomment, hasApiKey) {
             str
                 .get_strings([
                     {key: "confidence_threshold", component: "tiny_cursive"},
                 ]).done(function() {
-                usersTable.appendTable(scoreSetting, showcomment);
+                usersTable.appendTable(scoreSetting, hasApiKey);
             });
         },
-        appendTable: function(scoreSetting) {
+        appendTable: function(scoreSetting, hasApiKey) {
             let subUrl = window.location.href;
             let parm = new URL(subUrl);
             let hTr = $('thead').find('tr').get()[0];
@@ -110,14 +110,15 @@ define([
                                     moduletitle: textContent,
                                     page: scoreSetting,
                                     userid: userid,
+                                    apikey: hasApiKey
                                 };
 
                                 let authIcon = myEvents.authorshipStatus(data.res.first_file, data.res.score, scoreSetting);
-                                myEvents.createModal(userid, context, '', authIcon);
+                                myEvents.createModal(userid, context, '', replayInstances, authIcon);
                                 myEvents.analytics(userid, templates, context, '', replayInstances, authIcon);
                                 myEvents.checkDiff(userid, data.res.file_id, '', replayInstances);
                                 myEvents.replyWriting(userid, filepath, '', replayInstances);
-                                myEvents.quality(userid, templates, context, '', replayInstances, cmid);
+
                             }).fail(function(error) {
                                 window.console.error('AJAX request failed:', error);
                             });
