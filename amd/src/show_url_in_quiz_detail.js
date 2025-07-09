@@ -51,7 +51,7 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
     };
 
     var usersTable = {
-        // eslint-disable-next-line no-unused-vars
+
         init: function(scoreSetting, showcomment, hasApiKey) {
             str
                 .get_strings([

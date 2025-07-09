@@ -40,8 +40,8 @@ export default class AnalyticEvents {
                 $('#content' + userid + ' .tiny_cursive_table  tbody tr:first-child td:nth-child(2)').html(authIcon);
                 modal.show();
 
-                let moreBtn = $('body #more'+userid+questionid);
-                if (moreBtn.length>0) {
+                let moreBtn = $('body #more' + userid + questionid);
+                if (moreBtn.length > 0) {
                     $('.tiny_cursive-nav-tab').find('.active').removeClass('active');
                     $('#analytic' + userid + questionid).prop('disabled', true);
                     $('#diff' + userid + questionid).prop('disabled', true);
@@ -53,7 +53,7 @@ export default class AnalyticEvents {
                             'background-color': 'rgba(168, 168, 168, 0.133)',
                             'cursor': 'not-allowed'
                     });
-                    moreBtn.on('click', function(){
+                    moreBtn.on('click', function() {
                         $('.tiny_cursive-nav-tab').find('.active').removeClass('active');
                         $(this).addClass('active');
                         $('#rep' + userid + questionid).prop('disabled', false);

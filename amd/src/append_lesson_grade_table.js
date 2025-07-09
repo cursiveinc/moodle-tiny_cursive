@@ -30,7 +30,7 @@ import templates from 'core/templates';
 import AnalyticEvents from './analytic_events';
 import analyticButton from './analytic_button';
 import * as Str from 'core/str';
-// eslint-disable-next-line
+
 export const init = (scoreSetting, showcomment, hasApiKey) => {
     const replayInstances = {};
     // eslint-disable-next-line camelcase
