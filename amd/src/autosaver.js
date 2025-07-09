@@ -47,7 +47,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
     var syncInterval = interval ? interval * 1000 : 10000; // Default: Sync Every 10s.
     var lastCaretPos = 1;
 
-    const postOne = async (methodname, args) => {
+    const postOne = async(methodname, args) => {
         try {
             const response = await call([{
                 methodname,
@@ -60,7 +60,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
         }
     };
 
-    assignSubmit.on('click', async function (e) {
+    assignSubmit.on('click', async function(e) {
         e.preventDefault();
         if (filename) {
             // eslint-disable-next-line
@@ -73,7 +73,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
         localStorage.removeItem('lastCopyCutContent');
     });
 
-    quizSubmit.on('click', async function (e) {
+    quizSubmit.on('click', async function(e) {
         e.preventDefault();
         if (filename) {
             // eslint-disable-next-line
@@ -92,7 +92,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
             getString('tiny_cursive_srcurl', 'tiny_cursive'),
             getString('tiny_cursive_srcurl_des', 'tiny_cursive'),
             getString('tiny_cursive_placeholder', 'tiny_cursive')
-        ]).then(function ([title, titledes, placeholder]) {
+        ]).then(function([title, titledes, placeholder]) {
 
             return create({
                 type: 'SAVE_CANCEL',
@@ -105,7 +105,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
                     modal.getRoot().addClass('tiny-cursive-modal');
                     modal.show();
                     var lastEvent = '';
-                    // eslint-disable-next-line
+
                     modal.getRoot().on(save, function() {
 
                         var number = document.getElementById("inputUrl").value.trim();
@@ -152,7 +152,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
         }).catch(error => window.console.error(error));
 
     };
-    // eslint-disable-next-line
+
     const sendKeyEvent = (events, editor) => {
         ed = editor;
         event = events;
@@ -244,15 +244,14 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
         const selectedContent = editor.selection.getContent({format: 'text'});
         localStorage.setItem('lastCopyCutContent', selectedContent.trim());
     });
-    editor.on('mouseDown', async (editor) => {
+    editor.on('mouseDown', async(editor) => {
         constructMouseEvent(editor);
         sendKeyEvent("mouseDown", editor);
     });
-    editor.on('mouseUp', async (editor) => {
+    editor.on('mouseUp', async(editor) => {
         constructMouseEvent(editor);
         sendKeyEvent("mouseUp", editor);
     });
-    // eslint-disable-next-line
     editor.on('init', () => {
         customTooltip();
     });
@@ -289,6 +288,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
             case 2:
                 return 'right';
         }
+        return null;
     }
 
     /**
@@ -302,7 +302,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
     function getCaretPosition(skip = false) {
         try {
             if (!editor || !editor.selection) {
-                return { caretPosition: 0, rePosition: 0 };
+                return {caretPosition: 0, rePosition: 0};
             }
             const rng = editor.selection.getRng();
 
@@ -344,7 +344,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
             };
         } catch (e) {
             window.console.warn('Error getting caret position:', e);
-            return { caretPosition: 0, rePosition: 0 };
+            return {caretPosition: 0, rePosition: 0};
         }
     }
 
@@ -365,7 +365,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
             return;
         } else {
             localStorage.removeItem(filename);
-            let originalText = editor.getContent({ format: 'text' });
+            let originalText = editor.getContent({format: 'text'});
             try {
                 // eslint-disable-next-line
                 return await postOne('cursive_write_local_to_json', {
@@ -396,37 +396,37 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
             const menubarDiv = document.querySelectorAll('div[role="menubar"].tox-menubar');
             let classArray = [];
 
-            if(menubarDiv.length) {
+            if (menubarDiv.length) {
                 menubarDiv.forEach(function(element, index) {
-                    index+=1;
-                    let className = 'cursive-menu-'+index;
+                    index += 1;
+                    let className = 'cursive-menu-' + index;
                     element.classList.add(className);
                     classArray.push(className);
                 });
             }
 
             const cursiveIcon = document.createElement('img');
-            cursiveIcon.src = hasApiKey ? iconUrl: iconGrayUrl;
+            cursiveIcon.src = hasApiKey ? iconUrl : iconGrayUrl;
 
             cursiveIcon.setAttribute('class', 'tiny_cursive_StateButton');
             cursiveIcon.style.display = 'inline-block';
 
             cursiveState(cursiveIcon, menubarDiv, classArray);
 
-            for(let index in classArray) {
-                const elementId = "tiny_cursive_StateIcon"+index;
+            for (let index in classArray) {
+                const elementId = "tiny_cursive_StateIcon" + index;
                 const tooltipId = `tiny_cursive_tooltip${index}`;
 
                 tooltipText.then((text) => {
-                    setTooltip(text, document.querySelector(`#${elementId}`), tooltipId);
-                });
+                    return setTooltip(text, document.querySelector(`#${elementId}`), tooltipId);
+                }).catch(error => window.console.error(error));
 
-                $(`#${elementId}`).on('mouseenter', function () {
+                $(`#${elementId}`).on('mouseenter', function() {
                     $(this).css('position', 'relative');
                     $(`#${tooltipId}`).css(tooltipCss);
                 });
 
-                $(`#${elementId}`).on('mouseleave', function () {
+                $(`#${elementId}`).on('mouseleave', function() {
                     $(`#${tooltipId}`).css('display', 'none');
                 });
             }
@@ -462,10 +462,10 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
         if (menubarDiv) {
             for (let index in classArray) {
                 const rightWrapper = document.createElement('div');
-                const imgWrapper   = document.createElement('span');
+                const imgWrapper = document.createElement('span');
                 const iconClone = cursiveIcon.cloneNode(true);
                 const targetMenu = document.querySelector('.' + classArray[index]);
-                let elementId = "tiny_cursive_StateIcon"+index;
+                let elementId = "tiny_cursive_StateIcon" + index;
 
                 rightWrapper.style.marginLeft = 'auto';
                 rightWrapper.style.display = 'flex';
@@ -491,7 +491,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
      * @param {string} tooltipId - ID for the tooltip element
      */
     function setTooltip(text, cursiveIcon, tooltipId) {
-        if(document.querySelector(`#${tooltipId}`)) {
+        if (document.querySelector(`#${tooltipId}`)) {
             return;
         }
 
@@ -501,8 +501,6 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
         const tooltipTitle = document.createElement('strong');
 
         tooltipSpan.style.display = 'none';
-        // cursiveIcon.style.width = "auto";
-
         tooltipTitle.textContent = text.buttonTitle;
         tooltipTitle.style.fontSize = '16px';
         tooltipTitle.style.fontWeight = 'bold';
