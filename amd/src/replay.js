@@ -590,25 +590,22 @@ export default class Replay {
     processKeydownEvent(event, text, cursor, highlights, deletions) {
         const key = event.key;
         const charToInsert = this.applyKey(key);
-
         this.updateModifierStates(key);
-
         if (this.isCtrlBackspace(key, cursor)) {
-            ({text, cursor} = this.handleCtrlBackspace(text, cursor, deletions));
+            ({ text, cursor } = this.handleCtrlBackspace(text, cursor, deletions));
         } else if (this.isCtrlDelete(key, cursor, text)) {
-            text = this.handleCtrlDelete(text, cursor, deletions);
+            ({ text } = this.handleCtrlDelete(text, cursor, deletions));
         } else if (this.isCtrlArrowMove(key)) {
             cursor = this.handleCtrlArrowMove(key, text, cursor);
-        } else if (this.isRegularBackspace(key)) {
-            ({text, cursor} = this.handleBackspace(text, cursor, deletions));
+        } else if (this.isRegularBackspace(key, cursor)) {
+            ({ text, cursor } = this.handleBackspace(text, cursor, deletions));
         } else if (this.isRegularDelete(key, cursor, text)) {
-            text = this.handleDelete(text, cursor, deletions);
+            ({ text } = this.handleDelete(text, cursor, deletions));
         } else if (this.isRegularArrowMove(key)) {
             cursor = this.handleArrowMove(key, text, cursor);
         } else if (charToInsert && charToInsert.length > 0) {
-            ({text, cursor} = this.handleCharacterInsert(charToInsert, text, cursor, highlights));
+            ({ text, cursor } = this.handleCharacterInsert(charToInsert, text, cursor, highlights));
         }
-
         return {
             text,
             cursor,
@@ -617,6 +614,7 @@ export default class Replay {
         };
     }
 
+    // Update state for modifier keys (Control, paste events)
     updateModifierStates(key) {
         if (key === 'Control') {
             this.isControlKeyPressed = true;
@@ -641,8 +639,8 @@ export default class Replay {
         return this.isControlKeyPressed && (key === 'ArrowLeft' || key === 'ArrowRight');
     }
 
-    isRegularBackspace(key) {
-        return key === 'Backspace' && !this.isPasteEvent;
+    isRegularBackspace(key, cursor) {
+        return key === 'Backspace' && !this.isPasteEvent && cursor > 0;
     }
 
     isRegularDelete(key, cursor, text) {
@@ -667,7 +665,7 @@ export default class Replay {
             expiresAt: this.currentTime + 2000
         });
         return {
-            text: text.slice(0, cursor - 1) + text.slice(cursor),
+            text: text.substring(0, cursor - 1) + text.substring(cursor),
             cursor: cursor - 1
         };
     }
@@ -679,7 +677,10 @@ export default class Replay {
             time: this.currentTime,
             expiresAt: this.currentTime + 2000
         });
-        return text.slice(0, cursor) + text.slice(cursor + 1);
+        return {
+            text: text.substring(0, cursor) + text.substring(cursor + 1),
+            cursor
+        };
     }
 
     handleArrowMove(key, text, cursor) {
@@ -689,7 +690,7 @@ export default class Replay {
     }
 
     handleCharacterInsert(charToInsert, text, cursor, highlights) {
-        text = text.slice(0, cursor) + charToInsert + text.slice(cursor);
+        text = text.substring(0, cursor) + charToInsert + text.substring(cursor);
         if (charToInsert.trim() !== '') {
             highlights.push({
                 index: cursor,
@@ -698,9 +699,8 @@ export default class Replay {
                 expiresAt: this.currentTime + 1500
             });
         }
-        return {text, cursor: cursor + 1};
+        return { text, cursor: cursor + 1 };
     }
-
 
     handleCtrlDelete(text, cursor, deletions) {
         const wordEnd = this.findNextWordBoundary(text, cursor);
@@ -713,10 +713,13 @@ export default class Replay {
                 expiresAt: this.currentTime + 2000
             });
         }
-       return text.substring(0, cursor) + text.substring(wordEnd);
+        return {
+            text: text.substring(0, cursor) + text.substring(wordEnd),
+            cursor
+        };
     }
 
-    handleCtrlBackSpace(text, cursor, deletions) {
+    handleCtrlBackspace(text, cursor, deletions) {
         let wordStart = cursor;
         while (wordStart > 0 && text[wordStart - 1] === ' ') {
             wordStart--;
@@ -724,7 +727,6 @@ export default class Replay {
         while (wordStart > 0 && text[wordStart - 1] !== ' ') {
             wordStart--;
         }
-
         const wordToDelete = text.substring(wordStart, cursor);
         for (let i = 0; i < wordToDelete.length; i++) {
             deletions.push({
@@ -734,8 +736,7 @@ export default class Replay {
                 expiresAt: this.currentTime + 2000
             });
         }
-
-        return {text: text.substring(0, wordStart) + text.substring(cursor), cursor: wordStart};
+        return { text: text.substring(0, wordStart) + text.substring(cursor), cursor: wordStart };
     }
 
     // Finds the index of the next word boundary after the cursor position
