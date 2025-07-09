@@ -26,10 +26,9 @@ import $ from 'jquery';
 import * as Str from 'core/str';
 
 export default class Replay {
-    controllerId = '';
-
     constructor(elementId, filePath, speed = 1, loop = false, controllerId) {
-        this.controllerId = controllerId;
+        // Initialize core properties
+        this.controllerId = controllerId || '';
         this.replayInProgress = false;
         this.speed = parseFloat(speed);
         this.loop = loop;
@@ -43,107 +42,95 @@ export default class Replay {
         this.usercomments = [];
         this.pasteTimestamps = [];
         this.isPasteEvent = false;
+        this.isControlKeyPressed = false;
+        this.text = '';
 
         const element = document.getElementById(elementId);
-        if (element) {
-            this.outputElement = element;
-        } else {
+        if (!element) {
             throw new Error(`Element with id '${elementId}' not found`);
         }
+        this.outputElement = element;
 
-        this.loadJSON(filePath)
-            .then((data) => {
-                if (data.status) {
-                    var val = JSON.parse(data.data);
-                    this.logData = val;
-                    if (data.comments) {
-                        var comments = JSON.parse(data.comments);
-                        this.usercomments = Array.isArray(comments) ? [...comments] : [];
-                    }
-
-                    if ("data" in this.logData) {
-                        this.logData = this.logData.data;
-                    }
-                    if ("payload" in this.logData) {
-                        this.logData = this.logData.payload;
-                    }
-
-                    if (this.logData.length > 0 && this.logData[0].unixTimestamp) {
-                        const startTime = this.logData[0].unixTimestamp;
-                        this.logData = this.logData.map(event => ({
-                            ...event,
-                            normalizedTime: event.unixTimestamp - startTime
-                        }));
-                        this.totalDuration = this.logData[this.logData.length - 1].normalizedTime;
-                    }
-
-                    this.totalEvents = this.logData.length;
-                    this.identifyPasteEvents();
-                    if (controllerId && this.logData) {
-                        this.constructController(controllerId);
-                    }
-                    this.startReplay();
-                } else {
-                    try {
-                        // eslint-disable-next-line
-                        Promise.all([
-                            templates.render('tiny_cursive/no_submission'),
-                            Str.get_string('warningpayload', 'tiny_cursive')
-                        ])
-                            .then(function(results) {
-                                var html = results[0];
-                                var str = results[1];
-                                var newElement = $(html);
-                                newElement.text(str);
-                                $('.tiny_cursive').html(newElement);
-                                return true;
-                            })
-                            .catch(function(error) {
-                                window.console.error(error);
-                            });
-                    } catch (error) {
-                        window.console.error(error);
-                    }
+        // Load JSON data and initialize replay
+        this.loadJSON(filePath).then(data => {
+            if (data.status) {
+                this.processData(data);
+                this.totalEvents = this.logData.length;
+                this.identifyPasteEvents();
+                if (this.controllerId && this.logData) {
+                    this.constructController(this.controllerId);
                 }
-                return data;
-            })
-            .catch(error => {
-                try {
-                    // eslint-disable-next-line
-                    Promise.all([
-                        templates.render('tiny_cursive/no_submission'),
-                        Str.get_string('warningpayload', 'tiny_cursive')
-                    ])
-                        .then(function(results) {
-                            var html = results[0];
-                            var str = results[1];
-                            var newElement = $(html);
-                            newElement.text(str);
-                            return $('.tiny_cursive').html(newElement);
-                        })
-                        .catch(function(error) {
-                            window.console.error(error);
-                        });
-                } catch (error) {
-                    window.console.error(error);
-                }
-                window.console.error('Error loading JSON file: ' + error.message);
-            });
+                this.startReplay();
+            } else {
+                this.handleNoSubmission();
+            }
+            return data;
+        }).catch(error => {
+            this.handleError(error);
+        });
     }
 
+    // Process JSON data and normalize timestamps
+    processData(data) {
+        this.logData = JSON.parse(data.data);
+        if (data.comments) {
+            this.usercomments = Array.isArray(JSON.parse(data.comments)) ? JSON.parse(data.comments) : [];
+        }
+        if ('data' in this.logData) {
+            this.logData = this.logData.data;
+        }
+        if ('payload' in this.logData) {
+            this.logData = this.logData.payload;
+        }
+        if (this.logData.length > 0 && this.logData[0].unixTimestamp) {
+            const startTime = this.logData[0].unixTimestamp;
+            this.logData = this.logData.map(event => ({
+                ...event,
+                normalizedTime: event.unixTimestamp - startTime
+            }));
+            this.totalDuration = this.logData[this.logData.length - 1].normalizedTime;
+        }
+    }
+
+    handleNoSubmission() {
+        Promise.all([
+            templates.render('tiny_cursive/no_submission'),
+            Str.get_string('warningpayload', 'tiny_cursive')
+        ]).then(([html, str]) => {
+            const newElement = $(html).text(str);
+            $('.tiny_cursive').html(newElement);
+        }).catch(error => {
+            window.console.error(error);
+        });
+    }
+
+    handleError(error) {
+        Promise.all([
+            templates.render('tiny_cursive/no_submission'),
+            Str.get_string('warningpayload', 'tiny_cursive')
+        ]).then(([html, str]) => {
+            const newElement = $(html).text(str);
+            $('.tiny_cursive').html(newElement);
+        }).catch(error => {
+            window.console.error(error);
+        });
+        window.console.error('Error loading JSON file:', error.message);
+    }
+
+    // Stop the replay and update play button icon
     stopReplay() {
         if (this.replayInProgress) {
             clearTimeout(this.replayTimeout);
             this.replayInProgress = false;
-            var playSvg = document.createElement('img');
-            playSvg.src = M.util.image_url('playicon', 'tiny_cursive');
-
             if (this.playButton) {
+                const playSvg = document.createElement('img');
+                playSvg.src = M.util.image_url('playicon', 'tiny_cursive');
                 this.playButton.querySelector('.play-icon').innerHTML = playSvg.outerHTML;
             }
         }
     }
 
+    // Build the replay control UI (play button, scrubber, speed controls)
     constructController(controllerId) {
         this.replayInProgress = false;
         this.currentPosition = 0;
@@ -155,73 +142,91 @@ export default class Replay {
 
         const container = document.getElementById(controllerId);
         if (!container) {
-            window.console.error("Container not found with ID:", controllerId);
+            window.console.error('Container not found with ID:', controllerId);
             return;
         }
 
         const controlContainer = container.querySelector('.tiny_cursive_replay_control');
         if (!controlContainer) {
-            window.console.error("Replay control container not found in:", controllerId);
+            window.console.error('Replay control container not found in:', controllerId);
             return;
         }
         controlContainer.innerHTML = '<span class="tiny_cursive_loading_spinner"></span>';
 
+        this.buildControllerUI(controlContainer, container);
+        controlContainer.querySelector('.tiny_cursive_loading_spinner')?.remove();
+    }
+
+    buildControllerUI(controlContainer, container) {
         const topRow = document.createElement('div');
         topRow.classList.add('tiny_cursive_top_row');
 
-        // Play button
-        this.playButton = document.createElement('button');
-        this.playButton.classList.add('tiny_cursive_play_button');
-        const playSvg = document.createElement('i');
-        playSvg.className = '';
-        this.playButton.innerHTML = `<span class="play-icon">${playSvg.outerHTML}</span>`;
+        this.playButton = this.createPlayButton();
+        topRow.appendChild(this.playButton);
 
-        this.playButton.addEventListener('click', () => {
+        const scrubberContainer = this.createScrubberContainer();
+        topRow.appendChild(scrubberContainer);
+
+        this.timeDisplay = this.createTimeDisplay();
+        topRow.appendChild(this.timeDisplay);
+
+        const bottomRow = document.createElement('div');
+        bottomRow.classList.add('tiny_cursive_bottom_row');
+
+        const speedContainer = this.createSpeedControls();
+        bottomRow.appendChild(speedContainer);
+
+        const pasteEventsToggle = this.createPasteEventsToggle(container);
+        bottomRow.appendChild(pasteEventsToggle);
+
+        controlContainer.appendChild(topRow);
+        controlContainer.appendChild(bottomRow);
+        container.appendChild(this.pasteEventsPanel);
+    }
+
+    createPlayButton() {
+        const playButton = document.createElement('button');
+        playButton.classList.add('tiny_cursive_play_button');
+        const playSvg = document.createElement('i');
+        playButton.innerHTML = `<span class="play-icon">${playSvg.outerHTML}</span>`;
+        playButton.addEventListener('click', () => {
             if (this.replayInProgress) {
                 this.stopReplay();
-                const playImg = document.createElement('img');
-                playImg.src = M.util.image_url('playicon', 'tiny_cursive');
-                this.playButton.querySelector('.play-icon').innerHTML = playImg.outerHTML;
             } else {
                 this.startReplay(false);
             }
             $('.tiny_cursive-nav-tab').find('.active').removeClass('active');
             $('a[id^="rep"]').addClass('active');
         });
-        topRow.appendChild(this.playButton);
+        return playButton;
+    }
 
-        // Scrubber
+    createScrubberContainer() {
         const scrubberContainer = document.createElement('div');
         scrubberContainer.classList.add('tiny_cursive_scrubber_container');
-
         this.scrubberElement = document.createElement('input');
         this.scrubberElement.classList.add('tiny_cursive_timeline_scrubber', 'timeline-scrubber');
         this.scrubberElement.type = 'range';
         this.scrubberElement.max = '100';
         this.scrubberElement.min = '0';
         this.scrubberElement.value = '0';
-
         this.scrubberElement.addEventListener('input', () => {
-            const scrubberValue = parseInt(this.scrubberElement.value, 10);
-            this.skipToTime(scrubberValue);
+            this.skipToTime(parseInt(this.scrubberElement.value, 10));
         });
-
         scrubberContainer.appendChild(this.scrubberElement);
-        topRow.appendChild(scrubberContainer);
+        return scrubberContainer;
+    }
 
-        // Time display
-        this.timeDisplay = document.createElement('div');
-        this.timeDisplay.classList.add('tiny_cursive_time_display');
-        this.timeDisplay.textContent = '00:00 / 00:00';
-        topRow.appendChild(this.timeDisplay);
+    createTimeDisplay() {
+        const timeDisplay = document.createElement('div');
+        timeDisplay.classList.add('tiny_cursive_time_display');
+        timeDisplay.textContent = '00:00 / 00:00';
+        return timeDisplay;
+    }
 
-        const bottomRow = document.createElement('div');
-        bottomRow.classList.add('tiny_cursive_bottom_row');
-
-        // Speed controls
+    createSpeedControls() {
         const speedContainer = document.createElement('div');
         speedContainer.classList.add('tiny_cursive_speed_controls', 'speed-controls');
-
         const speedLabel = document.createElement('span');
         speedLabel.classList.add('tiny_cursive_speed_label');
         speedLabel.textContent = 'Speed: ';
@@ -229,16 +234,14 @@ export default class Replay {
 
         const speedGroup = document.createElement('div');
         speedGroup.classList.add('tiny_cursive_speed_group');
-
-        [1, 1.5, 2, 5, 10].forEach(speedValue => {
+        [1, 1.5, 2, 5, 10].forEach(speed => {
             const speedBtn = document.createElement('button');
-            speedBtn.textContent = `${speedValue}x`;
+            speedBtn.textContent = `${speed}x`;
             speedBtn.classList.add('tiny_cursive_speed_btn', 'speed-btn');
-            if (parseFloat(speedValue) === parseFloat(this.speed)) {
+            if (parseFloat(speed) === this.speed) {
                 speedBtn.classList.add('active');
             }
-            speedBtn.dataset.speed = speedValue;
-
+            speedBtn.dataset.speed = speed;
             speedBtn.addEventListener('click', () => {
                 document.querySelectorAll('.tiny_cursive_speed_btn').forEach(btn => btn.classList.remove('active'));
                 speedBtn.classList.add('active');
@@ -248,19 +251,13 @@ export default class Replay {
                     this.startReplay(false);
                 }
             });
-
             speedGroup.appendChild(speedBtn);
         });
-
         speedContainer.appendChild(speedGroup);
-        bottomRow.appendChild(speedContainer);
+        return speedContainer;
+    }
 
-        const existingPanel = container.querySelector('.paste-events-panel');
-        if (existingPanel) {
-            existingPanel.remove();
-        }
-
-        // Paste Events Toggle
+    createPasteEventsToggle(container) {
         const pasteEventsToggle = document.createElement('div');
         pasteEventsToggle.classList.add('tiny_cursive_paste_events_toggle', 'paste-events-toggle');
 
@@ -273,10 +270,10 @@ export default class Replay {
         const pasteEventsText = document.createElement('span');
         pasteEventsText.textContent = 'Paste Events';
 
-        const pasteEventCount = document.createElement('span');
-        pasteEventCount.textContent = `(${this.usercomments.length})`;
-        pasteEventCount.className = 'paste-event-count';
-        pasteEventCount.style.marginLeft = '2px';
+        this.pasteEventCount = document.createElement('span');
+        this.pasteEventCount.textContent = `(${this.usercomments.length})`;
+        this.pasteEventCount.className = 'paste-event-count';
+        this.pasteEventCount.style.marginLeft = '2px';
 
         const chevronIcon = document.createElement('span');
         const chevron = document.createElement('i');
@@ -287,62 +284,52 @@ export default class Replay {
 
         pasteEventsToggle.appendChild(pasteEventsIcon);
         pasteEventsToggle.appendChild(pasteEventsText);
-        pasteEventsToggle.appendChild(pasteEventCount);
+        pasteEventsToggle.appendChild(this.pasteEventCount);
         pasteEventsToggle.appendChild(chevronIcon);
 
-        // Create Paste Events Panel
+        this.pasteEventsPanel = this.createPasteEventsPanel(container);
+        pasteEventsToggle.addEventListener('click', () => {
+            const isHidden = this.pasteEventsPanel.style.display === 'none';
+            this.pasteEventsPanel.style.display = isHidden ? 'block' : 'none';
+            chevronIcon.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+        });
+
+        return pasteEventsToggle;
+    }
+
+    createPasteEventsPanel(container) {
+        const existingPanel = container.querySelector('.paste-events-panel');
+        if (existingPanel) {
+            existingPanel.remove();
+        }
         const pasteEventsPanel = document.createElement('div');
         pasteEventsPanel.classList.add('tiny_cursive_paste_events_panel', 'paste-events-panel');
         pasteEventsPanel.style.display = 'none';
-
         this.populatePasteEventsPanel(pasteEventsPanel);
-
-        pasteEventsToggle.addEventListener('click', () => {
-            const isHidden = pasteEventsPanel.style.display === 'none';
-            pasteEventsPanel.style.display = isHidden ? 'block' : 'none';
-            chevronIcon.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0)';
-        });
-
-        bottomRow.appendChild(pasteEventsToggle);
-
-        this.pasteEventsPanel = pasteEventsPanel;
-        this.pasteEventCount = pasteEventCount;
-
-        controlContainer.appendChild(topRow);
-        controlContainer.appendChild(bottomRow);
-        container.appendChild(pasteEventsPanel);
-
-        controlContainer.querySelector('.tiny_cursive_loading_spinner')?.remove();
+        return pasteEventsPanel;
     }
 
+    // Detect Ctrl+V paste events and sync with user comments
     identifyPasteEvents() {
         this.pasteTimestamps = [];
         let controlPressed = false;
         let pasteCount = 0;
 
-        // Check for finding Control+V combinations
         for (let i = 0; i < this.logData.length; i++) {
             const event = this.logData[i];
-            if (event.event && event.event.toLowerCase() === "keydown") {
-                if (event.key === "Control") {
+            if (event.event?.toLowerCase() === 'keydown') {
+                if (event.key === 'Control') {
                     controlPressed = true;
-                } else if (event.key === "v" && controlPressed) {
+                } else if (event.key === 'v' && controlPressed) {
                     const timestamp = event.normalizedTime || 0;
-
-                    let userComment = "";
-                    if (this.usercomments && this.usercomments[pasteCount]) {
-                        userComment = this.usercomments[pasteCount];
-                    }
-
                     this.pasteTimestamps.push({
                         index: pasteCount,
                         time: timestamp,
                         formattedTime: this.formatTime(timestamp),
-                        pastedText: userComment,
-                        timestamp: timestamp
+                        pastedText: this.usercomments[pasteCount] || '',
+                        timestamp
                     });
                     pasteCount++;
-
                     controlPressed = false;
                 } else {
                     controlPressed = false;
@@ -351,15 +338,15 @@ export default class Replay {
         }
 
         if (this.usercomments.length > 0 && this.pasteTimestamps.length === 0) {
-            for (let i = 0; i < this.usercomments.length; i++) {
+            this.usercomments.forEach((comment, i) => {
                 this.pasteTimestamps.push({
                     index: i,
                     time: 0,
                     formattedTime: this.formatTime(0),
-                    pastedText: this.usercomments[i],
+                    pastedText: comment,
                     timestamp: 0
                 });
-            }
+            });
         }
 
         while (this.pasteTimestamps.length < this.usercomments.length) {
@@ -378,18 +365,12 @@ export default class Replay {
         }
     }
 
+    // Populate the paste events panel with navigation
     populatePasteEventsPanel(panel) {
         panel.innerHTML = '';
-
-        while (panel.firstChild) {
-            panel.removeChild(panel.firstChild);
-        }
         panel.classList.add('tiny_cursive_event_panel');
 
-        const pasteEvents = this.pasteTimestamps && this.pasteTimestamps.length ?
-            this.pasteTimestamps : [];
-
-        if (!pasteEvents || pasteEvents.length === 0) {
+        if (!this.pasteTimestamps.length) {
             const noEventsMessage = document.createElement('div');
             noEventsMessage.className = 'no-paste-events-message p-3';
             noEventsMessage.textContent = 'No paste events detected for this submission.';
@@ -408,129 +389,105 @@ export default class Replay {
         counterDisplay.textContent = 'Paste Events';
 
         const navButtons = document.createElement('div');
-        navButtons.classList.add('tiny_cursive_nav_buttons', 'tiny_cursive_nav_buttons');
-
+        navButtons.classList.add('tiny_cursive_nav_buttons');
         const prevButton = document.createElement('button');
         prevButton.classList.add('paste-event-prev-btn', 'tiny_cursive_nav_button');
-        const leftChevron = document.createElement('i');
-        leftChevron.className = 'fa fa-chevron-left';
-        prevButton.innerHTML = leftChevron.outerHTML;
+        prevButton.innerHTML = '<i class="fa fa-chevron-left"></i>';
 
         const nextButton = document.createElement('button');
-        nextButton.className = 'paste-event-next-btn tiny_cursive_nav_button';
-        const rightChevron = document.createElement('i');
-        rightChevron.className = 'fa fa-chevron-right';
-        nextButton.innerHTML = rightChevron.outerHTML;
-        nextButton.disabled = pasteEvents.length <= 1;
+        nextButton.classList.add('paste-event-next-btn', 'tiny_cursive_nav_button');
+        nextButton.innerHTML = '<i class="fa fa-chevron-right"></i>';
+        nextButton.disabled = this.pasteTimestamps.length <= 1;
 
         navButtons.appendChild(prevButton);
         navButtons.appendChild(nextButton);
-
         navigationRow.appendChild(counterDisplay);
         navigationRow.appendChild(navButtons);
 
         const contentContainer = document.createElement('div');
         contentContainer.className = 'paste-events-content tiny_cursive_content_container';
-
-        // Create initial content with first paste event
-        const createPasteEventDisplay = (pasteEvent) => {
-            const eventRow = document.createElement('div');
-            eventRow.className = 'tiny_cursive_event_row';
-
-            // Header row with timestamp and play button
-            const headerRow = document.createElement('div');
-            headerRow.className = 'tiny_cursive_header_row';
-
-            // Timestamp and text container
-            const textContainer = document.createElement('div');
-            textContainer.className = 'tiny_cursive_text_container';
-
-            const timestampContainer = document.createElement('div');
-            timestampContainer.className = 'paste-event-timestamp tiny_cursive_paste_event_timestamp';
-            timestampContainer.textContent = pasteEvent.formattedTime;
-
-            const pastedTextContainer = document.createElement('div');
-            pastedTextContainer.className = 'paste-event-text tiny_cursive_pasted_text_container';
-            pastedTextContainer.textContent = pasteEvent.pastedText;
-
-            textContainer.appendChild(timestampContainer);
-            textContainer.appendChild(pastedTextContainer);
-
-            const playButton = document.createElement('button');
-            playButton.className = 'paste-event-play-btn tiny_cursive_seekplay_button';
-
-            const playIcon = document.createElement('img');
-            playIcon.src = M.util.image_url('seekplayicon', 'tiny_cursive');
-            playButton.innerHTML = playIcon.outerHTML;
-
-            playButton.addEventListener('click', () => {
-                this.jumpToTimestamp(pasteEvent.timestamp);
-            });
-
-            headerRow.appendChild(textContainer);
-            headerRow.appendChild(playButton);
-
-            eventRow.appendChild(headerRow);
-
-            return eventRow;
-        };
-
-        contentContainer.appendChild(createPasteEventDisplay(pasteEvents[0]));
+        contentContainer.appendChild(this.createPasteEventDisplay(this.pasteTimestamps[0]));
 
         carouselContainer.appendChild(navigationRow);
         carouselContainer.appendChild(contentContainer);
-
         panel.appendChild(carouselContainer);
 
         let currentIndex = 0;
+        const updateDisplay = () => {
+            contentContainer.innerHTML = '';
+            contentContainer.appendChild(this.createPasteEventDisplay(this.pasteTimestamps[currentIndex]));
+            counterDisplay.textContent = 'Paste Events';
+            prevButton.disabled = currentIndex === 0;
+            prevButton.style.opacity = currentIndex === 0 ? '0.5' : '1';
+            nextButton.disabled = currentIndex === this.pasteTimestamps.length - 1;
+            nextButton.style.opacity = currentIndex === this.pasteTimestamps.length - 1 ? '0.5' : '1';
+        };
 
         prevButton.addEventListener('click', () => {
             if (currentIndex > 0) {
                 currentIndex--;
-                updatePasteEventDisplay();
+                updateDisplay();
             }
         });
 
         nextButton.addEventListener('click', () => {
-            if (currentIndex < pasteEvents.length - 1) {
+            if (currentIndex < this.pasteTimestamps.length - 1) {
                 currentIndex++;
-                updatePasteEventDisplay();
+                updateDisplay();
             }
         });
-
-        const updatePasteEventDisplay = () => {
-            contentContainer.innerHTML = '';
-            contentContainer.appendChild(createPasteEventDisplay(pasteEvents[currentIndex]));
-
-            counterDisplay.textContent = 'Paste Events';
-
-            prevButton.disabled = currentIndex === 0;
-            prevButton.style.opacity = currentIndex === 0 ? '0.5' : '1';
-            nextButton.disabled = currentIndex === pasteEvents.length - 1;
-            nextButton.style.opacity = currentIndex === pasteEvents.length - 1 ? '0.5' : '1';
-        };
     }
 
+    createPasteEventDisplay(pasteEvent) {
+        const eventRow = document.createElement('div');
+        eventRow.className = 'tiny_cursive_event_row';
+
+        const headerRow = document.createElement('div');
+        headerRow.className = 'tiny_cursive_header_row';
+
+        const textContainer = document.createElement('div');
+        textContainer.className = 'tiny_cursive_text_container';
+
+        const timestampContainer = document.createElement('div');
+        timestampContainer.className = 'paste-event-timestamp tiny_cursive_paste_event_timestamp';
+        timestampContainer.textContent = pasteEvent.formattedTime;
+
+        const pastedTextContainer = document.createElement('div');
+        pastedTextContainer.className = 'paste-event-text tiny_cursive_pasted_text_container';
+        pastedTextContainer.textContent = pasteEvent.pastedText;
+
+        textContainer.appendChild(timestampContainer);
+        textContainer.appendChild(pastedTextContainer);
+
+        const playButton = document.createElement('button');
+        playButton.className = 'paste-event-play-btn tiny_cursive_seekplay_button';
+        const playIcon = document.createElement('img');
+        playIcon.src = M.util.image_url('seekplayicon', 'tiny_cursive');
+        playButton.innerHTML = playIcon.outerHTML;
+        playButton.addEventListener('click', () => this.jumpToTimestamp(pasteEvent.timestamp));
+
+        headerRow.appendChild(textContainer);
+        headerRow.appendChild(playButton);
+        eventRow.appendChild(headerRow);
+
+        return eventRow;
+    }
+
+    // Jump to a specific timestamp in the replay
     jumpToTimestamp(timestamp) {
         const percentage = this.totalDuration > 0 ? (timestamp / this.totalDuration) * 100 : 0;
-
         this.skipToTime(percentage);
-
         if (!this.replayInProgress) {
             this.startReplay(false);
         }
     }
 
-
     setScrubberVal(value) {
         if (this.scrubberElement) {
             this.scrubberElement.value = String(value);
-
             if (this.timeDisplay) {
                 const displayTime = Math.min(this.currentTime, this.totalDuration);
-                const currentTimeFormatted = this.formatTime(displayTime);
-                const totalTimeFormatted = this.formatTime(this.totalDuration);
-                this.timeDisplay.textContent = `${currentTimeFormatted} / ${totalTimeFormatted}`;
+                this.timeDisplay.textContent = `${this.formatTime(displayTime)} / ${this.formatTime(this.totalDuration)}`;
             }
         }
     }
@@ -538,13 +495,9 @@ export default class Replay {
     loadJSON(filePath) {
         return fetchJson([{
             methodname: 'cursive_get_reply_json',
-            args: {
-                filepath: filePath,
-            },
-        }])[0].done(response => {
-            return response;
-        }).fail(error => {
-            throw new Error('Error loading JSON file: ' + error.message);
+            args: { filepath: filePath }
+        }])[0].done(response => response).fail(error => {
+            throw new Error(`Error loading JSON file: ${error.message}`);
         });
     }
 
@@ -555,9 +508,8 @@ export default class Replay {
         return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
     }
 
-    // Call this to make a "start" or "start over" function
+    // Start or restart the replay
     startReplay(reset = true) {
-        // Clear previous instances of timeout to prevent multiple running at once
         if (this.replayInProgress) {
             clearTimeout(this.replayTimeout);
         }
@@ -585,8 +537,7 @@ export default class Replay {
         this.replayLog();
     }
 
-    // Called by startReplay() to recursively call through keydown events
-    // Refactored replayLog and helpers
+    // Process events in sequence to simulate typing
     replayLog() {
         if (!this.replayInProgress) {
             this.updateDisplayText(this.text, this.cursorPosition, [], []);
@@ -599,192 +550,30 @@ export default class Replay {
                 break;
             }
 
-            const {updatedText, updatedCursor, updatedHighlights, updatedDeleted} =
-                this.processEvent(event, this.text, this.cursorPosition, this.highlightedChars, this.deletedChars);
+            let text = this.text || '';
+            let cursor = this.cursorPosition;
+            let updatedHighlights = [...this.highlightedChars];
+            let updatedDeleted = [...this.deletedChars];
 
-            this.text = updatedText;
-            this.cursorPosition = updatedCursor;
-            this.highlightedChars = updatedHighlights;
-            this.deletedChars = updatedDeleted;
+            if (event.rePosition !== undefined && (this.currentEventIndex === 0 ||
+                event.event === 'mouseDown' || event.event === 'mouseUp')) {
+                cursor = Math.max(0, Math.min(event.rePosition, text.length));
+            }
+
+            if (event.event?.toLowerCase() === 'keydown') {
+                ({text, cursor, updatedHighlights, updatedDeleted } =
+                    this.processKeydownEvent(event, text, cursor, updatedHighlights, updatedDeleted));
+            }
+
+            this.text = text;
+            this.cursorPosition = cursor;
+            this.highlightedChars = updatedHighlights.filter(h => !h.expiresAt || h.expiresAt > this.currentTime);
+            this.deletedChars = updatedDeleted.filter(d => !d.expiresAt || d.expiresAt > this.currentTime);
 
             this.currentEventIndex++;
         }
 
         this.updateDisplayText(this.text, this.cursorPosition, this.highlightedChars, this.deletedChars);
-        this.updateReplayStatus();
-    }
-
-    processEvent(event, text, cursor, highlights, deletions) {
-        let updatedHighlights = [...highlights];
-        let updatedDeleted = [...deletions];
-
-        if (event.rePosition !== undefined && (this.currentEventIndex === 0
-            || event.event === 'mouseDown' || event.event === 'mouseUp')) {
-            cursor = Math.max(0, Math.min(event.rePosition, text.length));
-        }
-
-        if (event.event?.toLowerCase() === "keydown") {
-            ({text, cursor, updatedHighlights, updatedDeleted} =
-                this.handleKeydown(event, text, cursor, updatedHighlights, updatedDeleted));
-        }
-
-        updatedHighlights = updatedHighlights.filter(h => !h.expiresAt || h.expiresAt > this.currentTime);
-        updatedDeleted = updatedDeleted.filter(d => !d.expiresAt || d.expiresAt > this.currentTime);
-
-        return {updatedText: text, updatedCursor: cursor, updatedHighlights, updatedDeleted};
-    }
-
-    handleKeydown(event, text, cursor, highlights, deletions) {
-        const key = event.key;
-        const charToInsert = this.applyKey(key);
-
-        // Update Control and Paste states
-        if (key === "Control") {
-            this.isControlKeyPressed = true;
-        } else if (key === "v" && this.isControlKeyPressed) {
-            this.isPasteEvent = true;
-            this.isControlKeyPressed = false;
-        } else if (key !== "v") {
-            this.isControlKeyPressed = false;
-        }
-
-        // Helper to update highlights when inserting a char
-        const insertChar = (char) => {
-            text = text.slice(0, cursor) + char + text.slice(cursor);
-            if (char.trim()) {
-                highlights.push({
-                    index: cursor,
-                    "char": char,
-                    time: this.currentTime,
-                    expiresAt: this.currentTime + 1500
-                });
-            }
-            cursor++;
-        };
-
-        if (this.isControlKeyPressed) {
-            switch (key) {
-                case "Backspace":
-                    ({text, cursor, deletions} = this.handleCtrlBackspace(text, cursor, deletions));
-                    this.isControlKeyPressed = false;
-                    break;
-                case "Delete":
-                    ({text, deletions} = this.handleCtrlDelete(text, cursor, deletions));
-                    this.isControlKeyPressed = false;
-                    break;
-                case "ArrowLeft":
-                    cursor = this.findPreviousWordBoundary(text, cursor);
-                    break;
-                case "ArrowRight":
-                    cursor = this.findNextWordBoundary(text, cursor);
-                    break;
-                default:
-                    break;
-            }
-        } else {
-            switch (key) {
-                case "Backspace":
-                    if (!this.isPasteEvent) {
-                        ({text, cursor, deletions} = this.handleBackspace(text, cursor, deletions));
-                    }
-                    break;
-                case "Delete":
-                    ({text, deletions} = this.handleDelete(text, cursor, deletions));
-                    break;
-                case "ArrowLeft":
-                    cursor = Math.max(0, cursor - 1);
-                    break;
-                case "ArrowRight":
-                    cursor = Math.min(text.length, cursor + 1);
-                    break;
-                default:
-                    if (charToInsert) {
-                        insertChar(charToInsert);
-                    }
-                    break;
-            }
-        }
-
-        return {text, cursor, updatedHighlights: highlights, updatedDeleted: deletions};
-    }
-
-    handleCtrlBackspace(text, cursor, deletions) {
-        if (cursor === 0) {
-            return {text, cursor, deletions};
-        }
-
-        let wordStart = cursor;
-        while (wordStart > 0 && text[wordStart - 1] === ' ') {
-            wordStart--;
-        }
-        while (wordStart > 0 && text[wordStart - 1] !== ' ') {
-            wordStart--;
-        }
-
-        const word = text.slice(wordStart, cursor);
-        for (let i = 0; i < word.length; i++) {
-            deletions.push({
-                index: wordStart + i,
-                "char": word[i],
-                time: this.currentTime,
-                expiresAt: this.currentTime + 2000
-            });
-        }
-        return {
-            text: text.slice(0, wordStart) + text.slice(cursor),
-            cursor: wordStart,
-            deletions
-        };
-    }
-
-    handleCtrlDelete(text, cursor, deletions) {
-        const wordEnd = this.findNextWordBoundary(text, cursor);
-        const word = text.slice(cursor, wordEnd);
-        for (let i = 0; i < word.length; i++) {
-            deletions.push({
-                index: cursor + i,
-                "char": word[i],
-                time: this.currentTime,
-                expiresAt: this.currentTime + 2000
-            });
-        }
-        return {text: text.slice(0, cursor) + text.slice(wordEnd), deletions};
-    }
-
-    handleBackspace(text, cursor, deletions) {
-        if (cursor === 0) {
-            return {text, cursor, deletions};
-        }
-        deletions.push({
-            index: cursor - 1,
-            "char": text[cursor - 1],
-            time: this.currentTime,
-            expiresAt: this.currentTime + 2000
-        });
-        return {
-            text: text.slice(0, cursor - 1) + text.slice(cursor),
-            cursor: cursor - 1,
-            deletions
-        };
-    }
-
-    handleDelete(text, cursor, deletions) {
-        if (cursor >= text.length) {
-            return {text, deletions};
-        }
-        deletions.push({
-            index: cursor,
-            "char": text[cursor],
-            time: this.currentTime,
-            expiresAt: this.currentTime + 2000
-        });
-        return {
-            text: text.slice(0, cursor) + text.slice(cursor + 1),
-            deletions
-        };
-    }
-
-    updateReplayStatus() {
         if (this.totalDuration > 0) {
             const percentComplete = Math.min((this.currentTime / this.totalDuration) * 100, 100);
             this.setScrubberVal(percentComplete);
@@ -794,7 +583,6 @@ export default class Replay {
             const baseIncrement = 100;
             const incrementTime = baseIncrement / this.speed;
             this.currentTime += baseIncrement;
-
             if (this.currentEventIndex >= this.totalEvents) {
                 if (this.loop) {
                     this.startReplay(true);
@@ -808,49 +596,131 @@ export default class Replay {
         }
     }
 
+    // Handle keydown events (e.g., typing, backspace, Ctrl+V)
+    processKeydownEvent(event, text, cursor, highlights, deletions) {
+        const charToInsert = this.applyKey(event.key);
+
+        if (event.key === 'Control') {
+            this.isControlKeyPressed = true;
+        } else if (event.key === 'v' && this.isControlKeyPressed) {
+            this.isPasteEvent = true;
+            this.isControlKeyPressed = false;
+        } else if (!['Control', 'Backspace', 'Delete', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
+            this.isControlKeyPressed = false;
+            this.isPasteEvent = false;
+        }
+
+        if (event.key === 'Backspace' && this.isControlKeyPressed) {
+            if (cursor > 0) {
+                let wordStart = cursor;
+                while (wordStart > 0 && text[wordStart - 1] === ' ') { wordStart--; }
+                while (wordStart > 0 && text[wordStart - 1] !== ' ') { wordStart--; }
+                const wordToDelete = text.substring(wordStart, cursor);
+                for (let i = 0; i < wordToDelete.length; i++) {
+                    deletions.push({
+                        index: wordStart + i,
+                        char: wordToDelete[i],
+                        time: this.currentTime,
+                        expiresAt: this.currentTime + 2000
+                    });
+                }
+                text = text.substring(0, wordStart) + text.substring(cursor);
+                cursor = wordStart;
+            }
+        } else if (event.key === 'Delete' && this.isControlKeyPressed) {
+            if (cursor < text.length) {
+                const wordEnd = this.findNextWordBoundary(text, cursor);
+                const wordToDelete = text.substring(cursor, wordEnd);
+                for (let i = 0; i < wordToDelete.length; i++) {
+                    deletions.push({
+                        index: cursor + i,
+                        char: wordToDelete[i],
+                        time: this.currentTime,
+                        expiresAt: this.currentTime + 2000
+                    });
+                }
+                text = text.substring(0, cursor) + text.substring(wordEnd);
+            }
+        } else if (event.key === 'ArrowLeft' && this.isControlKeyPressed) {
+            cursor = this.findPreviousWordBoundary(text, cursor);
+        } else if (event.key === 'ArrowRight' && this.isControlKeyPressed) {
+            cursor = this.findNextWordBoundary(text, cursor);
+        } else if (event.key === 'Backspace' && !this.isPasteEvent) {
+            if (cursor > 0) {
+                deletions.push({
+                    index: cursor - 1,
+                    char: text[cursor - 1],
+                    time: this.currentTime,
+                    expiresAt: this.currentTime + 2000
+                });
+                text = text.substring(0, cursor - 1) + text.substring(cursor);
+                cursor--;
+            }
+        } else if (event.key === 'Delete' && !this.isControlKeyPressed) {
+            if (cursor < text.length) {
+                deletions.push({
+                    index: cursor,
+                    char: text[cursor],
+                    time: this.currentTime,
+                    expiresAt: this.currentTime + 2000
+                });
+                text = text.substring(0, cursor) + text.substring(cursor + 1);
+            }
+        } else if (event.key === 'ArrowLeft' && !this.isControlKeyPressed) {
+            cursor = Math.max(0, cursor - 1);
+        } else if (event.key === 'ArrowRight' && !this.isControlKeyPressed) {
+            cursor = Math.min(text.length, cursor + 1);
+        } else if (charToInsert && charToInsert.length > 0) {
+            text = text.substring(0, cursor) + charToInsert + text.substring(cursor);
+            if (charToInsert.trim() !== '') {
+                highlights.push({
+                    index: cursor,
+                    char: charToInsert,
+                    time: this.currentTime,
+                    expiresAt: this.currentTime + 1500
+                });
+            }
+            cursor++;
+        }
+
+        return { text, cursor, updatedHighlights: highlights, updatedDeleted: deletions };
+    }
+
+    // Finds the index of the next word boundary after the cursor position
     findNextWordBoundary(text, cursor) {
         if (!text || cursor >= text.length) {
             return cursor;
         }
-
         if (text[cursor] === ' ') {
             while (cursor < text.length && text[cursor] === ' ') {
-                cursor++;
+                 cursor++;
             }
         }
-
         if (cursor >= text.length) {
             let lastNonSpace = text.length - 1;
             while (lastNonSpace >= 0 && text[lastNonSpace] === ' ') {
-                lastNonSpace--;
+                 lastNonSpace--;
             }
-            cursor = lastNonSpace + 1;
-            return cursor;
+            return lastNonSpace + 1;
         }
-
         let wordEnd = cursor;
         while (wordEnd < text.length && text[wordEnd] !== ' ') {
-            wordEnd++;
-        }
-
+             wordEnd++;
+         }
         return wordEnd;
     }
 
+    // Finds the index of the previous word boundary before the cursor position
     findPreviousWordBoundary(text, cursor) {
-        let pos = cursor;
-
-        if (pos <= 0) {
+        if (cursor <= 0) {
             return 0;
         }
-
-        pos--;
-
+        let pos = cursor - 1;
         while (pos > 0 && (text[pos] === ' ' || text[pos] === '\n')) {
-            pos--;
+             pos--;
         }
-
         while (pos > 0 && text[pos - 1] !== ' ' && text[pos - 1] !== '\n') {
-            pos--;
+             pos--;
         }
 
         return pos;
@@ -873,38 +743,9 @@ export default class Replay {
     // Used by the scrubber to skip to a certain percentage of data
     skipToTime(percentage) {
         const wasPlaying = this.replayInProgress;
-        if (wasPlaying) {
-            this.replayInProgress = false;
-            clearTimeout(this.replayTimeout);
-        }
+        this.stopReplay();
 
         const targetTime = (this.totalDuration * percentage) / 100;
-        this.initializeReplayState(targetTime);
-
-        for (let i = 0; i < this.logData.length; i++) {
-            const event = this.logData[i];
-            if (event.normalizedTime && event.normalizedTime > targetTime) {
-                this.currentEventIndex = i;
-                break;
-            }
-            this.handleReplayEvent(event, i, targetTime);
-        }
-
-        this.highlightedChars = this.removeExpiredHighlights(this.tempHighlights, targetTime);
-        this.deletedChars = this.removeExpiredDeletions(this.tempDeletions, targetTime);
-
-        this.text = this.replayText;
-        this.cursorPosition = this.replayCursor;
-        this.updateDisplayText(this.text, this.cursorPosition, this.highlightedChars, this.deletedChars);
-        this.setScrubberVal(percentage);
-
-        if (wasPlaying) {
-            this.replayInProgress = true;
-            this.replayLog();
-        }
-    }
-
-    initializeReplayState(targetTime) {
         this.currentTime = targetTime;
         this.currentEventIndex = 0;
         this.text = '';
@@ -914,154 +755,39 @@ export default class Replay {
         this.isControlKeyPressed = false;
         this.isPasteEvent = false;
 
-        this.replayText = '';
-        this.replayCursor = 0;
-        this.tempHighlights = [];
-        this.tempDeletions = [];
-    }
+        let text = '';
+        let cursor = 0;
+        let highlights = [];
+        let deletions = [];
 
-    handleReplayEvent(event, index, targetTime) {
-        if (event.rePosition !== undefined && (index === 0 || event.event === 'mouseDown' || event.event === 'mouseUp')) {
-            this.replayCursor = Math.max(0, Math.min(event.rePosition, this.replayText.length));
-        }
-
-        if (event.event?.toLowerCase() === "keydown") {
-            this.handleKeyInputDuringReplay(event, targetTime);
-        }
-
-        this.currentEventIndex = index + 1;
-    }
-
-    handleKeyInputDuringReplay(event, targetTime) {
-        const key = event.key;
-        const charToInsert = this.applyKey(key);
-
-        this.updateModifierKeyStates(key);
-
-        if (key === "Backspace" && this.isControlKeyPressed) {
-            this.deletePreviousWordReplay(targetTime);
-        } else if (key === "Delete" && this.isControlKeyPressed) {
-            this.deleteNextWordReplay(targetTime);
-        } else if (key === "ArrowLeft" && this.isControlKeyPressed) {
-            this.replayCursor = this.findPreviousWordBoundary(this.replayText, this.replayCursor);
-        } else if (key === "ArrowRight" && this.isControlKeyPressed) {
-            this.replayCursor = this.findNextWordBoundary(this.replayText, this.replayCursor);
-        } else if (key === "Backspace") {
-            this.deleteCharacterBeforeCursor(targetTime);
-        } else if (key === "Delete") {
-            this.deleteCharacterAtCursor(targetTime);
-        } else if (key === "ArrowLeft") {
-            this.replayCursor = Math.max(0, this.replayCursor - 1);
-        } else if (key === "ArrowRight") {
-            this.replayCursor = Math.min(this.replayText.length, this.replayCursor + 1);
-        } else if (charToInsert?.length > 0) {
-            this.insertCharacterReplay(charToInsert, targetTime);
-        }
-    }
-
-    updateModifierKeyStates(key) {
-        if (key === "Control") {
-            this.isControlKeyPressed = true;
-        } else if (key !== "v") {
-            this.isControlKeyPressed = false;
-            this.isPasteEvent = false;
-        } else if (key === "v" && this.isControlKeyPressed) {
-            this.isPasteEvent = true;
-            this.isControlKeyPressed = false;
-        }
-    }
-
-    deletePreviousWordReplay(targetTime) {
-        if (this.replayCursor > 0) {
-            let start = this.replayCursor;
-            while (start > 0 && this.replayText[start - 1] === ' ') {
-                start--;
+        for (let i = 0; i < this.logData.length; i++) {
+            const event = this.logData[i];
+            if (event.normalizedTime && event.normalizedTime > targetTime) {
+                this.currentEventIndex = i;
+                break;
             }
-            while (start > 0 && this.replayText[start - 1] !== ' ') {
-                start--;
+            if (event.rePosition !== undefined && (i === 0 || event.event === 'mouseDown' || event.event === 'mouseUp')) {
+                cursor = Math.max(0, Math.min(event.rePosition, text.length));
             }
-
-            const deletedWord = this.replayText.substring(start, this.replayCursor);
-            for (let i = 0; i < deletedWord.length; i++) {
-                this.tempDeletions.push({
-                    index: start + i,
-                    "char": deletedWord[i],
-                    time: targetTime,
-                    expiresAt: targetTime + 2000
-                });
+            if (event.event?.toLowerCase() === 'keydown') {
+                ({ text, cursor, updatedHighlights: highlights, updatedDeleted: deletions } =
+                    this.processKeydownEvent(event, text, cursor, highlights, deletions));
             }
-
-            this.replayText = this.replayText.slice(0, start) + this.replayText.slice(this.replayCursor);
-            this.replayCursor = start;
+            this.currentEventIndex = i + 1;
         }
-        this.isControlKeyPressed = false;
-    }
 
-    deleteNextWordReplay(targetTime) {
-        if (this.replayCursor < this.replayText.length) {
-            const end = this.findNextWordBoundary(this.replayText, this.replayCursor);
-            const word = this.replayText.slice(this.replayCursor, end);
+        this.text = text;
+        this.cursorPosition = cursor;
+        this.highlightedChars = highlights.filter(h => !h.expiresAt || h.expiresAt > targetTime);
+        this.deletedChars = deletions.filter(d => !d.expiresAt || d.expiresAt > targetTime);
+        this.updateDisplayText(this.text, this.cursorPosition, this.highlightedChars, this.deletedChars);
+        this.setScrubberVal(percentage);
 
-            for (let i = 0; i < word.length; i++) {
-                this.tempDeletions.push({
-                    index: this.replayCursor + i,
-                    "char": word[i],
-                    time: targetTime,
-                    expiresAt: targetTime + 2000
-                });
-            }
-
-            this.replayText = this.replayText.slice(0, this.replayCursor) + this.replayText.slice(end);
-        }
-        this.isControlKeyPressed = false;
-    }
-
-    deleteCharacterBeforeCursor(targetTime) {
-        if (this.replayCursor > 0 && !this.isPasteEvent) {
-            this.tempDeletions.push({
-                index: this.replayCursor - 1,
-                "char": this.replayText[this.replayCursor - 1],
-                time: targetTime,
-                expiresAt: targetTime + 2000
-            });
-            this.replayText = this.replayText.slice(0, this.replayCursor - 1) + this.replayText.slice(this.replayCursor);
-            this.replayCursor--;
+        if (wasPlaying) {
+            this.replayInProgress = true;
+            this.replayLog();
         }
     }
-
-    deleteCharacterAtCursor(targetTime) {
-        if (this.replayCursor < this.replayText.length) {
-            this.tempDeletions.push({
-                index: this.replayCursor,
-                "char": this.replayText[this.replayCursor],
-                time: targetTime,
-                expiresAt: targetTime + 2000
-            });
-            this.replayText = this.replayText.slice(0, this.replayCursor) + this.replayText.slice(this.replayCursor + 1);
-        }
-    }
-
-    insertCharacterReplay(char, targetTime) {
-        this.replayText = this.replayText.slice(0, this.replayCursor) + char + this.replayText.slice(this.replayCursor);
-        if (char.trim() !== "") {
-            this.tempHighlights.push({
-                index: this.replayCursor,
-                "char": char,
-                time: targetTime,
-                expiresAt: targetTime + 1500
-            });
-        }
-        this.replayCursor++;
-    }
-
-    removeExpiredHighlights(highlights, time) {
-        return highlights.filter(h => !h.expiresAt || h.expiresAt > time);
-    }
-
-    removeExpiredDeletions(deletions, time) {
-        return deletions.filter(d => !d.expiresAt || d.expiresAt > time);
-    }
-
 
     // Update display with text, cursor, highlights and deletions
     updateDisplayText(text, cursorPosition, highlights, deletions) {
@@ -1072,61 +798,47 @@ export default class Replay {
 
         highlights.forEach(h => {
             let opacity = 1;
-            if (h.expiresAt) {
-                const timeRemaining = h.expiresAt - currentTime;
-                if (timeRemaining < 500) {
-                    opacity = Math.max(0, timeRemaining / 500);
-                }
+            if (h.expiresAt && h.expiresAt - currentTime < 500) {
+                opacity = Math.max(0, (h.expiresAt - currentTime) / 500);
             }
-            highlightMap[h.index] = {"char": h.char, opacity: opacity};
+            highlightMap[h.index] = { char: h.char, opacity };
         });
 
         deletions.forEach(d => {
             let opacity = 0.5;
-            if (d.expiresAt) {
-                const timeRemaining = d.expiresAt - currentTime;
-                if (timeRemaining < 500) {
-                    opacity = Math.max(0, (timeRemaining / 500) * 0.5);
-                }
+            if (d.expiresAt && d.expiresAt - currentTime < 500) {
+                opacity = Math.max(0, ((d.expiresAt - currentTime) / 500) * 0.5);
             }
-            deletionMap[d.index] = {"char": d.char, opacity: opacity};
+            deletionMap[d.index] = { char: d.char, opacity };
         });
 
         // Find if we have out-of-bounds deletions (from Control+Backspace)
         const outOfRangeDeletions = deletions.filter(d => d.index >= text.length);
-
         const textLines = text.split('\n');
         let currentPosition = 0;
 
         for (let lineIndex = 0; lineIndex < textLines.length; lineIndex++) {
             const line = textLines[lineIndex];
-
             for (let i = 0; i < line.length; i++) {
                 if (currentPosition === cursorPosition) {
                     html += '<span class="tiny_cursive-cursor"></span>';
                 }
-
                 const char = line[i];
-
                 if (deletionMap[currentPosition]) {
-                    const deletion = deletionMap[currentPosition];
-                    html += `<span class="tiny_cursive-deleted-char" style="opacity: ${deletion.opacity};">${deletion.char}</span>`;
+                    html += `<span class="tiny_cursive-deleted-char" style="opacity: 
+                        ${deletionMap[currentPosition].opacity};">${deletionMap[currentPosition].char}</span>`;
                 }
-
                 if (highlightMap[currentPosition] && char !== ' ') {
-                    const highlight = highlightMap[currentPosition];
-                    html += `<span class="tiny_cursive-highlighted-char" style="opacity: ${highlight.opacity};">${char}</span>`;
+                    html += `<span class="tiny_cursive-highlighted-char" style="opacity: 
+                        ${highlightMap[currentPosition].opacity};">${char}</span>`;
                 } else {
-                    html += char === ' ' ? '&nbsp;' : this.escapeHtml(char);
+                    html += char === ' ' ? ' ' : this.escapeHtml(char);
                 }
-
                 currentPosition++;
             }
-
             if (currentPosition === cursorPosition) {
                 html += '<span class="tiny_cursive-cursor"></span>';
             }
-
             if (lineIndex < textLines.length - 1) {
                 html += '<br>';
                 currentPosition++;
@@ -1137,18 +849,13 @@ export default class Replay {
             html += '<span class="tiny_cursive-cursor"></span>';
         }
 
-        // For control + backspace functionalities
         if (outOfRangeDeletions.length > 0) {
             outOfRangeDeletions.sort((a, b) => a.index - b.index);
-
             const cursorHTML = '<span class="tiny_cursive-cursor"></span>';
-            let cursorPos = html.lastIndexOf(cursorHTML);
-
+            const cursorPos = html.lastIndexOf(cursorHTML);
             if (cursorPos !== -1) {
                 let deletedWordHTML = '<span class="tiny_cursive-deleted-char" style="opacity: 0.5;">';
-                outOfRangeDeletions.forEach(d => {
-                    deletedWordHTML += d.char;
-                });
+                outOfRangeDeletions.forEach(d => { deletedWordHTML += d.char; });
                 deletedWordHTML += '</span>';
                 html = html.substring(0, cursorPos) + deletedWordHTML + html.substring(cursorPos);
             }
@@ -1156,7 +863,6 @@ export default class Replay {
 
         const wasScrolledToBottom = this.outputElement.scrollHeight -
             this.outputElement.clientHeight <= this.outputElement.scrollTop + 1;
-
         this.outputElement.innerHTML = html;
 
         if (wasScrolledToBottom || this.isCursorBelowViewport()) {
@@ -1179,32 +885,30 @@ export default class Replay {
 
     escapeHtml(unsafe) {
         return unsafe
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
     }
 
     // Used in various places to add a keydown, backspace, etc. to the output
     applyKey(key) {
         switch (key) {
-            case "Enter":
-                return "\n";
-            case "Backspace":
-            case "Delete":
-                return "";
-            case "ControlBackspace":
-                return "";
-            case " ":
-                return " ";
+            case 'Enter':
+                return '\n';
+            case 'Backspace':
+            case 'Delete':
+            case 'ControlBackspace':
+                return '';
+            case ' ':
+                 return ' ';
             default:
-                return !["Shift", "Ctrl", "Alt", "ArrowDown", "ArrowUp", "Control", "ArrowRight",
-                    "ArrowLeft", "Meta", "CapsLock", "Tab", "Escape", "Delete", "PageUp", "PageDown",
-                    "Insert", "Home", "End", "NumLock", "Insert", "Home", "End", "NumLock", "AudioVolumeUp",
-                    "AudioVolumeDown", "MediaPlayPause", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9",
-                    "F10", "F11", "F12", "PrintScreen", "UnIdentified"]
-                    .includes(key) ? key : "";
+                return !['Shift', 'Ctrl', 'Alt', 'ArrowDown', 'ArrowUp', 'Control', 'ArrowRight',
+                    'ArrowLeft', 'Meta', 'CapsLock', 'Tab', 'Escape', 'Delete', 'PageUp', 'PageDown',
+                    'Insert', 'Home', 'End', 'NumLock', 'AudioVolumeUp', 'AudioVolumeDown',
+                    'MediaPlayPause', 'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10',
+                    'F11', 'F12', 'PrintScreen', 'UnIdentified'].includes(key) ? key : '';
         }
     }
 }
