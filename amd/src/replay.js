@@ -592,19 +592,19 @@ export default class Replay {
         const charToInsert = this.applyKey(key);
         this.updateModifierStates(key);
         if (this.isCtrlBackspace(key, cursor)) {
-            ({ text, cursor } = this.handleCtrlBackspace(text, cursor, deletions));
+            ({text, cursor} = this.handleCtrlBackspace(text, cursor, deletions));
         } else if (this.isCtrlDelete(key, cursor, text)) {
-            ({ text } = this.handleCtrlDelete(text, cursor, deletions));
+            ({text} = this.handleCtrlDelete(text, cursor, deletions));
         } else if (this.isCtrlArrowMove(key)) {
             cursor = this.handleCtrlArrowMove(key, text, cursor);
         } else if (this.isRegularBackspace(key, cursor)) {
-            ({ text, cursor } = this.handleBackspace(text, cursor, deletions));
+            ({text, cursor} = this.handleBackspace(text, cursor, deletions));
         } else if (this.isRegularDelete(key, cursor, text)) {
-            ({ text } = this.handleDelete(text, cursor, deletions));
+            ({text} = this.handleDelete(text, cursor, deletions));
         } else if (this.isRegularArrowMove(key)) {
             cursor = this.handleArrowMove(key, text, cursor);
         } else if (charToInsert && charToInsert.length > 0) {
-            ({ text, cursor } = this.handleCharacterInsert(charToInsert, text, cursor, highlights));
+            ({text, cursor} = this.handleCharacterInsert(charToInsert, text, cursor, highlights));
         }
         return {
             text,
@@ -699,7 +699,7 @@ export default class Replay {
                 expiresAt: this.currentTime + 1500
             });
         }
-        return { text, cursor: cursor + 1 };
+        return {text, cursor: cursor + 1};
     }
 
     handleCtrlDelete(text, cursor, deletions) {
@@ -736,7 +736,7 @@ export default class Replay {
                 expiresAt: this.currentTime + 2000
             });
         }
-        return { text: text.substring(0, wordStart) + text.substring(cursor), cursor: wordStart };
+        return {text: text.substring(0, wordStart) + text.substring(cursor), cursor: wordStart};
     }
 
     // Finds the index of the next word boundary after the cursor position
