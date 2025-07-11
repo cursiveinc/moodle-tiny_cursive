@@ -22,52 +22,15 @@
  */
 
 import Chart from 'core/chartjs'
-export const init = () => {
+export const init = (data) => {
+
     const ctx = document.getElementById('effortScatterChart').getContext('2d');
+
 
     new Chart(ctx, {
         type: 'scatter',
         data: {
-            datasets: [
-                {
-                    label: 'Low Effort (<0.5)',
-                    data: [
-                        { x: 8, y: 0.3, label: "Student A", effort: 30, words: 150, wpm: 10 },
-                        { x: 9, y: 0.4, label: "Student B", effort: 40, words: 180, wpm: 12 }
-                    ],
-                    backgroundColor: '#f7941d',
-                    pointRadius: 8,
-                    pointStyle: 'circle',
-                },
-                {
-                    label: 'Medium Effort (0.5–1.0)',
-                    data: [
-                        { x: 15, y: 0.8, label: "Mia Thomas", effort: 48, words: 190, wpm: 13.4 },
-                        { x: 20, y: 0.7, label: "Student C", effort: 55, words: 210, wpm: 14 }
-                    ],
-                    backgroundColor: '#3fa9f5',
-                    pointRadius: 8,
-                    pointStyle: 'circle',
-                },
-                {
-                    label: 'High Effort (1.0–1.3)',
-                    data: [
-                        { x: 30, y: 1.2, label: "Student D", effort: 75, words: 300, wpm: 15 }
-                    ],
-                    backgroundColor: '#39b54a',
-                    pointRadius: 8,
-                    pointStyle: 'circle',
-                },
-                {
-                    label: 'Very High Effort (>1.3)',
-                    data: [
-                        { x: 35, y: 1.6, label: "Student E", effort: 90, words: 350, wpm: 17 }
-                    ],
-                    backgroundColor: '#007a33',
-                    pointRadius: 8,
-                    pointStyle: 'circle',
-                },
-            ]
+            datasets: data,
         },
         options: {
             plugins: {
@@ -81,16 +44,25 @@ export const init = () => {
                     }
                 },
                 tooltip: {
+                    backgroundColor: 'rgba(252, 252, 252, 0.8)',
+                    titleColor: '#000',
+                    bodyColor: '#000',
+                    borderColor: '#cccccc',
+                    borderWidth: 1,
+                    displayColors: false,
                     callbacks: {
-                        label: function (context) {
+                        title: function(context) {
+                            const d = context[0].raw;
+                            return d.label; // this appears as bold title
+                        },
+                        label: function(context) {
                             const d = context.raw;
                             return [
-                                    `${d.label}`,
-                                    `Time: ${d.x} min`,
-                                    `Effort: ${d.effort}%`,
-                                    `Words: ${d.words}`,
-                                    `WPM: ${d.wpm}`
-                                ];
+                                `Time: ${formatTime(d.x)}`,
+                                `Effort: ${d.effort * 100}%`,
+                                `Words: ${d.words}`,
+                                `WPM: ${d.wpm}`
+                            ];
                         }
                     }
                 }
@@ -99,10 +71,14 @@ export const init = () => {
                 x: {
                     title: {
                         display: true,
-                        text: 'Time Spent (minutes)'
+                        text: 'Time Spent (mm:ss)'
                     },
                     min: 0,
-                    max: 50
+                    ticks: {
+                    callback: function(value) {
+                        return formatTime(value);
+                    }
+                }
                 },
                 y: {
                     title: {
@@ -118,4 +94,10 @@ export const init = () => {
             }
         }
     });
+
+    function formatTime(value) {
+        const minutes = Math.floor(value / 60);
+        const seconds = value % 60;
+        return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
 }

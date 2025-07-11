@@ -1115,3 +1115,53 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
 .tiny_cursive-writing-activity-report-body table td {
     vertical-align: middle;
 }
+.tiny_cursive_scatter input[type="checkbox"] {
+    display: none;
+}
+
+.tiny_cursive_scatter .expander-container {
+    position: relative;
+    display: inline-block;
+}
+
+.tiny_cursive_scatter label.toggle-btn {
+    line-height: 20px;
+    cursor: pointer;
+    user-select: none;
+    display: inline-block;
+}
+
+.tiny_cursive_scatter .content {
+    position: absolute;
+    top: 0;
+    right: 100%;
+    width: 0;
+    height: 44px;
+    /* 👈 Same height as the label/button */
+    overflow: hidden;
+    transition: width 0.15s ease, padding 0.15s ease;
+    border-radius: 4px 0 0 4px;
+    padding: 0;
+    z-index: 10;
+    white-space: nowrap;
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    align-items: center;
+    background-color: rgb(255, 255, 255, 0.95);
+}
+
+.tiny_cursive_scatter .cursive-btn {
+    background-color: rgb(235, 235, 235);
+    padding: .6rem 1.3rem;
+    font-weight: 500;
+}
+
+.tiny_cursive_scatter .cursive-btn:hover {
+    background-color: rgb(218, 218, 218);
+}
+
+.tiny_cursive_scatter #toggle:checked~.content {
+    width: max-content;
+    padding: 0 12px;
+}

@@ -91,12 +91,14 @@ function tiny_cursive_extend_navigation_course(\navigation_node $navigation, \st
     global $CFG;
     require_once(__DIR__ . "/locallib.php");
 
+    $cmid    = tiny_cursive_get_cmid($course->id);
+    $module  = get_coursemodule_from_id(false, $cmid, $course->id);
+    $cursive = tiny_cursive_status($course->id);
+
     $url     = new moodle_url($CFG->wwwroot . '/lib/editor/tiny/plugins/cursive/tiny_cursive_report.php',
        ['courseid' => $course->id]);
     $vis_url = new moodle_url($CFG->wwwroot . '/lib/editor/tiny/plugins/cursive/visualization.php',
-       ['course' => $course->id]);
-    $cmid    = tiny_cursive_get_cmid($course->id);
-    $cursive = tiny_cursive_status($course->id);
+       ['course' => $course->id,"type" => $module->modname, "id" => $module->id]);
 
     if ($cmid && $cursive) {
         $context = context_module::instance($cmid);

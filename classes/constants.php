@@ -75,7 +75,6 @@ class constants {
      */
     public static function is_active() {
         global $PAGE;
-
         $instance = $PAGE->cm->id ?? 0;
         $courseid = $PAGE->cm->course ?? $PAGE->course->id;
         $key      = "CUR$courseid$instance";

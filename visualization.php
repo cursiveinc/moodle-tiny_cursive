@@ -23,24 +23,10 @@
  */
 
 require('../../../../../config.php');
-
 require_login();
-$courseid = required_param('course', PARAM_INT);
 
-$url = new moodle_url('/lib/editor/tiny/plugins/cursive/visualization.php', []);
-
-$title = get_string('data_visualization', 'tiny_cursive');
-$course  = get_course($courseid);
-
-$PAGE->navbar->add($course->shortname, new moodle_url('/course/view.php', ['id' => $courseid]));
-$PAGE->navbar->add($title, $url);
-$PAGE->set_url($url);
-$PAGE->requires->js_call_amd('tiny_cursive/scatter_chart', 'init');
-echo $OUTPUT->header();
-
-$sales = new \core\chart_series('Sales', [1000, 1170, 660, 1030]);
-$expenses = new \core\chart_series('Expenses', [400, 460, 1120, 540]);
-$labels = ['2004', '2005', '2006', '2007'];
-
-echo $OUTPUT->render_from_template('tiny_cursive/visualisation',[]);
-echo $OUTPUT->footer();
+$id     = optional_param('id', 0, PARAM_TEXT);
+$type   = optional_param('type', "assign", PARAM_TEXT);
+$course = required_param('course', PARAM_INT);
+$page   = new \tiny_cursive\page\visualization($course, $type, $id);
+$page->render();
