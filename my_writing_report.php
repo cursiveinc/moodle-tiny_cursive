@@ -22,8 +22,9 @@
  * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
+use tiny_cursive\constants;
 require(__DIR__ . '/../../../../../config.php');
+
 global $CFG, $DB, $USER, $PAGE;
 
 require_once(__DIR__ . '/../../../../../user/lib.php');
@@ -85,9 +86,10 @@ if ($courseid) {
 } else {
     $context = context_system::instance();
 }
-$apikey = json_decode(cursive_approve_token());
+
 $PAGE->requires->js_call_amd('tiny_cursive/key_logger', 'init', [1]);
-$PAGE->requires->js_call_amd('tiny_cursive/cursive_writing_reports', 'init', ["", $apikey->status ?? false]);
+$PAGE->requires->js_call_amd('tiny_cursive/cursive_writing_reports', 'init', ["", constants::has_api_key(),
+                 get_config('tiny_cursive', 'json_download')]);
 
 $PAGE->set_context(context_system::instance());
 $PAGE->set_url($url);

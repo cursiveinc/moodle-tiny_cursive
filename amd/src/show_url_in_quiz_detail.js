@@ -104,7 +104,7 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
                         }
                         let analyticButtonDiv = document.createElement('div');
                         analyticButtonDiv.classList.add('text-center', 'mt-2');
-                        analyticButtonDiv.append(analyticButton(userid, questionid));
+                        analyticButtonDiv.append(analyticButton(hasApiKey ? data.data.effort_ratio : "", userid, questionid));
                         content.parent().parent().parent().find('.qtext').append(analyticButtonDiv);
 
                         let myEvents = new AnalyticEvents();

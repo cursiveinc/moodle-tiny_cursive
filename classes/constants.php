@@ -90,4 +90,18 @@ class constants {
 
         return $state ? true : false;
     }
+
+    /**
+     * Check if a valid API key exists for cursive functionality
+     *
+     * @return bool True if valid API key exists, false otherwise
+     */
+    public static function has_api_key() {
+        global $CFG;
+        require_once($CFG->dirroot . '/lib/editor/tiny/plugins/cursive/lib.php');
+
+        $apikey = cursive_approve_token();
+        $apikey = json_decode($apikey);
+        return $apikey->status ?? false;
+    }
 }

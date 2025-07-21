@@ -28,7 +28,7 @@ use core_external\external_api;
 use core_external\external_function_parameters;
 use core_external\external_single_structure;
 use core_external\external_value;
-use tiny_cursive\constants as MODULES;
+use tiny_cursive\constants;
 
 defined('MOODLE_INTERNAL') || die;
 
@@ -1784,16 +1784,14 @@ class cursive_json_func_data extends external_api {
 
         $config = tiny_cursive_status($params['courseid']);
         $syncinterval = get_config('tiny_cursive', "syncinterval");
-        $apikey = cursive_approve_token();
-        $apikey = json_decode($apikey);
 
         $data   = [
             'status'        => $config,
             'sync_interval' => $syncinterval,
             'userid'        => $USER->id,
-            'apikey_status' => isset($apikey->status) ? true : false,
-            'mod_state'     => MODULES::is_active(),
-            'plugins'       => json_encode(MODULES::NAMES),
+            'apikey_status' => constants::has_api_key(),
+            'mod_state'     => constants::is_active(),
+            'plugins'       => json_encode(constants::NAMES),
         ];
         return $data;
     }

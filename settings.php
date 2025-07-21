@@ -107,6 +107,14 @@ if ($ADMIN->fulltree) {
             1
         )
     );
+    $settings->add(
+        new admin_setting_configcheckbox(
+            'tiny_cursive/json_download',
+            get_string('json_title', "tiny_cursive"),
+            get_string('json_des', 'tiny_cursive'),
+            1
+        )
+    );
 
     $settings->add(
         new admin_setting_configtext(
@@ -146,8 +154,8 @@ if ($ADMIN->fulltree) {
     $settings->add(
         new admin_setting_heading(
             'cursive_more_info',
-            'Cursive More Info',
-            "Allows administrators to customize the notification text and link shown when enabling Cursive on the course settings page. Both the message and URL can be edited via the Language customization page."
+            get_string('new_admin_heading', 'tiny_cursive'),
+            get_string('new_admin_desc', "tiny_cursive"),
         ));
 
         $settings->add(

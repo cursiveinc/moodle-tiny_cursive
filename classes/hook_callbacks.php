@@ -31,7 +31,7 @@ use core\hook\output\before_footer_html_generation;
 use core_component;
 use core_course\hook\after_form_definition;
 use core_course\hook\after_form_submission;
-use tiny_cursive\constants as MODULES;
+use tiny_cursive\constants;
 
 
 /**
@@ -79,21 +79,20 @@ class hook_callbacks {
             ? 'teacher_admin' : '';
 
         $plugins             = core_component::get_plugin_list('local');
-        $PAGE->requires->js_call_amd('tiny_cursive/settings', 'init', [MODULES::show_comments(), $userrole]);
+        $PAGE->requires->js_call_amd('tiny_cursive/settings', 'init', [constants::show_comments(), $userrole]);
 
-        if (array_key_exists($PAGE->bodyid, MODULES::BODY_IDS)) {
+        if (array_key_exists($PAGE->bodyid, constants::BODY_IDS)) {
 
-            if (MODULES::BODY_IDS[$PAGE->bodyid][1] === "oublog" && !isset($plugins['cursive_oublog'])) {
+            if (constants::BODY_IDS[$PAGE->bodyid][1] === "oublog" && !isset($plugins['cursive_oublog'])) {
                 return;
             }
 
-            if (MODULES::is_active()) {
-                $apikey = cursive_approve_token();
-                $apikey = json_decode($apikey);
+            if (constants::is_active()) {
+
                 $PAGE->requires->js_call_amd(
-                        "tiny_cursive/".MODULES::BODY_IDS[$PAGE->bodyid][0],
+                        "tiny_cursive/".constants::BODY_IDS[$PAGE->bodyid][0],
                         'init',
-                        [MODULES::confidence_threshold(), MODULES::show_comments(), $apikey->status ?? false],
+                        [constants::confidence_threshold(), constants::show_comments(), constants::has_api_key()],
                     );
             }
         }
@@ -117,12 +116,12 @@ class hook_callbacks {
             'collapsed' => false,
         ]);
         // Add a static element for the notice above the enable/disable dropdown.
-        $notice_msg = get_config('tiny_cursive', 'note_text') ?: get_string('cursive_enable_notice', 'tiny_cursive');
-        $notice_url = get_config('tiny_cursive', 'note_url') ?: 'https://cursivetechnology.com/moodle-integration-how-it-works';
-        $url_text   = get_config('tiny_cursive', 'note_url_text') ?: get_string('cursive_more_info', 'tiny_cursive');
-        
-        $notice = "{$notice_msg} <a href='{$notice_url}' target='_blank'>{$url_text}</a>";
-    
+        $noticemsg = get_config('tiny_cursive', 'note_text') ?: get_string('cursive_enable_notice', 'tiny_cursive');
+        $noticeurl = get_config('tiny_cursive', 'note_url') ?: 'https://cursivetechnology.com/moodle-integration-how-it-works';
+        $urltext   = get_config('tiny_cursive', 'note_url_text') ?: get_string('cursive_more_info', 'tiny_cursive');
+
+        $notice = "{$noticemsg} <a href='{$noticeurl}' target='_blank'>{$urltext}</a>";
+
         $mform->addElement('static', 'cursive_notice', '', $notice);
 
         $mform->addElement('select', 'cursive_status', get_string('cursive_status', 'tiny_cursive'), [

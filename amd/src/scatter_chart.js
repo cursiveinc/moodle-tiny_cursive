@@ -21,19 +21,94 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-import Chart from 'core/chartjs'
-export const init = (data) => {
+import Chart from 'core/chartjs';
+import {get_strings as getStrings} from 'core/str';
+export const init = async (data, apiKey) => {
 
     const ctx = document.getElementById('effortScatterChart').getContext('2d');
+    let display = true;
+    let isEmpty = "";
+    var dataset = [];
 
+    const [
+            applyFilter,
+            noSubmission,
+            noPayload,
+            freemium,
+            caption
+        ] = await getStrings([
+            {key: 'apply_filter', component: 'tiny_cursive'},
+            {key: 'no_submission', component: 'tiny_cursive'},
+            {key: 'nopaylod', component: 'tiny_cursive'},
+            {key: 'freemium', component: 'tiny_cursive'},
+            {key: 'chart_result', component: 'tiny_cursive'}
+        ]);
+
+    if (Array.isArray(data) && !data.state && apiKey) {
+        dataset = data;
+        isEmpty = data.some(ds =>
+            Array.isArray(ds.data) &&
+            ds.data.some(point =>
+                point && typeof point === 'object' && Object.keys(point).length > 0
+            )
+        );
+    }
+
+    if(!apiKey || data.length === 0 || !isEmpty || data === false) {
+        display = false;
+    }
+
+    const fallbackMessagePlugin = {
+        id: 'fallbackMessagePlugin',
+        afterDraw(chart) {
+            // ⚠ Case 1: Freemium user
+            if (!apiKey) {
+                drawMessage('⚠ '+freemium, chart);
+                return;
+            }
+            // ⚠ Case 2: Apply filter (data is empty array)
+            if (data.state == "apply_filter") {
+                drawMessage('⚠ '+applyFilter, chart);
+                return;
+            }
+            if(data.state === "no_submission") {
+                drawMessage('⚠ '+noSubmission, chart);
+                return;
+            }
+            // ⚠ Case 3: No payload data (all `data` arrays are empty or full of empty objects)
+            if (!isEmpty && !data.state) {
+                drawMessage('⚠ '+noPayload, chart);
+            }
+
+        }
+    };
 
     new Chart(ctx, {
         type: 'scatter',
         data: {
-            datasets: data,
+            datasets: dataset,
         },
         options: {
+            animation: {
+                onComplete: () => {
+                    document.getElementById('canvasloader').remove();
+                }
+            },
             plugins: {
+                title: {
+                    display: display,
+                    text: caption,
+                    font: {
+                        size: 16,
+                        weight: 'bold',
+                    },
+                    color: '#333',
+                    padding: {
+                        top: 10,
+                        bottom: 20
+                    },
+                    align: 'center' // or 'start' / 'end'
+                },
                 legend: {
                     display: true,
                     position: 'bottom',
@@ -92,12 +167,39 @@ export const init = (data) => {
                     }
                 }
             }
-        }
+        },
+        plugins: [fallbackMessagePlugin]
     });
 
+    /**
+     * Formats a time value in seconds to a mm:ss string format
+     * @param {number} value - The time value in seconds
+     * @returns {string} The formatted time string in mm:ss format
+     */
     function formatTime(value) {
         const minutes = Math.floor(value / 60);
         const seconds = value % 60;
         return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
     }
-}
+
+    /**
+     * Draws a message on the chart canvas
+     * @param {string} text - The message to be displayed
+     * @param {Chart} chart - The Chart.js chart object
+     */
+    function drawMessage(text, chart) {
+
+        const { ctx, chartArea: { left, right, top, bottom } } = chart;
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.font = 'bold 16px "Segoe UI", Arial';
+        ctx.fillStyle = '#666';
+
+        const centerX = (left + right) / 2;
+        const centerY = (top + bottom) / 2;
+
+        ctx.fillText(text, centerX, centerY);
+        ctx.restore();
+    }
+};

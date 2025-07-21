@@ -74,7 +74,7 @@ export const init = (scoreSetting, comments, hasApiKey) => {
                     filepath = data.res.filename;
                 }
 
-                Element.find('.oublog-post-links').append(analyticButton(userid));
+                Element.find('.oublog-post-links').append(analyticButton(hasApiKey ? data.res.effort_ratio : "", userid));
 
                 let myEvents = new AnalyticEvents();
                 var context = {

@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * TODO describe file visualization
+ * File for handling PDF export functionality in the Cursive plugin
  *
  * @package    tiny_cursive
  * @copyright  2025 Cursive Technology, Inc. <info@cursivetechnology.com>
@@ -23,10 +23,12 @@
  */
 
 require('../../../../../config.php');
-require_login();
 
-$id     = optional_param('id', 0, PARAM_TEXT);
-$type   = optional_param('type', "assign", PARAM_TEXT);
+require_login();
+require_sesskey();
+
+$id     = required_param('id', PARAM_INT);
+$cmid   = required_param('cmid', PARAM_INT);
 $course = required_param('course', PARAM_INT);
-$page   = new \tiny_cursive\page\visualization($course, $type, $id);
-$page->render();
+$page   = new \tiny_cursive\page\pdfexport($course, $cmid, $id);
+$page->download();

@@ -30,6 +30,8 @@ require_once(__DIR__.'/locallib.php');
 require_once(__DIR__.'/lib.php');
 
 require_login();
+require_sesskey();
+
 global $CFG, $DB;
 
 $courseid = optional_param('courseid', 0, PARAM_INT);

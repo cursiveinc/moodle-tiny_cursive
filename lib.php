@@ -21,7 +21,7 @@
  * @copyright 2024, CTI <info@cursivetechnology.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-use tiny_cursive\constants as MODULES;
+use tiny_cursive\constants;
 /**
  * Given an array with a file path, it returns the itemid and the filepath for the defined filearea.
  *
@@ -97,8 +97,6 @@ function tiny_cursive_extend_navigation_course(\navigation_node $navigation, \st
 
     $url     = new moodle_url($CFG->wwwroot . '/lib/editor/tiny/plugins/cursive/tiny_cursive_report.php',
        ['courseid' => $course->id]);
-    $vis_url = new moodle_url($CFG->wwwroot . '/lib/editor/tiny/plugins/cursive/visualization.php',
-       ['course' => $course->id,"type" => $module->modname, "id" => $module->id]);
 
     if ($cmid && $cursive) {
         $context = context_module::instance($cmid);
@@ -111,15 +109,6 @@ function tiny_cursive_extend_navigation_course(\navigation_node $navigation, \st
                 null,
                 null,
                 new pix_icon('i/report', '')
-            );
-
-            $navigation->add(
-                "Cursive data visualization",
-                $vis_url,
-                navigation_node::TYPE_SETTING,
-                null,
-                null,
-                new pix_icon('cursive', 'cursive icon','tiny_cursive')
             );
         }
     }
@@ -171,8 +160,8 @@ function tiny_cursive_coursemodule_standard_elements($formwrapper, $mform) {
     if ($state === "1" || $state === false) {
         $state = true;
     }
-    // MODULES::NAMES is cursive supported plugin list defined in tiny_cursive\constant class.
-    if (in_array($module, MODULES::NAMES)) {
+    // constants::NAMES is cursive supported plugin list defined in tiny_cursive\constant class.
+    if (in_array($module, constants::NAMES)) {
         $mform->addElement('header', 'cursiveheader', 'Cursive', 'local_callbacks');
         $options = [
            0 => get_string('disabled', 'tiny_cursive'),
@@ -206,8 +195,8 @@ function tiny_cursive_coursemodule_edit_post_actions($formdata, $course) {
         return $formdata;
     }
 
-    // MODULES::NAMES is cursive supported plugin list defined in tiny_cursive\constant class.
-    if (in_array($formdata->modulename, MODULES::NAMES)) {
+    // constants::NAMES is cursive supported plugin list defined in tiny_cursive\constant class.
+    if (in_array($formdata->modulename, constants::NAMES)) {
         $state    = $formdata->cursive;
         $courseid = $course->id;
         $instance = $formdata->coursemodule;

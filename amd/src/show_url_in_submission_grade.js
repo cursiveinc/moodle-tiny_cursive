@@ -102,7 +102,7 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
                     }
 
                     let analyticButtonDiv = document.createElement('div');
-                    analyticButtonDiv.append(analyticButton(userid));
+                    analyticButtonDiv.append(analyticButton(hasApiKey ? data.data.effort_ratio : "", userid));
                     analyticButtonDiv.classList.add('text-center', 'mt-2');
 
                     $('div[data-region="grade-actions"]').before(analyticButtonDiv);
