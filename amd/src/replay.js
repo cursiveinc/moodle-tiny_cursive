@@ -310,15 +310,17 @@ export default class Replay {
             if (event.event?.toLowerCase() === 'keydown') {
                 if (event.key === 'Control') {
                     controlPressed = true;
-                } else if (event.key === 'v' && controlPressed) {
-                    const timestamp = event.normalizedTime || 0;
-                    this.pasteTimestamps.push({
-                        index: pasteCount,
-                        time: timestamp,
-                        formattedTime: this.formatTime(timestamp),
-                        pastedText: this.usercomments[pasteCount] || '',
-                        timestamp
-                    });
+                } else if ((event.key === 'v' || event.key === 'V') && controlPressed) {
+                    if (this.usercomments[pasteCount]) {
+                        const timestamp = event.normalizedTime || 0;
+                        this.pasteTimestamps.push({
+                            index: pasteCount,
+                            time: timestamp,
+                            formattedTime: this.formatTime(timestamp),
+                            pastedText: this.usercomments[pasteCount],
+                            timestamp
+                        });
+                    }
                     pasteCount++;
                     controlPressed = false;
                 } else {
