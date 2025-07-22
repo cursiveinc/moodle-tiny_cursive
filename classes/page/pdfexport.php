@@ -204,6 +204,7 @@ class pdfexport {
                 "comments"   => $pastecount > 0 ? array_values($comments) : false,
                 "pastecount" => $pastecount,
                 "submitted"  => json_decode($analytics->submitted_text), // Submitted Text.
+                "auth_state" => $this->get_auth_state($analytics->score),
             ];
 
         } else {
@@ -257,5 +258,14 @@ class pdfexport {
             ];
 
         return $DB->get_records('tiny_cursive_comments', $params, '', 'usercomment');
+    }
+
+    private function get_auth_state($score) {
+        $threshould = floatval(get_config('tiny_cursive', 'confidence_threshold')) ?? 0.65;
+
+        if ($score >= $threshould) {
+            return true;
+        }
+        return false;
     }
 }

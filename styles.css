@@ -1226,7 +1226,6 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
 
 /* Verified Badge */
 .tiny_cursive-verified-badge {
-    background-color: #28a745;
     color: white;
     border-radius: 50px;
     display: inline-block;
