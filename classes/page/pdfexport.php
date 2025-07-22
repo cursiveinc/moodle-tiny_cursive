@@ -260,6 +260,12 @@ class pdfexport {
         return $DB->get_records('tiny_cursive_comments', $params, '', 'usercomment');
     }
 
+    /**
+     * Determines the authentication state based on the confidence score
+     *
+     * @param float $score The confidence score to evaluate
+     * @return bool True if score meets or exceeds threshold, false otherwise
+     */
     private function get_auth_state($score) {
         $threshould = floatval(get_config('tiny_cursive', 'confidence_threshold')) ?? 0.65;
 

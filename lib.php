@@ -160,7 +160,7 @@ function tiny_cursive_coursemodule_standard_elements($formwrapper, $mform) {
     if ($state === "1" || $state === false) {
         $state = true;
     }
-    // constants::NAMES is cursive supported plugin list defined in tiny_cursive\constant class.
+    // Constants::NAMES is cursive supported plugin list defined in tiny_cursive\constant class.
     if (in_array($module, constants::NAMES)) {
         $mform->addElement('header', 'cursiveheader', 'Cursive', 'local_callbacks');
         $options = [
@@ -195,7 +195,7 @@ function tiny_cursive_coursemodule_edit_post_actions($formdata, $course) {
         return $formdata;
     }
 
-    // constants::NAMES is cursive supported plugin list defined in tiny_cursive\constant class.
+    // Constants::NAMES is cursive supported plugin list defined in tiny_cursive\constant class.
     if (in_array($formdata->modulename, constants::NAMES)) {
         $state    = $formdata->cursive;
         $courseid = $course->id;
