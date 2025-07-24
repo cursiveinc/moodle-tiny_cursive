@@ -89,11 +89,6 @@ export const init = async (data, apiKey) => {
             datasets: dataset,
         },
         options: {
-            animation: {
-                onComplete: () => {
-                    document.getElementById('canvasloader').remove();
-                }
-            },
             plugins: {
                 title: {
                     display: display,
