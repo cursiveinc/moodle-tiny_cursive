@@ -46,6 +46,7 @@ $string['character_count'] = 'Character count';
 $string['character_verify'] = "Character verification";
 $string['characters_per_minute'] = 'Characters per minute';
 $string["chart_result"] = 'Showing result based on Course and Module';
+$string["chart_result_user"] = 'Showing result based on Course, Module and User';
 $string['cite_src'] = 'Enable site-source';
 $string['cite_src_des'] = 'Show site-source comments under post when enabled';
 $string['close'] = 'Close';

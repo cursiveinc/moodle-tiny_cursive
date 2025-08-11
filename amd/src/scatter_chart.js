@@ -23,7 +23,7 @@
 
 import Chart from 'core/chartjs';
 import {get_strings as getStrings} from 'core/str';
-export const init = async (data, apiKey) => {
+export const init = async (data, apiKey, caption) => {
 
     const ctx = document.getElementById('effortScatterChart').getContext('2d');
     let display = true;
@@ -35,7 +35,6 @@ export const init = async (data, apiKey) => {
             noSubmission,
             noPayload,
             freemium,
-            caption
         ] = await getStrings([
             {key: 'apply_filter', component: 'tiny_cursive'},
             {key: 'no_submission', component: 'tiny_cursive'},
