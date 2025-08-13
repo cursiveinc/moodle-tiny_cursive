@@ -1567,6 +1567,7 @@ class cursive_json_func_data extends external_api {
         $token = tiny_cursive_create_token_for_user();
         if ($token) {
             set_config('cursivetoken', $token, 'tiny_cursive');
+            unset_config('ApiSyncInterval', 'tiny_cursive');
         }
         return ['token' => $token];
     }

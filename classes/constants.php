@@ -103,7 +103,7 @@ class constants {
         $secret   = get_config('tiny_cursive', 'secretkey');
         $interval = get_config('tiny_cursive', 'ApiSyncInterval') > time();
         $apikey   = get_config('tiny_cursive', 'apiKey');
-
+        
         if (!$interval && !empty($secret) ) {
             $key = cursive_approve_token();
             $key = json_decode($apikey);
@@ -112,6 +112,6 @@ class constants {
             set_config('ApiSyncInterval', strtotime('+1 days'), 'tiny_cursive');
         }
 
-        return $apikey;
+        return boolval($apikey);
     }
 }
