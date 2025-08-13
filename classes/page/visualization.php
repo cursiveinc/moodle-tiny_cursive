@@ -23,6 +23,7 @@
  */
 namespace tiny_cursive\page;
 
+use core\output\html_writer;
 use moodle_url;
 use context_system;
 use stdClass;
@@ -98,6 +99,7 @@ class visualization {
      * @param int $courseid The ID of the course to visualize
      * @param string $type The type of module being visualized
      * @param int $cmid The course module ID
+     * @param int $userid The user id
      */
     public function __construct(int $courseid, string $type,  $cmid, $userid) {
         $this->type     = $type;
@@ -139,7 +141,8 @@ class visualization {
             $PAGE->navbar->add($this->course->shortname, new moodle_url('/course/view.php', ['id' => $this->courseid]));
             $PAGE->navbar->add(get_string('data_visualization', 'tiny_cursive'), $this->url);
         }
-        $PAGE->requires->js_call_amd('tiny_cursive/scatter_chart', 'init', [$data, $status, $this->caption]);
+        echo html_writer::div('', 'hidden', ['id' => 'scatter-chart-data', 'data-data' => json_encode($data)]);
+        $PAGE->requires->js_call_amd('tiny_cursive/scatter_chart', 'init', [$data ? true : false, $status, $this->caption]);
     }
 
     /**
@@ -199,6 +202,7 @@ class visualization {
                 $point->time   = $analytic->total_time_seconds;
                 $point->words  = $analytic->word_count;
                 $point->wpm    = $analytic->words_per_minute;
+
             }
             $writing[$key]->data[] = $point;
         }

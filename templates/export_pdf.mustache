@@ -71,6 +71,11 @@ Example context (json):
                 <h5>{{#str}}report_date, tiny_cursive{{/str}}:</h5>
                 <div>{{date}}</div>
             </div>
+
+            <div class="tiny_cursive-info-col">
+                <h5>{{#str}}submission_date, tiny_cursive{{/str}}:</h5>
+                <div>{{sub_date}}</div>
+            </div>
         </div>
     </div>
 
@@ -78,50 +83,52 @@ Example context (json):
 
     <div class="tiny_cursive-section-box">
 
-    <div class="tiny_cursive-section-title">
-        <h3>{{#pix}} bar, tiny_cursive {{/pix}}Writing Analytics</h3>
+        <div class="tiny_cursive-section-title">
+            <h3>{{#pix}} bar, tiny_cursive {{/pix}}Writing Analytics</h3>
+        </div>
+
+        <div class="tiny_cursive-verified-badge"
+            style="background-color: {{#auth_state}}#28a745{{/auth_state}}{{^auth_state}}gray{{/auth_state}}">
+            {{#str}}authorship, tiny_cursive{{/str}}: {{#auth_state}}{{#str}}verified, tiny_cursive{{/str}}
+            {{/auth_state}}{{^auth_state}}{{#str}}verified!, tiny_cursive{{/str}}{{/auth_state}}
+        </div>
+
+        <div class="tiny_cursive-stats-container-loop">
+
+            {{#analytics}}
+            <div class="tiny_cursive-stats-card">
+                <p class="title">{{#str}}character_verify, tiny_cursive{{/str}}</p>
+                <h2>{{analytics.effort}}%</h2>
+                <p class="desc">{{#str}}effort_ratio_desc, tiny_cursive {{/str}}</p>
+            </div>
+
+            <div class="tiny_cursive-stats-card">
+                <p class="title">{{#str}}time_writing, tiny_cursive {{/str}}</p>
+                <h2>{{analytics.total_time_seconds}}</h2>
+                <p class="desc">{{#str}}time_writing_desc, tiny_cursive {{/str}}</p>
+            </div>
+
+
+            <div class="tiny_cursive-stats-card">
+                <p class="title">{{#str}}words_per_minute, tiny_cursive {{/str}}</p>
+                <h2>{{analytics.words_per_minute}} WPM</h2>
+                <p class="desc">{{#str}}words_per_minute_desc, tiny_cursive {{/str}}</p>
+            </div>
+
+            <div class="tiny_cursive-stats-card">
+                <p class="title">{{#str}}total_words, tiny_cursive {{/str}}</p>
+                <h2>{{analytics.word_count}}</h2>
+                <p class="desc">{{#str}}total_words_desc, tiny_cursive {{/str}}</p>
+            </div>
+
+            <div class="tiny_cursive-stats-card">
+                <p class="title">{{#str}}backspace, tiny_cursive {{/str}}</p>
+                <h2>{{analytics.backspace_percent}}%</h2>
+                <p class="desc">{{#str}}backspace_desc, tiny_cursive {{/str}}</p>
+            </div>
+            {{/analytics}}
+        </div>
     </div>
-
-    <div class="tiny_cursive-verified-badge" style="background-color: {{#auth_state}}#28a745{{/auth_state}}{{^auth_state}}gray{{/auth_state}}">
-        {{#str}}authorship, tiny_cursive{{/str}}: {{#auth_state}}{{#str}}verified, tiny_cursive{{/str}} {{/auth_state}}{{^auth_state}}{{#str}}verified!, tiny_cursive{{/str}}{{/auth_state}}
-    </div>
-
-    <div class="tiny_cursive-stats-container-loop">
-
-         {{#analytics}}
-        <div class="tiny_cursive-stats-card">
-            <p class="title">{{#str}}character_verify, tiny_cursive{{/str}}</p>
-            <h2>{{analytics.effort}}%</h2>
-            <p class="desc">{{#str}}effort_ratio_desc, tiny_cursive {{/str}}</p>
-        </div>
-
-        <div class="tiny_cursive-stats-card">
-            <p class="title">{{#str}}time_writing, tiny_cursive {{/str}}</p>
-            <h2>{{analytics.total_time_seconds}}</h2>
-            <p class="desc">{{#str}}time_writing_desc, tiny_cursive {{/str}}</p>
-        </div>
-
-
-        <div class="tiny_cursive-stats-card">
-            <p class="title">{{#str}}words_per_minute, tiny_cursive {{/str}}</p>
-            <h2>{{analytics.words_per_minute}} WPM</h2>
-            <p class="desc">{{#str}}words_per_minute_desc, tiny_cursive {{/str}}</p>
-        </div>
-
-        <div class="tiny_cursive-stats-card">
-            <p class="title">{{#str}}total_words, tiny_cursive {{/str}}</p>
-            <h2>{{analytics.word_count}}</h2>
-            <p class="desc">{{#str}}total_words_desc, tiny_cursive {{/str}}</p>
-        </div>
-
-        <div class="tiny_cursive-stats-card">
-            <p class="title">{{#str}}backspace, tiny_cursive {{/str}}</p>
-            <h2>{{analytics.backspace_percent}}%</h2>
-            <p class="desc">{{#str}}backspace_desc, tiny_cursive {{/str}}</p>
-        </div>
-        {{/analytics}}
-    </div>
-</div>
 
 
 
@@ -135,9 +142,9 @@ Example context (json):
         <div class="tiny_cursive-analysis-card">
             <h4>{{#str}}paste_analysis, tiny_cursive {{/str}}</h4>
             <p><strong>{{#str}}pastecount, tiny_cursive {{/str}}:</strong> {{pastecount}}</p>
-            <p><strong>{{#str}}comments, tiny_cursive {{/str}}:</strong>  {{^comments}}None{{/comments}}
-            {{#comments}}
-                <p class="tiny_cursive-comments">{{usercomment}}</p>
+            <p><strong>{{#str}}comments, tiny_cursive {{/str}}:</strong> {{^comments}}None{{/comments}}
+                {{#comments}}
+            <p class="tiny_cursive-comments">{{usercomment}}</p>
             {{/comments}}
             </p>
         </div>

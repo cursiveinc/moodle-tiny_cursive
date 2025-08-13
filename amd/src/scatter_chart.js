@@ -26,6 +26,10 @@ import {get_strings as getStrings} from 'core/str';
 export const init = async (data, apiKey, caption) => {
 
     const ctx = document.getElementById('effortScatterChart').getContext('2d');
+    if (data) {
+       data = JSON.parse(document.getElementById('scatter-chart-data').dataset.data);
+    }
+
     let display = true;
     let isEmpty = "";
     var dataset = [];
@@ -155,7 +159,6 @@ export const init = async (data, apiKey, caption) => {
                         text: 'Effort Score'
                     },
                     min: 0,
-                    max: 2,
                     ticks: {
                         stepSize: 0.5
                     }

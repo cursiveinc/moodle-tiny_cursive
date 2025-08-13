@@ -100,8 +100,18 @@ class constants {
         global $CFG;
         require_once($CFG->dirroot . '/lib/editor/tiny/plugins/cursive/lib.php');
 
-        $apikey = cursive_approve_token();
-        $apikey = json_decode($apikey);
-        return $apikey->status ?? false;
+        $secret   = get_config('tiny_cursive', 'secretkey');
+        $interval = get_config('tiny_cursive', 'ApiSyncInterval') > time();
+        $apikey   = get_config('tiny_cursive', 'apiKey');
+
+        if (!$interval && !empty($secret) ) {
+            $key = cursive_approve_token();
+            $key = json_decode($apikey);
+            $apikey = $key->status ?? false;
+            set_config('apiKey', $apikey, 'tiny_cursive');
+            set_config('ApiSyncInterval', strtotime('+1 days'), 'tiny_cursive');
+        }
+
+        return $apikey;
     }
 }
