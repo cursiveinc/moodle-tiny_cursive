@@ -214,7 +214,7 @@ class pdfexport {
             $analytics->total_time_seconds = sprintf("%dm %ds",  floor($time / 60), $time % 60);
             $comments                      = $this->get_comments($analytics);
             $pastecount                    = count($comments);
-            $analytics->effort             = floatval($analytics->effort * 100);
+            $analytics->effort             = ceil($analytics->effort * 100);
             $this->templatecontent = [
                 "analytics"  => $analytics,
                 "modulename" => $modname->name,

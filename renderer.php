@@ -90,7 +90,7 @@ class tiny_cursive_renderer extends plugin_renderer_base {
                             'id' => $user->usrid,
                             'cmid'    => $user->cmid,
                             'course' => $courseid,
-                            'qid' => $user->questionid]) : "",
+                            'qid' => $user->questionid ?? 0]) : "",
                     ],
                 )
             );
@@ -238,7 +238,7 @@ class tiny_cursive_renderer extends plugin_renderer_base {
                         'id' => $user->usrid,
                         'cmid'    => $user->cmid,
                         'course' => $courseid,
-                        'qid' => $user->questionid]) : "",
+                        'qid' => $user->questionid ?? 0]) : "",
                 ],
             );
             $userdata[] = $row;
