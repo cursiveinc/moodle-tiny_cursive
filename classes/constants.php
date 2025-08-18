@@ -109,7 +109,7 @@ class constants {
             $key = json_decode($key);
             $apikey = $key->status ?? false;
             set_config('apiKey', $apikey, 'tiny_cursive');
-            set_config('ApiSyncInterval', strtotime('+1 days'), 'tiny_cursive');
+            set_config('ApiSyncInterval', strtotime('+5 minutes'), 'tiny_cursive');
         }
 
         return boolval($apikey);
