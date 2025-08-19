@@ -46,6 +46,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
     let assignSubmit = $('#id_submitbutton');
     var syncInterval = interval ? interval * 1000 : 10000; // Default: Sync Every 10s.
     var lastCaretPos = 1;
+    let pastedContents = [];
 
     const postOne = async(methodname, args) => {
         try {
@@ -182,7 +183,8 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
                 clientId: host,
                 personId: userid,
                 position: ed.caretPosition,
-                rePosition: ed.rePosition
+                rePosition: ed.rePosition,
+                pastedContent: pastedContents
             });
             localStorage.setItem(filename, JSON.stringify(data));
         } else {
@@ -196,7 +198,8 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
                 clientId: host,
                 personId: userid,
                 position: ed.caretPosition,
-                rePosition: ed.rePosition
+                rePosition: ed.rePosition,
+                pastedContent: pastedContents
             }];
             localStorage.setItem(filename, JSON.stringify(data));
         }
@@ -222,6 +225,15 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
                 getModal(e);
             }
         }
+
+        pastedContents = [];
+        const beforePasteContent = editor.getContent({ format: 'text' });
+        setTimeout(() => {
+          const afterPasteContent = editor.getContent({ format: 'text' });
+          const pastedText = getPastedText(beforePasteContent, afterPasteContent);
+          pastedContents.push(pastedText);
+          sendKeyEvent("Paste", e);
+        }, 0);
     });
     editor.on('Redo', async(e) => {
         customTooltip();
@@ -258,6 +270,34 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
     editor.on('SetContent', () => {
         customTooltip();
     });
+
+    /**
+     * Extracts the text that was pasted into an editor input by comparing the content before and after.
+     * @function getPastedText
+     * @param {string} before - The text content before the paste operation.
+     * @param {string} after - The text content after the paste operation.
+     * @returns {string} The extracted pasted text with surrounding whitespace trimmed.
+     * @description Compares the `before` and `after` strings to find the longest common prefix and suffix,
+     * then returns the inserted middle part as the pasted text.
+     */
+    function getPastedText(before, after) {
+        // Find longest common prefix
+        let prefixLen = 0;
+        while (prefixLen < before.length && prefixLen < after.length &&
+               before[prefixLen] === after[prefixLen]) {
+            prefixLen++;
+        }
+
+        // Find longest common suffix
+        let suffixLen = 0;
+        while (suffixLen < (before.length - prefixLen) &&
+               suffixLen < (after.length - prefixLen) &&
+               before[before.length - 1 - suffixLen] === after[after.length - 1 - suffixLen]) {
+            suffixLen++;
+        }
+        // Extract the middle part
+        return after.slice(prefixLen, after.length - suffixLen).trim();
+    }
 
     /**
      * Constructs a mouse event object with caret position and button information
