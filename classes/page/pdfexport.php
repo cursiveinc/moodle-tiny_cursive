@@ -37,6 +37,10 @@ class pdfexport {
     protected $templatecontent;
 
     /**
+     * @var int $questionid Question ID
+     */
+    protected $questionid;
+    /**
      * @var int $courseid Course ID
      */
     protected $courseid;
@@ -62,12 +66,15 @@ class pdfexport {
      * @param int $courseid The ID of the course
      * @param int $cmid The course module ID
      * @param int $id The user ID
+     * @param int $questionid The ID of the question
+     * @throws moodle_exception If the user does not have permission to access the page
      */
-    public function __construct(int $courseid, int $cmid,  $id) {
-        $this->id       = $id;
-        $this->cmid     = $cmid;
-        $this->courseid = $courseid;
-        $this->url      = new moodle_url('/lib/editor/tiny/plugins/cursive/pdfexport.php');
+    public function __construct(int $courseid, int $cmid,  $id, $questionid) {
+        $this->id         = $id;
+        $this->cmid       = $cmid;
+        $this->courseid   = $courseid;
+        $this->questionid = $questionid;
+        $this->url        = new moodle_url('/lib/editor/tiny/plugins/cursive/pdfexport.php');
     }
 
     /**
@@ -82,7 +89,7 @@ class pdfexport {
     public function download() {
 
         $this->check_access();
-        $this->prepare_data($this->courseid, $this->cmid, $this->id);
+        $this->prepare_data($this->courseid, $this->cmid, $this->id, $this->questionid);
         $this->page_setup($this->templatecontent);
         $this->page();
     }
@@ -98,9 +105,9 @@ class pdfexport {
 
         $PAGE->set_url($this->url);
         $PAGE->set_context(context_system::instance());
-        $PAGE->set_title(get_string('data_visualization', 'tiny_cursive'));
+        $PAGE->set_title(get_string('analytics', 'tiny_cursive'));
         $PAGE->requires->js("/lib/editor/tiny/plugins/cursive/amd/js/html2pdf.js", true);
-        $PAGE->requires->js_call_amd('tiny_cursive/pdfexport', 'init', [$data]);
+        $PAGE->requires->js_call_amd('tiny_cursive/pdfexport', 'init', [$data ? true : false]);
     }
 
     /**
@@ -122,7 +129,9 @@ class pdfexport {
         echo   $OUTPUT->header();
         $content = html_writer::div(get_string('pleasewait', 'tiny_cursive'), '', ['id' => "loadermessage"]);
         $loader  = html_writer::div($OUTPUT->pix_icon('i/loading', 'core'), 'text-center');
-        $wrapper = html_writer::div($loader .$content, 'text-center', ['id' => 'pdfexportLoader']);
+        $data    = html_writer::start_span('', ['id' => 'CursiveStudentData', 'data-submission' =>
+                   json_encode($this->templatecontent)]);
+        $wrapper = html_writer::div($data.$loader .$content, 'text-center', ['id' => 'pdfexportLoader']);
         echo   $OUTPUT->box($wrapper);
         echo   $OUTPUT->footer();
     }
@@ -133,9 +142,10 @@ class pdfexport {
      * @param int $course The course ID
      * @param int $cmid The course module ID
      * @param int $userid The user ID
+     * @param int $questionid The question ID (optional)
      * @return void
      */
-    private function prepare_data($course, $cmid, $userid) {
+    private function prepare_data($course, $cmid, $userid, $questionid) {
         global $DB;
 
         $sql = "SELECT SUBSTRING(MD5(RAND()), 1, 8) AS uniqueid, CONCAT(u.firstname,' ',u.lastname) AS username, f.userid,
@@ -147,6 +157,12 @@ class pdfexport {
                  WHERE f.courseid = :courseid AND f.cmid = :cmid AND f.userid = :userid";
 
         $params    = ['courseid' => $course, 'cmid' => $cmid, 'userid' => $userid];
+
+        if ($questionid) {
+            $sql .= " AND f.questionid = :questionid";
+            $params['questionid'] = $questionid;
+        }
+
         $analytics = $DB->get_records_sql($sql, $params);
         $this->prepare_data_structure($analytics);
 
@@ -160,11 +176,16 @@ class pdfexport {
      * @return string Formatted date/time string
      */
     private function format_time($time, $report = false) {
+        // Get current timezone abbreviation (e.g., "GMT", "BST", "EST").
+        $timezone = date('T', $time);
+
         if ($report) {
-            return date('F d, Y \a\t h:i A', $time);
+            return date('M d, Y h:i A', $time);
         }
-        return date('F d, Y', $time);
+
+        return date('M d, Y h:i A', $time) . " " . $timezone;
     }
+
 
     /**
      * Prepares and structures analytics data for template rendering
@@ -193,13 +214,14 @@ class pdfexport {
             $analytics->total_time_seconds = sprintf("%dm %ds",  floor($time / 60), $time % 60);
             $comments                      = $this->get_comments($analytics);
             $pastecount                    = count($comments);
-            $analytics->effort             = floatval($analytics->effort * 100);
+            $analytics->effort             = ceil($analytics->effort * 100);
             $this->templatecontent = [
                 "analytics"  => $analytics,
                 "modulename" => $modname->name,
                 "fullname"   => $analytics->username,
                 "filename"   => "Analytics Report of $analytics->username",
-                "date"       => $this->format_time($analytics->timemodified),
+                "date"       => $this->format_time(time(), true),
+                "sub_date"   => $this->format_time($analytics->timemodified),
                 "reportdate" => $this->format_time(time(), true),
                 "comments"   => $pastecount > 0 ? array_values($comments) : false,
                 "pastecount" => $pastecount,

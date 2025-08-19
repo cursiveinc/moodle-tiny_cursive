@@ -23,6 +23,7 @@
  */
 namespace tiny_cursive\page;
 
+use core\output\html_writer;
 use moodle_url;
 use context_system;
 use stdClass;
@@ -48,7 +49,7 @@ class visualization {
 
     /**
      * Course module information
-     * @var course_modinfo
+     * @var \course_modinfo
      */
     protected $modinfo;
 
@@ -77,6 +78,17 @@ class visualization {
     protected $url;
 
     /**
+     * The user ID being visualized
+     * @var int
+     */
+    protected $userid;
+
+    /**
+     * The caption for the visualization
+     * @var string
+     */
+    protected $caption;
+    /**
      * Template name for rendering
      */
     public const TEMPLATE = "visualisation";
@@ -87,12 +99,14 @@ class visualization {
      * @param int $courseid The ID of the course to visualize
      * @param string $type The type of module being visualized
      * @param int $cmid The course module ID
+     * @param int $userid The user id
      */
-    public function __construct(int $courseid, string $type,  $cmid) {
+    public function __construct(int $courseid, string $type,  $cmid, $userid) {
         $this->type     = $type;
         $this->courseid = $courseid;
         $this->course   = get_course($courseid);
         $this->cmid     = $cmid;
+        $this->userid   = $userid;
         $this->modinfo  = get_fast_modinfo($courseid);
         $this->url      = new moodle_url('/lib/editor/tiny/plugins/cursive/visualization.php', ['course' => $courseid]);
     }
@@ -127,7 +141,8 @@ class visualization {
             $PAGE->navbar->add($this->course->shortname, new moodle_url('/course/view.php', ['id' => $this->courseid]));
             $PAGE->navbar->add(get_string('data_visualization', 'tiny_cursive'), $this->url);
         }
-        $PAGE->requires->js_call_amd('tiny_cursive/scatter_chart', 'init', [$data, $status]);
+        echo html_writer::div('', 'hidden', ['id' => 'scatter-chart-data', 'data-data' => json_encode($data)]);
+        $PAGE->requires->js_call_amd('tiny_cursive/scatter_chart', 'init', [$data ? true : false, $status, $this->caption]);
     }
 
     /**
@@ -135,7 +150,7 @@ class visualization {
      *
      * @param int $course The course ID to get analytics for
      * @param int $cmid The course module ID to get analytics for
-     * @return array Returns either:
+     * @return array | void Returns either:
      *               - Array of writing data grouped by effort level for visualization
      *               - Array with 'state' => 'apply_filter' if no analytics and no cmid
      *               - Array with 'state' => 'no_submission' if no analytics but has cmid
@@ -151,7 +166,15 @@ class visualization {
              LEFT JOIN {user} u ON f.userid = u.id
                  WHERE f.courseid = :courseid AND f.cmid = :cmid";
 
-        $params    = ['courseid' => $course, 'cmid' => $cmid];
+        $params    = ['courseid' => $course, 'cmid' => $cmid, 'userid' => $this->userid];
+        $this->caption = get_string('chart_result', 'tiny_cursive');
+
+        if ($this->userid) {
+            $sql .= " AND f.userid = :userid";
+            $params['userid'] = $this->userid;
+            $this->caption = get_string('chart_result_user', 'tiny_cursive');
+        }
+
         $analytics = $DB->get_records_sql($sql, $params);
         $writing   = [];
 
@@ -179,6 +202,7 @@ class visualization {
                 $point->time   = $analytic->total_time_seconds;
                 $point->words  = $analytic->word_count;
                 $point->wpm    = $analytic->words_per_minute;
+
             }
             $writing[$key]->data[] = $point;
         }

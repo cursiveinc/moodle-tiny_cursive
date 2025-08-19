@@ -23,9 +23,13 @@
 
 import Chart from 'core/chartjs';
 import {get_strings as getStrings} from 'core/str';
-export const init = async (data, apiKey) => {
+export const init = async (data, apiKey, caption) => {
 
     const ctx = document.getElementById('effortScatterChart').getContext('2d');
+    if (data) {
+       data = JSON.parse(document.getElementById('scatter-chart-data').dataset.data);
+    }
+
     let display = true;
     let isEmpty = "";
     var dataset = [];
@@ -35,7 +39,6 @@ export const init = async (data, apiKey) => {
             noSubmission,
             noPayload,
             freemium,
-            caption
         ] = await getStrings([
             {key: 'apply_filter', component: 'tiny_cursive'},
             {key: 'no_submission', component: 'tiny_cursive'},
@@ -89,11 +92,6 @@ export const init = async (data, apiKey) => {
             datasets: dataset,
         },
         options: {
-            animation: {
-                onComplete: () => {
-                    document.getElementById('canvasloader').remove();
-                }
-            },
             plugins: {
                 title: {
                     display: display,
@@ -161,7 +159,6 @@ export const init = async (data, apiKey) => {
                         text: 'Effort Score'
                     },
                     min: 0,
-                    max: 2,
                     ticks: {
                         stepSize: 0.5
                     }

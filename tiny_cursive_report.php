@@ -121,7 +121,7 @@ if ($formdata = $mform->get_data()) {
         $url,
         $moduleid,
         $userid);
-    $chart   = new \tiny_cursive\page\visualization($courseid, "", $moduleid);
+    $chart   = new \tiny_cursive\page\visualization($courseid, "", $moduleid, $formdata->userid);
     $chart->render();
 } else {
     $users = tiny_cursive_get_user_attempts_data(
@@ -141,7 +141,7 @@ if ($formdata = $mform->get_data()) {
         $url,
         $moduleid,
         $userid);
-    $chart   = new \tiny_cursive\page\visualization($courseid, "", $moduleid);
+    $chart   = new \tiny_cursive\page\visualization($courseid, "", $moduleid, $userid);
     $chart->render();
 }
 

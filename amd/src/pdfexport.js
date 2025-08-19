@@ -31,6 +31,10 @@ import * as str from 'core/str';
 
 export const init = (data) => {
 
+    if (data) {
+        data = JSON.parse(document.getElementById('CursiveStudentData')?.dataset.submission || '{}');
+    }
+
     if (!Object.keys(data).length) {
         Alert.create({
             type: Factory.types.ALERT,
@@ -50,7 +54,7 @@ export const init = (data) => {
     $(function(){
 
         let option = {
-                    margin:       10,
+                    margin:       [10, 6, 10, 6],
                     filename:     data.filename,
                     image:        { type: 'jpeg', quality: 1 },
                     html2canvas:  { scale: 2 },
