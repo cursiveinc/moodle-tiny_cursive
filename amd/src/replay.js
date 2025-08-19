@@ -609,7 +609,6 @@ export default class Replay {
         if (key === 'v' && this.isControlKeyPressed) {
             if (this.pastedEvents && this.currentPasteIndex < this.pastedEvents.length) {
                 const pastedContent = this.pastedEvents[this.currentPasteIndex];
-                window.console.log("which index: ", pastedContent);
                 ({text, cursor} = this.handlePasteInsert(pastedContent, text, cursor));
                 this.currentPasteIndex++;
                 this.isControlKeyPressed = false;
@@ -648,10 +647,7 @@ export default class Replay {
     // Handle Paste events to highlight pasted text
     handlePasteInsert(pastedContent, text, cursor) {
         const insertText = pastedContent || '';
-        window.console.log("2nd pasted ", insertText);
         text = text.substring(0, cursor) + insertText + text.substring(cursor);
-
-        window.console.log("here ", text);
 
         // Mark characters as pasted for bold styling
         if (insertText.trim() !== '') {
