@@ -15,7 +15,8 @@
 
 
 /**
- * TODO describe module pdfexport
+ * Module for exporting PDF documents with cursive content. Handles PDF generation with custom formatting,
+ * including margins, image quality settings and page orientation. Provides user feedback during export process.
  *
  * @module     tiny_cursive/pdfexport
  * @copyright  2025 Cursive Technology, Inc. <info@cursivetechnology.com>

@@ -14,7 +14,8 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * TODO describe module scatter_chart
+ * A module that creates a scatter chart to visualize student effort data using Chart.js.
+ * The chart displays effort scores against time spent, with tooltips showing additional metrics.
  *
  * @module     tiny_cursive/scatter_chart
  * @copyright  2025 Cursive Technology, Inc. <info@cursivetechnology.com>
