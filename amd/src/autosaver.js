@@ -229,10 +229,19 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
         pastedContents = [];
         const beforePasteContent = editor.getContent({ format: 'text' });
         setTimeout(() => {
-          const afterPasteContent = editor.getContent({ format: 'text' });
-          const pastedText = getPastedText(beforePasteContent, afterPasteContent);
-          pastedContents.push(pastedText);
-          sendKeyEvent("Paste", e);
+            const afterPasteContent = editor.getContent({ format: 'text' });
+            const pastedText = getPastedText(beforePasteContent, afterPasteContent);
+            pastedContents.push(pastedText);
+            let position = getCaretPosition(true);
+            editor.caretPosition = position.caretPosition;
+            editor.rePosition = position.rePosition;
+            sendKeyEvent("Paste", {
+                ...e,
+                key: "v",
+                keyCode: 86,
+                caretPosition: editor.caretPosition,
+                rePosition: editor.rePosition
+            });
         }, 0);
     });
     editor.on('Redo', async(e) => {
