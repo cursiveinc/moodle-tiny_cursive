@@ -171,18 +171,6 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
             filename = `${userid}_${resourceId}_${cmid}_${questionid}_${modulename}_attempt`;
         }
 
-        console.log(  { resourceId: resourceId,
-            key: editor.key,
-            keyCode: editor.keyCode,
-            event: event,
-            courseId: courseid,
-            unixTimestamp: Date.now(),
-            clientId: host,
-            personId: userid,
-            position: ed.caretPosition,
-            rePosition: ed.rePosition,
-            pastedContent: pastedContents });
-
         if (localStorage.getItem(filename)) {
             let data = JSON.parse(localStorage.getItem(filename));
             data.push({
