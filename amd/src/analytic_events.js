@@ -31,6 +31,12 @@ import {get_strings as getStrings} from 'core/str';
 
 export default class AnalyticEvents {
 
+    constructor () {
+        getString('notenoughtinfo', 'tiny_cursive').then(str => {
+            localStorage.setItem('notenoughtinfo', str);
+        });
+    }
+
     createModal(userid, context, questionid = '', replayInstances = null, authIcon) {
         $('#analytics' + userid + questionid).on('click', function(e) {
             e.preventDefault();
@@ -259,11 +265,14 @@ export default class AnalyticEvents {
         } else if (score >= scoreSetting) {
             icon = 'fa fa-check-circle';
             color = 'font-size:32px;color:green';
-        } else if (score < scoreSetting) {
+        }
+        if (score < scoreSetting) {
             icon = 'fa fa-question-circle';
             color = 'font-size:32px;color:#A9A9A9';
+            return $('<i>').addClass(icon).attr('style', color).attr('title', localStorage.getItem('notenoughtinfo'));
+        } else {
+            return $('<i>').addClass(icon).attr('style', color);
         }
 
-        return $('<i>').addClass(icon).attr('style', color);
     }
 }
