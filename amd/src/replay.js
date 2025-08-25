@@ -606,7 +606,7 @@ export default class Replay {
         const key = event.key;
         const charToInsert = this.applyKey(key);
         this.updateModifierStates(key);
-        if (key === 'v' && this.isControlKeyPressed) {
+        if ((key === 'v'  || key === 'V') && this.isControlKeyPressed) {
             if (this.pastedEvents && this.currentPasteIndex < this.pastedEvents.length) {
                 const pastedContent = this.pastedEvents[this.currentPasteIndex];
                 ({text, cursor} = this.handlePasteInsert(pastedContent, text, cursor));
@@ -682,7 +682,7 @@ export default class Replay {
     updateModifierStates(key) {
         if (key === 'Control') {
             this.isControlKeyPressed = true;
-        } else if (key === 'v' && this.isControlKeyPressed) {
+        } else if ((key === 'v' || key === 'V') && this.isControlKeyPressed) {
             this.isPasteEvent = true;
         } else if (!['Control', 'Backspace', 'Delete', 'ArrowLeft', 'ArrowRight'].includes(key)) {
             this.isControlKeyPressed = false;
@@ -899,7 +899,7 @@ export default class Replay {
             }
             if (event.event?.toLowerCase() === 'keydown') {
                 this.currentPasteIndex = pasteIndex;
-                if (event.key === 'v' && this.isControlKeyPressed) {
+                if ((event.key === 'v' || event.key === 'V') && this.isControlKeyPressed) {
                     pasteIndex++;
                 }
                 ({text, cursor, updatedHighlights: highlights, updatedDeleted: deletions} =
