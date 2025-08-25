@@ -59,6 +59,8 @@ class tiny_cursive_renderer extends plugin_renderer_base {
             $module   = get_coursemodule_from_id($cm?->modname, $user->cmid, 0, false, MUST_EXIST);
             $filepath = $user->filename;
 
+            $this->generate_custom_title($cm, $user, $DB, $module);
+
             $row               = [];
             $row['fileid']     = $user->fileid;
             $row['username']   = fullname($user);
@@ -76,7 +78,6 @@ class tiny_cursive_renderer extends plugin_renderer_base {
                     new moodle_url('/lib/editor/tiny/plugins/cursive/download_json.php', [
                         'sesskey' => sesskey(),
                         'fname'   => $user->filename,
-                        'quizid'  => 2,
                         'user_id' => $user->usrid,
                         'cmid'    => $user->cmid,
                     ]),
@@ -201,12 +202,14 @@ class tiny_cursive_renderer extends plugin_renderer_base {
                 }
             }
 
-            $getmodulename = $cm ? get_coursemodule_from_id($cm->modname,
+            $module = $cm ? get_coursemodule_from_id($cm->modname,
             $user->cmid, 0, false, MUST_EXIST) : null;
+
+            $this->generate_custom_title($cm, $user, $DB, $module);
 
             $filepath = $user->filename;
             $row      = [];
-            $row['modulename']   = $getmodulename ? $getmodulename->name : '';
+            $row['modulename']   = $module ? $module->name : '';
             $row['lastmodified'] = date("l jS \of F Y h:i:s A", $user->timemodified);
             $row['analytics']    = html_writer::div(
                 html_writer::span(
@@ -224,7 +227,6 @@ class tiny_cursive_renderer extends plugin_renderer_base {
                 new moodle_url('/lib/editor/tiny/plugins/cursive/download_json.php', [
                     'sesskey' => sesskey(),
                     'fname'   => $user->filename,
-                    'quizid'  => 2,
                     'user_id' => $user->usrid,
                     'cmid'    => $user->cmid,
                 ]),
@@ -260,6 +262,32 @@ class tiny_cursive_renderer extends plugin_renderer_base {
         $pagingbar = new paging_bar($totalcount, $page, $limit, $baseurl);
         echo $this->output->render($pagingbar);
 
+    }
+
+    /**
+     * Generates a custom title for forum modules by appending post and reply subjects
+     *
+     * @param object $cm Course module object
+     * @param object $user User object containing file information
+     * @param moodle_database $DB Database instance
+     * @param object $module Module object to modify with custom title
+     * @return void
+     */
+    public function generate_custom_title($cm, $user, $DB, &$module) {
+        if ($cm->modname === 'forum') {
+            $sql = "SELECT cp.resourceid, CONCAT(p.subject, ' / ', GROUP_CONCAT(c.subject SEPARATOR '/ ')) AS title
+                      FROM {tiny_cursive_files} cp
+                 LEFT JOIN {forum_posts} p ON cp.resourceid = p.id
+                 LEFT JOIN {forum_posts} c ON p.id = c.parent
+                     WHERE cp.id = :fileid
+                           GROUP BY p.id, p.subject";
+            $params['fileid'] = $user->fileid;
+
+            $data = array_values($DB->get_records_sql($sql, $params));
+            if ($data && !empty($data[0]->title)) {
+                $module->name .= " / {$data[0]->title}";
+            }
+        }
     }
 
 }

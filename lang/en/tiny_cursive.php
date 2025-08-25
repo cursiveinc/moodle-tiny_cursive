@@ -130,6 +130,7 @@ $string['nopaylod'] = 'No payload data!';
 $string['note_text_title'] = "Notification text";
 $string['note_url_text'] = "URL title";
 $string['note_url_title'] = "URL";
+$string['notenoughtinfo'] = "Not enough information to verify authorship";
 $string['orderby'] = 'Order By';
 $string['original_text'] = 'Original text';
 $string['p_burst_cnt'] = 'P-burst Count';
