@@ -43,6 +43,7 @@ export default class Replay {
         this.pasteTimestamps = [];
         this.isPasteEvent = false;
         this.isControlKeyPressed = false;
+        this.isShiftKeyPressed = false;
         this.text = '';
         this.pastedEvents = [];
         this.currentPasteIndex = 0;
@@ -314,6 +315,7 @@ export default class Replay {
     identifyPasteEvents() {
         this.pasteTimestamps = [];
         let controlPressed = false;
+        let shiftPressed = false;
         let pasteCount = 0;
 
         for (let i = 0; i < this.logData.length; i++) {
@@ -321,6 +323,8 @@ export default class Replay {
             if (event.event?.toLowerCase() === 'keydown') {
                 if (event.key === 'Control') {
                     controlPressed = true;
+                } else if (event.key === 'Shift') {
+                    shiftPressed = true;
                 } else if ((event.key === 'v' || event.key === 'V') && controlPressed) {
                     if (this.pastedEvents[pasteCount]) {
                         const timestamp = event.normalizedTime || 0;
@@ -334,8 +338,10 @@ export default class Replay {
                     }
                     pasteCount++;
                     controlPressed = false;
+                    shiftPressed = false;
                 } else {
                     controlPressed = false;
+                    shiftPressed = false;
                 }
             }
         }
@@ -612,6 +618,7 @@ export default class Replay {
                 ({text, cursor} = this.handlePasteInsert(pastedContent, text, cursor));
                 this.currentPasteIndex++;
                 this.isControlKeyPressed = false;
+                this.isShiftKeyPressed = false;
                 this.isPasteEvent = false;
                 return {
                     text,
@@ -682,10 +689,13 @@ export default class Replay {
     updateModifierStates(key) {
         if (key === 'Control') {
             this.isControlKeyPressed = true;
+        } else if (key === 'Shift') {
+            this.isShiftKeyPressed = true;
         } else if ((key === 'v' || key === 'V') && this.isControlKeyPressed) {
             this.isPasteEvent = true;
         } else if (!['Control', 'Backspace', 'Delete', 'ArrowLeft', 'ArrowRight'].includes(key)) {
             this.isControlKeyPressed = false;
+            this.isShiftKeyPressed = false;
             this.isPasteEvent = false;
         }
     }

@@ -212,37 +212,29 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
         editor.rePosition = position.rePosition;
         sendKeyEvent("keyUp", editor);
     });
-    editor.on('Paste', async(e) => {
+    editor.on('Paste', async (e) => {
         customTooltip();
-        const pastedContent = (e.clipboardData || e.originalEvent.clipboardData).getData('text').trim();
-
+        const pastedContent = (e.clipboardData || e.originalEvent.clipboardData).getData('text');
         if (!pastedContent) {
             return;
         }
-
         if (isStudent && intervention) {
             if (pastedContent !== localStorage.getItem('lastCopyCutContent')) {
                 getModal(e);
+                pastedContents = [];
+                pastedContents.push(pastedContent);
+                let position = getCaretPosition(true);
+                editor.caretPosition = position.caretPosition;
+                editor.rePosition = position.rePosition;
+                sendKeyEvent("Paste", {
+                ...e,
+                        key: "v",
+                        keyCode: 86,
+                        caretPosition: editor.caretPosition,
+                        rePosition: editor.rePosition
+                    });
             }
         }
-
-        pastedContents = [];
-        const beforePasteContent = editor.getContent({ format: 'text' });
-        setTimeout(() => {
-            const afterPasteContent = editor.getContent({ format: 'text' });
-            const pastedText = getPastedText(beforePasteContent, afterPasteContent);
-            pastedContents.push(pastedText);
-            let position = getCaretPosition(true);
-            editor.caretPosition = position.caretPosition;
-            editor.rePosition = position.rePosition;
-            sendKeyEvent("Paste", {
-                ...e,
-                key: "v",
-                keyCode: 86,
-                caretPosition: editor.caretPosition,
-                rePosition: editor.rePosition
-            });
-        }, 0);
     });
     editor.on('Redo', async(e) => {
         customTooltip();
@@ -279,35 +271,6 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
     editor.on('SetContent', () => {
         customTooltip();
     });
-
-    /**
-     * Extracts the text that was pasted into an editor input by comparing the content before and after.
-     * @function getPastedText
-     * @param {string} before - The text content before the paste operation.
-     * @param {string} after - The text content after the paste operation.
-     * @returns {string} The extracted pasted text with surrounding whitespace trimmed.
-     * @description Compares the `before` and `after` strings to find the longest common prefix and suffix,
-     * then returns the inserted middle part as the pasted text.
-     */
-    function getPastedText(before, after) {
-        // Find longest common prefix
-        let prefixLen = 0;
-        while (prefixLen < before.length && prefixLen < after.length &&
-               before[prefixLen] === after[prefixLen]) {
-            prefixLen++;
-        }
-
-        // Find longest common suffix
-        let suffixLen = 0;
-        while (suffixLen < (before.length - prefixLen) &&
-               suffixLen < (after.length - prefixLen) &&
-               before[before.length - 1 - suffixLen] === after[after.length - 1 - suffixLen]) {
-            suffixLen++;
-        }
-        // Extract the middle part
-        return after.slice(prefixLen, after.length - suffixLen).trim();
-    }
-
     /**
      * Constructs a mouse event object with caret position and button information
      * @param {Object} editor - The TinyMCE editor instance
