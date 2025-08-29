@@ -79,7 +79,7 @@ $PAGE->requires->js_call_amd('tiny_cursive/cursive_writing_reports', 'init',
 $PAGE->set_context(context_system::instance());
 $PAGE->set_url($url);
 $PAGE->set_title(get_string('tiny_cursive', 'tiny_cursive'));
-
+$PAGE->set_pagetype('cws'); // CWS: Cursive Writing Statistics.
 echo $OUTPUT->header();
 
 $renderer    = $PAGE->get_renderer('tiny_cursive');

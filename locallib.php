@@ -61,11 +61,12 @@ function tiny_cursive_get_user_attempts_data(
                    uw.characters_per_minute AS characters_per_minute,
                    uw.word_count AS word_count, uw.words_per_minute AS words_per_minute,
                    uw.backspace_percent AS backspace_percent, uw.score AS score,
-                   uw.copy_behavior AS copy_behavior
+                   uw.copy_behavior AS copy_behavior, wd.meta as effort
               FROM {tiny_cursive_files} uf
               JOIN {user} u ON uf.userid = u.id
               JOIN {course} c ON c.id = uf.courseid AND c.visible = 1
          LEFT JOIN {tiny_cursive_user_writing} uw ON uw.file_id = uf.id
+         LEFT JOIN {tiny_cursive_writing_diff} wd ON wd.file_id = uf.id
              WHERE uf.userid <> :userid1";
 
     $params['userid1'] = guest_user()->id;

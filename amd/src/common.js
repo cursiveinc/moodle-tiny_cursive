@@ -42,5 +42,17 @@ export default {
         borderRadius: '1px',
         pointerEvents: 'none',
         zIndex: 10000
+    },
+    Color: {
+        white: 'rgba(252, 252, 252, 1)',
+        lineBlue: 'rgb(75, 192, 192)',
+        black: 'rgba(0, 0, 0, 1)',
+        tpGray: '#cccccc',
+        lightCyan: 'rgba(75, 192, 192, 0.3)',
+        lineOrange: 'rgba(255, 165, 0)',
+        lightOrange: 'rgba(255, 165, 0, 0.3)',
+        Purple: 'rgb(139, 92, 246)',
+        lineRed: 'rgb(255, 0, 0)',
+        lightPurple: 'rgb(139, 92, 246, 0.4)',
     }
 };

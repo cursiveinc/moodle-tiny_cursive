@@ -125,7 +125,6 @@ class tiny_cursive_renderer extends plugin_renderer_base {
         $svg       = $this->output->pix_icon('analytics', 'analytics icon', 'tiny_cursive', ['class' => 'mr-0']);
         $totaltime = "0";
         $icon      = html_writer::tag('i', $svg, ['class' => 'tiny_cursive-analytics-icon']);
-        $user      = $DB->get_record('user', ['id' => $userid], '*', MUST_EXIST);
 
         $dwnldicon = $this->output->pix_icon('download', 'download', 'tiny_cursive',
                      ['class' => 'tiny_cursive-analytics-bar-icon']);
@@ -133,13 +132,7 @@ class tiny_cursive_renderer extends plugin_renderer_base {
         if (isset($userprofile->total_time) && $userprofile->total_time > 0) {
 
             $seconds   = $userprofile->total_time;
-            $interval  = new DateInterval('PT' . $seconds . 'S');
-            $datetime  = new DateTime('@0');
-            $datetime->add($interval);
-            $hrs       = $datetime->format('G');
-            $mins      = $datetime->format('i');
-            $secs      = $datetime->format('s');
-            $totaltime = (int) $hrs . "h : " . (int) $mins . "m : " . (int) $secs . "s";
+            $totaltime = round($seconds / 60, 1);
             $avgwords  = round($userprofile->word_count / ($userprofile->total_time / 60));
 
         } else {
@@ -184,10 +177,13 @@ class tiny_cursive_renderer extends plugin_renderer_base {
         $totalcount = $users['count'];
         $data       = $users['data'];
 
+        $coursename = $courses[$courseid]->fullname ?? get_string('allcourses', 'tiny_cursive');
+  
         $userdata = [];
+        $lastupdate = 0;
         foreach ($data as $user) {
             $courseid = $user->courseid;
-
+            $lastupdate = $user->timemodified > $lastupdate ? $user->timemodified : $lastupdate;
             $cursive = get_config('tiny_cursive', "cursive-$courseid");
             if ($cursive == '0') {
                 continue;
@@ -244,16 +240,23 @@ class tiny_cursive_renderer extends plugin_renderer_base {
             $userdata[] = $row;
         }
 
-        $title = fullname($user);
+        $title = fullname($user ?? $USER);
+
+        $profile = $DB->get_record('user', ['id' => $userid], '*', MUST_EXIST);
         echo $this->output->render_from_template(
             'tiny_cursive/writing_report',
             [
                 'total_word' => $userprofile->word_count ?? 0,
                 'total_time' => $totaltime,
-                'avg_min'    => $avgwords,
+                'avg_spd'    => $avgwords,
                 'username'   => $title,
+                'chartdata'  => json_encode( $data),
                 'userdata'   => $userdata,
                 'options'    => $select,
+                'coursename' => $coursename,
+                'total_sub'  => $totalcount,
+                'lastupdate' => $lastupdate ? date("F j, Y", $lastupdate) : "- -",
+                'profile_pic'=> $this->output->user_picture($profile, ['size' => 100, 'link' => true]),
             ],
         );
 
