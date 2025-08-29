@@ -133,7 +133,7 @@ export const init = async (data, apiKey, caption) => {
                             const d = context.raw;
                             return [
                                 `Time: ${formatTime(d.x)}`,
-                                `Effort: ${d.effort * 100}%`,
+                                `Effort: ${Math.round(d.effort * 100 * 100) / 100}%`,
                                 `Words: ${d.words}`,
                                 `WPM: ${d.wpm}`
                             ];
