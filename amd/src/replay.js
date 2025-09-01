@@ -315,6 +315,7 @@ export default class Replay {
     identifyPasteEvents() {
         this.pasteTimestamps = [];
         let controlPressed = false;
+        /* eslint-disable no-unused-vars */
         let shiftPressed = false;
         let pasteCount = 0;
 
@@ -607,6 +608,13 @@ export default class Replay {
         }
     }
 
+    getLineAndColumn(text, pos) {
+        const before = text.substring(0, pos);
+        const lineIndex = before.split('\n').length - 1;
+        const col = before.length - before.lastIndexOf('\n') - 1;
+        return { lineIndex, col };
+    }
+
     // Handle keydown events (e.g., typing, backspace, Ctrl+V)
     processKeydownEvent(event, text, cursor, highlights, deletions) {
         const key = event.key;
@@ -638,6 +646,10 @@ export default class Replay {
             ({text, cursor} = this.handleBackspace(text, cursor, deletions));
         } else if (this.isRegularDelete(key, cursor, text)) {
             ({text} = this.handleDelete(text, cursor, deletions));
+        } else if (this.isArrowUp(key)) {
+            cursor = this.handleArrowUp(text, cursor);
+        } else if (this.isArrowDown(key)) {
+            cursor = this.handleArrowDown(text, cursor);
         } else if (this.isRegularArrowMove(key)) {
             cursor = this.handleArrowMove(key, text, cursor);
         } else if (charToInsert && charToInsert.length > 0) {
@@ -724,6 +736,14 @@ export default class Replay {
         return !this.isControlKeyPressed && (key === 'ArrowLeft' || key === 'ArrowRight');
     }
 
+    isArrowUp(key) {
+        return key === 'ArrowUp';
+    }
+
+    isArrowDown(key) {
+        return key === 'ArrowDown';
+    }
+
     handleCtrlArrowMove(key, text, cursor) {
         return key === 'ArrowLeft'
             ? this.findPreviousWordBoundary(text, cursor)
@@ -799,6 +819,30 @@ export default class Replay {
             text: text.substring(0, cursor) + text.substring(wordEnd),
             cursor
         };
+    }
+
+    handleArrowUp(text, cursor) {
+        const lines = text.split('\n');
+        const { lineIndex, col } = this.getLineAndColumn(text, cursor);
+        if (lineIndex > 0) {
+            const prevLine = lines[lineIndex - 1];
+            cursor = lines.slice(0, lineIndex - 1).join('\n').length + 1 + Math.min(col, prevLine.length);
+        } else {
+            cursor = 0;
+        }
+        return cursor;
+    }
+
+    handleArrowDown(text, cursor) {
+        const lines = text.split('\n');
+        const { lineIndex, col } = this.getLineAndColumn(text, cursor);
+        if (lineIndex < lines.length - 1) {
+            const nextLine = lines[lineIndex + 1];
+            cursor = lines.slice(0, lineIndex + 1).join('\n').length + 1 + Math.min(col, nextLine.length);
+        } else {
+            cursor = text.length;
+        }
+        return cursor;
     }
 
     handleCtrlBackspace(text, cursor, deletions) {
