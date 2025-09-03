@@ -1200,18 +1200,15 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
 }
 
 .tiny_cursive-export-pdf .tiny_cursive_added {
-    background-color: #ffff00;
-    color: rgb(0, 41, 0);
-    font-weight: normal;
+    background-color: transparent;
+    color: orange;
+    font-weight: bold;
     padding: 2px 4px;
     border-radius: 4px;
-    text-align: justify !important;
     word-wrap: break-word;
-    display: inline-block;
-    white-space: nowrap;
-    box-decoration-break: clone;
-    -webkit-box-decoration-break: clone;
-
+}
+.tiny_cursive-export-pdf {
+    line-height: 1.8;
 }
 
 /* Container */
@@ -1406,6 +1403,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     display: inline-block;
     vertical-align: middle;
     margin-right: 5px;
+    background-color: orange;
 }
 
 /* Submission Text Box */
@@ -1414,6 +1412,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     border: 1px solid #dee2e6;
     background-color: white;
     padding: 15px;
+    text-align: justify;
 }
 
 .tiny_cursive-submission-box h2 {
