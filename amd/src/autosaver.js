@@ -506,25 +506,26 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
         if (document.querySelector(`#${tooltipId}`)) {
             return;
         }
+        if (cursiveIcon) {
+            const tooltipSpan = document.createElement('span');
+            const description = document.createElement('span');
+            const linebreak = document.createElement('br');
+            const tooltipTitle = document.createElement('strong');
 
-        const tooltipSpan = document.createElement('span');
-        const description = document.createElement('span');
-        const linebreak = document.createElement('br');
-        const tooltipTitle = document.createElement('strong');
+            tooltipSpan.style.display = 'none';
+            tooltipTitle.textContent = text.buttonTitle;
+            tooltipTitle.style.fontSize = '16px';
+            tooltipTitle.style.fontWeight = 'bold';
+            description.textContent = text.buttonDes;
+            description.style.fontSize = '14px';
 
-        tooltipSpan.style.display = 'none';
-        tooltipTitle.textContent = text.buttonTitle;
-        tooltipTitle.style.fontSize = '16px';
-        tooltipTitle.style.fontWeight = 'bold';
-        description.textContent = text.buttonDes;
-        description.style.fontSize = '14px';
-
-        tooltipSpan.id = tooltipId;
-        tooltipSpan.classList.add(`shadow`);
-        tooltipSpan.appendChild(tooltipTitle);
-        tooltipSpan.appendChild(linebreak);
-        tooltipSpan.appendChild(description);
-        cursiveIcon.appendChild(tooltipSpan);
+            tooltipSpan.id = tooltipId;
+            tooltipSpan.classList.add(`shadow`);
+            tooltipSpan.appendChild(tooltipTitle);
+            tooltipSpan.appendChild(linebreak);
+            tooltipSpan.appendChild(description);
+            cursiveIcon.appendChild(tooltipSpan);
+        }
     }
 
     /**
