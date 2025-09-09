@@ -16,7 +16,7 @@
 
 namespace tiny_cursive\page;
 use context_module;
-use core\output\html_writer;
+use html_writer;
 use moodle_exception;
 use moodle_url;
 use context_system;

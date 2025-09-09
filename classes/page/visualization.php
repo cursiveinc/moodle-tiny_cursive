@@ -23,7 +23,7 @@
  */
 namespace tiny_cursive\page;
 
-use core\output\html_writer;
+use html_writer;
 use moodle_url;
 use context_system;
 use stdClass;
