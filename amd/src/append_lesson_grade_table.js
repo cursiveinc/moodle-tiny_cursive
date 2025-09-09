@@ -117,7 +117,7 @@ export const init = (scoreSetting, showcomment, hasApiKey) => {
 
             let analyticButtonDiv = document.createElement('div');
             let analyticsColumn = document.createElement('td');
-            analyticButtonDiv.append(analyticButton(userid));
+            analyticButtonDiv.append(analyticButton(hasApiKey ? data.res.effort_ratio : "", userid));
             analyticButtonDiv.dataset.region = "analytic-div" + userid;
             analyticsColumn.append(analyticButtonDiv);
             if (grade) {

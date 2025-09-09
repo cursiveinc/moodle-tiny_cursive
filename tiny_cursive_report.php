@@ -22,6 +22,7 @@
  * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+use tiny_cursive\constants;
 use tiny_cursive\forms\user_report_form;
 require(__DIR__ . '/../../../../../config.php');
 
@@ -66,9 +67,9 @@ if ($courseid && $courseid != 0) {
 
 require_capability('tiny/cursive:view', $context);
 
-$apikey = json_decode(cursive_approve_token());
 $PAGE->requires->js_call_amd('tiny_cursive/key_logger', 'init', [1]);
-$PAGE->requires->js_call_amd('tiny_cursive/cursive_writing_reports', 'init', ["", $apikey->status ?? false]);
+$PAGE->requires->js_call_amd('tiny_cursive/cursive_writing_reports', 'init',
+                 ["", constants::has_api_key(), get_config('tiny_cursive', 'json_download')]);
 
 $PAGE->set_context(context_system::instance());
 $PAGE->set_title(get_string('tiny_cursive', 'tiny_cursive'));
@@ -85,7 +86,16 @@ $mform = new user_report_form(null, [
     'orderby'  => $orderby,
 ], '', '', []);
 
-$mform->display();
+$canvas = html_writer::tag('canvas', '', [
+    'id' => "effortScatterChart",
+    'style' => "max-height: 350px;",
+]);
+
+$canvasdiv = html_writer::div($canvas, 'col-xl-8 mb-3 mb-xl-0 rounded border p-3 my-2');
+$filter = html_writer::div($mform->render(), 'col-xl-4');
+
+echo html_writer::div($filter . $canvasdiv, 'row g-3');
+
 $renderer     = $PAGE->get_renderer('tiny_cursive');
 
 if ($formdata = $mform->get_data()) {
@@ -111,6 +121,8 @@ if ($formdata = $mform->get_data()) {
         $url,
         $moduleid,
         $userid);
+    $chart   = new \tiny_cursive\page\visualization($courseid, "", $moduleid, $formdata->userid);
+    $chart->render();
 } else {
     $users = tiny_cursive_get_user_attempts_data(
         $userid,
@@ -129,6 +141,8 @@ if ($formdata = $mform->get_data()) {
         $url,
         $moduleid,
         $userid);
+    $chart   = new \tiny_cursive\page\visualization($courseid, "", $moduleid, $userid);
+    $chart->render();
 }
 
 echo $OUTPUT->footer();

@@ -85,9 +85,7 @@ define([
                         let userid = $(tdUser).find("input[type='checkbox']")?.get()[0]?.value;
                         let cmid = parm.searchParams.get('id');
                         // Create the table cell element and append the anchor.
-                        const tableCell = document.createElement('td');
-                        tableCell.appendChild(analyticButton(userid));
-                        $(tr).find('td').eq(3).after(tableCell);
+
                         let args = {id: userid, modulename: "assign", cmid: cmid};
                         let methodname = 'cursive_user_list_submission_stats';
                         let com = AJAX.call([{methodname, args}]);
@@ -98,6 +96,11 @@ define([
                                 if (data.res.filename) {
                                     filepath = data.res.filename;
                                 }
+
+                                const tableCell = document.createElement('td');
+                                tableCell.appendChild(analyticButton(hasApiKey ? data.res.effort_ratio : "", userid));
+                                $(tr).find('td').eq(3).after(tableCell);
+
                                 // Get Module Name from element.
                                 let element = document.querySelector('.page-header-headings h1');
                                 // Selects the h1 element within the .page-header-headings class

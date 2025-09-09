@@ -88,7 +88,7 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
                     if (filepath) {
 
                         let analyticButtonDiv = document.createElement('div');
-                        analyticButtonDiv.append(analyticButton(ids));
+                        analyticButtonDiv.append(analyticButton(hasApiKey ? data.data.effort_ratio : "", ids));
                         analyticButtonDiv.classList.add('text-center', 'my-2');
                         analyticButtonDiv.dataset.region = "analytic-div" + ids;
 

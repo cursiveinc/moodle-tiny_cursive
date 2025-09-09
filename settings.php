@@ -107,6 +107,14 @@ if ($ADMIN->fulltree) {
             1
         )
     );
+    $settings->add(
+        new admin_setting_configcheckbox(
+            'tiny_cursive/json_download',
+            get_string('json_title', "tiny_cursive"),
+            get_string('json_des', 'tiny_cursive'),
+            1
+        )
+    );
 
     $settings->add(
         new admin_setting_configtext(
@@ -140,6 +148,43 @@ if ($ADMIN->fulltree) {
             get_string('enable', 'tiny_cursive')."
             </a><br><span id='cursivedisable_'></span><br>".
             get_string('cursivedisable_des', 'tiny_cursive'),
+        )
+    );
+
+    $settings->add(
+        new admin_setting_heading(
+            'cursive_more_info',
+            get_string('new_admin_heading', 'tiny_cursive'),
+            get_string('new_admin_desc', "tiny_cursive"),
+        ));
+
+        $settings->add(
+        new admin_setting_configtext(
+            'tiny_cursive/note_text',
+            get_string('note_text_title', 'tiny_cursive'),
+            "",
+            get_string('cursive_enable_notice', 'tiny_cursive'),
+            PARAM_TEXT
+        )
+    );
+
+    $settings->add(
+            new admin_setting_configtext(
+                'tiny_cursive/note_url_text',
+                get_string('note_url_text', 'tiny_cursive'),
+                "",
+                get_string('cursive_more_info', 'tiny_cursive'),
+                PARAM_TEXT
+            )
+        );
+
+    $settings->add(
+        new admin_setting_configtext(
+            'tiny_cursive/note_url',
+            get_string('note_url_title', 'tiny_cursive'),
+            "",
+            "https://cursivetechnology.com/moodle-integration-how-it-works",
+            PARAM_TEXT
         )
     );
 }
