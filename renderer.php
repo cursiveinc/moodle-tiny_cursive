@@ -88,10 +88,11 @@ class tiny_cursive_renderer extends plugin_renderer_base {
                         'role'  => 'button',
                         'data-link' => constants::has_api_key() ? new moodle_url('/lib/editor/tiny/plugins/cursive/pdfexport.php', [
                             'sesskey' => sesskey(),
-                            'id' => $user->usrid,
+                            'id'      => $user->usrid,
+                            'file'    => $user->fileid,
                             'cmid'    => $user->cmid,
-                            'course' => $courseid,
-                            'qid' => $user->questionid ?? 0]) : "",
+                            'course'  => $courseid,
+                            'qid'     => $user->questionid ?? 0]) : "",
                     ],
                 )
             );
@@ -237,10 +238,11 @@ class tiny_cursive_renderer extends plugin_renderer_base {
                     'role'  => 'button',
                     'data-link' => constants::has_api_key() ? new moodle_url('/lib/editor/tiny/plugins/cursive/pdfexport.php', [
                         'sesskey' => sesskey(),
-                        'id' => $user->usrid,
+                        'id'      => $user->usrid,
+                        'file'    => $user->fileid,
                         'cmid'    => $user->cmid,
-                        'course' => $courseid,
-                        'qid' => $user->questionid ?? 0]) : "",
+                        'course'  => $courseid,
+                        'qid'     => $user->questionid ?? 0]) : "",
                 ],
             );
             $userdata[] = $row;

@@ -28,8 +28,9 @@ require_login();
 require_sesskey();
 
 $id     = required_param('id', PARAM_INT);
+$file   = required_param('file', PARAM_INT);
 $cmid   = required_param('cmid', PARAM_INT);
 $course = required_param('course', PARAM_INT);
 $qid    = optional_param('qid', 0, PARAM_INT);
-$page   = new \tiny_cursive\page\pdfexport($course, $cmid, $id, $qid);
+$page   = new \tiny_cursive\page\pdfexport($course, $cmid, $id, $qid, $file);
 $page->download();

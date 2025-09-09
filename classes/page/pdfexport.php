@@ -61,17 +61,24 @@ class pdfexport {
     protected $id; // Userid.
 
     /**
+     * @var int $id User ID
+     */
+    protected $fileid; // Cursive fileid.
+
+    /**
      * Constructor for pdfexport class
      *
      * @param int $courseid The ID of the course
      * @param int $cmid The course module ID
      * @param int $id The user ID
      * @param int $questionid The ID of the question
+     * @param int $file The ID of the cursive file
      * @throws moodle_exception If the user does not have permission to access the page
      */
-    public function __construct(int $courseid, int $cmid,  $id, $questionid) {
+    public function __construct(int $courseid, int $cmid,  $id, $questionid, $file) {
         $this->id         = $id;
         $this->cmid       = $cmid;
+        $this->fileid     = $file;
         $this->courseid   = $courseid;
         $this->questionid = $questionid;
         $this->url        = new moodle_url('/lib/editor/tiny/plugins/cursive/pdfexport.php');
@@ -89,7 +96,7 @@ class pdfexport {
     public function download() {
 
         $this->check_access();
-        $this->prepare_data($this->courseid, $this->cmid, $this->id, $this->questionid);
+        $this->prepare_data( $this->id, $this->fileid);
         $this->page_setup($this->templatecontent);
         $this->page();
     }
@@ -145,23 +152,18 @@ class pdfexport {
      * @param int $questionid The question ID (optional)
      * @return void
      */
-    private function prepare_data($course, $cmid, $userid, $questionid) {
+    private function prepare_data($userid, $fileid) {
         global $DB;
 
-        $sql = "SELECT SUBSTRING(MD5(RAND()), 1, 8) AS uniqueid, CONCAT(u.firstname,' ',u.lastname) AS username, f.userid,
+        $sql = "SELECT CONCAT(u.firstname,' ',u.lastname) AS username, f.userid,
                        f.modulename, f.timemodified, f.resourceid, f.questionid, w.*, d.meta as effort, d.submitted_text
                   FROM {tiny_cursive_files} f
                   JOIN {tiny_cursive_user_writing} w ON f.id = w.file_id
                   JOIN {tiny_cursive_writing_diff} d ON f.id = d.file_id
                   JOIN {user} u ON f.userid = u.id
-                 WHERE f.courseid = :courseid AND f.cmid = :cmid AND f.userid = :userid";
+                 WHERE f.id = :fileid AND f.userid = :userid";
 
-        $params    = ['courseid' => $course, 'cmid' => $cmid, 'userid' => $userid];
-
-        if ($questionid) {
-            $sql .= " AND f.questionid = :questionid";
-            $params['questionid'] = $questionid;
-        }
+        $params    = ['fileid' => $fileid, 'userid' => $userid];
 
         $analytics = $DB->get_records_sql($sql, $params);
         $this->prepare_data_structure($analytics);
