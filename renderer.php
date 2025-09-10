@@ -277,15 +277,20 @@ class tiny_cursive_renderer extends plugin_renderer_base {
      */
     public function generate_custom_title($cm, $user, $DB, &$module) {
         if ($cm->modname === 'forum') {
-            $sql = "SELECT cp.resourceid, CONCAT(p.subject, ' / ', GROUP_CONCAT(c.subject SEPARATOR '/ ')) AS title
+
+            $sql = "SELECT cp.resourceid, p.parent,
+                           CASE
+                                WHEN p.parent = 0 THEN p.subject
+                                ELSE CONCAT(pp.subject, ' / ', p.subject)
+                           END AS title
                       FROM {tiny_cursive_files} cp
                  LEFT JOIN {forum_posts} p ON cp.resourceid = p.id
-                 LEFT JOIN {forum_posts} c ON p.id = c.parent
-                     WHERE cp.id = :fileid
-                           GROUP BY p.id, p.subject";
-            $params['fileid'] = $user->fileid;
+                 LEFT JOIN {forum_posts} pp ON p.parent = pp.id
+                           WHERE cp.id = :fileid";
 
+            $params['fileid'] = $user->fileid;
             $data = array_values($DB->get_records_sql($sql, $params));
+
             if ($data && !empty($data[0]->title)) {
                 $module->name .= " / {$data[0]->title}";
             }
