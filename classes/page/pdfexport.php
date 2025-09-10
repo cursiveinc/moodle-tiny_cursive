@@ -146,10 +146,8 @@ class pdfexport {
     /**
      * Prepares data for PDF export by fetching analytics records from the database
      *
-     * @param int $course The course ID
-     * @param int $cmid The course module ID
      * @param int $userid The user ID
-     * @param int $questionid The question ID (optional)
+     * @param int $fileid The curisve file ID
      * @return void
      */
     private function prepare_data($userid, $fileid) {

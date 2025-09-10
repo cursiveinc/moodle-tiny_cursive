@@ -21,7 +21,7 @@
  */
 
 define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", './analytic_button', "./analytic_events",
-    "core/modal_events",'core/modal_save_cancel', 'core/modal_factory', 'core/modal'],
+    "core/modal_events", 'core/modal_save_cancel', 'core/modal_factory', 'core/modal'],
     function(
     $,
     AJAX,
@@ -205,6 +205,7 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", './anal
                                 }
                             });
                         }
+                        return modal;
                     });
                 });
 

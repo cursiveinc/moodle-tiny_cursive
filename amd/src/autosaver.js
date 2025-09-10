@@ -212,7 +212,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
         editor.rePosition = position.rePosition;
         sendKeyEvent("keyUp", editor);
     });
-    editor.on('Paste', async (e) => {
+    editor.on('Paste', async(e) => {
         customTooltip();
         const pastedContent = (e.clipboardData || e.originalEvent.clipboardData).getData('text');
         if (!pastedContent) {

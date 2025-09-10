@@ -64,10 +64,10 @@ define(["core/str"], function(Str) {
     if (effort) {
       const right = document.createElement('div');
       right.className = 'tiny_cursive-analytics-right';
-      right.textContent = effort+"%";
+      right.textContent = effort + "%";
       right.title = "Effort";
 
-      if(effort < 90) {
+      if (effort < 90) {
         right.style.backgroundColor = '#EAB308';
       }
 

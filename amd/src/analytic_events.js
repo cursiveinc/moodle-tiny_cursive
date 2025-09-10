@@ -31,9 +31,10 @@ import {get_strings as getStrings} from 'core/str';
 
 export default class AnalyticEvents {
 
-    constructor () {
+    constructor() {
         getString('notenoughtinfo', 'tiny_cursive').then(str => {
             localStorage.setItem('notenoughtinfo', str);
+            return str;
         });
     }
 

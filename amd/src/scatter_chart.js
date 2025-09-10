@@ -24,11 +24,11 @@
 
 import Chart from 'core/chartjs';
 import {get_strings as getStrings} from 'core/str';
-export const init = async (data, apiKey, caption) => {
+export const init = async(data, apiKey, caption) => {
 
     const ctx = document.getElementById('effortScatterChart').getContext('2d');
     if (data) {
-       data = JSON.parse(document.getElementById('scatter-chart-data').dataset.data);
+        data = JSON.parse(document.getElementById('scatter-chart-data').dataset.data);
     }
 
     let display = true;
@@ -36,17 +36,17 @@ export const init = async (data, apiKey, caption) => {
     var dataset = [];
 
     const [
-            applyFilter,
-            noSubmission,
-            noPayload,
-            freemium,
-        ] = await getStrings([
-            {key: 'apply_filter', component: 'tiny_cursive'},
-            {key: 'no_submission', component: 'tiny_cursive'},
-            {key: 'nopaylod', component: 'tiny_cursive'},
-            {key: 'freemium', component: 'tiny_cursive'},
-            {key: 'chart_result', component: 'tiny_cursive'}
-        ]);
+        applyFilter,
+        noSubmission,
+        noPayload,
+        freemium,
+    ] = await getStrings([
+        {key: 'apply_filter', component: 'tiny_cursive'},
+        {key: 'no_submission', component: 'tiny_cursive'},
+        {key: 'nopaylod', component: 'tiny_cursive'},
+        {key: 'freemium', component: 'tiny_cursive'},
+        {key: 'chart_result', component: 'tiny_cursive'}
+    ]);
 
     if (Array.isArray(data) && !data.state && apiKey) {
         dataset = data;
@@ -58,7 +58,7 @@ export const init = async (data, apiKey, caption) => {
         );
     }
 
-    if(!apiKey || data.length === 0 || !isEmpty || data === false) {
+    if (!apiKey || data.length === 0 || !isEmpty || data === false) {
         display = false;
     }
 
@@ -67,21 +67,21 @@ export const init = async (data, apiKey, caption) => {
         afterDraw(chart) {
             // ⚠ Case 1: Freemium user
             if (!apiKey) {
-                drawMessage('⚠ '+freemium, chart);
+                drawMessage('⚠ ' + freemium, chart);
                 return;
             }
             // ⚠ Case 2: Apply filter (data is empty array)
             if (data.state == "apply_filter") {
-                drawMessage('⚠ '+applyFilter, chart);
+                drawMessage('⚠ ' + applyFilter, chart);
                 return;
             }
-            if(data.state === "no_submission") {
-                drawMessage('⚠ '+noSubmission, chart);
+            if (data.state === "no_submission") {
+                drawMessage('⚠ ' + noSubmission, chart);
                 return;
             }
             // ⚠ Case 3: No payload data (all `data` arrays are empty or full of empty objects)
             if (!isEmpty && !data.state) {
-                drawMessage('⚠ '+noPayload, chart);
+                drawMessage('⚠ ' + noPayload, chart);
             }
 
         }
@@ -106,7 +106,7 @@ export const init = async (data, apiKey, caption) => {
                         top: 10,
                         bottom: 20
                     },
-                    align: 'center' // or 'start' / 'end'
+                    align: 'center'
                 },
                 legend: {
                     display: true,
@@ -125,11 +125,11 @@ export const init = async (data, apiKey, caption) => {
                     borderWidth: 1,
                     displayColors: false,
                     callbacks: {
-                        title: function(context) {
+                        title: function (context) {
                             const d = context[0].raw;
-                            return d.label; // this appears as bold title
+                            return d.label; // This appears as bold title.
                         },
-                        label: function(context) {
+                        label: function (context) {
                             const d = context.raw;
                             return [
                                 `Time: ${formatTime(d.x)}`,
@@ -149,10 +149,10 @@ export const init = async (data, apiKey, caption) => {
                     },
                     min: 0,
                     ticks: {
-                    callback: function(value) {
-                        return formatTime(value);
+                        callback: function (value) {
+                            return formatTime(value);
+                        }
                     }
-                }
                 },
                 y: {
                     title: {
@@ -187,7 +187,7 @@ export const init = async (data, apiKey, caption) => {
      */
     function drawMessage(text, chart) {
 
-        const { ctx, chartArea: { left, right, top, bottom } } = chart;
+        const {ctx, chartArea: {left, right, top, bottom}} = chart;
         ctx.save();
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';

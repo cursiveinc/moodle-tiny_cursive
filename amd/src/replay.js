@@ -73,6 +73,16 @@ export default class Replay {
             this.handleNoSubmission();
             window.console.error('Error loading JSON file:', error.message);
         });
+        if (!localStorage.getItem('nopasteevent') || !localStorage.getItem('pasteEvent')) {
+            Str.get_string('nopasteevent', 'tiny_cursive').then(str => {
+                localStorage.setItem('nopasteevent', str);
+                return str;
+            });
+            Str.get_string('pasteEvent', 'tiny_cursive').then(str => {
+                localStorage.setItem('pasteEvent', str);
+                return str;
+            });
+        }
     }
 
     // Process JSON data and normalize timestamps
@@ -270,7 +280,7 @@ export default class Replay {
         pasteEventsIcon.classList.add('tiny_cursive_paste_events_icon');
 
         const pasteEventsText = document.createElement('span');
-        pasteEventsText.textContent = 'Paste Events';
+        pasteEventsText.textContent = localStorage.getItem('pasteEvent');
 
         this.pasteEventCount = document.createElement('span');
         this.pasteEventCount.textContent = `(${this.pasteTimestamps.length})`;
@@ -383,7 +393,7 @@ export default class Replay {
         if (!this.pasteTimestamps.length) {
             const noEventsMessage = document.createElement('div');
             noEventsMessage.className = 'no-paste-events-message p-3';
-            noEventsMessage.textContent = 'No paste events detected for this submission.';
+            noEventsMessage.textContent = localStorage.getItem('nopasteevent');
             panel.appendChild(noEventsMessage);
             return;
         }
@@ -612,7 +622,7 @@ export default class Replay {
         const before = text.substring(0, pos);
         const lineIndex = before.split('\n').length - 1;
         const col = before.length - before.lastIndexOf('\n') - 1;
-        return { lineIndex, col };
+        return {lineIndex, col};
     }
 
     // Handle keydown events (e.g., typing, backspace, Ctrl+V)
@@ -620,7 +630,7 @@ export default class Replay {
         const key = event.key;
         const charToInsert = this.applyKey(key);
         this.updateModifierStates(key);
-        if ((key === 'v'  || key === 'V') && this.isControlKeyPressed) {
+        if ((key === 'v'|| key === 'V') && this.isControlKeyPressed) {
             if (this.pastedEvents && this.currentPasteIndex < this.pastedEvents.length) {
                 const pastedContent = this.pastedEvents[this.currentPasteIndex];
                 ({text, cursor} = this.handlePasteInsert(pastedContent, text, cursor));
@@ -688,7 +698,7 @@ export default class Replay {
     shiftPastedCharsIndices(startIndex, numDeleted) {
         this.pastedChars = this.pastedChars.map(p => {
             if (p.index >= startIndex + numDeleted) {
-                return { ...p, index: p.index - numDeleted };
+                return {...p, index: p.index - numDeleted};
             } else if (p.index >= startIndex && p.index < startIndex + numDeleted) {
                 // Remove pasted characters that were deleted
                 return null;
@@ -789,7 +799,7 @@ export default class Replay {
         // Shift pasted chars indices after the insertion point
         if (this.pastedChars) {
             this.pastedChars = this.pastedChars.map(p => {
-                return p.index >= cursor ? { ...p, index: p.index + 1 } : p;
+                return p.index >= cursor ? {...p, index: p.index + 1} : p;
             });
         }
         if (charToInsert.trim() !== '') {
@@ -823,7 +833,7 @@ export default class Replay {
 
     handleArrowUp(text, cursor) {
         const lines = text.split('\n');
-        const { lineIndex, col } = this.getLineAndColumn(text, cursor);
+        const {lineIndex, col} = this.getLineAndColumn(text, cursor);
         if (lineIndex > 0) {
             const prevLine = lines[lineIndex - 1];
             cursor = lines.slice(0, lineIndex - 1).join('\n').length + 1 + Math.min(col, prevLine.length);
@@ -835,7 +845,7 @@ export default class Replay {
 
     handleArrowDown(text, cursor) {
         const lines = text.split('\n');
-        const { lineIndex, col } = this.getLineAndColumn(text, cursor);
+        const {lineIndex, col} = this.getLineAndColumn(text, cursor);
         if (lineIndex < lines.length - 1) {
             const nextLine = lines[lineIndex + 1];
             cursor = lines.slice(0, lineIndex + 1).join('\n').length + 1 + Math.min(col, nextLine.length);

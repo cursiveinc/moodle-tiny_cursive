@@ -24,7 +24,7 @@ Displays student info, writing statistics, and submission text with paste analys
 Example context (json):
 {
     "fullname": "John Smith",
-    "modulename": "Essay Assignment 1", 
+    "modulename": "Essay Assignment 1",
     "date": "2023-12-01",
     "analytics": {
         "effort": 95,
@@ -84,7 +84,7 @@ Example context (json):
     <div class="tiny_cursive-section-box">
 
         <div class="tiny_cursive-section-title">
-            <h3>{{#pix}} bar, tiny_cursive {{/pix}}Writing Analytics</h3>
+            <h3>{{#pix}} bar, tiny_cursive {{/pix}}{{#str}}writing_analytics, tiny_cursive{{/str}}</h3>
         </div>
 
         <div class="tiny_cursive-verified-badge"
@@ -134,7 +134,7 @@ Example context (json):
 
     <div class="tiny_cursive-page-break"></div>
 
-    <div class="tiny_cursive-section-box" style="margin: 15px 0;">
+    <div class="tiny_cursive-section-box">
         <div class="tiny_cursive-section-title">
             <h3>{{#pix}} editdoc, tiny_cursive {{/pix}}{{#str}}submission_content, tiny_cursive {{/str}}</h3>
         </div>
@@ -142,11 +142,12 @@ Example context (json):
         <div class="tiny_cursive-analysis-card">
             <h4>{{#str}}paste_analysis, tiny_cursive {{/str}}</h4>
             <p><strong>{{#str}}pastecount, tiny_cursive {{/str}}:</strong> {{pastecount}}</p>
-            <p><strong>{{#str}}comments, tiny_cursive {{/str}}:</strong> {{^comments}}None{{/comments}}
+            <div>
+                <strong>{{#str}}comments, tiny_cursive {{/str}}:</strong> {{^comments}}None{{/comments}}
                 {{#comments}}
-            <p class="tiny_cursive-comments">{{usercomment}}</p>
-            {{/comments}}
-            </p>
+                    <p class="tiny_cursive-comments">{{usercomment}}</p>
+                {{/comments}}
+            </div>
         </div>
 
 

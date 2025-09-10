@@ -25,7 +25,7 @@
     border-bottom: 2px solid #dee2e6;
 }
 
-.tiny_cursive_table tbody+tbody {
+.tiny_cursive_table tbody + tbody {
     border-top: 2px solid #dee2e6;
 }
 
@@ -33,7 +33,7 @@
 .tiny_cursive_table-borderless th,
 .tiny_cursive_table-borderless td,
 .tiny_cursive_table-borderless thead th,
-.tiny_cursive_table-borderless tbody+tbody {
+.tiny_cursive_table-borderless tbody + tbody {
     border: 0;
 }
 
@@ -1194,7 +1194,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     background-color: rgb(218, 218, 218);
 }
 
-.tiny_cursive_scatter #toggle:checked~.content {
+.tiny_cursive_scatter #toggle:checked ~ .content {
     width: max-content;
     padding: 0 12px;
 }
@@ -1207,6 +1207,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     border-radius: 4px;
     word-wrap: break-word;
 }
+
 .tiny_cursive-export-pdf {
     line-height: 1.8;
 }
@@ -1274,6 +1275,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     border-radius: 5px;
     background-color: #f8f9fa;
     padding: 20px;
+    margin: 15px 0;
 }
 
 .tiny_cursive-section-title {

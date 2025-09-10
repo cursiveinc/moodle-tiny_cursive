@@ -47,6 +47,7 @@ export const init = (data) => {
             modal.getRoot().on(ModalEvents.hidden, () => {
                 window.history.back();
             });
+            return modal;
         });
 
         return;
@@ -57,23 +58,26 @@ export const init = (data) => {
         let option = {
                     margin:       [10, 6, 10, 6],
                     filename:     data.filename,
-                    image:        { type: 'jpeg', quality: 1 },
-                    html2canvas:  { scale: 2 },
-                    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-                };
+                    image:        {type: 'jpeg', quality: 1},
+                    html2canvas:  {scale: 2},
+                    jsPDF:        {unit: 'mm', format: 'a4', orientation: 'portrait'}};
 
         templates.render('tiny_cursive/export_pdf', data).then(html => {
             // eslint-disable-next-line
-            html2pdf().set(option).from(html).save().then(() => {
+            return html2pdf().set(option).from(html).save().then(() => {
+                // eslint-disable-next-line
                 str.get_string('download_pdf_message', 'tiny_cursive').then(str =>{
-                    document.getElementById('loadermessage').textContent = str;
+                   document.getElementById('loadermessage').textContent = str;
+                   return str;
                 });
 
-                setTimeout(() => {
+               return setTimeout(() => {
                     document.getElementById('pdfexportLoader').remove();
                     window.history.back();
                 }, 4000);
+
             });
+
         }).catch(e => window.console.error(e));
     });
 };
