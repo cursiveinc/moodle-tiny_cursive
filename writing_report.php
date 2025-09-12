@@ -24,6 +24,8 @@
  */
 
 require(__DIR__ . '/../../../../../config.php');
+use tiny_cursive\constants;
+
 require_once(__DIR__ . '/locallib.php');
 require_once(__DIR__ . '/lib.php');
 
@@ -70,8 +72,9 @@ $user = $DB->get_record('user', ['id' => $userid]);
 if (!$user) {
     throw new moodle_exception('invaliduser', 'error');
 }
-$apikey = json_decode(cursive_approve_token());
-$PAGE->requires->js_call_amd('tiny_cursive/cursive_writing_reports', 'init', ["", $apikey->status ?? false]);
+
+$PAGE->requires->js_call_amd('tiny_cursive/cursive_writing_reports', 'init',
+                 ["", constants::has_api_key(), get_config('tiny_cursive', 'json_download')]);
 
 $PAGE->set_context(context_system::instance());
 $PAGE->set_url($url);

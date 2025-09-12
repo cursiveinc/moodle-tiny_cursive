@@ -1,35 +1,9 @@
-.tiny_cursive-analytics-btn {
-    background-color: #306ab3;
-    border-radius: 8vw;
-    /* stylelint-disable-next-line declaration-no-important */
-    text-decoration: none !important;
-    display: inline-flex;
-    align-items: center;
-    /* stylelint-disable-next-line declaration-no-important */
-    color: white !important;
-}
-
-.tiny_cursive-analytics-btn:hover {
-    background-color: #205aa1;
-}
-
-.tiny_cursive-analytics-btn span {
-    padding: 3px;
-    margin-right: 5px;
-    font-weight: 500;
-    font-size: 16px;
-}
-
-.tiny_cursive-analytics-icon {
-    background-color: white;
-    color: #306ab3;
-    border-radius: 5vw;
+.tiny_cursive-analytics-bar-icon {
+    filter: brightness(0) invert(1);
     padding: 2px 5px;
-    margin: 3px;
-}
-
-.tiny_cursive-analytics-icon svg {
-    vertical-align: middle;
+    /* margin: 3px; */
+    height: 30px;
+    width: 30px;
 }
 
 .tiny_cursive_table {
@@ -624,21 +598,23 @@
 .tiny_cursive-writing-report .analytics-btn,
 .tiny_cursive-writing-report .download-btn {
     border: none;
-    padding: 8px 15px;
+    padding: 11px 20px;
     font-size: 14px;
     font-weight: bold;
-    border-radius: 20px;
+    margin-bottom: 1px;
+    border-radius: .5rem;
     cursor: pointer;
     transition: background 0.3s ease, transform 0.2s ease;
 }
 
-.tiny_cursive-writing-report .analytics-btn {
+.tiny_cursive-analytics-button {
     background: #306ab3;
+    text-decoration: none;
     color: white;
 }
 
-.tiny_cursive-writing-report .analytics-btn:hover {
-    background: #306ab3;
+.tiny_cursive-analytics-button:hover {
+    text-decoration: none;
     transform: scale(1.05);
 }
 
@@ -701,6 +677,62 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     background-color: #f8f9fa;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     width: 100%;
+}
+
+.tiny_cursive-pasted-char {
+    font-weight: bold;
+    background-color: #fff2cc;
+}
+
+.tiny_cursive-ai-suggested-char {
+    background-color: #e3f2fd;
+    /* Light blue background */
+    color: #1565c0;
+    /* Blue text */
+    border-bottom: 1px dotted #1976d2;
+    /* Dotted underline */
+    padding: 1px 2px;
+    border-radius: 2px;
+}
+
+/* AI Suggested text styling */
+.tiny_cursive-ai-suggested-char {
+    background-color: #e3f2fd;
+    /* Light blue background */
+    border-bottom: 2px dotted #2196f3;
+    /* Blue dotted underline */
+    color: #1976d2;
+    /* Blue text color */
+    transition: opacity 0.3s ease;
+}
+
+/* Combined styling for AI suggested + pasted text */
+.tiny_cursive-ai-suggested-char.tiny_cursive-pasted-char {
+    font-weight: bold;
+    background-color: #f3e5f5;
+    /* Light purple for AI + paste combination */
+    border-bottom: 2px dotted #9c27b0;
+    /* Purple dotted underline */
+    color: #7b1fa2;
+}
+
+/* Combined styling for AI suggested + highlighted text */
+.tiny_cursive-ai-suggested-char.tiny_cursive-highlighted-char {
+    background-color: #e8f5e8;
+    /* Light green for AI + highlight combination */
+    border-bottom: 2px dotted #4caf50;
+    /* Green dotted underline */
+    color: #388e3c;
+}
+
+/* Triple combination: AI + pasted + highlighted */
+.tiny_cursive-ai-suggested-char.tiny_cursive-pasted-char.tiny_cursive-highlighted-char {
+    font-weight: bold;
+    background-color: #fff3e0;
+    /* Light orange for all three */
+    border-bottom: 2px dotted #ff9800;
+    /* Orange dotted underline */
+    color: #f57c00;
 }
 
 .tiny_cursive_loading_spinner {
@@ -1114,4 +1146,328 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
 .tiny_cursive-writing-report-body table td,
 .tiny_cursive-writing-activity-report-body table td {
     vertical-align: middle;
+}
+
+.tiny_cursive_scatter input[type="checkbox"] {
+    display: none;
+}
+
+.tiny_cursive_scatter .expander-container {
+    position: relative;
+    display: inline-block;
+}
+
+.tiny_cursive_scatter label.toggle-btn {
+    line-height: 20px;
+    cursor: pointer;
+    user-select: none;
+    display: inline-block;
+}
+
+.tiny_cursive_scatter .content {
+    position: absolute;
+    top: 0;
+    right: 100%;
+    width: 0;
+    height: 44px;
+    /* 👈 Same height as the label/button */
+    overflow: hidden;
+    transition: width 0.15s ease, padding 0.15s ease;
+    border-radius: 4px 0 0 4px;
+    padding: 0;
+    z-index: 10;
+    white-space: nowrap;
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    align-items: center;
+    background-color: rgb(255, 255, 255, 0.95);
+}
+
+.tiny_cursive_scatter .cursive-btn {
+    background-color: rgb(235, 235, 235);
+    padding: .6rem 1.3rem;
+    font-weight: 500;
+}
+
+.tiny_cursive_scatter .cursive-btn:hover {
+    background-color: rgb(218, 218, 218);
+}
+
+.tiny_cursive_scatter #toggle:checked ~ .content {
+    width: max-content;
+    padding: 0 12px;
+}
+
+.tiny_cursive-export-pdf .tiny_cursive_added {
+    background-color: transparent;
+    color: orange;
+    font-weight: bold;
+    padding: 2px 4px;
+    border-radius: 4px;
+    word-wrap: break-word;
+}
+
+.tiny_cursive-export-pdf {
+    line-height: 1.8;
+}
+
+/* Container */
+.tiny_cursive-container {
+    font-family: Arial, sans-serif;
+}
+
+/* Header */
+.tiny_cursive-header {
+    text-align: center;
+    margin-bottom: 50px;
+}
+
+.tiny_cursive-header h2 {
+    color: #007bff;
+    margin-bottom: 5px;
+}
+
+.tiny_cursive-header h6 {
+    color: #6c757d;
+    margin-top: 0;
+}
+
+/* Info Box */
+.tiny_cursive-info-box {
+    padding: 20px;
+    margin: 15px 0;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+}
+
+.tiny_cursive-info-row {
+    display: flex;
+    justify-content: space-between;
+}
+
+.tiny_cursive-info-col {
+    flex: 1;
+}
+
+.tiny_cursive-info-col h5 {
+    color: #007bff;
+    margin-bottom: 5px;
+}
+
+.tiny_cursive-info-col div {
+    font-size: 14px;
+}
+
+/* Section Divider */
+.tiny_cursive-section-divider {
+    border: 0;
+    height: 2px;
+    background-color: #007bff;
+    margin: 30px 0;
+    border-radius: 2px;
+}
+
+/* Section Box */
+.tiny_cursive-section-box {
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    background-color: #f8f9fa;
+    padding: 20px;
+    margin: 15px 0;
+}
+
+.tiny_cursive-section-title {
+    border-bottom: 1px solid #007bff;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.tiny_cursive-section-title .icon {
+    max-width: 42px;
+    max-height: 42px;
+    width: 42px;
+    height: 42px;
+}
+
+.tiny_cursive-section-title h3 {
+    color: #007bff;
+    margin: 0;
+}
+
+/* Verified Badge */
+.tiny_cursive-verified-badge {
+    color: white;
+    border-radius: 50px;
+    display: inline-block;
+    padding: 8px 15px;
+    margin: 10px 0;
+    font-weight: bold;
+}
+
+/* Stats (Loop-based) */
+.tiny_cursive-stats-container-loop {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.tiny_cursive-stats-card {
+    flex: 1 1 calc(50% - 15px);
+    /* Two cards per row */
+    max-width: calc(50% - 15px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    padding: 15px;
+    background: white;
+    border-left: 4px solid #28a745;
+}
+
+.tiny_cursive-stats-card p.title {
+    color: #6c757d;
+    margin: 0 0 5px 0;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.tiny_cursive-stats-card h2 {
+    color: #007bff;
+    margin: 5px 0;
+    font-size: 24px;
+}
+
+.tiny_cursive-stats-card p.desc {
+    color: #6c757d;
+    margin: 5px 0 0 0;
+    font-size: 11px;
+}
+
+/* Responsive & Print-Safe Cards */
+@media print {
+    .tiny_cursive-stats-card {
+        page-break-inside: avoid;
+    }
+}
+
+@media (max-width: 768px) {
+    .tiny_cursive-stats-card {
+        flex: 1 1 100%;
+        max-width: 100%;
+    }
+}
+
+/* Page Break */
+.tiny_cursive-page-break {
+    page-break-before: always;
+}
+
+/* Analysis Card */
+.tiny_cursive-analysis-card {
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+    padding: 15px;
+    margin: 15px 0;
+    border-left: 4px solid #28a745;
+    background-color: rgba(0, 128, 0, 0.03);
+}
+
+.tiny_cursive-analysis-card h4 {
+    color: #28a745;
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.tiny_cursive-analysis-card p {
+    margin: 5px 0;
+}
+
+.tiny_cursive-analysis-card .tiny_cursive-comments {
+    word-break: break-word;
+    word-wrap: break-word;
+    border-radius: 2px;
+    border: 1px solid rgba(128, 128, 128, 0.212);
+    padding: .5rem;
+}
+
+/* Legend */
+.tiny_cursive-legend {
+    border-radius: 5px;
+    padding: 10px;
+    margin: 15px 0;
+    background-color: rgba(128, 128, 128, 0.15);
+}
+
+.tiny_cursive-legend span.tiny_cursive_added {
+    height: 15px;
+    width: 15px;
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 5px;
+    background-color: orange;
+}
+
+/* Submission Text Box */
+.tiny_cursive-submission-box {
+    border-radius: 5px;
+    border: 1px solid #dee2e6;
+    background-color: white;
+    padding: 15px;
+    text-align: justify;
+}
+
+.tiny_cursive-submission-box h2 {
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.tiny_cursive-submission-box p {
+    margin: 0;
+}
+
+/* Footer */
+.tiny_cursive-footer {
+    border-top: 1px solid #dee2e6;
+    text-align: center;
+    margin-top: 30px;
+}
+
+.tiny_cursive-footer div {
+    margin: 15px 0;
+    color: #6c757d;
+}
+
+.tiny_cursive-analytics-button {
+    display: flex;
+    width: fit-content;
+    border-radius: .5rem;
+    overflow: hidden;
+    font-family: Arial, sans-serif;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.tiny_cursive-analytics-left {
+    background-color: #306ab3;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+}
+
+.tiny_cursive-analytics-label {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.tiny_cursive-analytics-right {
+    background-color: #28c76f;
+    color: white;
+    padding: 6px 12px;
+    font-weight: bold;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
 }

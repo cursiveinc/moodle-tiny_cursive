@@ -43,7 +43,11 @@ export default class Replay {
         this.pasteTimestamps = [];
         this.isPasteEvent = false;
         this.isControlKeyPressed = false;
+        this.isShiftKeyPressed = false;
         this.text = '';
+        this.pastedEvents = [];
+        this.currentPasteIndex = 0;
+        this.pastedChars = [];
 
         const element = document.getElementById(elementId);
         if (!element) {
@@ -69,6 +73,16 @@ export default class Replay {
             this.handleNoSubmission();
             window.console.error('Error loading JSON file:', error.message);
         });
+        if (!localStorage.getItem('nopasteevent') || !localStorage.getItem('pasteEvent')) {
+            Str.get_string('nopasteevent', 'tiny_cursive').then(str => {
+                localStorage.setItem('nopasteevent', str);
+                return str;
+            });
+            Str.get_string('pasteEvent', 'tiny_cursive').then(str => {
+                localStorage.setItem('pasteEvent', str);
+                return str;
+            });
+        }
     }
 
     // Process JSON data and normalize timestamps
@@ -82,6 +96,14 @@ export default class Replay {
         }
         if ('payload' in this.logData) {
             this.logData = this.logData.payload;
+        }
+        for (let i = 0; i < this.logData.length; i++) {
+            const event = this.logData[i];
+            if (event.event === 'Paste' && Array.isArray(event.pastedContent)) {
+                for (let j = 0; j < event.pastedContent.length; j++) {
+                    this.pastedEvents.push(event.pastedContent[j]);
+                }
+            }
         }
         if (this.logData.length > 0 && this.logData[0].unixTimestamp) {
             const startTime = this.logData[0].unixTimestamp;
@@ -258,10 +280,10 @@ export default class Replay {
         pasteEventsIcon.classList.add('tiny_cursive_paste_events_icon');
 
         const pasteEventsText = document.createElement('span');
-        pasteEventsText.textContent = 'Paste Events';
+        pasteEventsText.textContent = localStorage.getItem('pasteEvent');
 
         this.pasteEventCount = document.createElement('span');
-        this.pasteEventCount.textContent = `(${this.usercomments.length})`;
+        this.pasteEventCount.textContent = `(${this.pasteTimestamps.length})`;
         this.pasteEventCount.className = 'paste-event-count';
         this.pasteEventCount.style.marginLeft = '2px';
 
@@ -303,6 +325,8 @@ export default class Replay {
     identifyPasteEvents() {
         this.pasteTimestamps = [];
         let controlPressed = false;
+        /* eslint-disable no-unused-vars */
+        let shiftPressed = false;
         let pasteCount = 0;
 
         for (let i = 0; i < this.logData.length; i++) {
@@ -310,19 +334,25 @@ export default class Replay {
             if (event.event?.toLowerCase() === 'keydown') {
                 if (event.key === 'Control') {
                     controlPressed = true;
-                } else if (event.key === 'v' && controlPressed) {
-                    const timestamp = event.normalizedTime || 0;
-                    this.pasteTimestamps.push({
-                        index: pasteCount,
-                        time: timestamp,
-                        formattedTime: this.formatTime(timestamp),
-                        pastedText: this.usercomments[pasteCount] || '',
-                        timestamp
-                    });
+                } else if (event.key === 'Shift') {
+                    shiftPressed = true;
+                } else if ((event.key === 'v' || event.key === 'V') && controlPressed) {
+                    if (this.pastedEvents[pasteCount]) {
+                        const timestamp = event.normalizedTime || 0;
+                        this.pasteTimestamps.push({
+                            index: pasteCount,
+                            time: timestamp,
+                            formattedTime: this.formatTime(timestamp),
+                            pastedText: this.pastedEvents[pasteCount],
+                            timestamp
+                        });
+                    }
                     pasteCount++;
                     controlPressed = false;
+                    shiftPressed = false;
                 } else {
                     controlPressed = false;
+                    shiftPressed = false;
                 }
             }
         }
@@ -363,7 +393,7 @@ export default class Replay {
         if (!this.pasteTimestamps.length) {
             const noEventsMessage = document.createElement('div');
             noEventsMessage.className = 'no-paste-events-message p-3';
-            noEventsMessage.textContent = 'No paste events detected for this submission.';
+            noEventsMessage.textContent = localStorage.getItem('nopasteevent');
             panel.appendChild(noEventsMessage);
             return;
         }
@@ -518,6 +548,8 @@ export default class Replay {
             this.highlightedChars = [];
             this.deletedChars = [];
             this.isControlKeyPressed = false;
+            this.currentPasteIndex = 0;
+            this.pastedChars = [];
         }
         if (this.playButton) {
             const pauseSvg = document.createElement('i');
@@ -586,11 +618,34 @@ export default class Replay {
         }
     }
 
+    getLineAndColumn(text, pos) {
+        const before = text.substring(0, pos);
+        const lineIndex = before.split('\n').length - 1;
+        const col = before.length - before.lastIndexOf('\n') - 1;
+        return {lineIndex, col};
+    }
+
     // Handle keydown events (e.g., typing, backspace, Ctrl+V)
     processKeydownEvent(event, text, cursor, highlights, deletions) {
         const key = event.key;
         const charToInsert = this.applyKey(key);
         this.updateModifierStates(key);
+        if ((key === 'v'|| key === 'V') && this.isControlKeyPressed) {
+            if (this.pastedEvents && this.currentPasteIndex < this.pastedEvents.length) {
+                const pastedContent = this.pastedEvents[this.currentPasteIndex];
+                ({text, cursor} = this.handlePasteInsert(pastedContent, text, cursor));
+                this.currentPasteIndex++;
+                this.isControlKeyPressed = false;
+                this.isShiftKeyPressed = false;
+                this.isPasteEvent = false;
+                return {
+                    text,
+                    cursor,
+                    updatedHighlights: highlights,
+                    updatedDeleted: deletions
+                };
+            }
+        }
         if (this.isCtrlBackspace(key, cursor)) {
             ({text, cursor} = this.handleCtrlBackspace(text, cursor, deletions));
         } else if (this.isCtrlDelete(key, cursor, text)) {
@@ -601,6 +656,10 @@ export default class Replay {
             ({text, cursor} = this.handleBackspace(text, cursor, deletions));
         } else if (this.isRegularDelete(key, cursor, text)) {
             ({text} = this.handleDelete(text, cursor, deletions));
+        } else if (this.isArrowUp(key)) {
+            cursor = this.handleArrowUp(text, cursor);
+        } else if (this.isArrowDown(key)) {
+            cursor = this.handleArrowDown(text, cursor);
         } else if (this.isRegularArrowMove(key)) {
             cursor = this.handleArrowMove(key, text, cursor);
         } else if (charToInsert && charToInsert.length > 0) {
@@ -614,15 +673,51 @@ export default class Replay {
         };
     }
 
+    // Handle Paste events to highlight pasted text
+    handlePasteInsert(pastedContent, text, cursor) {
+        const insertText = pastedContent || '';
+        text = text.substring(0, cursor) + insertText + text.substring(cursor);
+
+        // Mark characters as pasted for bold styling
+        if (insertText.trim() !== '') {
+            for (let i = 0; i < insertText.length; i++) {
+                if (!this.pastedChars) {
+                    this.pastedChars = [];
+                }
+                this.pastedChars.push({
+                    index: cursor + i,
+                    chars: insertText[i]
+                });
+            }
+        }
+
+        return {text, cursor: cursor + insertText.length};
+    }
+
+    // Adjusts pasted chars indices after deletion to maintain styling for pasted text
+    shiftPastedCharsIndices(startIndex, numDeleted) {
+        this.pastedChars = this.pastedChars.map(p => {
+            if (p.index >= startIndex + numDeleted) {
+                return {...p, index: p.index - numDeleted};
+            } else if (p.index >= startIndex && p.index < startIndex + numDeleted) {
+                // Remove pasted characters that were deleted
+                return null;
+            }
+            return p;
+        }).filter(p => p !== null);
+    }
+
     // Update state for modifier keys (Control, paste events)
     updateModifierStates(key) {
         if (key === 'Control') {
             this.isControlKeyPressed = true;
-        } else if (key === 'v' && this.isControlKeyPressed) {
+        } else if (key === 'Shift') {
+            this.isShiftKeyPressed = true;
+        } else if ((key === 'v' || key === 'V') && this.isControlKeyPressed) {
             this.isPasteEvent = true;
-            this.isControlKeyPressed = false;
         } else if (!['Control', 'Backspace', 'Delete', 'ArrowLeft', 'ArrowRight'].includes(key)) {
             this.isControlKeyPressed = false;
+            this.isShiftKeyPressed = false;
             this.isPasteEvent = false;
         }
     }
@@ -651,6 +746,14 @@ export default class Replay {
         return !this.isControlKeyPressed && (key === 'ArrowLeft' || key === 'ArrowRight');
     }
 
+    isArrowUp(key) {
+        return key === 'ArrowUp';
+    }
+
+    isArrowDown(key) {
+        return key === 'ArrowDown';
+    }
+
     handleCtrlArrowMove(key, text, cursor) {
         return key === 'ArrowLeft'
             ? this.findPreviousWordBoundary(text, cursor)
@@ -664,6 +767,7 @@ export default class Replay {
             time: this.currentTime,
             expiresAt: this.currentTime + 2000
         });
+        this.shiftPastedCharsIndices(cursor - 1, 1);
         return {
             text: text.substring(0, cursor - 1) + text.substring(cursor),
             cursor: cursor - 1
@@ -677,6 +781,7 @@ export default class Replay {
             time: this.currentTime,
             expiresAt: this.currentTime + 2000
         });
+        this.shiftPastedCharsIndices(cursor, 1);
         return {
             text: text.substring(0, cursor) + text.substring(cursor + 1),
             cursor
@@ -691,6 +796,12 @@ export default class Replay {
 
     handleCharacterInsert(charToInsert, text, cursor, highlights) {
         text = text.substring(0, cursor) + charToInsert + text.substring(cursor);
+        // Shift pasted chars indices after the insertion point
+        if (this.pastedChars) {
+            this.pastedChars = this.pastedChars.map(p => {
+                return p.index >= cursor ? {...p, index: p.index + 1} : p;
+            });
+        }
         if (charToInsert.trim() !== '') {
             highlights.push({
                 index: cursor,
@@ -713,10 +824,35 @@ export default class Replay {
                 expiresAt: this.currentTime + 2000
             });
         }
+        this.shiftPastedCharsIndices(cursor, wordToDelete.length);
         return {
             text: text.substring(0, cursor) + text.substring(wordEnd),
             cursor
         };
+    }
+
+    handleArrowUp(text, cursor) {
+        const lines = text.split('\n');
+        const {lineIndex, col} = this.getLineAndColumn(text, cursor);
+        if (lineIndex > 0) {
+            const prevLine = lines[lineIndex - 1];
+            cursor = lines.slice(0, lineIndex - 1).join('\n').length + 1 + Math.min(col, prevLine.length);
+        } else {
+            cursor = 0;
+        }
+        return cursor;
+    }
+
+    handleArrowDown(text, cursor) {
+        const lines = text.split('\n');
+        const {lineIndex, col} = this.getLineAndColumn(text, cursor);
+        if (lineIndex < lines.length - 1) {
+            const nextLine = lines[lineIndex + 1];
+            cursor = lines.slice(0, lineIndex + 1).join('\n').length + 1 + Math.min(col, nextLine.length);
+        } else {
+            cursor = text.length;
+        }
+        return cursor;
     }
 
     handleCtrlBackspace(text, cursor, deletions) {
@@ -736,6 +872,7 @@ export default class Replay {
                 expiresAt: this.currentTime + 2000
             });
         }
+        this.shiftPastedCharsIndices(wordStart, wordToDelete.length);
         return {text: text.substring(0, wordStart) + text.substring(cursor), cursor: wordStart};
     }
 
@@ -807,11 +944,13 @@ export default class Replay {
         this.deletedChars = [];
         this.isControlKeyPressed = false;
         this.isPasteEvent = false;
-
+        this.pastedChars = []; // Reset pasted characters tracking
+        this.currentPasteIndex = 0;
         let text = '';
         let cursor = 0;
         let highlights = [];
         let deletions = [];
+        let pasteIndex = 0;
 
         for (let i = 0; i < this.logData.length; i++) {
             const event = this.logData[i];
@@ -823,12 +962,17 @@ export default class Replay {
                 cursor = Math.max(0, Math.min(event.rePosition, text.length));
             }
             if (event.event?.toLowerCase() === 'keydown') {
+                this.currentPasteIndex = pasteIndex;
+                if ((event.key === 'v' || event.key === 'V') && this.isControlKeyPressed) {
+                    pasteIndex++;
+                }
                 ({text, cursor, updatedHighlights: highlights, updatedDeleted: deletions} =
                     this.processKeydownEvent(event, text, cursor, highlights, deletions));
             }
             this.currentEventIndex = i + 1;
         }
 
+        this.currentPasteIndex = pasteIndex;
         this.text = text;
         this.cursorPosition = cursor;
         this.highlightedChars = highlights.filter(h => !h.expiresAt || h.expiresAt > targetTime);
@@ -847,6 +991,7 @@ export default class Replay {
         let html = '';
         const highlightMap = {};
         const deletionMap = {};
+        const pastedMap = {};
         const currentTime = this.currentTime;
 
         highlights.forEach(h => {
@@ -865,6 +1010,15 @@ export default class Replay {
             deletionMap[d.index] = {chars: d.chars, opacity};
         });
 
+        // Process pasted characters for bold styling
+        if (this.pastedChars) {
+            this.pastedChars.forEach(p => {
+                if (p.index < text.length) {
+                    pastedMap[p.index] = true;
+                }
+            });
+        }
+
         // Find if we have out-of-bounds deletions (from Control+Backspace)
         const outOfRangeDeletions = deletions.filter(d => d.index >= text.length);
         const textLines = text.split('\n');
@@ -881,11 +1035,23 @@ export default class Replay {
                     html += `<span class="tiny_cursive-deleted-char" style="opacity:
                         ${deletionMap[currentPosition].opacity};">${deletionMap[currentPosition].chars}</span>`;
                 }
-                if (highlightMap[currentPosition] && char !== ' ') {
+                const isPasted = pastedMap[currentPosition];
+                const isHighlighted = highlightMap[currentPosition] && char !== ' ';
+
+                if (isPasted && isHighlighted) {
+                    // Character is both pasted and recently typed (highlighted) - show bold with highlight
+                    html += `<span class="tiny_cursive-pasted-char tiny_cursive-highlighted-char" style="opacity:
+                        ${highlightMap[currentPosition].opacity};">${char}</span>`;
+                } else if (isPasted) {
+                    // Character is pasted - show in bold
+                    html += `<span class="tiny_cursive-pasted-char">${char === ' ' ? ' ' : this.escapeHtml(char)}</span>`;
+                } else if (isHighlighted) {
+                    // Character is recently typed - show with green highlight
                     html += `<span class="tiny_cursive-highlighted-char" style="opacity:
                         ${highlightMap[currentPosition].opacity};">${char}</span>`;
                 } else {
-                    html += char === ' ' ? ' ' : this.escapeHtml(char);
+                    // Regular character
+                    html += char === ' ' ? ' ' : this.escapeHtml(char);
                 }
                 currentPosition++;
             }

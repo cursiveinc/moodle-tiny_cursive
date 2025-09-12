@@ -75,7 +75,6 @@ class constants {
      */
     public static function is_active() {
         global $PAGE;
-
         $instance = $PAGE->cm->id ?? 0;
         $courseid = $PAGE->cm->course ?? $PAGE->course->id;
         $key      = "CUR$courseid$instance";
@@ -90,5 +89,29 @@ class constants {
         }
 
         return $state ? true : false;
+    }
+
+    /**
+     * Check if a valid API key exists for cursive functionality
+     *
+     * @return bool True if valid API key exists, false otherwise
+     */
+    public static function has_api_key() {
+        global $CFG;
+        require_once($CFG->dirroot . '/lib/editor/tiny/plugins/cursive/lib.php');
+
+        $secret   = get_config('tiny_cursive', 'secretkey');
+        $interval = get_config('tiny_cursive', 'ApiSyncInterval') > time();
+        $apikey   = get_config('tiny_cursive', 'apiKey');
+
+        if (!$interval && !empty($secret) ) {
+            $key = cursive_approve_token();
+            $key = json_decode($key);
+            $apikey = $key->status ?? false;
+            set_config('apiKey', $apikey, 'tiny_cursive');
+            set_config('ApiSyncInterval', strtotime('+5 minutes'), 'tiny_cursive');
+        }
+
+        return boolval($apikey);
     }
 }

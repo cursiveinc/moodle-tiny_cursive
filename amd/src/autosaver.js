@@ -46,6 +46,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
     let assignSubmit = $('#id_submitbutton');
     var syncInterval = interval ? interval * 1000 : 10000; // Default: Sync Every 10s.
     var lastCaretPos = 1;
+    let pastedContents = [];
 
     const postOne = async(methodname, args) => {
         try {
@@ -182,7 +183,8 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
                 clientId: host,
                 personId: userid,
                 position: ed.caretPosition,
-                rePosition: ed.rePosition
+                rePosition: ed.rePosition,
+                pastedContent: pastedContents
             });
             localStorage.setItem(filename, JSON.stringify(data));
         } else {
@@ -196,7 +198,8 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
                 clientId: host,
                 personId: userid,
                 position: ed.caretPosition,
-                rePosition: ed.rePosition
+                rePosition: ed.rePosition,
+                pastedContent: pastedContents
             }];
             localStorage.setItem(filename, JSON.stringify(data));
         }
@@ -211,15 +214,25 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
     });
     editor.on('Paste', async(e) => {
         customTooltip();
-        const pastedContent = (e.clipboardData || e.originalEvent.clipboardData).getData('text').trim();
-
+        const pastedContent = (e.clipboardData || e.originalEvent.clipboardData).getData('text');
         if (!pastedContent) {
             return;
         }
-
         if (isStudent && intervention) {
             if (pastedContent !== localStorage.getItem('lastCopyCutContent')) {
                 getModal(e);
+                pastedContents = [];
+                pastedContents.push(pastedContent);
+                let position = getCaretPosition(true);
+                editor.caretPosition = position.caretPosition;
+                editor.rePosition = position.rePosition;
+                sendKeyEvent("Paste", {
+                ...e,
+                        key: "v",
+                        keyCode: 86,
+                        caretPosition: editor.caretPosition,
+                        rePosition: editor.rePosition
+                    });
             }
         }
     });
@@ -258,7 +271,6 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
     editor.on('SetContent', () => {
         customTooltip();
     });
-
     /**
      * Constructs a mouse event object with caret position and button information
      * @param {Object} editor - The TinyMCE editor instance
@@ -494,25 +506,26 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
         if (document.querySelector(`#${tooltipId}`)) {
             return;
         }
+        if (cursiveIcon) {
+            const tooltipSpan = document.createElement('span');
+            const description = document.createElement('span');
+            const linebreak = document.createElement('br');
+            const tooltipTitle = document.createElement('strong');
 
-        const tooltipSpan = document.createElement('span');
-        const description = document.createElement('span');
-        const linebreak = document.createElement('br');
-        const tooltipTitle = document.createElement('strong');
+            tooltipSpan.style.display = 'none';
+            tooltipTitle.textContent = text.buttonTitle;
+            tooltipTitle.style.fontSize = '16px';
+            tooltipTitle.style.fontWeight = 'bold';
+            description.textContent = text.buttonDes;
+            description.style.fontSize = '14px';
 
-        tooltipSpan.style.display = 'none';
-        tooltipTitle.textContent = text.buttonTitle;
-        tooltipTitle.style.fontSize = '16px';
-        tooltipTitle.style.fontWeight = 'bold';
-        description.textContent = text.buttonDes;
-        description.style.fontSize = '14px';
-
-        tooltipSpan.id = tooltipId;
-        tooltipSpan.classList.add(`shadow`);
-        tooltipSpan.appendChild(tooltipTitle);
-        tooltipSpan.appendChild(linebreak);
-        tooltipSpan.appendChild(description);
-        cursiveIcon.appendChild(tooltipSpan);
+            tooltipSpan.id = tooltipId;
+            tooltipSpan.classList.add(`shadow`);
+            tooltipSpan.appendChild(tooltipTitle);
+            tooltipSpan.appendChild(linebreak);
+            tooltipSpan.appendChild(description);
+            cursiveIcon.appendChild(tooltipSpan);
+        }
     }
 
     /**

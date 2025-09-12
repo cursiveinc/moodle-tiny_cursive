@@ -15,20 +15,22 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Tiny cursive plugin version.
+ * File for handling PDF export functionality in the Cursive plugin
  *
- * @package tiny_cursive
- * @copyright  Cursive Technology, Inc. <info@cursivetechnology.com>
- * @author kuldeep singh & Brainstation23
- *
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    tiny_cursive
+ * @copyright  2025 Cursive Technology, Inc. <info@cursivetechnology.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+require('../../../../../config.php');
 
-defined('MOODLE_INTERNAL') || die();
+require_login();
+require_sesskey();
 
-$plugin->component = 'tiny_cursive';
-$plugin->release = '2.1.0';
-$plugin->version = 2025091000;
-$plugin->requires = 2022041912;
-$plugin->maturity = MATURITY_STABLE;
+$id     = required_param('id', PARAM_INT);
+$file   = required_param('file', PARAM_INT);
+$cmid   = required_param('cmid', PARAM_INT);
+$course = required_param('course', PARAM_INT);
+$qid    = optional_param('qid', 0, PARAM_INT);
+$page   = new \tiny_cursive\page\pdfexport($course, $cmid, $id, $qid, $file);
+$page->download();
