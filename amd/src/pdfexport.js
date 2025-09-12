@@ -48,12 +48,14 @@ export const init = (data) => {
                 window.history.back();
             });
             return modal;
+        }).catch(error => {
+            window.console.error("Failed create modal:", error);
         });
 
         return;
     }
 
-    $(function(){
+    $(function() {
 
         let option = {
                     margin:       [10, 6, 10, 6],

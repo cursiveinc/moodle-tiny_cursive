@@ -77,10 +77,14 @@ export default class Replay {
             Str.get_string('nopasteevent', 'tiny_cursive').then(str => {
                 localStorage.setItem('nopasteevent', str);
                 return str;
+            }).catch(error => {
+                window.console.error("Failed to get string:", error);
             });
             Str.get_string('pasteEvent', 'tiny_cursive').then(str => {
                 localStorage.setItem('pasteEvent', str);
                 return str;
+            }).catch(error => {
+                window.console.error("Failed to get string:", error);
             });
         }
     }
@@ -630,7 +634,7 @@ export default class Replay {
         const key = event.key;
         const charToInsert = this.applyKey(key);
         this.updateModifierStates(key);
-        if ((key === 'v'|| key === 'V') && this.isControlKeyPressed) {
+        if ((key === 'v' || key === 'V') && this.isControlKeyPressed) {
             if (this.pastedEvents && this.currentPasteIndex < this.pastedEvents.length) {
                 const pastedContent = this.pastedEvents[this.currentPasteIndex];
                 ({text, cursor} = this.handlePasteInsert(pastedContent, text, cursor));
@@ -1030,29 +1034,7 @@ export default class Replay {
                 if (currentPosition === cursorPosition) {
                     html += '<span class="tiny_cursive-cursor"></span>';
                 }
-                const char = line[i];
-                if (deletionMap[currentPosition]) {
-                    html += `<span class="tiny_cursive-deleted-char" style="opacity:
-                        ${deletionMap[currentPosition].opacity};">${deletionMap[currentPosition].chars}</span>`;
-                }
-                const isPasted = pastedMap[currentPosition];
-                const isHighlighted = highlightMap[currentPosition] && char !== ' ';
-
-                if (isPasted && isHighlighted) {
-                    // Character is both pasted and recently typed (highlighted) - show bold with highlight
-                    html += `<span class="tiny_cursive-pasted-char tiny_cursive-highlighted-char" style="opacity:
-                        ${highlightMap[currentPosition].opacity};">${char}</span>`;
-                } else if (isPasted) {
-                    // Character is pasted - show in bold
-                    html += `<span class="tiny_cursive-pasted-char">${char === ' ' ? ' ' : this.escapeHtml(char)}</span>`;
-                } else if (isHighlighted) {
-                    // Character is recently typed - show with green highlight
-                    html += `<span class="tiny_cursive-highlighted-char" style="opacity:
-                        ${highlightMap[currentPosition].opacity};">${char}</span>`;
-                } else {
-                    // Regular character
-                    html += char === ' ' ? ' ' : this.escapeHtml(char);
-                }
+                html += this.renderChar(line[i], currentPosition);
                 currentPosition++;
             }
             if (currentPosition === cursorPosition) {
@@ -1090,6 +1072,38 @@ export default class Replay {
             this.outputElement.scrollTop = this.outputElement.scrollHeight;
         }
     }
+
+    renderChar(char, currentPosition) {
+        const highlight = this.highlightMap[currentPosition];
+        const deleted = this.deletionMap[currentPosition];
+        const isPasted = this.pastedMap[currentPosition];
+
+        if (deleted) {
+            return `<span class="tiny_cursive-deleted-char" style="opacity:${deleted.opacity};">${deleted.chars}</span>`;
+        }
+
+        let classes = [];
+        let style = '';
+        let content = this.escapeHtml(char);
+
+        if (isPasted) {
+            classes.push('tiny_cursive-pasted-char');
+        }
+        if (highlight && char !== ' ') {
+            classes.push('tiny_cursive-highlighted-char');
+            style = `style="opacity:${highlight.opacity};"`;
+        }
+
+        if (char === ' ') {
+            content = ' ';
+        }
+
+        if (classes.length > 0) {
+            return `<span class="${classes.join(' ')}" ${style}>${content}</span>`;
+        }
+        return content;
+    }
+
 
     // Check if cursor is below visible viewport
     isCursorBelowViewport() {

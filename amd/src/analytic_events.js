@@ -35,6 +35,8 @@ export default class AnalyticEvents {
         getString('notenoughtinfo', 'tiny_cursive').then(str => {
             localStorage.setItem('notenoughtinfo', str);
             return str;
+        }).catch(error => {
+            window.console.error("Failed to get string:", error);
         });
     }
 
