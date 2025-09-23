@@ -24,19 +24,25 @@
  */
 
 import myModal from "./analytic_modal";
-import {call as getContent} from "core/ajax";
-import {get_string as getString} from 'core/str';
-import {get_strings as getStrings} from 'core/str';
+import { call as getContent } from "core/ajax";
+import { get_string as getString } from 'core/str';
+import { get_strings as getStrings } from 'core/str';
 
 export default class AnalyticEvents {
 
-    createModal(userid, context, questionid = '', authIcon) {
+    constructor() {
+        getString('notenoughtinfo', 'tiny_cursive').then(str => {
+            localStorage.setItem('notenoughtinfo', str);
+            return str;
+        });
+    }
+
+    createModal(userid, context, questionid = '', replayInstances = null, authIcon) {
         const element = document.getElementById('analytics' + userid + questionid);
         if (element) {
-            element.addEventListener('click', function(e) {
+            element.addEventListener('click', function (e) {
                 e.preventDefault();
 
-                // Create Moodle modal
                 myModal.create({ templateContext: context }).then(modal => {
                     const content = document.querySelector('#content' + userid +
                         ' .tiny_cursive_table tbody tr:first-child td:nth-child(2)');
@@ -44,6 +50,46 @@ export default class AnalyticEvents {
                         content.innerHTML = authIcon.outerHTML;
                     }
                     modal.show();
+
+                    const moreBtn = document.querySelector('body #more' + userid + questionid);
+
+                    if (moreBtn) {
+                        document
+                            .querySelectorAll('.tiny_cursive-nav-tab .active')
+                            .forEach(el => el.classList.remove('active'));
+
+                        const analyticBtn = document.getElementById('analytic' + userid + questionid);
+                        const diffBtn = document.getElementById('diff' + userid + questionid);
+
+                        if (analyticBtn) {
+                            analyticBtn.disabled = true;
+                            analyticBtn.style.backgroundColor = 'rgba(168, 168, 168, 0.133)';
+                            analyticBtn.style.cursor = 'not-allowed';
+                        }
+
+                        if (diffBtn) {
+                            diffBtn.disabled = true;
+                            diffBtn.style.backgroundColor = 'rgba(168, 168, 168, 0.133)';
+                            diffBtn.style.cursor = 'not-allowed';
+                        }
+
+                        moreBtn.addEventListener('click', function () {
+                            document
+                                .querySelectorAll('.tiny_cursive-nav-tab .active')
+                                .forEach(el => el.classList.remove('active'));
+
+                            this.classList.add('active');
+
+                            const repBtn = document.getElementById('rep' + userid + questionid);
+                            if (repBtn) {
+                                repBtn.disabled = false;
+                            }
+                            if (replayInstances && replayInstances[userid]) {
+                                replayInstances[userid].stopReplay();
+                            }
+                        });
+                    }
+
                 }).catch(error => {
                     window.console.error("Failed to create modal:", error);
                 });
@@ -52,18 +98,32 @@ export default class AnalyticEvents {
     }
 
     analytics(userid, templates, context, questionid = '', replayInstances = null, authIcon) {
-        document.body.addEventListener('click', function(e) {
+        document.body.addEventListener('click', function (e) {
             if (e.target && e.target.id === 'analytic' + userid + questionid) {
+                e.preventDefault();
 
-                const repElement = document.getElementById('rep' + userid + questionid);
-                if (repElement.getAttribute('disabled') === 'true') {
-                    repElement.setAttribute('disabled', 'false');
+                const repBtn = document.getElementById('rep' + userid + questionid);
+                if (repBtn) {
+                    repBtn.disabled = false;
                 }
 
-                e.preventDefault();
+                const qualityBtn = document.getElementById('quality' + userid + questionid);
+                if (qualityBtn) {
+                    qualityBtn.disabled = false;
+                }
 
                 const content = document.getElementById('content' + userid);
                 if (content) {
+                    content.setAttribute('data-label', 'analytics');
+                    content.classList.remove('tiny_cursive_outputElement');
+                    content.classList.add('tiny_cursive');
+                    content.setAttribute('data-label', 'analytics');
+
+                    const player = document.getElementById('player_' + userid + questionid);
+                    if (player) {
+                        player.style.display = 'none';
+                    }
+
                     content.innerHTML = '';
                     const loaderDiv = document.createElement('div');
                     loaderDiv.className = 'd-flex justify-content-center my-5';
@@ -80,17 +140,20 @@ export default class AnalyticEvents {
                 document.querySelectorAll('.tiny_cursive-nav-tab .active').forEach(el => el.classList.remove('active'));
                 e.target.classList.add('active');
 
-                templates.render('tiny_cursive/analytics_table', context).then(function(html) {
+                templates.render('tiny_cursive/analytics_table', context).then(function (html) {
                     const content = document.getElementById('content' + userid);
                     if (content) {
                         content.innerHTML = html;
                     }
-                    const firstCell = document.querySelector('#content' + userid +
-                        ' .tiny_cursive_table tbody tr:first-child td:nth-child(2)');
+                    const table = document.querySelector('#content' + userid + ' .tiny_cursive_table');
+                    const firstRow = table.querySelector('tbody tr:first-child');
+                    const firstCell = firstRow.querySelector('td:nth-child(2)');
+
                     if (firstCell) {
                         firstCell.innerHTML = authIcon.outerHTML;
                     }
-                }).catch(function(error) {
+                    return true;
+                }).catch(function (error) {
                     window.console.error("Failed to render template:", error);
                 });
             }
@@ -106,18 +169,27 @@ export default class AnalyticEvents {
             return true;
         }).catch(error => window.console.log(error));
 
-        document.body.addEventListener('click', function(e) {
+        document.body.addEventListener('click', function (e) {
             if (e.target && e.target.id === 'diff' + userid + questionid) {
-
-                const repElement = document.getElementById('rep' + userid + questionid);
-                if (repElement.getAttribute('disabled') === 'true') {
-                    repElement.setAttribute('disabled', 'false');
-                }
-
                 e.preventDefault();
 
+                // Enable rep and quality elements
+                const repElement = document.getElementById('rep' + userid + questionid);
+                if (repElement) {
+                    repElement.disabled = false;
+                }
+
+                const qualityElement = document.getElementById('quality' + userid + questionid);
+                if (qualityElement) {
+                    qualityElement.disabled = false;
+                }
+
+                // Update content element attributes and classes
                 const content = document.getElementById('content' + userid);
                 if (content) {
+                    content.setAttribute('data-label', 'diff');
+                    content.classList.remove('tiny_cursive_outputElement');
+                    content.classList.add('tiny_cursive');
                     content.innerHTML = '';
                     const loaderDiv = document.createElement('div');
                     loaderDiv.className = 'd-flex justify-content-center my-5';
@@ -127,60 +199,72 @@ export default class AnalyticEvents {
                     content.appendChild(loaderDiv);
                 }
 
+                // Hide player element
+                const player = document.getElementById('player_' + userid + questionid);
+                if (player) {
+                    player.style.display = 'none';
+                }
+
+                // Update active tab
                 document.querySelectorAll('.tiny_cursive-nav-tab .active').forEach(el => el.classList.remove('active'));
                 e.target.classList.add('active');
 
+                // Stop replay if applicable
                 if (replayInstances && replayInstances[userid]) {
                     replayInstances[userid].stopReplay();
                 }
 
+                // Check for missing fileid
                 if (!fileid) {
-                    const content = document.getElementById('content' + userid);
                     if (content) {
-                        content.innerHTML = nodata.outerHTML;
+                        content.innerHTML = '';
+                        content.appendChild(nodata);
                     }
-
-                    // Throw error when file ID is missing or no diff content, not visible in ui.
                     throw new Error('Missing file id or Difference Content not received yet');
                 }
 
+                // Fetch content
                 getContent([{
                     methodname: 'cursive_get_writing_differences',
                     args: { fileid: fileid },
-                }])[0].done(response => {
+                }])[0].then(response => {
                     let responsedata = JSON.parse(response.data);
                     if (responsedata) {
                         let submittedText = atob(responsedata.submitted_text);
 
-                        // Fetch the dynamic strings
+                        // Fetch dynamic strings
                         getStrings([
-                            {key: 'original_text', component: 'tiny_cursive'},
-                            {key: 'editspastesai', component: 'tiny_cursive'}
-                        ]).done(strings => {
+                            { key: 'original_text', component: 'tiny_cursive' },
+                            { key: 'editspastesai', component: 'tiny_cursive' }
+                        ]).then(strings => {
                             const originalTextString = strings[0];
                             const editsPastesAIString = strings[1];
 
+                            // Create comment box
                             const commentBox = document.createElement('div');
                             commentBox.className = 'p-2 border rounded mb-2';
 
+                            // Paste count
                             const pasteCountDiv = document.createElement('div');
                             getString('pastecount', 'tiny_cursive').then(str => {
-                                pasteCountDiv.innerHTML = ('<div><strong>' + str +
-                                    ' :</strong> ' + responsedata.commentscount + '</div>');
+                                pasteCountDiv.innerHTML = `<div><strong>${str} :</strong> ${responsedata.commentscount}</div>`;
                                 return true;
                             }).catch(error => window.console.log(error));
 
+                            // Comments header
                             const commentsDiv = document.createElement('div');
+                            commentsDiv.className = 'border-bottom';
                             getString('comments', 'tiny_cursive').then(str => {
-                                commentsDiv.innerHTML = ('<strong>' + str + '</strong>');
+                                commentsDiv.innerHTML = `<strong>${str}</strong>`;
                                 return true;
                             }).catch(error => window.console.error(error));
 
+                            // Comments list
                             const commentsList = document.createElement('div');
-
                             const comments = responsedata.comments;
                             for (let index in comments) {
                                 const commentDiv = document.createElement('div');
+                                commentDiv.style.cssText = 'word-wrap: break-word; word-break: break-word';
                                 commentDiv.className = 'shadow-sm p-1 my-1';
                                 commentDiv.textContent = comments[index].usercomment;
                                 commentsList.appendChild(commentDiv);
@@ -190,11 +274,11 @@ export default class AnalyticEvents {
                             commentBox.appendChild(commentsDiv);
                             commentBox.appendChild(commentsList);
 
-
+                            // Create legend
                             const legend = document.createElement('div');
                             legend.className = 'd-flex p-2 border rounded mb-2';
 
-                            // Create the first legend item
+                            // First legend item
                             const attributedItem = document.createElement('div');
                             attributedItem.className = 'tiny_cursive-legend-item';
                             const attributedBox = document.createElement('div');
@@ -204,7 +288,7 @@ export default class AnalyticEvents {
                             attributedItem.appendChild(attributedBox);
                             attributedItem.appendChild(attributedText);
 
-                            // Create the second legend item
+                            // Second legend item
                             const unattributedItem = document.createElement('div');
                             unattributedItem.className = 'tiny_cursive-legend-item';
                             const unattributedBox = document.createElement('div');
@@ -214,41 +298,44 @@ export default class AnalyticEvents {
                             unattributedItem.appendChild(unattributedBox);
                             unattributedItem.appendChild(unattributedText);
 
-                            // Append the legend items to the legend container
                             legend.appendChild(attributedItem);
                             legend.appendChild(unattributedItem);
 
-                            let contents = document.createElement('div');
+                            // Create content block
+                            const contents = document.createElement('div');
                             contents.className = 'tiny_cursive-comparison-content';
-                            let textBlock2 = document.createElement('div');
+                            const textBlock2 = document.createElement('div');
                             textBlock2.className = 'tiny_cursive-text-block';
-                            textBlock2.innerHTML = `<div id="tiny_cursive-reconstructed_text">${JSON.parse(submittedText)}</div>`;
+                            const reconstructedText = document.createElement('div');
+                            reconstructedText.id = 'tiny_cursive-reconstructed_text';
+                            reconstructedText.innerHTML = JSON.parse(submittedText);
+                            textBlock2.appendChild(reconstructedText);
 
                             contents.appendChild(commentBox);
                             contents.appendChild(legend);
                             contents.appendChild(textBlock2);
 
-                            const content = document.getElementById('content' + userid);
                             if (content) {
-                                content.innerHTML = contents.outerHTML;
+                                content.innerHTML = '';
+                                content.appendChild(contents);
                             }
                         }).catch(error => {
                             window.console.error("Failed to load language strings:", error);
-                            const content = document.getElementById('content' + userid);
                             if (content) {
-                                content.innerHTML = nodata.outerHTML;
+                                content.innerHTML = '';
+                                content.appendChild(nodata);
                             }
                         });
                     } else {
-                        const content = document.getElementById('content' + userid);
                         if (content) {
-                            content.innerHTML = nodata.outerHTML;
+                            content.innerHTML = '';
+                            content.appendChild(nodata);
                         }
                     }
                 }).catch(error => {
-                    const content = document.getElementById('content' + userid);
                     if (content) {
-                        content.innerHTML = nodata.outerHTML;
+                        content.innerHTML = '';
+                        content.appendChild(nodata);
                     }
                     throw new Error('Error loading JSON file: ' + error.message);
                 });
@@ -257,45 +344,67 @@ export default class AnalyticEvents {
     }
 
     replyWriting(userid, filepath, questionid = '', replayInstances = null) {
-        document.body.addEventListener('click', function(e) {
-            if (e.target && e.target.id === 'rep' + userid + questionid) {
-                let replyBtn = document.getElementById('rep' + userid + questionid);
+        document.body.addEventListener('click', function (e) {
+          if (e.target && e.target.id === 'rep' + userid + questionid) {
+            e.preventDefault();
 
-                if (replyBtn.getAttribute('disabled') == 'true') {
-                    return;
-                }
-                replyBtn.setAttribute('disabled', 'true');
+            const replyBtn = document.getElementById('rep' + userid + questionid);
+            const qualityBtn = document.getElementById('quality' + userid + questionid);
+            const content = document.getElementById('content' + userid);
+            const player = document.getElementById('player_' + userid + questionid);
+            const replayControls = document.getElementById('replayControls_' + userid + questionid);
 
-                e.preventDefault();
-
-                const content = document.getElementById('content' + userid);
-                if (content) {
-                    content.innerHTML = '';
-                    const loaderDiv = document.createElement('div');
-                    loaderDiv.className = 'd-flex justify-content-center my-5';
-                    const loader = document.createElement('div');
-                    loader.className = 'tiny_cursive-loader';
-                    loaderDiv.appendChild(loader);
-                    content.appendChild(loaderDiv);
-                }
-
-                document.querySelectorAll('.tiny_cursive-nav-tab .active').forEach(el => el.classList.remove('active'));
-                e.target.classList.add('active');
-
-                if (replayInstances && replayInstances[userid]) {
-                    replayInstances[userid].stopReplay();
-                }
-
-                if (questionid) {
-                     // eslint-disable-next-line
-                    video_playback(userid, filepath, questionid);
-                } else {
-                     // eslint-disable-next-line
-                    video_playback(userid, filepath);
-                }
+            if (filepath) {
+              if (replayControls) {
+                replayControls.classList.remove('d-none');
+              }
+              if (content) {
+                content.classList.add('tiny_cursive_outputElement');
+              }
             }
+
+            if (replyBtn) {
+                replyBtn.disabled = true;
+            }
+            if (qualityBtn) {
+                qualityBtn.disabled = false;
+            }
+
+            if (content) {
+                content.dataset.label = 'replay';
+            }
+            if (player) {
+              player.style.display = 'block';
+              player.style.paddingRight = '8px';
+            }
+
+            if (content) {
+              content.innerHTML = `
+                <div class="d-flex justify-content-center my-5">
+                  <div class="tiny_cursive-loader"></div>
+                </div>`;
+            }
+
+            document
+              .querySelectorAll('.tiny_cursive-nav-tab .active')
+              .forEach(el => el.classList.remove('active'));
+            e.target.classList.add('active');
+
+            if (replayInstances && replayInstances[userid]) {
+              replayInstances[userid].stopReplay();
+            }
+
+            if (questionid) {
+              // eslint-disable-next-line
+              video_playback(userid, filepath, questionid);
+            } else {
+              // eslint-disable-next-line
+              video_playback(userid, filepath);
+            }
+          }
         });
-    }
+      }
+
 
     formatedTime(data) {
         if (data.total_time_seconds) {

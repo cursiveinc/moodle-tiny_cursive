@@ -61,14 +61,14 @@ define([
     };
 
     var usersTable = {
-        init: function(score_setting, showcomment) {
+        init: function(score_setting, showcomment, hasApiKey) {
             str.get_strings([{key: "field_require", component: "tiny_cursive"}])
                 .done(function() {
-                    usersTable.appendSubmissionDetail(score_setting, showcomment);
+                    usersTable.appendSubmissionDetail(score_setting, hasApiKey);
                 });
         },
 
-        appendSubmissionDetail: function(score_setting, showcomment) {
+        appendSubmissionDetail: function(score_setting, hasApiKey) {
             let sub_url = window.location.href;
             let parm = new URL(sub_url);
             let attempt_id = parm.searchParams.get('attempt');
@@ -108,26 +108,16 @@ define([
                             + data.data.questionid + '"]');
                         if (content) {
                             let qtextElement = content.parentNode.parentElement.nextSibling.querySelector('.qtext');
-
-                            if (data.usercomment !== 'comments' && parseInt(showcomment)) {
-                                if (qtextElement) {
-                                    let referencesDiv = document.createElement('div');
-                                    referencesDiv.classList.add('mb-2');
-                                    qtextElement.append(referencesDiv);
-
-                                    let tt = '<h4>References</h4><div class="tiny_cursive-quiz-references rounded">';
-                                    data.usercomment.forEach(function(element) {
-                                        tt += '<div class="text-primary p-3" style="border-bottom:1px solid rgba(0, 0, 0, 0.1)">'
-                                            + element.usercomment + '</div>';
-                                    });
-                                    qtextElement.innerHTML += tt + '</div></div>';
-                                }
-                            }
-
                             let filepath = data.data.filename || '';
                             let analyticButtonDiv = document.createElement('div');
                             analyticButtonDiv.classList.add('text-center', 'mt-2');
-                            analyticButtonDiv.appendChild(analyticButton(userid, questionid));
+                            const button = analyticButton(
+                                hasApiKey ? data.data.effort_ratio : "",
+                                userid,
+                                questionid
+                            );
+
+                            analyticButtonDiv.appendChild(button);
 
                             if (qtextElement) {
                                 qtextElement.appendChild(analyticButtonDiv);
@@ -143,7 +133,7 @@ define([
                             };
                             let authIcon = myEvents.authorshipStatus(data.data.first_file, data.data.score, score_setting);
 
-                            myEvents.createModal(userid, context, questionid, authIcon);
+                            myEvents.createModal(userid, context, questionid, replayInstances, authIcon);
                             myEvents.analytics(userid, templates, context, questionid, replayInstances, authIcon);
                             myEvents.checkDiff(userid, data.data.file_id, questionid, replayInstances);
                             myEvents.replyWriting(userid, filepath, questionid, replayInstances);

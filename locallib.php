@@ -373,25 +373,28 @@ function tiny_cursive_create_token_for_user() {
  * @return void
  */
 function tiny_cursive_render_user_table($users, $renderer, $courseid, $page, $limit, $linkurl, $moduleid, $userid) {
-
+    global $OUTPUT;
     // Prepare the URL for the link.
     $url = new moodle_url('/lib/editor/tiny/plugins/cursive/csvexport.php', [
+        'sesskey' => sesskey(),
         'courseid' => $courseid,
         'moduleid' => $moduleid,
         'userid' => $userid,
     ]);
     // Prepare the link text.
-    $linktext = get_string('download_csv', 'tiny_cursive');
-    // Prepare the attributes for the link.
+    $linktext  = get_string('download_csv', 'tiny_cursive');
+    $dwnldicon = $OUTPUT->pix_icon('download', get_string('download', 'tiny_cursive'),
+      'tiny_cursive', ['class' => 'tiny_cursive-analytics-bar-icon']);    // Prepare the attributes for the link.
+
     $attributes = [
         'target' => '_blank',
         'id' => 'export',
         'role' => 'button',
-        'class' => 'btn btn-primary mb-4',
-        'style' => 'margin-right:50px;',
+        'class' => 'btn btn-primary',
+        'style' => 'margin-right:50px; padding: 9px 18px',
     ];
     // Generate the link using html_writer::link.
-    echo html_writer::link($url, $linktext, $attributes);
+    echo html_writer::link($url, $dwnldicon.$linktext, $attributes);
     echo $renderer->timer_report($users, $courseid, $page, $limit, $linkurl);
 }
 
@@ -441,8 +444,7 @@ function tiny_cursive_check_subscriptions() {
             set_config('has_subscription', $result->status, 'tiny_cursive');
             return ['status' => true];
         }
-    } catch (dml_exception $e) {
+    } catch (moodle_exception $e) {
         throw new moodle_exception($e->getMessage());
     }
 }
-

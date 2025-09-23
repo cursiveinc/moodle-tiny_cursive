@@ -26,4 +26,21 @@ const component = 'tiny_cursive';
 export default {
     component,
     pluginName: `${component}/plugin`,
+    iconUrl: M.util.image_url('cursive', 'tiny_cursive'),
+    iconGrayUrl: M.util.image_url('cursive_gray', 'tiny_cursive'),
+    tooltipCss: {
+        display: 'block',
+        position: 'absolute',
+        transform: 'translateX(-100%)',
+        backgroundColor: 'white',
+        color: 'black',
+        border: '1px solid #ccc',
+        marginBottom: '6px',
+        padding: '10px',
+        textAlign: 'justify',
+        minWidth: '200px',
+        borderRadius: '1px',
+        pointerEvents: 'none',
+        zIndex: 10000
+    }
 };

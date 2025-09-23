@@ -28,7 +28,7 @@ import AnalyticEvents from './analytic_events';
 import analyticButton from './analytic_button';
 import Replay from './replay';
 
-export const init = (scoreSetting) => {
+export const init = (scoreSetting, comments, hasApiKey) => {
     const replayInstances = {};
     // eslint-disable-next-line camelcase
     window.video_playback = function(mid, filepath) {
@@ -83,7 +83,7 @@ export const init = (scoreSetting) => {
 
                 const postLinksElement = element.querySelector('.oublog-post-links');
                 if (postLinksElement) {
-                    postLinksElement.append(analyticButton(userid));
+                    postLinksElement.append(analyticButton(hasApiKey ? data.res.effort_ratio : "", userid));
                 }
 
                 const myEvents = new AnalyticEvents();
@@ -92,10 +92,11 @@ export const init = (scoreSetting) => {
                     formattime: myEvents.formatedTime(data.res),
                     page: scoreSetting,
                     userid: userid,
+                    apikey: hasApiKey
                 };
 
                 const authIcon = myEvents.authorshipStatus(data.res.first_file, data.res.score, scoreSetting);
-                myEvents.createModal(userid, context, '', authIcon);
+                myEvents.createModal(userid, context, '', replayInstances, authIcon);
                 myEvents.analytics(userid, templates, context, '', replayInstances, authIcon);
                 myEvents.checkDiff(userid, data.res.file_id, '', replayInstances);
                 myEvents.replyWriting(userid, filepath, '', replayInstances);

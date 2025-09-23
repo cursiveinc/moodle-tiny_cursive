@@ -24,9 +24,10 @@
  */
 
 require(__DIR__ . '/../../../../../config.php');
-require_once($CFG->dirroot . '/mod/quiz/lib.php');
-require_once($CFG->dirroot . '/mod/quiz/locallib.php');
+use tiny_cursive\constants;
+
 require_once(__DIR__ . '/locallib.php');
+require_once(__DIR__ . '/lib.php');
 
 global $CFG, $DB, $PAGE, $OUTPUT;
 require_login(null, false);
@@ -72,7 +73,8 @@ if (!$user) {
     throw new moodle_exception('invaliduser', 'error');
 }
 
-$PAGE->requires->js_call_amd('tiny_cursive/cursive_writing_reports', 'init', []);
+$PAGE->requires->js_call_amd('tiny_cursive/cursive_writing_reports', 'init',
+                 ["", constants::has_api_key(), get_config('tiny_cursive', 'json_download')]);
 
 $PAGE->set_context(context_system::instance());
 $PAGE->set_url($url);

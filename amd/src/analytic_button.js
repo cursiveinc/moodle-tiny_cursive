@@ -23,36 +23,58 @@
  */
 
 define(["core/str"], function(Str) {
-  const analyticButton = (userid, questionid = "") => {
+  const analyticButton = (effort, userid, questionid = "") => {
     const anchor = document.createElement("a");
     anchor.href = "#";
     anchor.id = "analytics" + userid + questionid;
     anchor.classList.add(
       "d-inline-flex",
-      "align-items-center",
-      "text-white",
-      "tiny_cursive-analytics-btn"
+      "justify-content-center",
+      'text-decoration-none'
     );
 
-    const analyticIcon = document.createElement('img');
-    analyticIcon.src = M.util.image_url('analytics', 'tiny_cursive');
+    const button = document.createElement('div');
+    button.className = 'tiny_cursive-analytics-button';
 
-    const icon = document.createElement("i");
-    icon.appendChild(analyticIcon);
-    icon.classList.add("tiny_cursive-analytics-icon");
+    // Left side (icon + label)
+    const left = document.createElement('div');
+    left.className = 'tiny_cursive-analytics-left';
 
-    const textNode = document.createElement("span");
+    const icon = document.createElement('img');
+    icon.src = M.util.image_url('chart-column', 'tiny_cursive');
+    icon.alt = 'Analytics Icon';
+    icon.className = 'tiny_cursive-analytics-bar-icon';
+
+    const label = document.createElement('span');
+    label.className = 'tiny_cursive-analytics-label';
+    label.textContent = 'Analytics';
     Str.get_string("analytics", "tiny_cursive")
       .then((analyticsString) => {
-        textNode.textContent = analyticsString;
-        return true;
+        label.textContent = analyticsString;
+        return analyticsString;
       })
       .catch((error) => {
-        window.console.error(error);
+        window.console.error("Error fetching string:", error);
       });
 
-    anchor.appendChild(icon);
-    anchor.appendChild(textNode);
+    left.appendChild(icon);
+    left.appendChild(label);
+    button.appendChild(left);
+
+    if (effort) {
+      const right = document.createElement('div');
+      right.className = 'tiny_cursive-analytics-right';
+      right.textContent = effort + "%";
+      right.title = "Effort";
+
+      if (effort < 90) {
+        right.style.backgroundColor = '#EAB308';
+      }
+
+      button.appendChild(right);
+    }
+    // Compose full button
+    anchor.appendChild(button);
 
     return anchor;
   };
