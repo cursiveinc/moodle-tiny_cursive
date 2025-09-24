@@ -336,7 +336,7 @@ export default class Replay {
             if (event.event?.toLowerCase() === 'keydown') {
                 if (event.key === 'Control') {
                     controlPressed = true;
-                } else if (event.event === 'Meta') {
+                } else if (event.key === 'Meta') {
                     metaPressed = true;
                 } else if (event.key === 'Shift') {
                     shiftPressed = true;
