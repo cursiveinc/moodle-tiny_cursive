@@ -44,6 +44,7 @@ export default class Replay {
         this.isPasteEvent = false;
         this.isControlKeyPressed = false;
         this.isShiftKeyPressed = false;
+        this.isMetaKeyPressed = false;
         this.text = '';
         this.pastedEvents = [];
         this.currentPasteIndex = 0;
@@ -325,6 +326,7 @@ export default class Replay {
     identifyPasteEvents() {
         this.pasteTimestamps = [];
         let controlPressed = false;
+        let metaPressed = false;
         /* eslint-disable no-unused-vars */
         let shiftPressed = false;
         let pasteCount = 0;
@@ -334,9 +336,11 @@ export default class Replay {
             if (event.event?.toLowerCase() === 'keydown') {
                 if (event.key === 'Control') {
                     controlPressed = true;
+                } else if (event.event === 'Meta') {
+                    metaPressed = true;
                 } else if (event.key === 'Shift') {
                     shiftPressed = true;
-                } else if ((event.key === 'v' || event.key === 'V') && controlPressed) {
+                } else if ((event.key === 'v' || event.key === 'V') && (controlPressed || metaPressed)) {
                     if (this.pastedEvents[pasteCount]) {
                         const timestamp = event.normalizedTime || 0;
                         this.pasteTimestamps.push({
@@ -350,9 +354,11 @@ export default class Replay {
                     pasteCount++;
                     controlPressed = false;
                     shiftPressed = false;
+                    metaPressed = false;
                 } else {
                     controlPressed = false;
                     shiftPressed = false;
+                    metaPressed = false;
                 }
             }
         }
@@ -548,6 +554,7 @@ export default class Replay {
             this.highlightedChars = [];
             this.deletedChars = [];
             this.isControlKeyPressed = false;
+            this.isMetaKeyPressed = false;
             this.currentPasteIndex = 0;
             this.pastedChars = [];
         }
@@ -630,13 +637,14 @@ export default class Replay {
         const key = event.key;
         const charToInsert = this.applyKey(key);
         this.updateModifierStates(key);
-        if ((key === 'v'|| key === 'V') && this.isControlKeyPressed) {
+        if ((key === 'v'|| key === 'V') && (this.isControlKeyPressed || this.isMetaKeyPressed)) {
             if (this.pastedEvents && this.currentPasteIndex < this.pastedEvents.length) {
                 const pastedContent = this.pastedEvents[this.currentPasteIndex];
                 ({text, cursor} = this.handlePasteInsert(pastedContent, text, cursor));
                 this.currentPasteIndex++;
                 this.isControlKeyPressed = false;
                 this.isShiftKeyPressed = false;
+                this.isMetaKeyPressed = false;
                 this.isPasteEvent = false;
                 return {
                     text,
@@ -713,11 +721,14 @@ export default class Replay {
             this.isControlKeyPressed = true;
         } else if (key === 'Shift') {
             this.isShiftKeyPressed = true;
-        } else if ((key === 'v' || key === 'V') && this.isControlKeyPressed) {
+        } else if (key === 'Meta') {
+            this.isMetaKeyPressed = true;
+        } else if ((key === 'v' || key === 'V') && (this.isControlKeyPressed || this.isMetaKeyPressed)) {
             this.isPasteEvent = true;
-        } else if (!['Control', 'Backspace', 'Delete', 'ArrowLeft', 'ArrowRight'].includes(key)) {
+        } else if (!['Control', 'Meta', 'Backspace', 'Delete', 'ArrowLeft', 'ArrowRight'].includes(key)) {
             this.isControlKeyPressed = false;
             this.isShiftKeyPressed = false;
+            this.isMetaKeyPressed = false;
             this.isPasteEvent = false;
         }
     }
@@ -943,6 +954,7 @@ export default class Replay {
         this.highlightedChars = [];
         this.deletedChars = [];
         this.isControlKeyPressed = false;
+        this.isMetaKeyPressed = false;
         this.isPasteEvent = false;
         this.pastedChars = []; // Reset pasted characters tracking
         this.currentPasteIndex = 0;
@@ -963,7 +975,7 @@ export default class Replay {
             }
             if (event.event?.toLowerCase() === 'keydown') {
                 this.currentPasteIndex = pasteIndex;
-                if ((event.key === 'v' || event.key === 'V') && this.isControlKeyPressed) {
+                if ((event.key === 'v' || event.key === 'V') && (this.isControlKeyPressed || this.isMetaKeyPressed)) {
                     pasteIndex++;
                 }
                 ({text, cursor, updatedHighlights: highlights, updatedDeleted: deletions} =
