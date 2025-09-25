@@ -55,7 +55,8 @@ export default class MyModal extends Modal {
         // Remove padding from the modal content.
         root.find('.modal-body').css({
             'padding': '0',
-            'border-radius': '30px'
+            'border-radius': '30px',
+            'overflow': 'hidden',
         });
         root.find('.modal-dialog').css({
             'max-width': '800px',
