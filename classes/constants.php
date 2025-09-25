@@ -114,4 +114,31 @@ class constants {
 
         return boolval($apikey);
     }
+
+
+    /**
+     * Determines if a submission is resubmittable based on upload and analytics data
+     *
+     * @param array|object $data Data containing uploaded, effort_ratio and total_time_seconds fields
+     * @param int $fileid ID of the file record to check upload status
+     * @return bool True if resubmittable, false otherwise
+     */
+    public static function is_resubmitable($data, $fileid) {
+        global $DB;
+
+        if (!self::has_api_key()) {
+            return false;
+        }
+
+        $data = (object) $data;
+
+        $upload = $DB->get_record('tiny_cursive_files', ['id' => $fileid], 'uploaded',  IGNORE_MISSING);
+        $upload = $upload ? intval($upload->uploaded) : 0;
+
+        $effort = intval($data->effort_ratio ?? 0);
+        $analytics = intval($data->total_time_seconds ?? 0);
+
+        return ($upload > 0 && ($effort === 0 || $analytics === 0));
+
+    }
 }
