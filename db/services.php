@@ -237,6 +237,15 @@ $functions = [
         'type' => 'write',
         'ajax' => true,
         'capabilities' => 'tiny/cursive:view',
+    ], 
+    'cursive_get_autosave_content' => [
+        'classname' => 'cursive_json_func_data',
+        'methodname' => 'get_autosave_content',
+        'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
+        'description' => 'resubmit payload data',
+        'type' => 'write',
+        'ajax' => true,
+        'capabilities' => 'tiny/cursive:view',
     ],
 ];
 

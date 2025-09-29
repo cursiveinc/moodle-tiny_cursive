@@ -1681,6 +1681,7 @@ class cursive_json_func_data extends external_api {
             $cm = $DB->get_record('course_modules', ['id' => $params['cmid']]);
             $courseid = $cm->course;
             $userdata["courseId"] = $courseid;
+            $params['courseId'] = $courseid;
 
             // Get course context.
             $context = context_module::instance($params['cmid']);
@@ -1728,6 +1729,11 @@ class cursive_json_func_data extends external_api {
             ]);
         }
         $temparray = [];
+
+        // Auto save function call.
+        $params['questionid'] = $questionid ?? 0;
+        constants::cursive_auto_save($params);
+
         if ($inp) {
 
             $temparray = json_decode($inp->content, true);
@@ -2363,6 +2369,70 @@ class cursive_json_func_data extends external_api {
      */
     public static function resubmit_payload_data_returns() {
         return new external_value(PARAM_BOOL, 'resubmit message');
+    }
+
+    public static function get_autosave_content_parameters() {
+        return new external_function_parameters([
+                'id' => new external_value(PARAM_INT, 'id', VALUE_DEFAULT, null),
+                'modulename' => new external_value(PARAM_TEXT, 'modulename', VALUE_DEFAULT, ''),
+                'cmid' => new external_value(PARAM_INT, 'cmid', VALUE_DEFAULT, null),
+                'questionid' => new external_value(PARAM_INT, 'questionid', VALUE_DEFAULT, null),
+                'userid' => new external_value(PARAM_INT, 'userid', VALUE_DEFAULT, null),
+            ]);
+    }
+
+    public static function get_autosave_content($id, $modulename, $cmid, $questionid = 0, $userid = 0) {
+        global $DB, $USER;
+
+        $params = self::validate_parameters(
+            self::get_autosave_content_parameters(),
+            [
+                'id' => $id,
+                'modulename' => $modulename,
+                'cmid' => $cmid,
+                'questionid' => $questionid,
+                'userid' => $userid,
+            ],
+        );
+
+        if (empty($params['userid'])) {
+            $params['userid'] = $USER->id;
+        }
+
+        if (empty($params['questionid'])) {
+            $params['questionid'] = 0;
+        }
+
+        $context = context_module::instance($params['cmid']);
+        self::validate_context($context);
+        require_capability("tiny/cursive:writingreport", $context);
+
+        if ($params['questionid']) {
+            $record = $DB->get_records('tiny_cursive_comments', [
+                'cmid' => $params['cmid'],
+                'modulename' => $params['modulename'],
+                'resourceid' => $params['id'],
+                'userid' => $params['userid'],
+                'questionid' => $params['questionid'],
+            ], '','usercomment');
+        } else {
+            $record = $DB->get_records('tiny_cursive_comments', [
+                'cmid' => $params['cmid'],
+                'modulename' => $params['modulename'],
+                'resourceid' => $params['id'],
+                'userid' => $params['userid'],
+            ], '','usercomment');
+        }
+
+        if ($record) {
+            return json_encode(array_values($record));
+        } else {
+            return json_encode([]);
+        }
+    }
+
+    public static function get_autosave_content_returns() {
+        return new external_value(PARAM_TEXT, 'autosave content');
     }
 
 }

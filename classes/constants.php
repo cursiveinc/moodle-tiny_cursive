@@ -141,4 +141,33 @@ class constants {
         return ($upload > 0 && ($effort === 0 || $analytics === 0));
 
     }
+
+    /**
+     * Saves an auto-save record for cursive content
+     * 
+     * @param array $params Parameters containing:
+     *                      - cmid: Course module ID
+     *                      - resourceid: Resource identifier 
+     *                      - courseid: Course ID
+     *                      - original_content: Content to save
+     *                      - questionid: Optional question ID
+     * @return int|bool The new record ID or false on failure
+     */
+    public static function cursive_auto_save($params) {
+        global $DB, $USER;
+        try {
+            $autosave = new \stdClass();
+            $autosave->userid = $USER->id;
+            $autosave->cmid = $params['cmid'];
+            $autosave->modulename = $params['modulename']."_autosave";
+            $autosave->resourceid = $params['resourceId'];
+            $autosave->courseid = $params['courseId'];
+            $autosave->usercomment = $params['originalText'];
+            $autosave->questionid = $params['questionid'];
+            $autosave->timemodified = time();
+            return $DB->insert_record('tiny_cursive_comments', $autosave);
+        } catch (\dml_exception $e) {
+            return false;
+        }
+    }
 }
