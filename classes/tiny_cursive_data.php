@@ -54,7 +54,6 @@ class tiny_cursive_data {
      * @throws \dml_exception
      */
     public static function get_courses_users($params) {
-        global $DB;
 
         $allusers             = new stdClass();
         $allusers->userlist   = [];

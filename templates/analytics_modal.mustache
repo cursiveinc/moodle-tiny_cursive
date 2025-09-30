@@ -306,7 +306,7 @@
         }
 
         function handleResubmit(e) {
-            const originalContent = resubmitBtn.innerHTML;
+
             const toastBody = document.getElementById('cursive-toast-body');
             e.preventDefault();
 
@@ -317,11 +317,12 @@
 
             AJAX.call([{
                     methodname: "cursive_resubmit_payload_data",
+                     // eslint-disable-next-line camelcase
                     args: {file_id: fileid, cmid: cmid}
                 }])[0].done((data) => {
-                    if(data){
+                    if (data) {
                         setTimeout(() =>{
-                            toastBody.innerHTML = "{{#str}}submissionqueued, tiny_cursive{{/str}}"
+                            toastBody.innerHTML = "{{#str}}submissionqueued, tiny_cursive{{/str}}";
                             setTimeout(() => {
                                 hideToast();
                             }, 1000);

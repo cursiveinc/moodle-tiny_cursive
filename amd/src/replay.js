@@ -78,11 +78,11 @@ export default class Replay {
             Str.get_string('nopasteevent', 'tiny_cursive').then(str => {
                 localStorage.setItem('nopasteevent', str);
                 return str;
-            });
+            }).catch(error => window.console.log(error));
             Str.get_string('pasteEvent', 'tiny_cursive').then(str => {
                 localStorage.setItem('pasteEvent', str);
                 return str;
-            });
+            }).catch(error => window.console.log(error));
         }
     }
 
@@ -637,7 +637,7 @@ export default class Replay {
         const key = event.key;
         const charToInsert = this.applyKey(key);
         this.updateModifierStates(key);
-        if ((key === 'v'|| key === 'V') && (this.isControlKeyPressed || this.isMetaKeyPressed)) {
+        if ((key === 'v' || key === 'V') && (this.isControlKeyPressed || this.isMetaKeyPressed)) {
             if (this.pastedEvents && this.currentPasteIndex < this.pastedEvents.length) {
                 const pastedContent = this.pastedEvents[this.currentPasteIndex];
                 ({text, cursor} = this.handlePasteInsert(pastedContent, text, cursor));
@@ -998,7 +998,8 @@ export default class Replay {
         }
     }
 
-    // Update display with text, cursor, highlights and deletions
+    // Update display with text, cursor, highlights and deletions.
+    // eslint-disable-next-line complexity
     updateDisplayText(text, cursorPosition, highlights, deletions) {
         let html = '';
         const highlightMap = {};

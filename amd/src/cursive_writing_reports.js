@@ -206,6 +206,8 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", './anal
                             });
                         }
                         return modal;
+                    }).catch(error => {
+                        window.console.error('failed to open modal', error);
                     });
                 });
 
