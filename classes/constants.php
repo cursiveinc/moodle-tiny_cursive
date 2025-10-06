@@ -15,6 +15,8 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace tiny_cursive;
+
+use context_course;
 /**
  * Class constants
  *
@@ -140,5 +142,31 @@ class constants {
 
         return ($upload > 0 && ($effort === 0 || $analytics === 0));
 
+    }
+
+    /**
+     * Check if the current user is a teacher or admin in the given context
+     *
+     * @param \context $context The context to check roles in
+     * @return bool True if user is teacher/admin, false otherwise
+     */
+    public static function is_teacher_admin($context) {
+
+        global $USER;
+
+        if (is_siteadmin($USER)) {
+                return true;
+        }
+
+        // Get roles for user in given context.
+        $roles = get_user_roles($context, $USER->id, true);
+
+        foreach ($roles as $role) {
+            if (in_array($role->shortname, ['editingteacher', 'teacher', 'coursecreator'])) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
