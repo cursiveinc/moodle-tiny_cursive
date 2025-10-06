@@ -157,14 +157,9 @@ class constants {
         if (is_siteadmin($USER)) {
                 return true;
         }
-
         // Get roles for user in given context.
-        $roles = get_user_roles($context, $USER->id, true);
-
-        foreach ($roles as $role) {
-            if (in_array($role->shortname, ['editingteacher', 'teacher', 'coursecreator'])) {
-                return true;
-            }
+        if (has_capability('tiny/cursive:view', $context, $USER->id, false)) {
+            return true;
         }
 
         return false;
