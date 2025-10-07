@@ -256,34 +256,45 @@ function tiny_cursive_myprofile_navigation(core_user\output\myprofile\tree $tree
 function tiny_cursive_upload_multipart_record($filerecord, $filenamewithfullpath, $wstoken, $answertext) {
     global $CFG;
     require_once($CFG->dirroot . '/lib/filelib.php');
-
     $moodleurl = get_config('tiny_cursive', 'host_url');
-    $result    = '';
-
+    $result = '';
     try {
-        $token      = get_config('tiny_cursive', 'secretkey');
-        $remoteurl  = get_config('tiny_cursive', 'python_server') . "/upload_file";
+        $token = get_config('tiny_cursive', 'secretkey');
+        $remoteurl = get_config('tiny_cursive', 'python_server') . "/upload_file";
         $filetosend = '';
-
         $tempfilepath = tempnam(sys_get_temp_dir(), 'upload');
-
-        $jsoncontent  = json_decode($filerecord->content, true);
-
+        
+        // Check original content
+        echo "Content size: " . strlen($filerecord->content) . " bytes (" . round(strlen($filerecord->content) / 1024, 2) . " KB)\n";
+        
+        $jsoncontent = json_decode($filerecord->content, true);
         if (json_last_error() !== JSON_ERROR_NONE) {
+            echo "DEBUG: JSON decode error - " . json_last_error_msg() . "\n";
             throw new moodle_exception('invalidjson', 'tiny_cursive');
         }
-            file_put_contents($tempfilepath, json_encode($jsoncontent));
-            $filetosend = new CURLFILE($tempfilepath, 'application/json', 'uploaded.json');
-
-            // Ensure the temporary file does not exceed the size limit.
+        
+        file_put_contents($tempfilepath, json_encode($jsoncontent));
+        
+        // Check file
+        echo "DEBUG: File created at: " . $tempfilepath . "\n";
+        echo "DEBUG: File size: " . filesize($tempfilepath) . " bytes (" . round(filesize($tempfilepath) / 1024, 2) . " KB)\n";
+        echo "DEBUG: File exists: " . (file_exists($tempfilepath) ? 'YES' : 'NO') . "\n";
+        echo "DEBUG: File readable: " . (is_readable($tempfilepath) ? 'YES' : 'NO') . "\n";
+        
+        $filetosend = new CURLFILE($tempfilepath, 'application/json', 'uploaded.json');
+        
+        // Ensure the temporary file does not exceed the size limit.
         if (filesize($tempfilepath) > 16 * 1024 * 1024) {
             unlink($tempfilepath);
             throw new moodle_exception('filesizelimit', 'tiny_cursive');
         }
-
-        echo $remoteurl;
-
-        $curl     = new curl();
+        
+        echo "DEBUG: Remote URL: " . $remoteurl . "\n";
+        echo "DEBUG: File record ID: " . $filerecord->id . "\n";
+        echo "DEBUG: Person ID: " . $filerecord->userid . "\n";
+        echo "===============================\n\n";
+        
+        $curl = new curl();
         $postdata = [
             'file' => $filetosend,
             'resource_id' => $filerecord->id,
@@ -291,37 +302,43 @@ function tiny_cursive_upload_multipart_record($filerecord, $filenamewithfullpath
             'ws_token' => $wstoken,
             'originalsubmission' => $answertext,
         ];
-
         $headers = [
             'Authorization: Bearer ' . $token,
             'X-Moodle-Url: ' . $moodleurl,
             'Content-Type: multipart/form-data',
         ];
-
         $result = $curl->post($remoteurl, $postdata, [
             'CURLOPT_HTTPHEADER' => $headers,
             'CURLOPT_RETURNTRANSFER' => true,
         ]);
-
-        $httpcode = $curl->get_info()['http_code'];
-
+        
+        $curlInfo = $curl->get_info();
+        $httpcode = $curlInfo['http_code'];
+        
+        // CURL response info
+        echo "\n=== DEBUG: CURL RESPONSE ===\n";
+        echo "HTTP Code: " . $httpcode . "\n";
+        echo "Total time: " . (isset($curlInfo['total_time']) ? $curlInfo['total_time'] : 'N/A') . " seconds\n";
+        echo "Upload speed: " . (isset($curlInfo['speed_upload']) ? round($curlInfo['speed_upload'] / 1024, 2) : 'N/A') . " KB/s\n";
+        echo "Size uploaded: " . (isset($curlInfo['size_upload']) ? $curlInfo['size_upload'] : 'N/A') . " bytes\n";
+        
         if ($result === false) {
             echo "File not found: " . $filenamewithfullpath . "\n";
             echo "cURL Error: " . $curl->error . "\n";
+            echo "cURL Error Number: " . (isset($curl->errno) ? $curl->errno : 'N/A') . "\n";
         } else {
-            echo "\nHTTP Status Code: " . $httpcode . "\n";
+            echo "HTTP Status Code: " . $httpcode . "\n";
             echo "File Id: " . $filerecord->id . "\n";
-            echo "response: " . $result . "\n";
+            echo "Response: " . $result . "\n";
         }
-
-        // Remove the temporary file if it was created.
+        echo "============================\n\n";
+        
         if (isset($tempfilepath) && file_exists($tempfilepath)) {
             unlink($tempfilepath);
         }
     } catch (moodle_exception $e) {
-        echo $e->getMessage();
+        echo "DEBUG: Moodle Exception - " . $e->getMessage() . "\n";
     }
-
     return $result;
 }
 
