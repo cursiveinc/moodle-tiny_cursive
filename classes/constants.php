@@ -137,10 +137,10 @@ class constants {
         $upload = $DB->get_record('tiny_cursive_files', ['id' => $fileid], 'uploaded',  IGNORE_MISSING);
         $upload = $upload ? intval($upload->uploaded) : 0;
 
-        $effort = intval($data->effort_ratio ?? 0);
+        $effort = intval($data->effort_ratio ?? 9999999); // Default to high value if not set, it is possible to get effort 0.
         $analytics = intval($data->total_time_seconds ?? 0);
 
-        return ($upload > 0 && ($effort === 0 || $analytics === 0));
+        return ($upload > 0 && ($effort === 9999999 || $analytics === 0));
 
     }
 

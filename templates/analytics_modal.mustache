@@ -252,25 +252,6 @@
                 <div id="player_{{userid}}{{quizid}}">
                     <div class="tiny_cursive_replay_control d-none" id="replayControls_{{userid}}{{quizid}}"></div>
                 </div>
-                <!-- Toast Container -->
-                <div class="tiny_cursive-toast-container backdropLoader">
-                    <div class="tiny_cursive-toast error" id="errorToast">
-                        <div class="tiny_cursive-toast-header">
-                            <div class="tiny_cursive-toast-title-section">
-                                <svg class="tiny_cursive-toast-icon" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
-                                </svg>
-                                <h6 class="tiny_cursive-toast-title">{{#str}}retrivedta, tiny_cursive{{/str}} </h6>
-                            </div>
-                            <button class="tiny_cursive-toast-close" id="cursive-hideToast">&times;</button>
-                        </div>
-                        <div class="tiny_cursive-toast-body" id="cursive-toast-body">
-                            <span id="ToastTextContent">{{#str}}resubmit, tiny_cursive {{/str}} </span>
-                           <a href="#" id="cursive-resubmit" class="d-block btn btn-sm mt-2 border rounded">{{#pix}}a/refresh, core{{/pix}} {{#str}}resubmitbtn, tiny_cursive{{/str}} </a>
-                            <div class="toast-overlay" id="toastOverlay">{{#pix}}i/loading, core{{/pix}}</div>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -280,37 +261,45 @@
 
 
 {{#js}}
-    require(['core/ajax'], function(AJAX) {
+    require(['core/ajax', 'core/modal', 'core/modal_events', 'core/templates'], function(AJAX, Modal, Events, templates) {
 
-        const cursiveHideToast = document.getElementById('cursive-hideToast');
         const cursiveShowToast = document.getElementById('notificationBtn');
-        const resubmitBtn = document.getElementById('cursive-resubmit');
-        let tabledata = "{{tabledata.resubmit}}" || 0;
+        let modalBody = templates.render('tiny_cursive/modal_resubmit', {});
+
+        let tabledata = {{^tabledata.resubmit}}0{{/tabledata.resubmit}}{{#tabledata.resubmit}}{{tabledata.resubmit}}{{/tabledata.resubmit}};
+        tabledata = Number(tabledata) || 0;
 
         if (tabledata) {
-            cursiveHideToast.addEventListener('click', hideToast);
             cursiveShowToast.addEventListener('click', showToast);
-            resubmitBtn.addEventListener('click', handleResubmit);
         }
 
         function showToast() {
-            const toast = document.getElementById('errorToast');
             const notificationBtn = document.getElementById('notificationBtn');
             notificationBtn.classList.remove('has-alert');
-            toast.classList.add('show');
+
+            Modal.create({
+                title: "{{#str}}retrivedta, tiny_cursive{{/str}}",
+                body:  modalBody,
+                show: true,
+                removeOnClose: true,
+            }).then((modal) => {
+               return modal.getRoot().on(Events.shown, function() {
+                    const resubmitBtn = modal.getRoot().find('#cursive-resubmit');
+                    resubmitBtn.on('click', function(e) {
+                        e.preventDefault();
+                        resubmitBtn.prop('disabled', true);
+                        handleResubmit(modal);
+                    });
+                });
+            }).catch((error) => {
+                window.console.error('Error showing modal:', error);
+            });
         }
 
-        function hideToast() {
-            const toast = document.getElementById('errorToast');
-            toast.classList.remove('show');
-        }
-
-        function handleResubmit(e) {
+        function handleResubmit(modal) {
 
             const toastBody = document.getElementById('cursive-toast-body');
-            e.preventDefault();
 
-            resubmitBtn.disabled = true;
             document.getElementById('toastOverlay').style.display = 'flex';
             let fileid = "{{tabledata.file_id}}" ?? 0;
             let cmid = "{{tabledata.cmid}}" ?? 0;
@@ -320,20 +309,23 @@
                      // eslint-disable-next-line camelcase
                     args: {file_id: fileid, cmid: cmid}
                 }])[0].done((data) => {
+
                     if (data) {
                         setTimeout(() =>{
                             toastBody.innerHTML = "{{#str}}submissionqueued, tiny_cursive{{/str}}";
+                            modalBody = "{{#str}}submissionqueued, tiny_cursive{{/str}}";
                             setTimeout(() => {
-                                hideToast();
+                                modal.destroy();
                             }, 1000);
                         }, 1000);
                     } else {
                         document.getElementById("ToastTextContent").textContent = "{{#str}}warningpayloadre, tiny_cursive{{/str}}";
-                        resubmitBtn.disabled = false;
+                        modalBody = "{{#str}}warningpayloadre, tiny_cursive{{/str}}";
                         document.getElementById('toastOverlay').style.display = 'none';
                         setTimeout(() => {
                             document.getElementById("ToastTextContent").textContent = "{{#str}}resubmit, tiny_cursive{{/str}}";
-                            hideToast();
+                            modalBody = "{{#str}}resubmit, tiny_cursive{{/str}}";
+                            modal.destroy();
                         }, 1000);
                     }
                 }).fail((error) => {
