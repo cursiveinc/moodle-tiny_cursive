@@ -24,41 +24,31 @@ import {call} from 'core/ajax';
 import {create} from 'core/modal_factory';
 import {get_string as getString} from 'core/str';
 import {save, cancel, hidden} from 'core/modal_events';
+import {iconUrl, iconGrayUrl, tooltipCss} from 'tiny_cursive/common';
 
-export const register = (editor, interval, userId) => {
-
-    var is_student, intervention;
-
-    var bodyElement = document.querySelector('#body');
-    if (bodyElement) {
-        is_student = !bodyElement.classList.contains('teacher_admin'); // true or false
-        intervention = bodyElement.classList.contains('intervention'); // true or false
-    } else {
-        window.console.error('#body element not found');
-    }
-
-
-    var userid = userId;
+export const register = (editor, interval, userId, hasApiKey, MODULES) => {
+    var is_student = !document.querySelector('#body').classList.contains('teacher_admin');
+    var intervention = document.querySelector('#body').classList.contains('intervention');
     var host = M.cfg.wwwroot;
+    var userid = userId;
     var courseid = M.cfg.courseId;
-    var filename = "";
-    var ed = "";
-    var event = "";
-    var resourceId = 0;
-    var modulename = "";
     var editorid = editor?.id;
     var cmid = M.cfg.contextInstanceId;
+    var ed = "";
+    var event = "";
+    var filename = "";
+    var modulename = "";
     var questionid = 0;
+    var resourceId = 0;
+    var quizSubmit = document.getElementById('mod_quiz-next-nav');
+    var assignSubmit = document.getElementById('id_submitbutton');
     var syncInterval = interval ? interval * 1000 : 10000; // Default: Sync Every 10s.
-    const assignSubmit = document.getElementById('id_submitbutton');
-    const quizSubmit = document.getElementById('mod_quiz-next-nav');
+    var lastCaretPos = 1;
+    let pastedContents = [];
 
     const postOne = async (methodname, args) => {
         try {
-            const response = await call([{
-                methodname,
-                args,
-            }])[0];
+            const response = await call([{ methodname, args }])[0];
             return response;
         } catch (error) {
             window.console.error('Error in postOne:', error);
@@ -67,191 +57,118 @@ export const register = (editor, interval, userId) => {
     };
 
     if (document.getElementById('page-mod-assign-editsubmission') ||
-     document.getElementById('page-mod-forum-post') || document.getElementById('page-mod-forum-view')) {
+        document.getElementById('page-mod-forum-post') ||
+        document.getElementById('page-mod-forum-view')) {
+
         if (assignSubmit) {
-            assignSubmit.addEventListener('click', async function(e) {
+            const handleAssignSubmit = async function(e) {
                 e.preventDefault();
-                if (filename) {
-                    await SyncData().then(() => {
-                        // eslint-disable-next-line no-caller
-                        assignSubmit.removeEventListener('click', arguments.callee);
-                        assignSubmit.click();
-                        // eslint-disable-next-line no-caller
-                        assignSubmit.removeEventListener('click', arguments.callee);
-                    });
-                } else {
-                    // eslint-disable-next-line no-caller
-                    assignSubmit.removeEventListener('click', arguments.callee);
-                    assignSubmit.click();
-                    // eslint-disable-next-line no-caller
-                    assignSubmit.removeEventListener('click', arguments.callee);
-                }
-            });
-        }
+
+            if (filename) {
+                await syncData();
+            }
+
+            assignSubmit.removeEventListener('click', handleAssignSubmit);
+            assignSubmit.click();
+            assignSubmit.removeEventListener('click', handleAssignSubmit);
+
+            localStorage.removeItem('lastCopyCutContent');
+        };
+
+        assignSubmit.addEventListener('click', handleAssignSubmit);
+    }
     }
 
     if (document.getElementById('page-mod-quiz-attempt')) {
         if (quizSubmit) {
-            quizSubmit.addEventListener('click', async () => {
+            const handleQuizSubmit = async (e) => {
+                e.preventDefault();
+
                 if (filename) {
-                    await SyncData().then(() => {
-                        document.querySelector('#responseform').submit();
-                    });
+                    await syncData();
+                    document.querySelector('#responseform').submit();
+                } else {
+                    quizSubmit.removeEventListener('click', handleQuizSubmit);
+                    quizSubmit.click();
                 }
 
-            });
+                localStorage.removeItem('lastCopyCutContent');
+            };
+
+            quizSubmit.addEventListener('click', handleQuizSubmit);
         }
     }
 
     const getModal = (e) => {
-
         Promise.all([
             getString('tiny_cursive_srcurl', 'tiny_cursive'),
             getString('tiny_cursive_srcurl_des', 'tiny_cursive'),
             getString('tiny_cursive_placeholder', 'tiny_cursive')
         ]).then(function([title, titledes, placeholder]) {
-
             return create({
                 type: 'SAVE_CANCEL',
                 title: `<div><div class="tiny-cursive-title-text">${title}</div>
                 <span class="tiny-cursive-title-description ">${titledes}</span></div>`,
-                body: `<textarea  class="form-control inputUrl" value="" id="inputUrl" placeholder="${placeholder}"></textarea>`,
-
+                body: `<textarea class="form-control inputUrl" value="" id="inputUrl" placeholder="${placeholder}"></textarea>`,
                 removeOnClose: true,
-            })
-                .done(modal => {
-                    modal.getRoot().addClass('tiny-cursive-modal');
-                    modal.show();
-
-                    var lastEvent = '';
-                    // eslint-disable-next-line
-                    modal.getRoot().on(save, function() {
-                        var number = document.getElementById("inputUrl").value;
-                        if (number === "" || number === null || number === undefined) {
-                            editor.execCommand('Undo');
-                            // eslint-disable-next-line
-                           getString('pastewarning', 'tiny_cursive').then(str => alert(str));
-                        } else {
-                            editor.execCommand('Paste');
-                        }
-                        let ur = e.srcElement.baseURI;
-                        let resourceId = 0;
-                        let parm = new URL(ur);
-                        let modulename = "";
-                        let editorid = editor?.id;
-                        let courseid = M.cfg.courseId;
-                        let cmid = M.cfg.contextInstanceId;
-
-                        // eslint-disable-next-line
-                        if (ur.includes("attempt.php") || ur.includes("forum") || ur.includes("assign") || ur.includes("lesson") || ur.includes("oublog")) { } else {
-                            return false;
-                        }
-                        if (ur.includes("forum") && !ur.includes("assign")) {
-                            resourceId = parm.searchParams.get('edit');
-                        }
-                        if (!ur.includes("forum") && !ur.includes("assign")) {
-                            resourceId = parm.searchParams.get('attempt');
-                        }
-
-                        if (resourceId === null) {
-                            resourceId = 0;
-                        }
-                        if (ur.includes("forum")) {
-                            modulename = "forum";
-                        }
-                        if (ur.includes("assign")) {
-                            modulename = "assign";
-                            resourceId = cmid;
-                        }
-                        if (ur.includes("attempt")) {
-                            modulename = "quiz";
-                        }
-                        if (ur.includes("lesson")) {
-                            modulename = "lesson";
-                            resourceId = cmid;
-                        }
-                        if (ur.includes("oublog")) {
-                            modulename = "oublog";
-                            resourceId = 0;
-                        }
-                        if (cmid === null) {
-                            cmid = 0;
-                        }
-
-                        postOne('cursive_user_comments', {
-                            modulename: modulename,
-                            cmid: cmid,
-                            resourceid: resourceId,
-                            courseid: courseid,
-                            usercomment: number,
-                            timemodified: Date.now(),
-                            editorid: editorid ? editorid : ""
-                        });
-                        lastEvent = 'save';
-                        modal.destroy();
-                    });
-                    modal.getRoot().on(cancel, function() {
-
+            }).done(modal => {
+                modal.getRoot().addClass('tiny-cursive-modal');
+                modal.show();
+                var lastEvent = '';
+                modal.getRoot().on(save, function() {
+                    var number = document.getElementById("inputUrl").value.trim();
+                    let ur = e.srcElement.baseURI;
+                    let parm = new URL(ur);
+                    let modulesInfo = getModulesInfo(ur, parm, MODULES);
+                    resourceId = modulesInfo.resourceId;
+                    modulename = modulesInfo.name;
+                    if (number === "" || number === null || number === undefined) {
                         editor.execCommand('Undo');
-                        lastEvent = 'cancel';
+                        getString('pastewarning', 'tiny_cursive').then(str => alert(str));
+                    } else {
+                        editor.execCommand('Paste');
+                    }
+                    postOne('cursive_user_comments', {
+                        modulename: modulename,
+                        cmid: cmid,
+                        resourceid: resourceId,
+                        courseid: courseid,
+                        usercomment: number,
+                        timemodified: Date.now(),
+                        editorid: editorid ? editorid : ""
                     });
-                    modal.getRoot().on(hidden, function() {
-                        if (lastEvent != 'cancel' && lastEvent != 'save') {
-                            editor.execCommand('Undo');
-                        }
-                    });
-                    return modal;
+                    lastEvent = 'save';
+                    modal.destroy();
                 });
-        });
-
+                modal.getRoot().on(cancel, function() {
+                    editor.execCommand('Undo');
+                    lastEvent = 'cancel';
+                });
+                modal.getRoot().on(hidden, function() {
+                    if (lastEvent !== 'cancel' && lastEvent !== 'save') {
+                        editor.execCommand('Undo');
+                    }
+                });
+                return modal;
+            });
+        }).catch(error => window.console.error(error));
     };
 
     const sendKeyEvent = (events, eds) => {
-        let ur = eds.srcElement.baseURI;
-        let parm = new URL(ur);
         ed = eds;
         event = events;
-        // eslint-disable-next-line
-        if (ur.includes("attempt.php") || ur.includes("forum") || ur.includes("assign") || ur.includes("lesson") || ur.includes("oublog")) { } else {
-            return false;
-        }
-        if (ur.includes("forum") && !ur.includes("assign")) {
-            resourceId = parm.searchParams.get('edit');
-        } else {
-            resourceId = parm.searchParams.get('attempt');
-        }
-        if (resourceId === null) {
-            resourceId = 0;
-        }
-
-        if (ur.includes("forum")) {
-            modulename = "forum";
-        }
-        if (ur.includes("assign")) {
-            modulename = "assign";
-            resourceId = cmid;
-        }
-        if (ur.includes("attempt")) {
-            modulename = "quiz";
-        }
-        if (ur.includes("lesson")) {
-            modulename = "lesson";
-            resourceId = cmid;
-        }
-        if (ur.includes("oublog")) {
-            modulename = "oublog";
-            resourceId = 0;
-        }
-
+        let ur = eds.srcElement.baseURI;
+        let parm = new URL(ur);
+        let modulesInfo = getModulesInfo(ur, parm, MODULES);
+        resourceId = modulesInfo.resourceId;
+        modulename = modulesInfo.name;
         filename = `${userid}_${resourceId}_${cmid}_${modulename}_attempt`;
-
         if (modulename === 'quiz') {
             questionid = editorid.split(':')[1].split('_')[0];
             filename = `${userid}_${resourceId}_${cmid}_${questionid}_${modulename}_attempt`;
         }
         if (ed.key !== "Process") {
             if (localStorage.getItem(filename)) {
-
                 let data = JSON.parse(localStorage.getItem(filename));
                 data.push({
                     resourceId: resourceId,
@@ -261,12 +178,14 @@ export const register = (editor, interval, userId) => {
                     courseId: courseid,
                     unixTimestamp: Date.now(),
                     clientId: host,
-                    personId: userid
+                    personId: userid,
+                    position: ed.caretPosition,
+                    rePosition: ed.rePosition,
+                    pastedContent: pastedContents
                 });
                 localStorage.setItem(filename, JSON.stringify(data));
             } else {
-                let data = [];
-                data.push({
+                let data = [{
                     resourceId: resourceId,
                     key: ed.key,
                     keyCode: ed.keyCode,
@@ -274,37 +193,174 @@ export const register = (editor, interval, userId) => {
                     courseId: courseid,
                     unixTimestamp: Date.now(),
                     clientId: host,
-                    personId: userid
-                });
+                    personId: userid,
+                    position: ed.caretPosition,
+                    rePosition: ed.rePosition,
+                    pastedContent: pastedContents
+                }];
                 localStorage.setItem(filename, JSON.stringify(data));
             }
         }
     };
 
     editor.on('keyUp', (editor) => {
+        customTooltip();
+        let position = getCaretPosition(true);
+        editor.caretPosition = position.caretPosition;
+        editor.rePosition = position.rePosition;
         sendKeyEvent("keyUp", editor);
     });
 
     editor.on('Paste', async (e) => {
+        customTooltip();
+        const pastedContent = (e.clipboardData || e.originalEvent.clipboardData).getData('text');
+        if (!pastedContent) {
+            return;
+        }
         if (is_student && intervention) {
-            getModal(e);
+            if (pastedContent !== localStorage.getItem('lastCopyCutContent')) {
+                getModal(e);
+                pastedContents = [];
+                pastedContents.push(pastedContent);
+                let position = getCaretPosition(true);
+                editor.caretPosition = position.caretPosition;
+                editor.rePosition = position.rePosition;
+                sendKeyEvent("Paste", {
+                    ...e,
+                    key: "v",
+                    keyCode: 86,
+                    caretPosition: editor.caretPosition,
+                    rePosition: editor.rePosition
+                });
+            }
         }
     });
 
     editor.on('Redo', async (e) => {
+        customTooltip();
         if (is_student && intervention) {
             getModal(e);
         }
     });
 
     editor.on('keyDown', (editor) => {
+        customTooltip();
+        let position = getCaretPosition();
+        editor.caretPosition = position.caretPosition;
+        editor.rePosition = position.rePosition;
         sendKeyEvent("keyDown", editor);
     });
-    // eslint-disable-next-line
-    editor.on('init', () => {
+
+    editor.on('Cut', () => {
+        const selectedContent = editor.selection.getContent({format: 'text'});
+        localStorage.setItem('lastCopyCutContent', selectedContent.trim());
     });
 
+    editor.on('Copy', () => {
+        const selectedContent = editor.selection.getContent({format: 'text'});
+        localStorage.setItem('lastCopyCutContent', selectedContent.trim());
+    });
+
+    editor.on('mouseDown', async (editor) => {
+        constructMouseEvent(editor);
+        sendKeyEvent("mouseDown", editor);
+    });
+
+    editor.on('mouseUp', async (editor) => {
+        constructMouseEvent(editor);
+        sendKeyEvent("mouseUp", editor);
+    });
+
+    editor.on('init', () => {
+        customTooltip();
+    });
+
+    editor.on('SetContent', () => {
+        customTooltip();
+    });
+
+     /**
+     * Constructs a mouse event object with caret position and button information
+     * @param {Object} editor - The TinyMCE editor instance
+     * @function constructMouseEvent
+     * @description Sets caret position, reposition, key and keyCode properties on the editor object based on current mouse state
+     */
+    function constructMouseEvent(editor) {
+        let position = getCaretPosition();
+        editor.caretPosition = position.caretPosition;
+        editor.rePosition = position.rePosition;
+        editor.key = getMouseButton(editor);
+        editor.keyCode = editor.button;
+    }
+
+     /**
+     * Gets the string representation of a mouse button based on its numeric value
+     * @param {Object} editor - The editor object containing button information
+     * @returns {string} The string representation of the mouse button ('left', 'middle', or 'right')
+     */
+    function getMouseButton(editor) {
+        switch (editor.button) {
+            case 0:
+                return 'left';
+            case 1:
+                return 'middle';
+            case 2:
+                return 'right';
+        }
+        return null;
+    }
+
     /**
+     * Gets the current caret position in the editor
+     * @param {boolean} skip - If true, returns the last known caret position instead of calculating a new one
+     * @returns {Object} Object containing:
+     *   - caretPosition: Sequential position number stored in session
+     *   - rePosition: Absolute character offset from start of content
+     * @throws {Error} Logs warning to console if error occurs during calculation
+     */
+    function getCaretPosition(skip = false) {
+        try {
+            if (!editor || !editor.selection) {
+                return {caretPosition: 0, rePosition: 0};
+            }
+            const rng = editor.selection.getRng();
+            let absolutePosition = 0;
+            let node = rng.startContainer;
+            absolutePosition = rng.startOffset;
+            while (node && node !== editor.getBody()) {
+                while (node.previousSibling) {
+                    node = node.previousSibling;
+                    if (node.textContent) {
+                        absolutePosition += node.textContent.length;
+                    }
+                }
+                node = node.parentNode;
+            }
+            if (skip) {
+                return {
+                    caretPosition: lastCaretPos,
+                    rePosition: absolutePosition
+                };
+            }
+            const storageKey = `${userid}_${resourceId}_${cmid}_position`;
+            let storedPos = parseInt(sessionStorage.getItem(storageKey), 10);
+            if (isNaN(storedPos)) {
+                storedPos = 0;
+            }
+            storedPos++;
+            lastCaretPos = storedPos;
+            sessionStorage.setItem(storageKey, storedPos);
+            return {
+                caretPosition: storedPos,
+                rePosition: absolutePosition
+            };
+        } catch (e) {
+            window.console.warn('Error getting caret position:', e);
+            return {caretPosition: 0, rePosition: 0};
+        }
+    }
+
+     /**
      * Synchronizes data from localStorage to server
      * @async
      * @function SyncData
@@ -312,15 +368,13 @@ export const register = (editor, interval, userId) => {
      * @returns {Promise} Returns response from server if data exists and is successfully sent
      * @throws {Error} Logs error to console if data submission fails
      */
-    async function SyncData() {
-
+    async function syncData() {
         let data = localStorage.getItem(filename);
-
         if (!data || data.length === 0) {
             return;
         } else {
             localStorage.removeItem(filename);
-            let originalText = editor.getContent({ format: 'text' });
+            let originalText = editor.getContent({format: 'text'});
             try {
                 return await postOne('cursive_write_local_to_json', {
                     key: ed.key,
@@ -339,9 +393,167 @@ export const register = (editor, interval, userId) => {
         }
     }
 
+     /**
+     * Sets up custom tooltip functionality for the Cursive icon
+     * Initializes tooltip text, positions the icon in the menubar,
+     * and sets up mouse event handlers for showing/hiding the tooltip
+     * @function customTooltip
+     */
+    function customTooltip() {
+        try {
+            const tooltipText = getTooltipText();
+            const menubarDiv = document.querySelectorAll('div[role="menubar"].tox-menubar');
+            let classArray = [];
+            if (menubarDiv.length) {
+                menubarDiv.forEach(function(element, index) {
+                    index += 1;
+                    let className = 'cursive-menu-' + index;
+                    element.classList.add(className);
+                    classArray.push(className);
+                });
+            }
+            const cursiveIcon = document.createElement('img');
+            cursiveIcon.src = hasApiKey ? iconUrl : iconGrayUrl;
+            cursiveIcon.setAttribute('class', 'tiny_cursive_StateButton');
+            cursiveIcon.style.display = 'inline-block';
+            cursiveState(cursiveIcon, menubarDiv, classArray);
+            for (let index in classArray) {
+                const elementId = "tiny_cursive_StateIcon" + index;
+                const tooltipId = `tiny_cursive_tooltip${index}`;
+                tooltipText.then((text) => {
+                    return setTooltip(text, document.querySelector(`#${elementId}`), tooltipId);
+                }).catch(error => window.console.error(error));
+                const element = document.querySelector(`#${elementId}`);
+                if (element) {
+                    element.addEventListener('mouseenter', function() {
+                        this.style.position = 'relative';
+                        const tooltip = document.querySelector(`#${tooltipId}`);
+                        if (tooltip) {
+                            Object.assign(tooltip.style, tooltipCss);
+                        }
+                    });
+                    element.addEventListener('mouseleave', function() {
+                        const tooltip = document.querySelector(`#${tooltipId}`);
+                        if (tooltip) {
+                            tooltip.style.display = 'none';
+                        }
+                    });
+                }
+            }
+        } catch (error) {
+            window.console.error('Error setting up custom tooltip:', error);
+        }
+    }
+
+     /**
+     * Retrieves tooltip text strings from language files
+     * @async
+     * @function getTooltipText
+     * @returns {Promise<Object>} Object containing buttonTitle and buttonDes strings
+     */
+    async function getTooltipText() {
+        const [buttonTitle, buttonDes] = await Promise.all([
+            getString('cursive:state:active', 'tiny_cursive'),
+            getString('cursive:state:active:des', 'tiny_cursive'),
+        ]);
+        return {buttonTitle, buttonDes};
+    }
+
+     /**
+     * Updates the Cursive icon state and positions it in the menubar
+     * @param {HTMLElement} cursiveIcon - The Cursive icon element to modify
+     * @param {HTMLElement} menubarDiv - The menubar div element
+     * @param {Array} classArray - Array of class names for the menubar div elements
+     */
+    function cursiveState(cursiveIcon, menubarDiv, classArray) {
+        if (menubarDiv) {
+            for (let index in classArray) {
+                const rightWrapper = document.createElement('div');
+                const imgWrapper = document.createElement('span');
+                const iconClone = cursiveIcon.cloneNode(true);
+                const targetMenu = document.querySelector('.' + classArray[index]);
+                let elementId = "tiny_cursive_StateIcon" + index;
+                rightWrapper.style.marginLeft = 'auto';
+                rightWrapper.style.display = 'flex';
+                rightWrapper.style.alignItems = 'center';
+                imgWrapper.id = elementId;
+                imgWrapper.appendChild(iconClone);
+                rightWrapper.appendChild(imgWrapper);
+                if (targetMenu && !targetMenu.querySelector(`#${elementId}`)) {
+                    targetMenu.appendChild(rightWrapper);
+                }
+            }
+        }
+    }
+
+    /**
+     * Sets up tooltip content and styling for the Cursive icon
+     * @param {Object} text - Object containing tooltip text strings
+     * @param {string} text.buttonTitle - Title text for the tooltip
+     * @param {string} text.buttonDes - Description text for the tooltip
+     * @param {HTMLElement} cursiveIcon - The Cursive icon element to attach tooltip to
+     * @param {string} tooltipId - ID for the tooltip element
+     */
+    function setTooltip(text, cursiveIcon, tooltipId) {
+        if (document.querySelector(`#${tooltipId}`)) {
+            return;
+        }
+        if (cursiveIcon) {
+            const tooltipSpan = document.createElement('span');
+            const description = document.createElement('span');
+            const linebreak = document.createElement('br');
+            const tooltipTitle = document.createElement('strong');
+            tooltipSpan.style.display = 'none';
+            tooltipTitle.textContent = text.buttonTitle;
+            tooltipTitle.style.fontSize = '16px';
+            tooltipTitle.style.fontWeight = 'bold';
+            description.textContent = text.buttonDes;
+            description.style.fontSize = '14px';
+            tooltipSpan.id = tooltipId;
+            tooltipSpan.classList.add(`shadow`);
+            tooltipSpan.appendChild(tooltipTitle);
+            tooltipSpan.appendChild(linebreak);
+            tooltipSpan.appendChild(description);
+            cursiveIcon.appendChild(tooltipSpan);
+        }
+    }
+
+    /**
+     * Extracts module information from URL parameters
+     * @param {string} ur - The base URL to analyze
+     * @param {URL} parm - URL object containing search parameters
+     * @param {Array} MODULES - Array of valid module names to check against
+     * @returns {Object|boolean} Object containing resourceId and module name if found, false if no valid module
+     */
+    function getModulesInfo(ur, parm, MODULES) {
+        if (!MODULES.some(module => ur.includes(module))) {
+            return false;
+        }
+        if (ur.includes("forum") && !ur.includes("assign")) {
+            resourceId = parm.searchParams.get('edit');
+        } else {
+            resourceId = parm.searchParams.get('attempt');
+        }
+        if (resourceId === null) {
+            resourceId = 0;
+        }
+        for (const module of MODULES) {
+            if (ur.includes(module)) {
+                modulename = module;
+                if (module === "lesson" || module === "assign") {
+                    resourceId = cmid;
+                } else if (module === "oublog") {
+                    resourceId = 0;
+                }
+                break;
+            }
+        }
+        return {resourceId: resourceId, name: modulename};
+    }
+
     window.addEventListener('unload', () => {
-        SyncData();
+        syncData();
     });
 
-    setInterval(SyncData, syncInterval);
+    setInterval(syncData, syncInterval);
 };

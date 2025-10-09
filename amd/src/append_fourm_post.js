@@ -48,16 +48,16 @@ define(["core/ajax", "core/str", "core/templates", "./replay", "./analytic_butto
     };
 
     var usersTable = {
-        init: function(scoreSetting, showcomment) {
+        init: function(scoreSetting, showcomment, hasApiKey) {
             str
                 .get_strings([
                     {key: "field_require", component: "tiny_cursive" },
                 ])
                 .done(function() {
-                    usersTable.getToken(scoreSetting, showcomment);
+                    usersTable.getToken(scoreSetting, showcomment, hasApiKey);
                 });
         },
-        getToken: function(scoreSetting, showcomment) {
+        getToken: function(scoreSetting, showcomment, hasApiKey) {
             const articles = document.querySelectorAll('#page-mod-forum-discuss article');
             articles.forEach(function(entry) {
                 const replyButton = document.querySelectorAll('a[data-region="post-action"][title="Reply"]');
@@ -89,31 +89,11 @@ define(["core/ajax", "core/str", "core/templates", "./replay", "./analytic_butto
 
                     if (filepath) {
                         const analyticButtonDiv = document.createElement('div');
-                        analyticButtonDiv.append(analyticButton(ids));
-                        analyticButtonDiv.classList.add('text-center', 'my-3');
+                        analyticButtonDiv.append(analyticButton(hasApiKey ? data.data.effort_ratio : "",ids));
+                        analyticButtonDiv.classList.add('text-center', 'my-2');
                         analyticButtonDiv.setAttribute('data-region', "analytic-div" + ids);
 
                         const postContent = document.getElementById('post-content-' + ids);
-
-                        if (data.usercomment !== 'comments' && parseInt(showcomment)) {
-                            str.get_string('refer', 'tiny_cursive').then(str => {
-                                let comments = "";
-                                data.usercomment.forEach(element => {
-                                    comments += '<div class="border-bottom p-3" style="font-weight:600;color:#0f6cbf">'
-                                        + element.usercomment + '</div>';
-                                });
-
-                                const heading = document.createElement('h4');
-                                heading.textContent = str;
-
-                                const commentDiv = document.createElement('div');
-                                commentDiv.classList.add('tiny_cursive-quiz-references', 'rounded', 'mb-2');
-                                commentDiv.innerHTML = comments;
-
-                                postContent.prepend(commentDiv);
-                                commentDiv.prepend(heading);
-                            }).catch(e => window.console.error(e));
-                        }
 
                         postContent.append(analyticButtonDiv);
 
@@ -123,10 +103,11 @@ define(["core/ajax", "core/str", "core/templates", "./replay", "./analytic_butto
                             formattime: myEvents.formatedTime(data.data),
                             page: scoreSetting,
                             userid: ids,
+                            apikey: hasApiKey
                         };
 
                         const authIcon = myEvents.authorshipStatus(data.data.first_file, data.data.score, scoreSetting);
-                        myEvents.createModal(ids, context, '', authIcon);
+                        myEvents.createModal(ids, context, '', replayInstances, authIcon);
                         myEvents.analytics(ids, templates, context, '', replayInstances, authIcon);
                         myEvents.checkDiff(ids, data.data.file_id, '', replayInstances);
                         myEvents.replyWriting(ids, filepath, '', replayInstances);
