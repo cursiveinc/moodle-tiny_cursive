@@ -114,4 +114,25 @@ class constants {
 
         return true; #boolval($apikey);
     }
+
+        /**
+     * Check if the current user is a teacher or admin in the given context
+     *
+     * @param \context $context The context to check roles in
+     * @return bool True if user is teacher/admin, false otherwise
+     */
+    public static function is_teacher_admin($context) {
+
+        global $USER;
+
+        if (is_siteadmin($USER)) {
+                return true;
+        }
+        // Get roles for user in given context.
+        if (has_capability('tiny/cursive:view', $context, $USER->id, false)) {
+            return true;
+        }
+
+        return false;
+    }
 }

@@ -158,7 +158,7 @@ class visualization {
     private function get_course_analytics($course, $cmid) {
         global $DB;
 
-        $sql = "SELECT SUBSTRING(MD5(RAND()), 1, 8) AS uniqueid, CONCAT(u.firstname,' ',u.lastname) AS username,
+        $sql = "SELECT f.id as fileid, CONCAT(u.firstname,' ',u.lastname) AS username,
                        f.userid, w.*, d.meta as effort
                   FROM {tiny_cursive_files} f
              LEFT JOIN {tiny_cursive_user_writing} w ON f.id = w.file_id

@@ -25,6 +25,7 @@
 
 require(__DIR__ . '/../../../../../config.php');
 require_once(__DIR__ . '/locallib.php');
+use tiny_cursive\constants;
 global $DB, $USER;
 require_login();
 require_sesskey();
@@ -32,12 +33,13 @@ require_sesskey();
 $resourceid = optional_param('resourceid', 0, PARAM_INT);
 $userid     = optional_param('user_id', 0, PARAM_INT);
 $cmid       = optional_param('cmid', 0, PARAM_INT);
+$courseid   = optional_param('course', 0, PARAM_INT);
 $fname      = clean_param(optional_param('fname', '', PARAM_FILE), PARAM_FILE);
 
 if ($cmid <= 0 || $userid <= 0) {
     throw new moodle_exception('invalidparameters', 'tiny_cursive');
 }
-if (intval($USER->id) !== $userid && !is_siteadmin()) {
+if (intval($USER->id) !== $userid && !constants::is_teacher_admin(context_course::instance($courseid))) {
     throw new moodle_exception(get_string('warning', 'tiny_cursive'));
 }
 $context    = context_module::instance($cmid);
