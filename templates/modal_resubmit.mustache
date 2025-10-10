@@ -27,6 +27,6 @@
 <div class="tiny_cursive-toast-body" id="cursive-toast-body">
     <span id="ToastTextContent">{{#str}}resubmit, tiny_cursive {{/str}} </span>
     <a href="#" id="cursive-resubmit" class="d-block btn btn-sm mt-2 border rounded">
-        {{#pix}}a/refresh, core{{/pix}} {{#str}}resubmitbtn, tiny_cursive{{/str}} </a>
-    <div class="toast-overlay" id="toastOverlay">{{#pix}}i/loading, core{{/pix}}</div>
+        <span id="toastOverlay" class="d-none">{{#pix}}i/loading, core{{/pix}}</span>{{#str}}resubmitbtn, tiny_cursive{{/str}}
+    </a>
 </div>

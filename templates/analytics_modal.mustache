@@ -263,18 +263,22 @@
 {{#js}}
     require(['core/ajax', 'core/modal', 'core/modal_events', 'core/templates'], function(AJAX, Modal, Events, templates) {
 
-        const cursiveShowToast = document.getElementById('notificationBtn');
-        let modalBody = templates.render('tiny_cursive/modal_resubmit', {});
+        const notificationBtn = document.getElementById('notificationBtn');
+        if (!notificationBtn) {
+            window.console.warn('Notification button not found.');
+            return;
+        }
 
-        let tabledata = {{^tabledata.resubmit}}0{{/tabledata.resubmit}}{{#tabledata.resubmit}}{{tabledata.resubmit}}{{/tabledata.resubmit}};
-        tabledata = Number(tabledata) || 0;
+        let msgName = "{{tabledata.file_id}}" + "{{tabledata.cmid}}" + "cursive";
+        let modalBody = getModalBody(msgName, "{{#str}}resubmit, tiny_cursive{{/str}}", true);
 
-        if (tabledata) {
-            cursiveShowToast.addEventListener('click', showToast);
+        let tableData = Number({{^tabledata.resubmit}}0{{/tabledata.resubmit}}{{#tabledata.resubmit}}{{tabledata.resubmit}}{{/tabledata.resubmit}}) || 0;
+
+        if (tableData > 0) {
+            notificationBtn.addEventListener('click', showToast);
         }
 
         function showToast() {
-            const notificationBtn = document.getElementById('notificationBtn');
             notificationBtn.classList.remove('has-alert');
 
             Modal.create({
@@ -287,6 +291,7 @@
                     const resubmitBtn = modal.getRoot().find('#cursive-resubmit');
                     resubmitBtn.on('click', function(e) {
                         e.preventDefault();
+                        document.getElementById("toastOverlay").classList.remove('d-none');
                         resubmitBtn.prop('disabled', true);
                         handleResubmit(modal);
                     });
@@ -299,8 +304,9 @@
         function handleResubmit(modal) {
 
             const toastBody = document.getElementById('cursive-toast-body');
+            const toastText = document.getElementById("ToastTextContent");
+            const toastOverlay = document.getElementById("toastOverlay");
 
-            document.getElementById('toastOverlay').style.display = 'flex';
             let fileid = "{{tabledata.file_id}}" ?? 0;
             let cmid = "{{tabledata.cmid}}" ?? 0;
 
@@ -312,25 +318,61 @@
 
                     if (data) {
                         setTimeout(() =>{
-                            toastBody.innerHTML = "{{#str}}submissionqueued, tiny_cursive{{/str}}";
-                            modalBody = "{{#str}}submissionqueued, tiny_cursive{{/str}}";
+                            updateToast(toastBody, "{{#str}}submissionqueued, tiny_cursive{{/str}}");
+                            modalBody = getModalBody(msgName, "{{#str}}submissionqueued, tiny_cursive{{/str}}", false);
                             setTimeout(() => {
                                 modal.destroy();
                             }, 1000);
                         }, 1000);
                     } else {
-                        document.getElementById("ToastTextContent").textContent = "{{#str}}warningpayloadre, tiny_cursive{{/str}}";
-                        modalBody = "{{#str}}warningpayloadre, tiny_cursive{{/str}}";
-                        document.getElementById('toastOverlay').style.display = 'none';
+                        updateToast(toastText, "{{#str}}warningpayloadre, tiny_cursive{{/str}}");
+                        toastOverlay?.classList.add('d-none');
                         setTimeout(() => {
-                            document.getElementById("ToastTextContent").textContent = "{{#str}}resubmit, tiny_cursive{{/str}}";
-                            modalBody = "{{#str}}resubmit, tiny_cursive{{/str}}";
+                            updateToast(toastText, "{{#str}}resubmit, tiny_cursive{{/str}}");
                             modal.destroy();
                         }, 1000);
                     }
-                }).fail((error) => {
+                }).catch((error) => {
                     window.console.error('Error while requeuing:', error);
+                    setTimeout(() => {
+                        toastOverlay?.classList.add('d-none');
+                        updateToast(toastText, "{{#str}}warningpayloadre, tiny_cursive{{/str}}");
+                    }, 1000);
                 });
+        }
+
+        function getModalBody(key, body, isGet = false) {
+            const cacheTTL = 5 * 60 * 1000; // 5 minutes
+            const now = Date.now();
+
+            if (isGet) {
+
+                let cached = localStorage.getItem(key);
+
+                if (cached) {
+                    notificationBtn.classList.remove('has-alert');
+                    try {
+                        let obj = JSON.parse(cached);
+                        if (now > obj.tle) {
+                            localStorage.removeItem(key);
+                            return templates.render('tiny_cursive/modal_resubmit', {});
+                        }
+                        return obj.body;
+                    } catch (e) {
+                        return body;
+                    }
+                }
+                return templates.render('tiny_cursive/modal_resubmit', {});
+            }
+
+            localStorage.setItem(key, JSON.stringify({body: body, tle: now + cacheTTL}));
+            return body;
+        }
+
+        function updateToast(target, message) {
+            if (target) {
+                target.innerHTML = message;
+            }
         }
     });
 {{/js}}

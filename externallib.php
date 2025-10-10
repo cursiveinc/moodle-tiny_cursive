@@ -2345,7 +2345,8 @@ class cursive_json_func_data extends external_api {
 
         $context = context_module::instance($params['cmid']);
         self::validate_context($context);
-        require_capability("tiny/cursive:view", $context);
+        require_capability("tiny/cursive:write", $context);
+
         try {
             $record = new stdClass();
             $record->id = $params['file_id'];
