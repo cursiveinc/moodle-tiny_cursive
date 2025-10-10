@@ -112,7 +112,7 @@ class constants {
             set_config('ApiSyncInterval', strtotime('+5 minutes'), 'tiny_cursive');
         }
 
-        return true; #boolval($apikey);
+        return boolval($apikey);
     }
 
         /**

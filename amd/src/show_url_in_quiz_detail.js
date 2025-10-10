@@ -130,6 +130,7 @@ define([
                                 page: score_setting,
                                 userid: userid,
                                 quizid: questionid,
+                                apikey: hasApiKey
                             };
                             let authIcon = myEvents.authorshipStatus(data.data.first_file, data.data.score, score_setting);
 

@@ -102,6 +102,10 @@ export default class AnalyticEvents {
             if (e.target && e.target.id === 'analytic' + userid + questionid) {
                 e.preventDefault();
 
+                if (e.target.disabled) {
+                    return;
+                }
+
                 const repBtn = document.getElementById('rep' + userid + questionid);
                 if (repBtn) {
                     repBtn.disabled = false;
@@ -172,6 +176,10 @@ export default class AnalyticEvents {
         document.body.addEventListener('click', function (e) {
             if (e.target && e.target.id === 'diff' + userid + questionid) {
                 e.preventDefault();
+
+            if (e.target.disabled) {
+                return;
+            }
 
                 // Enable rep and quality elements
                 const repElement = document.getElementById('rep' + userid + questionid);
@@ -429,14 +437,18 @@ export default class AnalyticEvents {
         } else if (score >= scoreSetting) {
             icon = 'fa fa-check-circle';
             color = 'font-size:32px;color:green';
-        } else if (score < scoreSetting) {
-            icon = 'fa fa-question-circle';
-            color = 'font-size:32px;color:#A9A9A9';
         }
 
         const iconElement = document.createElement('i');
         iconElement.className = icon;
         iconElement.style = color;
+
+        if (score < scoreSetting) {
+            iconElement.className = 'fa fa-question-circle';
+            iconElement.style = 'font-size:32px;color:#A9A9A9';
+            iconElement.setAttribute('title', localStorage.getItem('notenoughtinfo'));
+        }
+
         return iconElement;
     }
 }

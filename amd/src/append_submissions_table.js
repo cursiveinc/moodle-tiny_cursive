@@ -111,6 +111,7 @@ define([
                                     moduletitle: textContent,
                                     page: scoreSetting,
                                     userid: userid,
+                                    apikey: hasApiKey
                                 };
 
                                 let authIcon = myEvents.authorshipStatus(data.res.first_file, data.res.score, scoreSetting);

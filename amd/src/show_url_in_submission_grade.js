@@ -140,6 +140,7 @@ define([
                     formattime: myEvents.formatedTime(data.data),
                     page: score_setting,
                     userid: userid,
+                    apikey: hasApiKey
                 };
 
                 const authIcon = myEvents.authorshipStatus(data.data.first_file, data.data.score, score_setting);
