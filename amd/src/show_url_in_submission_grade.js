@@ -60,7 +60,7 @@ define([
     };
 
     var usersTable = {
-        init: function(score_setting, showcomment) {
+        init: function(score_setting, showcomment, hasApiKey) {
 
             const graderElement = document.getElementById('page-mod-assign-grader');
             if (graderElement) {
@@ -69,11 +69,11 @@ define([
 
             str.get_strings([{key: "field_require", component: "tiny_cursive"}])
                 .then(() => {
-                    usersTable.appendSubmissionDetail(score_setting, showcomment);
+                    usersTable.appendSubmissionDetail(score_setting, showcomment, hasApiKey);
                 });
         },
         // eslint-disable-next-line
-        appendSubmissionDetail: function(score_setting, showcomment) {
+        appendSubmissionDetail: function(score_setting, showcomment, hasApiKey) {
 
             const divElement = document.querySelector('.path-mod-assign [data-region="grade-panel"]');
             let previousContextId = window.location.href;
@@ -109,7 +109,7 @@ define([
 
                 const analytic_button_div = document.createElement('div');
                 analytic_button_div.classList.add('text-center', 'mt-2');
-                analytic_button_div.appendChild(analyticButton(userid));
+                analytic_button_div.appendChild(analyticButton(hasApiKey ? data.data.effort_ratio : "", userid));
 
                 const gradeActions = document.querySelector('div[data-region="grade-actions"]');
                 gradeActions.parentNode.insertBefore(analytic_button_div, gradeActions);
@@ -140,10 +140,11 @@ define([
                     formattime: myEvents.formatedTime(data.data),
                     page: score_setting,
                     userid: userid,
+                    apikey: hasApiKey
                 };
 
                 const authIcon = myEvents.authorshipStatus(data.data.first_file, data.data.score, score_setting);
-                myEvents.createModal(userid, context, '', authIcon);
+                myEvents.createModal(userid, context, '', replayInstances, authIcon);
                 myEvents.analytics(userid, templates, context, '', replayInstances, authIcon);
                 myEvents.checkDiff(userid, data.data.file_id, '', replayInstances);
                 myEvents.replyWriting(userid, filepath, '', replayInstances);

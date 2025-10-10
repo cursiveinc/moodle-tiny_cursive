@@ -57,15 +57,15 @@ define([
     };
 
     var usersTable = {
-        init: function(scoreSetting, showcomment) {
+        init: function(scoreSetting, showcomment, hasApiKey) {
             str
                 .get_strings([
                     { key: "confidence_threshold", component: "tiny_cursive" },
                 ]).done(function() {
-                    usersTable.appendTable(scoreSetting, showcomment);
+                    usersTable.appendTable(scoreSetting, showcomment, hasApiKey);
                 });
         },
-        appendTable: function(scoreSetting) {
+        appendTable: function(scoreSetting, hasApiKey) {
             let sub_url = window.location.href;
             let parm = new URL(sub_url);
             let h_tr = document.querySelector('thead tr');
@@ -84,11 +84,6 @@ define([
                         let userid = td_user.querySelector("input[type='checkbox']").value;
                         let cmid = parm.searchParams.get('id');
 
-                        // Create the table cell element and append the anchor
-                        const tableCell = document.createElement('td');
-                        tableCell.appendChild(analyticButton(userid));
-                        tr.children[3].insertAdjacentElement('afterend', tableCell);
-
                         let args = {id: userid, modulename: "assign", cmid: cmid};
                         let methodname = 'cursive_user_list_submission_stats';
                         let com = AJAX.call([{methodname, args}]);
@@ -101,6 +96,10 @@ define([
                                     filepath = data.res.filename;
                                 }
 
+                                const tableCell = document.createElement('td');
+                                tableCell.appendChild(analyticButton(hasApiKey ? data.res.effort_ratio : "", userid));
+                                tr.children[3].insertAdjacentElement('afterend', tableCell);
+
                                 // Get Module Name from element
                                 let element = document.querySelector('.page-header-headings h1');
                                 let textContent = element.textContent; // Extracts the text content from the h1 element
@@ -112,10 +111,11 @@ define([
                                     moduletitle: textContent,
                                     page: scoreSetting,
                                     userid: userid,
+                                    apikey: hasApiKey
                                 };
 
                                 let authIcon = myEvents.authorshipStatus(data.res.first_file, data.res.score, scoreSetting);
-                                myEvents.createModal(userid, context, '', authIcon);
+                                myEvents.createModal(userid, context, '', replayInstances, authIcon);
                                 myEvents.analytics(userid, templates, context, '', replayInstances, authIcon);
                                 myEvents.checkDiff(userid, data.res.file_id, '', replayInstances);
                                 myEvents.replyWriting(userid, filepath, '', replayInstances);

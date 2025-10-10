@@ -29,7 +29,7 @@ import AnalyticEvents from './analytic_events';
 import analyticButton from './analytic_button';
 import * as Str from 'core/str';
 
-export const init = (scoreSetting) => {
+export const init = (scoreSetting, showcomment, hasApiKey) => {
     const replayInstances = {};
 
     // eslint-disable-next-line camelcase
@@ -58,6 +58,9 @@ export const init = (scoreSetting) => {
     const cmid = M.cfg.contextInstanceId;
     const emailLinks = document.querySelectorAll('#page-content div[role="main"] td.lastcol a');
     const headColumns = document.querySelectorAll('#region-main div[role="main"] table thead tr');
+    let url = new URL(window.location.href);
+    let mode = url.searchParams.get('mode');
+    let user = url.searchParams.get('user');
 
     Str.get_string('analytics', 'tiny_cursive').then((strs) => {
         headColumns.forEach(function(row) {
@@ -71,6 +74,10 @@ export const init = (scoreSetting) => {
         });
         return true;
     }).catch(e => window.console.error(e));
+
+    if (mode && mode === "grade") {
+        analytics(user, cmid, "", true);
+    }
 
     emailLinks.forEach(function(emailLink) {
         const href = emailLink.getAttribute('href');
@@ -90,49 +97,85 @@ export const init = (scoreSetting) => {
                     secondTd.insertAdjacentElement('afterend', emptyTd);
                 }
             } else {
-                const args = {id: userid, modulename: "lesson", cmid: cmid};
-                const methodname = 'cursive_get_lesson_submission_data';
-                const com = getData([{methodname, args}]);
-
-                com[0].done(function(json) {
-                    const data = JSON.parse(json);
-                    let filepath = '';
-                    if (data.res.filename) {
-                        filepath = data.res.filename;
+                document.querySelector('#region-main').addEventListener('click', e => {
+                    const a = e.target.closest('table tbody tr td.cell.c1 a');
+                    if (!a) {
+                      return;
                     }
 
-                    const analyticButtonDiv = document.createElement('div');
-                    const analyticsColumn = document.createElement('td');
-                    analyticButtonDiv.append(analyticButton(userid));
-                    analyticButtonDiv.dataset.region = "analytic-div" + userid;
-                    analyticsColumn.append(analyticButtonDiv);
-
-                    const closestTr = emailLink.closest('tr');
-                    const secondTd = closestTr.querySelector('td:nth-child(2)');
-                    if (secondTd) {
-                        secondTd.insertAdjacentElement('afterend', analyticsColumn);
-                    }
-
-                    const myEvents = new AnalyticEvents();
-                    const context = {
-                        tabledata: data.res,
-                        formattime: myEvents.formatedTime(data.res),
-                        page: scoreSetting,
-                        userid: userid,
-                    };
-
-                    const authIcon = myEvents.authorshipStatus(data.res.first_file, data.res.score, scoreSetting);
-                    myEvents.createModal(userid, context, '', authIcon);
-                    myEvents.analytics(userid, templates, context, '', replayInstances, authIcon);
-                    myEvents.checkDiff(userid, data.res.file_id, '', replayInstances);
-                    myEvents.replyWriting(userid, filepath, '', replayInstances);
-
-                });
-
-                com[0].fail((error) => {
-                    window.console.error('Error getting lesson data:', error);
-                });
+                    e.preventDefault();
+                    const url = new URL(a.href);
+                    url.searchParams.append('user', userid);
+                    window.location.href = url;
+                  });
+                  analytics(userid, cmid, emailLink, false);
             }
         }
     });
+
+    /**
+     * Fetches and displays analytics data for lesson submissions
+     * @param {number} userid - The ID of the user whose analytics to fetch
+     * @param {number} cmid - The course module ID
+     * @param {jQuery|string} emailLink - jQuery object of email link or empty string
+     * @param {boolean} grade - Whether this is being called from grade view
+     */
+    function analytics(userid, cmid, emailLink, grade) {
+        let args = { id: userid, modulename: "lesson", cmid: cmid };
+        let methodname = 'cursive_get_lesson_submission_data';
+        let com = getData([{ methodname, args }]);
+
+        com[0].done(function (json) {
+          var data = JSON.parse(json);
+          var filepath = data.res.filename || '';
+
+          let analyticButtonDiv = document.createElement('div');
+          let analyticsColumn = document.createElement('td');
+          analyticButtonDiv.append(
+            analyticButton(hasApiKey ? data.res.effort_ratio : "", userid)
+          );
+          analyticButtonDiv.dataset.region = "analytic-div" + userid;
+          analyticsColumn.append(analyticButtonDiv);
+
+          if (grade) {
+            analyticButtonDiv.classList.add('w-100');
+            const felement = document.querySelector('#fitem_id_response_editor .felement');
+            if (felement) {
+              felement.insertBefore(analyticButtonDiv, felement.firstChild);
+            }
+          } else {
+            const tr = emailLink.closest('tr');
+            if (tr) {
+              const cells = tr.querySelectorAll('td');
+              if (cells[1]) {
+                cells[1].insertAdjacentElement('afterend', analyticsColumn);
+              }
+            }
+          }
+
+          let myEvents = new AnalyticEvents();
+          var context = {
+            tabledata: data.res,
+            formattime: myEvents.formatedTime(data.res),
+            page: scoreSetting,
+            userid: userid,
+            apikey: hasApiKey
+          };
+
+          let authIcon = myEvents.authorshipStatus(
+            data.res.first_file,
+            data.res.score,
+            scoreSetting
+          );
+          myEvents.createModal(userid, context, '', replayInstances, authIcon);
+          myEvents.analytics(userid, templates, context, '', replayInstances, authIcon);
+          myEvents.checkDiff(userid, data.res.file_id, '', replayInstances);
+          myEvents.replyWriting(userid, filepath, '', replayInstances);
+        });
+
+        com[0].fail((error) => {
+          window.console.error('Error getting cursive config:', error);
+        });
+      }
+
 };
