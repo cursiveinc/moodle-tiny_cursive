@@ -65,7 +65,7 @@ define([
                     usersTable.appendTable(scoreSetting, showcomment, hasApiKey);
                 });
         },
-        appendTable: function(scoreSetting, hasApiKey) {
+        appendTable: function(scoreSetting, showComment, hasApiKey) {
             let sub_url = window.location.href;
             let parm = new URL(sub_url);
             let h_tr = document.querySelector('thead tr');
@@ -81,7 +81,7 @@ define([
 
                     document.querySelectorAll('tbody tr').forEach(function(tr) {
                         let td_user = tr.querySelector("td");
-                        let userid = td_user.querySelector("input[type='checkbox']").value;
+                        let userid = td_user.querySelector("input[type='checkbox']")?.value;
                         let cmid = parm.searchParams.get('id');
 
                         let args = {id: userid, modulename: "assign", cmid: cmid};
