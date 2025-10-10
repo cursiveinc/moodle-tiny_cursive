@@ -36,13 +36,11 @@ define(["core/str"], function(str) {
       var body = document.createElement("div");
       body.id = "body";
       body.className = "body";
-      document.body.appendChild(body);
-
       body.className = user_role;
-
       if (showcomments == 1) {
         body.className = 'intervention ' + user_role;
       }
+      document.body.appendChild(body);
     },
   };
 
