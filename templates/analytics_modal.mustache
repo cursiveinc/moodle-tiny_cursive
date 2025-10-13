@@ -293,7 +293,7 @@
                         e.preventDefault();
                         document.getElementById("toastOverlay").classList.remove('d-none');
                         resubmitBtn.prop('disabled', true);
-                        handleResubmit(modal);
+                        handleResubmit();
                     });
                 });
             }).catch((error) => {
@@ -301,7 +301,7 @@
             });
         }
 
-        function handleResubmit(modal) {
+        function handleResubmit() {
 
             const toastBody = document.getElementById('cursive-toast-body');
             const toastText = document.getElementById("ToastTextContent");
@@ -320,16 +320,12 @@
                         setTimeout(() =>{
                             updateToast(toastBody, "{{#str}}submissionqueued, tiny_cursive{{/str}}");
                             modalBody = getModalBody(msgName, "{{#str}}submissionqueued, tiny_cursive{{/str}}", false);
-                            setTimeout(() => {
-                                modal.destroy();
-                            }, 1000);
                         }, 1000);
                     } else {
                         updateToast(toastText, "{{#str}}warningpayloadre, tiny_cursive{{/str}}");
                         toastOverlay?.classList.add('d-none');
                         setTimeout(() => {
                             updateToast(toastText, "{{#str}}resubmit, tiny_cursive{{/str}}");
-                            modal.destroy();
                         }, 1000);
                     }
                 }).catch((error) => {
