@@ -56,7 +56,8 @@ export default class MyModal extends Modal {
         root.find('.modal-body').css({
             'padding': '0',
             'border-radius': '30px',
-            'overflow': 'hidden',
+            'overflow': 'auto',
+            'scrollbar-width': 'none'
         });
         root.find('.modal-dialog').css({
             'max-width': '800px',

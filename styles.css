@@ -1109,13 +1109,17 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     color: #666;
     font-weight: bold;
 }
-
+.paste-event-text,
 .tiny_cursive_pasted_text_container {
-    font-family: monospace;
-    font-size: 14px;
-    word-break: break-word;
-    /* white-space: pre-wrap; */
-    color: #333;
+    max-height: 150px;
+    overflow: auto;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    display: block;
+    padding: 8px;
+    background-color: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: 4px;
     margin-top: 8px;
 }
 
