@@ -376,7 +376,7 @@ class cursive_json_func_data extends external_api {
             ];
             $table = 'tiny_cursive_comments';
             $recs = $DB->get_records($table, $conditions);
-            $sql = 'SELECT filename, content, userid, id AS file_id
+            $sql = 'SELECT filename, content, userid, id AS file_id, uploaded
                       FROM {tiny_cursive_files}
                      WHERE resourceid = :resourceid AND cmid = :cmid
                            AND modulename = :modulename AND questionid=:questionid AND userid = :userid ';
@@ -390,50 +390,57 @@ class cursive_json_func_data extends external_api {
                     "userid" => $params['userid'],
                 ],
             );
+            if ($filename) {
+                $data['filename'] = $filename->filename;
+                $data['questionid'] = $params['questionid'];
 
-            $data['filename'] = $filename->filename;
-            $data['questionid'] = $params['questionid'];
+                if ($data['filename']) {
+                    $sql = 'SELECT id AS fileid
+                            FROM {tiny_cursive_files}
+                            WHERE userid = :userid ORDER BY id ASC LIMIT 1';
+                    $ffile = $DB->get_record_sql($sql, ['userid' => $filename->userid]);
 
-            if ($data['filename']) {
-                $sql = 'SELECT id AS fileid
-                          FROM {tiny_cursive_files}
-                         WHERE userid = :userid ORDER BY id ASC LIMIT 1';
-                $ffile = $DB->get_record_sql($sql, ['userid' => $filename->userid]);
-
-                if ($ffile->fileid == $filename->file_id) {
-                    $data['first_file'] = 1;
-                } else {
-                    $data['first_file'] = 0;
+                    if ($ffile->fileid == $filename->file_id) {
+                        $data['first_file'] = 1;
+                    } else {
+                        $data['first_file'] = 0;
+                    }
                 }
-            }
 
-            if ($filename->file_id) {
-                $sql = 'SELECT uwr.*, diff.meta as effort_ratio
-                          FROM {tiny_cursive_user_writing} uwr
-                     LEFT JOIN {tiny_cursive_writing_diff} diff ON uwr.file_id = diff.file_id
-                         WHERE uwr.file_id = :fileid';
-                $report = $DB->get_record_sql($sql, ['fileid' => $filename->file_id]);
-                if (isset($report->effort_ratio)) {
-                    $report->effort_ratio = intval(floatval($report->effort_ratio) * 100);
+                if ($filename->file_id) {
+                    $sql = 'SELECT uwr.*, diff.meta as effort_ratio
+                            FROM {tiny_cursive_user_writing} uwr
+                        LEFT JOIN {tiny_cursive_writing_diff} diff ON uwr.file_id = diff.file_id
+                            WHERE uwr.file_id = :fileid';
+                    $report = $DB->get_record_sql($sql, ['fileid' => $filename->file_id]);
+                    if (isset($report->effort_ratio)) {
+                        $report->effort_ratio = intval(floatval($report->effort_ratio) * 100);
+                    }
+                    if ($report) {
+                        $data['score'] = $report->score;
+                        $data['total_time_seconds'] = $report->total_time_seconds;
+                        $data['word_count'] = $report->word_count;
+                        $data['words_per_minute'] = $report->words_per_minute;
+                        $data['backspace_percent'] = $report->backspace_percent;
+                        $data['copy_behavior'] = $report->copy_behavior;
+                        $data['key_count'] = $report->key_count;
+                        $data['file_id'] = $filename->file_id;
+                        $data['character_count'] = $report->character_count;
+                        $data['characters_per_minute'] = $report->characters_per_minute;
+                        $data['keys_per_minute'] = $report->keys_per_minute;
+                        $data['effort_ratio'] = $report->effort_ratio ?? 0;
+                        $data['uploaded'] = $filename->uploade;
+                    }
                 }
-                $data['score'] = $report->score;
-                $data['total_time_seconds'] = $report->total_time_seconds;
-                $data['word_count'] = $report->word_count;
-                $data['words_per_minute'] = $report->words_per_minute;
-                $data['backspace_percent'] = $report->backspace_percent;
-                $data['copy_behavior'] = $report->copy_behavior;
-                $data['key_count'] = $report->key_count;
-                $data['file_id'] = $filename->file_id;
-                $data['character_count'] = $report->character_count;
-                $data['characters_per_minute'] = $report->characters_per_minute;
-                $data['keys_per_minute'] = $report->keys_per_minute;
-                $data['effort_ratio'] = $report->effort_ratio ?? 0;
             }
             $usercomment = [];
             if ($recs) {
                 foreach ($recs as $key => $rec) {
                     array_push($usercomment, $rec);
                 }
+                $data['resubmit'] = constants::is_resubmitable($data, $filename->file_id);
+                $data['file_id'] = $filename->file_id ?? null;
+                $data['cmid'] = $params['cmid'];
                 return json_encode(['usercomment' => $usercomment, 'data' => $data]);
 
             } else {
@@ -446,7 +453,7 @@ class cursive_json_func_data extends external_api {
 
             $attempts = "SELECT  uw.total_time_seconds ,uw.word_count ,uw.words_per_minute,
                                  uw.backspace_percent,uw.score,uw.copy_behavior,uf.resourceid,
-                                 uf.modulename,uf.userid, uf.filename,
+                                 uf.modulename,uf.userid, uf.filename, uf.uploaded,
                            FROM {tiny_cursive_user_writing} uw
                            JOIN {tiny_cursive_files} uf ON uw.file_id = uf.id
                           WHERE uf.resourceid = :id
@@ -463,11 +470,13 @@ class cursive_json_func_data extends external_api {
                             'resourceid' => $params['id'],
                             'cmid'       => $params['cmid'],
                             'modulename' => $params['modulename']];
-                $filename = $DB->get_record('tiny_cursive_files', $conditions, 'filename');
+                $filename = $DB->get_record('tiny_cursive_files', $conditions, 'id, filename');
                 $data['filename'] = $filename->filename;
 
             }
-
+            $data['resubmit'] = constants::is_resubmitable($data, $filename->id);
+            $data['file_id'] = $filename->id ?? null;
+            $data['cmid'] = $params['cmid'];
             $usercomment = [];
             if ($recs) {
                 foreach ($recs as $key => $rec) {
@@ -539,7 +548,7 @@ class cursive_json_func_data extends external_api {
         $conditions = ["resourceid" => $params['id'], 'modulename' => "forum"];
         $recs = $DB->get_records('tiny_cursive_comments', $conditions);
 
-        $attempts = "SELECT uw.total_time_seconds, uw.word_count, uw.words_per_minute,
+        $attempts = "SELECT uw.total_time_seconds, uw.word_count, uw.words_per_minute, uf.uploaded,
                             uw.backspace_percent, uw.score, uw.copy_behavior, uf.resourceid,
                             uf.modulename, uf.userid, uf.filename, uw.file_id,
                             diff.meta AS effort_ratio
@@ -574,6 +583,8 @@ class cursive_json_func_data extends external_api {
 
             $data['filename'] = $filename->filename;
             $data['file_id'] = $filename->file_id;
+            $data['resubmit'] = constants::is_resubmitable($data, $filename->file_id);
+            $data['cmid'] = $params['cmid'];
 
             $sql = 'SELECT *
                       FROM {tiny_cursive_files}
@@ -587,9 +598,9 @@ class cursive_json_func_data extends external_api {
         $sql = 'SELECT *
                   FROM {tiny_cursive_files}
                  WHERE userid = :userid ORDER BY id ASC LIMIT 1';
-        $firstfile = $DB->get_record_sql($sql, ['userid' => $data['userid']]);
-
-        if ($firstfile->id == $filename->file_id) {
+        $firstfile = $DB->get_record_sql($sql, ['userid' => $data['userid'] ?? '']);
+        $fileid = $firstfile->id ?? null;
+        if (isset($firstfile) && isset($filename) && $fileid == $filename->file_id) {
             $data['first_file'] = 1;
         }
 
@@ -598,6 +609,7 @@ class cursive_json_func_data extends external_api {
             foreach ($recs as $key => $rec) {
                 array_push($usercomment, $rec);
             }
+
             return json_encode(['usercomment' => $usercomment, 'data' => $data]);
         } else {
             return json_encode(['usercomment' => 'comments', 'data' => $data]);
@@ -870,7 +882,7 @@ class cursive_json_func_data extends external_api {
 
         $attempts = "SELECT uw.total_time_seconds, uw.word_count, uw.words_per_minute,
                             uw.backspace_percent, uw.score, uw.copy_behavior, uf.resourceid,
-                            uf.modulename, uf.userid, uw.file_id, uf.filename,
+                            uf.modulename, uf.userid, uw.file_id, uf.filename, uf.uploaded,
                             diff.meta AS effort_ratio
                        FROM {tiny_cursive_user_writing} uw
                        JOIN {tiny_cursive_files} uf ON uw.file_id = uf.id
@@ -920,7 +932,9 @@ class cursive_json_func_data extends external_api {
                 $data['first_file'] = 0;
             }
         }
-
+        $data['resubmit'] = constants::is_resubmitable($data, $data['file_id'] ?? null);
+        $data['file_id'] = $data['file_id'] ?? null;
+        $data['cmid'] = $params['cmid'];
         $usercomment = [];
         if ($recs) {
             foreach ($recs as $key => $rec) {
@@ -1346,7 +1360,7 @@ class cursive_json_func_data extends external_api {
         self::validate_context($context);
         require_capability('tiny/cursive:writingreport', $context);
 
-        $sql = "SELECT u.*, d.meta as effort_ratio, cf.userid userid
+        $sql = "SELECT u.*, d.meta as effort_ratio, cf.userid, cf.uploaded
                   FROM {tiny_cursive_user_writing} u
              LEFT JOIN {tiny_cursive_writing_diff} d ON u.file_id = d.file_id
              LEFT JOIN {tiny_cursive_files} cf ON u.file_id = cf.id
@@ -1362,13 +1376,22 @@ class cursive_json_func_data extends external_api {
         $sql = 'SELECT id AS fileid
                   FROM {tiny_cursive_files}
                  WHERE userid = :userid ORDER BY id ASC LIMIT 1';
-        $ffile = $DB->get_record_sql($sql, ['userid' => $rec->userid]);
+        $ffile = $DB->get_record_sql($sql, ['userid' => $rec->userid ?? ""]);
+
         if ($rec) {
             if ($ffile->fileid == $rec->file_id) {
                 $rec->first_file = 1;
             } else {
                 $rec->first_file = 0;
             }
+            $rec->resubmit = constants::is_resubmitable($rec, $vparams['fileid']);
+            $rec->file_id = $vparams['fileid'];
+            $rec->cmid = $vparams['cmid'];
+        } else {
+            $rec = new stdClass();
+            $rec->resubmit = constants::is_resubmitable($rec, $vparams['fileid']);
+            $rec->file_id = $vparams['fileid'];
+            $rec->cmid = $vparams['cmid'];
         }
 
         return ['data' => json_encode($rec)];
@@ -2283,6 +2306,64 @@ class cursive_json_func_data extends external_api {
      */
     public static function get_oublog_submission_data_returns() {
         return new external_value(PARAM_TEXT, 'oublog data');
+    }
+
+
+    /**
+     * Returns the parameters for the resubmit_payload_data function
+     *
+     * @return external_function_parameters The parameters structure containing:
+     *         - file_id (int): Optional file ID parameter
+     *         - cmid (int): Optional course module ID parameter
+     */
+    public static function resubmit_payload_data_parameters() {
+        return new external_function_parameters(
+            [
+                'file_id' => new external_value(PARAM_INT, 'FILE ID', VALUE_DEFAULT, 0),
+                'cmid' => new external_value(PARAM_INT, 'CMID ID', VALUE_DEFAULT, 0),
+            ]
+        );
+    }
+
+    /**
+     * Resubmits payload data for a file
+     *
+     * @param int $fileid The ID of the file to resubmit
+     * @param int $cmid The course module ID
+     * @return bool True if resubmission was successful, false otherwise
+     */
+    public static function resubmit_payload_data($fileid, $cmid) {
+        global $DB;
+
+        $params = self::validate_parameters(
+            self::resubmit_payload_data_parameters(),
+            [
+                'file_id' => $fileid,
+                'cmid' => $cmid,
+            ]
+        );
+
+        $context = context_module::instance($params['cmid']);
+        self::validate_context($context);
+        require_capability("tiny/cursive:write", $context);
+
+        try {
+            $record = new stdClass();
+            $record->id = $params['file_id'];
+            $record->uploaded = 0;
+            return $DB->update_record('tiny_cursive_files', $record);
+        } catch (dml_exception $e) {
+            return false;
+        }
+    }
+
+    /**
+     * Returns description of resubmit_payload_data return value
+     *
+     * @return external_value Returns a boolean parameter indicating if resubmission was successful
+     */
+    public static function resubmit_payload_data_returns() {
+        return new external_value(PARAM_BOOL, 'resubmit message');
     }
 
 }

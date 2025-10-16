@@ -15,6 +15,8 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace tiny_cursive;
+
+use context_course;
 /**
  * Class constants
  *
@@ -113,5 +115,53 @@ class constants {
         }
 
         return boolval($apikey);
+    }
+
+
+    /**
+     * Determines if a submission is resubmittable based on upload and analytics data
+     *
+     * @param array|object $data Data containing uploaded, effort_ratio and total_time_seconds fields
+     * @param int $fileid ID of the file record to check upload status
+     * @return bool True if resubmittable, false otherwise
+     */
+    public static function is_resubmitable($data, $fileid) {
+        global $DB;
+
+        if (!self::has_api_key()) {
+            return false;
+        }
+
+        $data = (object) $data;
+
+        $upload = $DB->get_record('tiny_cursive_files', ['id' => $fileid], 'uploaded',  IGNORE_MISSING);
+        $upload = $upload ? intval($upload->uploaded) : 0;
+
+        $effort = intval($data->effort_ratio ?? 9999999); // Default to high value if not set, it is possible to get effort 0.
+        $analytics = intval($data->total_time_seconds ?? 0);
+
+        return ($upload > 0 && ($effort === 9999999 || $analytics === 0));
+
+    }
+
+    /**
+     * Check if the current user is a teacher or admin in the given context
+     *
+     * @param \context $context The context to check roles in
+     * @return bool True if user is teacher/admin, false otherwise
+     */
+    public static function is_teacher_admin($context) {
+
+        global $USER;
+
+        if (is_siteadmin($USER)) {
+                return true;
+        }
+        // Get roles for user in given context.
+        if (has_capability('tiny/cursive:view', $context, $USER->id, false)) {
+            return true;
+        }
+
+        return false;
     }
 }

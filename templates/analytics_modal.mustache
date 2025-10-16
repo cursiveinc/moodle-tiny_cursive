@@ -25,7 +25,8 @@
     {
         "tabledata": {
             "total_time_seconds": "300",
-            "effort_ratio": "75", 
+            "effort_ratio": "75",
+            "effort_ratio": "75",
             "formattime": "5:00",
             "words_per_minute": "60"
         },
@@ -49,7 +50,15 @@
                 </svg>
                 {{#str}}analytics, tiny_cursive {{/str}}
             </h3>
-            <div class="close-btn" id="analytic-close"><span class="rounded text-light shadow-sm">&times;</span>
+            <div class="d-flex">
+                {{#tabledata.resubmit}}
+                <button class="notification-btn has-alert" id="notificationBtn" title="Notifications">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
+                    </svg>
+                </button>
+                {{/tabledata.resubmit}}
+                <div class="close-btn" id="analytic-close"><span class="rounded text-light shadow-sm">&times;</span></div>
             </div>
         </div>
         <div class="tiny_cursive-main">
@@ -249,3 +258,117 @@
     </div>
     {{/body}}
     {{/ core/modal }}
+
+
+{{#js}}
+    require(['core/ajax', 'core/modal', 'core/modal_events', 'core/templates'], function(AJAX, Modal, Events, templates) {
+
+        const notificationBtn = document.getElementById('notificationBtn');
+        if (!notificationBtn) {
+            window.console.warn('Notification button not found.');
+            return;
+        }
+
+        let msgName = "{{tabledata.file_id}}" + "{{tabledata.cmid}}" + "cursive";
+        let modalBody = getModalBody(msgName, "{{#str}}resubmit, tiny_cursive{{/str}}", true);
+
+        let tableData = Number({{^tabledata.resubmit}}0{{/tabledata.resubmit}}{{#tabledata.resubmit}}{{tabledata.resubmit}}{{/tabledata.resubmit}}) || 0;
+
+        if (tableData > 0) {
+            notificationBtn.addEventListener('click', showToast);
+        }
+
+        function showToast() {
+            notificationBtn.classList.remove('has-alert');
+
+            Modal.create({
+                title: "{{#str}}retrivedta, tiny_cursive{{/str}}",
+                body:  modalBody,
+                show: true,
+                removeOnClose: true,
+            }).then((modal) => {
+               return modal.getRoot().on(Events.shown, function() {
+                    const resubmitBtn = modal.getRoot().find('#cursive-resubmit');
+                    resubmitBtn.on('click', function(e) {
+                        e.preventDefault();
+                        document.getElementById("toastOverlay").classList.remove('d-none');
+                        resubmitBtn.prop('disabled', true);
+                        handleResubmit();
+                    });
+                });
+            }).catch((error) => {
+                window.console.error('Error showing modal:', error);
+            });
+        }
+
+        function handleResubmit() {
+
+            const toastBody = document.getElementById('cursive-toast-body');
+            const toastText = document.getElementById("ToastTextContent");
+            const toastOverlay = document.getElementById("toastOverlay");
+
+            let fileid = "{{tabledata.file_id}}" ?? 0;
+            let cmid = "{{tabledata.cmid}}" ?? 0;
+
+            AJAX.call([{
+                    methodname: "cursive_resubmit_payload_data",
+                     // eslint-disable-next-line camelcase
+                    args: {file_id: fileid, cmid: cmid}
+                }])[0].done((data) => {
+
+                    if (data) {
+                        setTimeout(() =>{
+                            updateToast(toastBody, "{{#str}}submissionqueued, tiny_cursive{{/str}}");
+                            modalBody = getModalBody(msgName, "{{#str}}submissionqueued, tiny_cursive{{/str}}", false);
+                        }, 1000);
+                    } else {
+                        updateToast(toastText, "{{#str}}warningpayloadre, tiny_cursive{{/str}}");
+                        toastOverlay?.classList.add('d-none');
+                        setTimeout(() => {
+                            updateToast(toastText, "{{#str}}resubmit, tiny_cursive{{/str}}");
+                        }, 1000);
+                    }
+                }).catch((error) => {
+                    window.console.error('Error while requeuing:', error);
+                    setTimeout(() => {
+                        toastOverlay?.classList.add('d-none');
+                        updateToast(toastText, "{{#str}}warningpayloadre, tiny_cursive{{/str}}");
+                    }, 1000);
+                });
+        }
+
+        function getModalBody(key, body, isGet = false) {
+            const cacheTTL = 5 * 60 * 1000; // 5 minutes
+            const now = Date.now();
+
+            if (isGet) {
+
+                let cached = localStorage.getItem(key);
+
+                if (cached) {
+                    notificationBtn.classList.remove('has-alert');
+                    try {
+                        let obj = JSON.parse(cached);
+                        if (now > obj.tle) {
+                            localStorage.removeItem(key);
+                            return templates.render('tiny_cursive/modal_resubmit', {});
+                        }
+                        return obj.body;
+                    } catch (e) {
+                        return body;
+                    }
+                }
+                return templates.render('tiny_cursive/modal_resubmit', {});
+            }
+
+            localStorage.setItem(key, JSON.stringify({body: body, tle: now + cacheTTL}));
+            return body;
+        }
+
+        function updateToast(target, message) {
+            if (target) {
+                target.innerHTML = message;
+            }
+        }
+    });
+{{/js}}

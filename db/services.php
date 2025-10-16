@@ -229,6 +229,14 @@ $functions = [
         'type' => 'read',
         'ajax' => true,
         'capabilities' => 'tiny/cursive:view',
+    ], 'cursive_resubmit_payload_data' => [
+        'classname' => 'cursive_json_func_data',
+        'methodname' => 'resubmit_payload_data',
+        'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
+        'description' => 'resubmit payload data',
+        'type' => 'write',
+        'ajax' => true,
+        'capabilities' => 'tiny/cursive:view',
     ],
 ];
 

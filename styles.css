@@ -1109,13 +1109,17 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     color: #666;
     font-weight: bold;
 }
-
+.paste-event-text,
 .tiny_cursive_pasted_text_container {
-    font-family: monospace;
-    font-size: 14px;
-    word-break: break-word;
-    /* white-space: pre-wrap; */
-    color: #333;
+    max-height: 150px;
+    overflow: auto;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    display: block;
+    padding: 8px;
+    background-color: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: 4px;
     margin-top: 8px;
 }
 
@@ -1470,4 +1474,56 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     font-size: 14px;
     display: flex;
     align-items: center;
+}
+
+/* Notification Button */
+.notification-btn {
+    position: relative;
+    /* background: none; */
+    border: none;
+    padding: 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #6c757d;
+    margin-right: 1rem;
+
+}
+
+.notification-btn:hover {
+    background: #e9ecef;
+    color: #495057;
+}
+
+.notification-btn.has-alert {
+    color: #dc3545;
+}
+
+.notification-btn.has-alert::after {
+    content: '';
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 8px;
+    height: 8px;
+    background: #dc3545;
+    border-radius: 50%;
+    animation: pulse-dot 2s infinite;
+}
+
+@keyframes pulse-dot {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scale(1.2);
+        opacity: 0.7;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
