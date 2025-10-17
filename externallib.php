@@ -1376,7 +1376,7 @@ class cursive_json_func_data extends external_api {
         $sql = 'SELECT id AS fileid
                   FROM {tiny_cursive_files}
                  WHERE userid = :userid ORDER BY id ASC LIMIT 1';
-        $ffile = $DB->get_record_sql($sql, ['userid' => $rec->userid ?? ""]);
+        $ffile = $DB->get_record_sql($sql, ['userid' => $rec->userid ?? null]);
 
         if ($rec) {
             if ($ffile->fileid == $rec->file_id) {
