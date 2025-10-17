@@ -15,6 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace tiny_cursive\page;
+use context_course;
 use context_module;
 use html_writer;
 use moodle_exception;
@@ -253,7 +254,7 @@ class pdfexport {
             throw new moodle_exception(get_string('warning', 'tiny_cursive'));
         }
 
-        if (intval($USER->id) !== $this->id && !is_siteadmin()) {
+        if (intval($USER->id) !== $this->id && !constants::is_teacher_admin(context_course::instance($this->courseid))) {
             throw new moodle_exception(get_string('warning', 'tiny_cursive'));
         }
 

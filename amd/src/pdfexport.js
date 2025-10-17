@@ -48,12 +48,12 @@ export const init = (data) => {
                 window.history.back();
             });
             return modal;
-        });
+        }).catch(e => window.console.error(e));
 
         return;
     }
 
-    $(function(){
+    $(function() {
 
         let option = {
                     margin:       [10, 6, 10, 6],

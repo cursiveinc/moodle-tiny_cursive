@@ -80,6 +80,7 @@ class tiny_cursive_renderer extends plugin_renderer_base {
                         'fname'   => $user->filename,
                         'user_id' => $user->usrid,
                         'cmid'    => $user->cmid,
+                        'course'  => $courseid,
                     ]),
                     $dwnldicon.get_string('download', 'tiny_cursive'),
                     [
@@ -230,6 +231,7 @@ class tiny_cursive_renderer extends plugin_renderer_base {
                     'fname'   => $user->filename,
                     'user_id' => $user->usrid,
                     'cmid'    => $user->cmid,
+                    'course'  => $courseid,
                 ]),
                 $dwnldicon.get_string('download', 'tiny_cursive'),
                 [

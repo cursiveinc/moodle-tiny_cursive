@@ -75,8 +75,7 @@ class hook_callbacks {
         }
 
         $context  = context_course::instance($COURSE->id);
-        $userrole = (has_capability('report/courseoverview:view', $context, $USER->id, false) || is_siteadmin())
-            ? 'teacher_admin' : '';
+        $userrole = constants::is_teacher_admin($context) ? 'teacher_admin' : '';
 
         $plugins             = core_component::get_plugin_list('local');
         $PAGE->requires->js_call_amd('tiny_cursive/settings', 'init', [constants::show_comments(), $userrole]);
