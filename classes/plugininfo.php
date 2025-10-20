@@ -37,4 +37,3 @@ use editor_tiny\plugin;
  */
 class plugininfo extends plugin {
 }
-

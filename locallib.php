@@ -300,9 +300,8 @@ function tiny_cursive_get_user_submissions_data($userid, $modulename, $cmid, $co
         if ($filename) {
             $data['filename'] = $filename->filename;
             $data['file_id'] = $filename->fileid ?? '';
-            $data['resubmit'] = constants::is_resubmitable($data,  $data['file_id']);
+            $data['resubmit'] = constants::is_resubmitable($data, $data['file_id']);
             $data['cmid'] = $params['cmid'];
-
         }
     }
 
@@ -338,8 +337,12 @@ function tiny_cursive_get_user_submissions_data($userid, $modulename, $cmid, $co
 function tiny_cursive_get_cmid($courseid) {
     global $DB;
 
-    $cm = $DB->get_record('course_modules', ['course' => $courseid, 'deletioninprogress' => 0],
-         'id', IGNORE_MULTIPLE);
+    $cm = $DB->get_record(
+        'course_modules',
+        ['course' => $courseid, 'deletioninprogress' => 0],
+        'id',
+        IGNORE_MULTIPLE
+    );
     $cmid = isset($cm->id) ? $cm->id : 0;
 
     return $cmid;
@@ -387,8 +390,12 @@ function tiny_cursive_render_user_table($users, $renderer, $courseid, $page, $li
     ]);
     // Prepare the link text.
     $linktext  = get_string('download_csv', 'tiny_cursive');
-    $dwnldicon = $OUTPUT->pix_icon('download', get_string('download', 'tiny_cursive'),
-      'tiny_cursive', ['class' => 'tiny_cursive-analytics-bar-icon']);    // Prepare the attributes for the link.
+    $dwnldicon = $OUTPUT->pix_icon(
+        'download',
+        get_string('download', 'tiny_cursive'),
+        'tiny_cursive',
+        ['class' => 'tiny_cursive-analytics-bar-icon']
+    );    // Prepare the attributes for the link.
 
     $attributes = [
         'target' => '_blank',
@@ -398,7 +405,7 @@ function tiny_cursive_render_user_table($users, $renderer, $courseid, $page, $li
         'style' => 'margin-right:50px; padding: 9px 18px',
     ];
     // Generate the link using html_writer::link.
-    echo html_writer::link($url, $dwnldicon.$linktext, $attributes);
+    echo html_writer::link($url, $dwnldicon . $linktext, $attributes);
     echo $renderer->timer_report($users, $courseid, $page, $limit, $linkurl);
 }
 

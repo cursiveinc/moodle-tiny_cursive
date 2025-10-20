@@ -442,7 +442,6 @@ class cursive_json_func_data extends external_api {
                 $data['file_id'] = $filename->file_id ?? null;
                 $data['cmid'] = $params['cmid'];
                 return json_encode(['usercomment' => $usercomment, 'data' => $data]);
-
             } else {
                 return json_encode(['usercomment' => 'comments', 'data' => $data]);
             }
@@ -472,7 +471,6 @@ class cursive_json_func_data extends external_api {
                             'modulename' => $params['modulename']];
                 $filename = $DB->get_record('tiny_cursive_files', $conditions, 'id, filename');
                 $data['filename'] = $filename->filename;
-
             }
             $data['resubmit'] = constants::is_resubmitable($data, $filename->id);
             $data['file_id'] = $filename->id ?? null;
@@ -483,7 +481,6 @@ class cursive_json_func_data extends external_api {
                     array_push($usercomment, $rec);
                 }
                 return json_encode(['usercomment' => $usercomment, 'data' => $data]);
-
             } else {
                 return json_encode(['usercomment' => 'comments', 'data' => $data]);
             }
@@ -614,7 +611,6 @@ class cursive_json_func_data extends external_api {
         } else {
             return json_encode(['usercomment' => 'comments', 'data' => $data]);
         }
-
     }
 
     /**
@@ -709,7 +705,6 @@ class cursive_json_func_data extends external_api {
 
                 $data['filename'] = $filename->filename;
             }
-
         } else {
             $conditions = ["resourceid" => $params['id']];
             $table = 'tiny_cursive_comments';
@@ -748,7 +743,6 @@ class cursive_json_func_data extends external_api {
                 array_push($usercomment, $rec);
             }
             return json_encode(['usercomment' => $usercomment, 'data' => $data]);
-
         } else {
             return json_encode(['usercomment' => 'comments', 'data' => $data]);
         }
@@ -817,7 +811,6 @@ class cursive_json_func_data extends external_api {
                 array_push($usercomment, $rec);
             }
             return json_encode($usercomment);
-
         } else {
             return json_encode([['usercomment' => 'comments']]);
         }
@@ -920,7 +913,6 @@ class cursive_json_func_data extends external_api {
             $data['userid'] = $filename->userid;
         }
         if ($data['filename']) {
-
             $sql = 'SELECT id AS fileid
                       FROM {tiny_cursive_files}
                      WHERE userid = :userid ORDER BY id ASC LIMIT 1';
@@ -941,7 +933,6 @@ class cursive_json_func_data extends external_api {
                 array_push($usercomment, $rec);
             }
             return json_encode(['usercomment' => $usercomment, 'data' => $data]);
-
         } else {
             return json_encode(['usercomment' => 'comments', 'data' => $data]);
         }
@@ -1153,7 +1144,6 @@ class cursive_json_func_data extends external_api {
         );
 
         try {
-
             $context = context_system::instance();
             // Assuming a system-wide capability check.
             self::validate_context($context);
@@ -1256,7 +1246,7 @@ class cursive_json_func_data extends external_api {
 
         $conditions = ["userid" => $userid, 'resourceid' => $resourceid, 'cmid' => $cmid];
 
-        $data = new stdClass;
+        $data = new stdClass();
         try {
             $filedata        = $DB->get_record('tiny_cursive_files', ['filename' => $params['filepath']]);
             $comments        = $DB->get_records('tiny_cursive_comments', $conditions, '', 'usercomment');
@@ -1320,7 +1310,6 @@ class cursive_json_func_data extends external_api {
             'score' => new external_value(PARAM_FLOAT, 'score', VALUE_DEFAULT, 0),
             'quality_access' => new external_value(PARAM_INT, 'quality_access', VALUE_DEFAULT, 0),
         ];
-
     }
     /**
      * Returns parameters for store_user_writing method
@@ -1369,7 +1358,6 @@ class cursive_json_func_data extends external_api {
         $params = ['fileid' => $vparams['fileid']];
         $rec = $DB->get_record_sql($sql, $params);
         if (isset($rec->effort_ratio)) {
-
             $rec->effort_ratio = round($rec->effort_ratio * 100, 2);
         }
 
@@ -1455,7 +1443,6 @@ class cursive_json_func_data extends external_api {
         $record->meta = $params['meta']; // Add the meta field.
 
         try {
-
             if ($recordexists) {
                 $DB->update_record('tiny_cursive_writing_diff', $record);
             } else {
@@ -1686,7 +1673,6 @@ class cursive_json_func_data extends external_api {
             $context = context_module::instance($params['cmid']);
             self::validate_context($context);
             require_capability('tiny/cursive:write', $context);
-
         } else {
             $userdata["courseId"] = 0;
         }
@@ -1729,7 +1715,6 @@ class cursive_json_func_data extends external_api {
         }
         $temparray = [];
         if ($inp) {
-
             $temparray = json_decode($inp->content, true);
             $jsondata = json_decode($params['json_data'], true);
             foreach ($jsondata as $value) {
@@ -1757,7 +1742,6 @@ class cursive_json_func_data extends external_api {
             $DB->insert_record($table, $dataobj);
             return $fname;
         }
-
     }
 
      /**
@@ -1946,7 +1930,6 @@ class cursive_json_func_data extends external_api {
         );
 
         try {
-
             $context = context_system::instance();
             self::validate_context($context);
             require_capability('tiny/cursive:editsettings', $context);
@@ -2047,14 +2030,13 @@ class cursive_json_func_data extends external_api {
         );
 
         try {
-
             $context = context_module::instance($params['cmid']);
             self::validate_context($context);
             require_capability('tiny/cursive:writingreport', $context);
 
             $subscription = get_config('tiny_cursive', 'has_subscription');
             $customsettings = get_config('tiny_cursive', 'qualityaccess');
-            $data = new stdClass;
+            $data = new stdClass();
 
             $defaults = [
                 'word_len_mean' => 4.66,
@@ -2080,12 +2062,10 @@ class cursive_json_func_data extends external_api {
                     $default = floatval(get_config('tiny_cursive', $key) ?: $default);
 
                     if ($customsettings) {
-
                         $data->{$key} = round(floatval(floatval($data->{$key}) / $default) * 100, 2);
                     } else {
                         $data->{$key} = round(floatval(floatval($data->{$key}) / floatval($data->{$key . "_static"})) * 100, 2);
                     }
-
                 }
             } else {
                 $data->id = 0;
@@ -2161,12 +2141,12 @@ class cursive_json_func_data extends external_api {
      */
     public static function get_lesson_submission_data_parameters() {
         return new external_function_parameters(
-                [
+            [
                     'id' => new external_value(PARAM_INT, 'id', VALUE_DEFAULT, null),
                     'modulename' => new external_value(PARAM_TEXT, 'modulename', VALUE_DEFAULT, ''),
                     'cmid' => new external_value(PARAM_INT, 'cmid', VALUE_DEFAULT, 0),
                 ],
-            );
+        );
     }
 
     /**
@@ -2178,22 +2158,22 @@ class cursive_json_func_data extends external_api {
      * @return string JSON encoded submission data
      */
     public static function get_lesson_submission_data($id, $modulename, $cmid) {
-            $params = self::validate_parameters(
-                    self::get_lesson_submission_data_parameters(),
-                    [
-                        'id' => $id,
-                        'modulename' => $modulename,
-                        'cmid' => $cmid,
-                    ],
-            );
+        $params = self::validate_parameters(
+            self::get_lesson_submission_data_parameters(),
+            [
+                    'id' => $id,
+                    'modulename' => $modulename,
+                    'cmid' => $cmid,
+                ],
+        );
 
-            $context = context_module::instance($params['cmid']);
-            self::validate_context($context);
-            require_capability("tiny/cursive:view", $context);
+        $context = context_module::instance($params['cmid']);
+        self::validate_context($context);
+        require_capability("tiny/cursive:view", $context);
 
-            $rec = tiny_cursive_get_user_submissions_data($params['id'], $params['modulename'], $params['cmid']);
+        $rec = tiny_cursive_get_user_submissions_data($params['id'], $params['modulename'], $params['cmid']);
 
-            return json_encode($rec);
+        return json_encode($rec);
     }
 
     /**
@@ -2217,7 +2197,6 @@ class cursive_json_func_data extends external_api {
                 'disable' => new external_value(PARAM_BOOL, 'status', VALUE_DEFAULT, null),
             ]
         );
-
     }
     /**
      * Disables cursive functionality for all courses
@@ -2235,9 +2214,9 @@ class cursive_json_func_data extends external_api {
             }
             return true;
         } catch (moodle_exception $e) {
-                // Log error and return false if config update fails.
-                debugging('Error disabling cursive: ' . $e->getMessage(), DEBUG_DEVELOPER);
-                return false;
+            // Log error and return false if config update fails.
+            debugging('Error disabling cursive: ' . $e->getMessage(), DEBUG_DEVELOPER);
+            return false;
         }
     }
     /**
@@ -2260,13 +2239,13 @@ class cursive_json_func_data extends external_api {
      */
     public static function get_oublog_submission_data_parameters() {
         return new external_function_parameters(
-                [
+            [
                     'id' => new external_value(PARAM_INT, 'id', VALUE_DEFAULT, 0),
                     'resourceid' => new external_value(PARAM_INT, 'post id', VALUE_DEFAULT, 0),
                     'modulename' => new external_value(PARAM_TEXT, 'modulename', VALUE_DEFAULT, ''),
                     'cmid' => new external_value(PARAM_INT, 'cmid', VALUE_DEFAULT, 0),
                 ],
-            );
+        );
     }
 
     /**
@@ -2280,8 +2259,8 @@ class cursive_json_func_data extends external_api {
      */
     public static function get_oublog_submission_data($id, $resourceid, $modulename, $cmid) {
             $params = self::validate_parameters(
-                    self::get_oublog_submission_data_parameters(),
-                    [
+                self::get_oublog_submission_data_parameters(),
+                [
                         'id' => $id,
                         'resourceid' => $resourceid,
                         'modulename' => $modulename,
@@ -2293,8 +2272,13 @@ class cursive_json_func_data extends external_api {
             self::validate_context($context);
             require_capability("tiny/cursive:view", $context);
 
-            $rec = tiny_cursive_get_user_submissions_data($params['id'], $params['modulename'],
-             $params['cmid'], 0, $params['resourceid']);
+            $rec = tiny_cursive_get_user_submissions_data(
+                $params['id'],
+                $params['modulename'],
+                $params['cmid'],
+                0,
+                $params['resourceid']
+            );
 
             return json_encode($rec);
     }
@@ -2365,5 +2349,4 @@ class cursive_json_func_data extends external_api {
     public static function resubmit_payload_data_returns() {
         return new external_value(PARAM_BOOL, 'resubmit message');
     }
-
 }

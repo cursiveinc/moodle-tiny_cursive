@@ -45,12 +45,11 @@ class provider implements
     // The tiny editor stores user provided data.
     \core_privacy\local\metadata\provider,
 
-    // The tiny editor provides data directly to core.
-    \core_privacy\local\request\plugin\provider,
-
     // The tiny editor is capable of determining which users have data within it.
-    \core_privacy\local\request\core_userlist_provider {
+    \core_privacy\local\request\core_userlist_provider,
 
+    // The tiny editor provides data directly to core.
+    \core_privacy\local\request\plugin\provider {
     /**
      * Returns information about how tiny_cursive stores its data.
      *
@@ -138,7 +137,7 @@ class provider implements
         $user = $contextlist->get_user();
 
         // Firstly export all autosave records from all contexts in the list owned by the given user.
-        list($contextsql, $contextparams) = $DB->get_in_or_equal($contextlist->get_contextids(), SQL_PARAMS_NAMED);
+        [$contextsql, $contextparams] = $DB->get_in_or_equal($contextlist->get_contextids(), SQL_PARAMS_NAMED);
         $contextparams['userid'] = $user->id;
 
         $sql = "SELECT *
@@ -213,8 +212,7 @@ class provider implements
         [$useridsql, $useridsqlparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED);
         $params = ['cmid' => $context->id] + $useridsqlparams;
 
-        $DB->delete_records_select('tiny_autosave', "cmid = :contextid AND userid {$useridsql}",
-            $params);
+        $DB->delete_records_select('tiny_autosave', "cmid = :contextid AND userid {$useridsql}", $params);
     }
 
     /**
@@ -290,5 +288,4 @@ class provider implements
         }
         $autosaves->close();
     }
-
 }

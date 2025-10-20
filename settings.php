@@ -25,7 +25,7 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-require_once(__DIR__.'/locallib.php');
+require_once(__DIR__ . '/locallib.php');
 global $CFG, $PAGE;
 
 $PAGE->requires->js_call_amd('tiny_cursive/token_approve', 'init', [1]);
@@ -33,9 +33,8 @@ $PAGE->requires->js_call_amd('tiny_cursive/token_approve', 'init', [1]);
 $ADMIN->add('editortiny', new admin_category('tiny_cursive', new lang_string('pluginname', 'tiny_cursive')));
 
 if ($ADMIN->fulltree) {
-
-
-    $information = html_writer::tag('p',
+    $information = html_writer::tag(
+        'p',
         get_string('pluginname_desc_new', 'tiny_cursive') . ' ' .
         html_writer::link(
             'https://sjcgf.share.hsforms.com/2SHQOFefUSriOMeP9SzMmmw',
@@ -44,7 +43,8 @@ if ($ADMIN->fulltree) {
         ) . '. ' . get_string('pluginname_desc_new_2', 'tiny_cursive')
     );
 
-    $information .= html_writer::tag('p',
+    $information .= html_writer::tag(
+        'p',
         get_string('pluginname_desc_new_3', 'tiny_cursive') . ' ' .
         html_writer::link(
             'mailto:info@cursivetechnology.com',
@@ -52,7 +52,6 @@ if ($ADMIN->fulltree) {
         ),
         ['style' => 'margin-bottom: 2rem;']
     );
-
 
     $settings->add(
         new admin_setting_heading(
@@ -69,7 +68,8 @@ if ($ADMIN->fulltree) {
             get_string('secretkey_desc', 'tiny_cursive') . '' .
             "<br/><a id='approve_token' href='#' class='btn btn-primary'>  " .
             get_string('test_token', 'tiny_cursive') . " </a><span id='token_message'></span>",
-            "", PARAM_TEXT
+            "",
+            PARAM_TEXT
         )
     );
     $settings->add(
@@ -121,8 +121,8 @@ if ($ADMIN->fulltree) {
             'tiny_cursive/cursivetoken',
             get_string('webservicetoken', "tiny_cursive"),
             "<a id='generate_cursivetoken' href='#' class=''>  " .
-            get_string('generate', 'tiny_cursive') . " </a>".' '.
-            get_string('webservicetoken_des', 'tiny_cursive')."<br><span id='cursivetoken_'></span>",
+            get_string('generate', 'tiny_cursive') . " </a>" . ' ' .
+            get_string('webservicetoken_des', 'tiny_cursive') . "<br><span id='cursivetoken_'></span>",
             '',
             PARAM_TEXT
         )
@@ -142,11 +142,11 @@ if ($ADMIN->fulltree) {
         new admin_setting_configempty(
             'tiny_cursive/cursivedisable',
             get_string('cursivedisable', 'tiny_cursive'),
-            "<a href='#cursivedisable' class='btn btn-primary mb-1' id='cursivedisable' >".
-            get_string('disable', 'tiny_cursive')."</a>
-            <a href='#cursiveenable' class='btn btn-primary mb-1' id='cursiveenable'>".
-            get_string('enable', 'tiny_cursive')."
-            </a><br><span id='cursivedisable_'></span><br>".
+            "<a href='#cursivedisable' class='btn btn-primary mb-1' id='cursivedisable' >" .
+            get_string('disable', 'tiny_cursive') . "</a>
+            <a href='#cursiveenable' class='btn btn-primary mb-1' id='cursiveenable'>" .
+            get_string('enable', 'tiny_cursive') . "
+            </a><br><span id='cursivedisable_'></span><br>" .
             get_string('cursivedisable_des', 'tiny_cursive'),
         )
     );
@@ -156,27 +156,28 @@ if ($ADMIN->fulltree) {
             'cursive_more_info',
             get_string('new_admin_heading', 'tiny_cursive'),
             get_string('new_admin_desc', "tiny_cursive"),
-        ));
-
-        $settings->add(
-        new admin_setting_configtext(
-            'tiny_cursive/note_text',
-            get_string('note_text_title', 'tiny_cursive'),
-            "",
-            get_string('cursive_enable_notice', 'tiny_cursive'),
-            PARAM_TEXT
         )
     );
 
-    $settings->add(
+        $settings->add(
             new admin_setting_configtext(
-                'tiny_cursive/note_url_text',
-                get_string('note_url_text', 'tiny_cursive'),
+                'tiny_cursive/note_text',
+                get_string('note_text_title', 'tiny_cursive'),
                 "",
-                get_string('cursive_more_info', 'tiny_cursive'),
+                get_string('cursive_enable_notice', 'tiny_cursive'),
                 PARAM_TEXT
             )
         );
+
+    $settings->add(
+        new admin_setting_configtext(
+            'tiny_cursive/note_url_text',
+            get_string('note_url_text', 'tiny_cursive'),
+            "",
+            get_string('cursive_more_info', 'tiny_cursive'),
+            PARAM_TEXT
+        )
+    );
 
     $settings->add(
         new admin_setting_configtext(

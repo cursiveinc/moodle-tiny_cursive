@@ -106,7 +106,7 @@ class constants {
         $interval = get_config('tiny_cursive', 'ApiSyncInterval') > time();
         $apikey   = get_config('tiny_cursive', 'apiKey');
 
-        if (!$interval && !empty($secret) ) {
+        if (!$interval && !empty($secret)) {
             $key = cursive_approve_token();
             $key = json_decode($key);
             $apikey = $key->status ?? false;
@@ -134,14 +134,13 @@ class constants {
 
         $data = (object) $data;
 
-        $upload = $DB->get_record('tiny_cursive_files', ['id' => $fileid], 'uploaded',  IGNORE_MISSING);
+        $upload = $DB->get_record('tiny_cursive_files', ['id' => $fileid], 'uploaded', IGNORE_MISSING);
         $upload = $upload ? intval($upload->uploaded) : 0;
 
         $effort = intval($data->effort_ratio ?? 9999999); // Default to high value if not set, it is possible to get effort 0.
         $analytics = intval($data->total_time_seconds ?? 0);
 
         return ($upload > 0 && ($effort === 9999999 || $analytics === 0));
-
     }
 
     /**

@@ -68,8 +68,11 @@ if ($courseid && $courseid != 0) {
 require_capability('tiny/cursive:view', $context);
 
 $PAGE->requires->js_call_amd('tiny_cursive/key_logger', 'init', [1]);
-$PAGE->requires->js_call_amd('tiny_cursive/cursive_writing_reports', 'init',
-                 ["", constants::has_api_key(), get_config('tiny_cursive', 'json_download')]);
+$PAGE->requires->js_call_amd(
+    'tiny_cursive/cursive_writing_reports',
+    'init',
+    ["", constants::has_api_key(), get_config('tiny_cursive', 'json_download')]
+);
 
 $PAGE->set_context(context_system::instance());
 $PAGE->set_title(get_string('tiny_cursive', 'tiny_cursive'));
@@ -120,7 +123,8 @@ if ($formdata = $mform->get_data()) {
         $limit,
         $url,
         $moduleid,
-        $userid);
+        $userid
+    );
     $chart   = new \tiny_cursive\page\visualization($courseid, "", $moduleid, $formdata->userid);
     $chart->render();
 } else {
@@ -140,7 +144,8 @@ if ($formdata = $mform->get_data()) {
         $limit,
         $url,
         $moduleid,
-        $userid);
+        $userid
+    );
     $chart   = new \tiny_cursive\page\visualization($courseid, "", $moduleid, $userid);
     $chart->render();
 }

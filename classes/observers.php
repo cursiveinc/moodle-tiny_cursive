@@ -34,7 +34,6 @@ namespace tiny_cursive;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class observers {
-
     /**
      * Tiny cursive plugin update comment observer.
      *
@@ -117,7 +116,6 @@ class observers {
                 $dataobj->filename   = $fname;
 
                 $DB->update_record($table, $dataobj, true);
-
             }
         }
     }
@@ -185,7 +183,6 @@ class observers {
         }
 
         self::update_cursive_files($event);
-
     }
 
     /**
