@@ -68,7 +68,6 @@ function xmldb_tiny_cursive_upgrade($oldversion) {
 
         // Save upgrade path.
         upgrade_plugin_savepoint(true, 2024060227, 'tiny', 'cursive');
-
     }
 
     if ($oldversion < 2024060228) {
@@ -82,7 +81,6 @@ function xmldb_tiny_cursive_upgrade($oldversion) {
     }
 
     if ($oldversion < 2024060282) {
-
         $table = new xmldb_table('tiny_cursive_quality_metrics');
 
         $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
@@ -119,7 +117,6 @@ function xmldb_tiny_cursive_upgrade($oldversion) {
     }
 
     if ($oldversion < 2024060285) {
-
         $table = new xmldb_table('tiny_cursive_quality_metrics');
 
         // Add each new field if it doesn't already exist.
@@ -219,7 +216,7 @@ function xmldb_tiny_cursive_upgrade($oldversion) {
 
     if ($oldversion < 2024062004) {
         $table = new xmldb_table('tiny_cursive_files');
-        $field = new xmldb_field('original_content', XMLDB_TYPE_TEXT,  null, null, false, null, null, 'content');
+        $field = new xmldb_field('original_content', XMLDB_TYPE_TEXT, null, null, false, null, null, 'content');
 
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);

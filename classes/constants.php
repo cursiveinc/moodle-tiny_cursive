@@ -15,6 +15,8 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace tiny_cursive;
+
+use context_course;
 /**
  * Class constants
  *
@@ -104,7 +106,7 @@ class constants {
         $interval = get_config('tiny_cursive', 'ApiSyncInterval') > time();
         $apikey   = get_config('tiny_cursive', 'apiKey');
 
-        if (!$interval && !empty($secret) ) {
+        if (!$interval && !empty($secret)) {
             $key = cursive_approve_token();
             $key = json_decode($key);
             $apikey = $key->status ?? false;
@@ -132,22 +134,42 @@ class constants {
 
         $data = (object) $data;
 
-        $upload = $DB->get_record('tiny_cursive_files', ['id' => $fileid], 'uploaded',  IGNORE_MISSING);
+        $upload = $DB->get_record('tiny_cursive_files', ['id' => $fileid], 'uploaded', IGNORE_MISSING);
         $upload = $upload ? intval($upload->uploaded) : 0;
 
-        $effort = intval($data->effort_ratio ?? 0);
+        $effort = intval($data->effort_ratio ?? 9999999); // Default to high value if not set, it is possible to get effort 0.
         $analytics = intval($data->total_time_seconds ?? 0);
 
-        return ($upload > 0 && ($effort === 0 || $analytics === 0));
+        return ($upload > 0 && ($effort === 9999999 || $analytics === 0));
+    }
 
+    /**
+     * Check if the current user is a teacher or admin in the given context
+     *
+     * @param \context $context The context to check roles in
+     * @return bool True if user is teacher/admin, false otherwise
+     */
+    public static function is_teacher_admin($context) {
+
+        global $USER;
+
+        if (is_siteadmin($USER)) {
+                return true;
+        }
+        // Get roles for user in given context.
+        if (has_capability('tiny/cursive:view', $context, $USER->id, false)) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
      * Saves an auto-save record for cursive content
-     * 
+     *
      * @param array $params Parameters containing:
      *                      - cmid: Course module ID
-     *                      - resourceid: Resource identifier 
+     *                      - resourceid: Resource identifier
      *                      - courseid: Course ID
      *                      - original_content: Content to save
      *                      - questionid: Optional question ID
@@ -155,19 +177,80 @@ class constants {
      */
     public static function cursive_auto_save($params) {
         global $DB, $USER;
+        if (self::no_difference($params) || empty(self::normalize_string($params['originalText']))) {
+            return false;
+        }
         try {
             $autosave = new \stdClass();
             $autosave->userid = $USER->id;
             $autosave->cmid = $params['cmid'];
-            $autosave->modulename = $params['modulename']."_autosave";
+            $autosave->modulename = $params['modulename'] . "_autosave";
             $autosave->resourceid = $params['resourceId'];
             $autosave->courseid = $params['courseId'];
-            $autosave->usercomment = $params['originalText'];
+            $autosave->usercomment = trim($params['originalText']);
             $autosave->questionid = $params['questionid'];
             $autosave->timemodified = time();
             return $DB->insert_record('tiny_cursive_comments', $autosave);
         } catch (\dml_exception $e) {
             return false;
         }
+    }
+
+    /**
+     * Checks if there is a difference between the current content and previously saved content
+     *
+     * @param array $params Parameters containing:
+     *                      - originalText: Current content to compare
+     *                      - cmid: Course module ID
+     *                      - resourceId: Resource identifier
+     *                      - modulename: Module name
+     *                      - questionid: Optional question ID
+     * @return bool True if content has changed, false if same
+     */
+    public static function no_difference($params) {
+        global $DB, $USER;
+        $record = null;
+        if ($params['questionid']) {
+            $record = $DB->get_records('tiny_cursive_comments', [
+                'cmid' => $params['cmid'],
+                'modulename' => $params['modulename'] . "_autosave",
+                'resourceid' => $params['resourceId'],
+                'userid' => $USER->id,
+                'questionid' => $params['questionid'],
+                'courseid' => $params['courseId'],
+            ], 'timemodified DESC', 'usercomment', 0, 1);
+            $record = reset($record);
+        } else {
+            $record = $DB->get_records('tiny_cursive_comments', [
+                'cmid' => $params['cmid'],
+                'modulename' => $params['modulename'] . "_autosave",
+                'resourceid' => $params['resourceId'],
+                'userid' => $USER->id,
+                'courseid' => $params['courseId'],
+            ], 'timemodified DESC', 'usercomment', 0, 1);
+            $record = reset($record);
+        }
+
+        if ($record) {
+            $a = self::normalize_string($record->usercomment);
+            $b = self::normalize_string($params['originalText']);
+            return strcasecmp($a, $b) === 0;
+        }
+
+        return false;
+    }
+
+    /**
+     * Normalizes a string by converting HTML entities, removing non-breaking spaces,
+     * and standardizing whitespace
+     *
+     * @param string $str The string to normalize
+     * @return string The normalized string
+     */
+    public static function normalize_string($str) {
+        $str = html_entity_decode($str, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $str = preg_replace('/[\xC2\xA0]/', ' ', $str); // Replace NBSP with normal space.
+        $str = preg_replace('/\s+/', ' ', $str); // Normalize multiple spaces.
+        return trim($str);
     }
 }

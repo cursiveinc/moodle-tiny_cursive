@@ -35,7 +35,7 @@ export default class AnalyticEvents {
         getString('notenoughtinfo', 'tiny_cursive').then(str => {
             localStorage.setItem('notenoughtinfo', str);
             return str;
-        });
+        }).catch(error => window.console.log(error));
     }
 
     createModal(userid, context, questionid = '', replayInstances = null, authIcon) {

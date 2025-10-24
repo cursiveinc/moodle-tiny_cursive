@@ -188,23 +188,6 @@ $functions = [
         'type' => 'write',
         'ajax' => true,
         'capabilities' => 'tiny/cursive:writingreport',
-    ],
-    'cursive_store_quality_metrics' => [
-        'classname' => 'cursive_json_func_data',
-        'methodname' => 'store_quality_metrics',
-        'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
-        'description' => 'get user configuration',
-        'type' => 'write',
-        'ajax' => true,
-        'capabilities' => 'tiny/cursive:editsettings',
-    ], 'cursive_get_quality_metrics' => [
-        'classname' => 'cursive_json_func_data',
-        'methodname' => 'get_quality_metrics',
-        'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
-        'description' => 'get user configuration',
-        'type' => 'read',
-        'ajax' => true,
-        'capabilities' => 'tiny/cursive:view',
     ], 'cursive_get_lesson_submission_data' => [
         'classname' => 'cursive_json_func_data',
         'methodname' => 'get_lesson_submission_data',
@@ -237,7 +220,7 @@ $functions = [
         'type' => 'write',
         'ajax' => true,
         'capabilities' => 'tiny/cursive:view',
-    ], 
+    ],
     'cursive_get_autosave_content' => [
         'classname' => 'cursive_json_func_data',
         'methodname' => 'get_autosave_content',

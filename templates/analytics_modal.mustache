@@ -26,6 +26,7 @@
         "tabledata": {
             "total_time_seconds": "300",
             "effort_ratio": "75",
+            "effort_ratio": "75",
             "formattime": "5:00",
             "words_per_minute": "60"
         },
@@ -57,8 +58,7 @@
                     </svg>
                 </button>
                 {{/tabledata.resubmit}}
-                <div class="close-btn" id="analytic-close"><span class="rounded text-light shadow-sm">&times;</span>
-            </div>
+                <div class="close-btn" id="analytic-close"><span class="rounded text-light shadow-sm">&times;</span></div>
             </div>
         </div>
         <div class="tiny_cursive-main">
@@ -252,25 +252,6 @@
                 <div id="player_{{userid}}{{quizid}}">
                     <div class="tiny_cursive_replay_control d-none" id="replayControls_{{userid}}{{quizid}}"></div>
                 </div>
-                <!-- Toast Container -->
-                <div class="tiny_cursive-toast-container backdropLoader">
-                    <div class="tiny_cursive-toast error" id="errorToast">
-                        <div class="tiny_cursive-toast-header">
-                            <div class="tiny_cursive-toast-title-section">
-                                <svg class="tiny_cursive-toast-icon" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
-                                </svg>
-                                <h6 class="tiny_cursive-toast-title">{{#str}}retrivedta, tiny_cursive{{/str}} </h6>
-                            </div>
-                            <button class="tiny_cursive-toast-close" id="cursive-hideToast">&times;</button>
-                        </div>
-                        <div class="tiny_cursive-toast-body" id="cursive-toast-body">
-                            <span id="ToastTextContent">{{#str}}resubmit, tiny_cursive {{/str}} </span>
-                           <a href="#" id="cursive-resubmit" class="d-block btn btn-sm mt-2 border rounded">{{#pix}}a/refresh, core{{/pix}} {{#str}}resubmitbtn, tiny_cursive{{/str}} </a>
-                            <div class="toast-overlay" id="toastOverlay">{{#pix}}i/loading, core{{/pix}}</div>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -280,64 +261,114 @@
 
 
 {{#js}}
-    require(['core/ajax'], function(AJAX) {
+    require(['core/ajax', 'core/modal', 'core/modal_events', 'core/templates'], function(AJAX, Modal, Events, templates) {
 
-        const cursiveHideToast = document.getElementById('cursive-hideToast');
-        const cursiveShowToast = document.getElementById('notificationBtn');
-        const resubmitBtn = document.getElementById('cursive-resubmit');
-        let tabledata = "{{tabledata.resubmit}}" || 0;
+        const notificationBtn = document.getElementById('notificationBtn');
+        if (!notificationBtn) {
+            window.console.warn('Notification button not found.');
+            return;
+        }
 
-        if (tabledata) {
-            cursiveHideToast.addEventListener('click', hideToast);
-            cursiveShowToast.addEventListener('click', showToast);
-            resubmitBtn.addEventListener('click', handleResubmit);
+        let msgName = "{{tabledata.file_id}}" + "{{tabledata.cmid}}" + "cursive";
+        let modalBody = getModalBody(msgName, "{{#str}}resubmit, tiny_cursive{{/str}}", true);
+
+        let tableData = Number({{^tabledata.resubmit}}0{{/tabledata.resubmit}}{{#tabledata.resubmit}}{{tabledata.resubmit}}{{/tabledata.resubmit}}) || 0;
+
+        if (tableData > 0) {
+            notificationBtn.addEventListener('click', showToast);
         }
 
         function showToast() {
-            const toast = document.getElementById('errorToast');
-            const notificationBtn = document.getElementById('notificationBtn');
             notificationBtn.classList.remove('has-alert');
-            toast.classList.add('show');
+
+            Modal.create({
+                title: "{{#str}}retrivedta, tiny_cursive{{/str}}",
+                body:  modalBody,
+                show: true,
+                removeOnClose: true,
+            }).then((modal) => {
+               return modal.getRoot().on(Events.shown, function() {
+                    const resubmitBtn = modal.getRoot().find('#cursive-resubmit');
+                    resubmitBtn.on('click', function(e) {
+                        e.preventDefault();
+                        document.getElementById("toastOverlay").classList.remove('d-none');
+                        resubmitBtn.prop('disabled', true);
+                        handleResubmit();
+                    });
+                });
+            }).catch((error) => {
+                window.console.error('Error showing modal:', error);
+            });
         }
 
-        function hideToast() {
-            const toast = document.getElementById('errorToast');
-            toast.classList.remove('show');
-        }
+        function handleResubmit() {
 
-        function handleResubmit(e) {
-            const originalContent = resubmitBtn.innerHTML;
             const toastBody = document.getElementById('cursive-toast-body');
-            e.preventDefault();
+            const toastText = document.getElementById("ToastTextContent");
+            const toastOverlay = document.getElementById("toastOverlay");
 
-            resubmitBtn.disabled = true;
-            document.getElementById('toastOverlay').style.display = 'flex';
             let fileid = "{{tabledata.file_id}}" ?? 0;
             let cmid = "{{tabledata.cmid}}" ?? 0;
 
             AJAX.call([{
                     methodname: "cursive_resubmit_payload_data",
+                     // eslint-disable-next-line camelcase
                     args: {file_id: fileid, cmid: cmid}
                 }])[0].done((data) => {
-                    if(data){
+
+                    if (data) {
                         setTimeout(() =>{
-                            toastBody.innerHTML = "{{#str}}submissionqueued, tiny_cursive{{/str}}"
-                            setTimeout(() => {
-                                hideToast();
-                            }, 1000);
+                            updateToast(toastBody, "{{#str}}submissionqueued, tiny_cursive{{/str}}");
+                            modalBody = getModalBody(msgName, "{{#str}}submissionqueued, tiny_cursive{{/str}}", false);
                         }, 1000);
                     } else {
-                        document.getElementById("ToastTextContent").textContent = "{{#str}}warningpayloadre, tiny_cursive{{/str}}";
-                        resubmitBtn.disabled = false;
-                        document.getElementById('toastOverlay').style.display = 'none';
+                        updateToast(toastText, "{{#str}}warningpayloadre, tiny_cursive{{/str}}");
+                        toastOverlay?.classList.add('d-none');
                         setTimeout(() => {
-                            document.getElementById("ToastTextContent").textContent = "{{#str}}resubmit, tiny_cursive{{/str}}";
-                            hideToast();
+                            updateToast(toastText, "{{#str}}resubmit, tiny_cursive{{/str}}");
                         }, 1000);
                     }
-                }).fail((error) => {
+                }).catch((error) => {
                     window.console.error('Error while requeuing:', error);
+                    setTimeout(() => {
+                        toastOverlay?.classList.add('d-none');
+                        updateToast(toastText, "{{#str}}warningpayloadre, tiny_cursive{{/str}}");
+                    }, 1000);
                 });
+        }
+
+        function getModalBody(key, body, isGet = false) {
+            const cacheTTL = 5 * 60 * 1000; // 5 minutes
+            const now = Date.now();
+
+            if (isGet) {
+
+                let cached = localStorage.getItem(key);
+
+                if (cached) {
+                    notificationBtn.classList.remove('has-alert');
+                    try {
+                        let obj = JSON.parse(cached);
+                        if (now > obj.tle) {
+                            localStorage.removeItem(key);
+                            return templates.render('tiny_cursive/modal_resubmit', {});
+                        }
+                        return obj.body;
+                    } catch (e) {
+                        return body;
+                    }
+                }
+                return templates.render('tiny_cursive/modal_resubmit', {});
+            }
+
+            localStorage.setItem(key, JSON.stringify({body: body, tle: now + cacheTTL}));
+            return body;
+        }
+
+        function updateToast(target, message) {
+            if (target) {
+                target.innerHTML = message;
+            }
         }
     });
 {{/js}}

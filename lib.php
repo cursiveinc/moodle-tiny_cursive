@@ -95,8 +95,10 @@ function tiny_cursive_extend_navigation_course(\navigation_node $navigation, \st
     $module  = get_coursemodule_from_id(false, $cmid, $course->id);
     $cursive = tiny_cursive_status($course->id);
 
-    $url     = new moodle_url($CFG->wwwroot . '/lib/editor/tiny/plugins/cursive/tiny_cursive_report.php',
-       ['courseid' => $course->id]);
+    $url     = new moodle_url(
+        $CFG->wwwroot . '/lib/editor/tiny/plugins/cursive/tiny_cursive_report.php',
+        ['courseid' => $course->id]
+    );
 
     if ($cmid && $cursive) {
         $context = context_module::instance($cmid);
@@ -238,8 +240,13 @@ function tiny_cursive_myprofile_navigation(core_user\output\myprofile\tree $tree
         '/lib/editor/tiny/plugins/cursive/my_writing_report.php',
         ['id' => $user->id, 'course' => isset($course->id) ? $course->id : "", 'mode' => 'cursive']
     );
-    $node = new core_user\output\myprofile\node('reports', 'cursive',
-    get_string('student_writing_statics', 'tiny_cursive'), null, $url);
+    $node = new core_user\output\myprofile\node(
+        'reports',
+        'cursive',
+        get_string('student_writing_statics', 'tiny_cursive'),
+        null,
+        $url
+    );
     $tree->add_node($node);
 }
 
@@ -370,7 +377,6 @@ function tiny_cursive_status($courseid = 0) {
         return false;
     }
     return get_config('tiny_cursive', "cursive-$courseid");
-
 }
 
 /**
@@ -387,7 +393,7 @@ function cursive_approve_token() {
 
     try {
         // Use Moodle's cURL library.
-        $token     = get_config( 'tiny_cursive', 'secretkey');
+        $token     = get_config('tiny_cursive', 'secretkey');
         $remoteurl = get_config('tiny_cursive', 'python_server') . '/verify-token';
         $moodleurl = $CFG->wwwroot;
 

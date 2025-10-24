@@ -129,7 +129,7 @@ class user_report_form extends moodleform {
      * @return array
      */
     public function get_user($courseid) {
-        global $DB;
+
         $udetail = [];
 
         $udetail[0] = get_string('alluser', 'tiny_cursive');

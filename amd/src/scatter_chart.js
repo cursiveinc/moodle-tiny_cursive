@@ -125,11 +125,11 @@ export const init = async(data, apiKey, caption) => {
                     borderWidth: 1,
                     displayColors: false,
                     callbacks: {
-                        title: function (context) {
+                        title: function(context) {
                             const d = context[0].raw;
                             return d.label; // This appears as bold title.
                         },
-                        label: function (context) {
+                        label: function(context) {
                             const d = context.raw;
                             return [
                                 `Time: ${formatTime(d.x)}`,
@@ -149,7 +149,7 @@ export const init = async(data, apiKey, caption) => {
                     },
                     min: 0,
                     ticks: {
-                        callback: function (value) {
+                        callback: function(value) {
                             return formatTime(value);
                         }
                     }

@@ -15,6 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace tiny_cursive\page;
+use context_course;
 use context_module;
 use html_writer;
 use moodle_exception;
@@ -30,7 +31,6 @@ use tiny_cursive\constants;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class pdfexport {
-
     /**
      * @var array $templatecontent Template content for PDF export
      */
@@ -75,7 +75,7 @@ class pdfexport {
      * @param int $file The ID of the cursive file
      * @throws moodle_exception If the user does not have permission to access the page
      */
-    public function __construct(int $courseid, int $cmid,  $id, $questionid, $file) {
+    public function __construct(int $courseid, int $cmid, $id, $questionid, $file) {
         $this->id         = $id;
         $this->cmid       = $cmid;
         $this->fileid     = $file;
@@ -96,7 +96,7 @@ class pdfexport {
     public function download() {
 
         $this->check_access();
-        $this->prepare_data( $this->id, $this->fileid);
+        $this->prepare_data($this->id, $this->fileid);
         $this->page_setup($this->templatecontent);
         $this->page();
     }
@@ -138,7 +138,7 @@ class pdfexport {
         $loader  = html_writer::div($OUTPUT->pix_icon('i/loading', 'core'), 'text-center');
         $data    = html_writer::start_span('', ['id' => 'CursiveStudentData', 'data-submission' =>
                    json_encode($this->templatecontent)]);
-        $wrapper = html_writer::div($data.$loader .$content, 'text-center', ['id' => 'pdfexportLoader']);
+        $wrapper = html_writer::div($data . $loader . $content, 'text-center', ['id' => 'pdfexportLoader']);
         echo   $OUTPUT->box($wrapper);
         echo   $OUTPUT->footer();
     }
@@ -165,7 +165,6 @@ class pdfexport {
 
         $analytics = $DB->get_records_sql($sql, $params);
         $this->prepare_data_structure($analytics);
-
     }
 
     /**
@@ -207,11 +206,10 @@ class pdfexport {
         $analytics = array_values($analytics)[0] ?? [];
 
         if ($analytics) {
-
             $modname                       = get_coursemodule_from_id($analytics->modulename, $this->cmid, $this->courseid);
             $analytics->submitted_text     = base64_decode($analytics->submitted_text);
             $time                          = $analytics->total_time_seconds;
-            $analytics->total_time_seconds = sprintf("%dm %ds",  floor($time / 60), $time % 60);
+            $analytics->total_time_seconds = sprintf("%dm %ds", floor($time / 60), $time % 60);
             $comments                      = $this->get_comments($analytics);
             $pastecount                    = count($comments);
             $analytics->effort             = ceil($analytics->effort * 100);
@@ -228,11 +226,9 @@ class pdfexport {
                 "submitted"  => json_decode($analytics->submitted_text), // Submitted Text.
                 "auth_state" => $this->get_auth_state($analytics->score),
             ];
-
         } else {
             $this->templatecontent = [];
         }
-
     }
 
     /**
@@ -253,7 +249,7 @@ class pdfexport {
             throw new moodle_exception(get_string('warning', 'tiny_cursive'));
         }
 
-        if (intval($USER->id) !== $this->id && !is_siteadmin()) {
+        if (intval($USER->id) !== $this->id && !constants::is_teacher_admin(context_course::instance($this->courseid))) {
             throw new moodle_exception(get_string('warning', 'tiny_cursive'));
         }
 

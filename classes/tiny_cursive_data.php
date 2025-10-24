@@ -45,7 +45,6 @@ use stdClass;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class tiny_cursive_data {
-
     /**
      * Get list of users enrolled in a course.
      *
@@ -54,7 +53,6 @@ class tiny_cursive_data {
      * @throws \dml_exception
      */
     public static function get_courses_users($params) {
-        global $DB;
 
         $allusers             = new stdClass();
         $allusers->userlist   = [];
@@ -62,7 +60,7 @@ class tiny_cursive_data {
         $udetail2             = [];
         $courseid             = (int)$params['courseid'];
         $admin                = get_admin();
-        $users                = get_enrolled_users(context_course::instance($courseid), '', 0, );
+        $users                = get_enrolled_users(context_course::instance($courseid), '', 0);
 
         $udetail2['id']       = 0;
         $udetail2['name']     = get_string('alluser', 'tiny_cursive');
@@ -75,7 +73,6 @@ class tiny_cursive_data {
             $udetail['id']        = $user->id;
             $udetail['name']      = fullname($user);
             $allusers->userlist[] = $udetail;
-
         }
         return $allusers;
     }
