@@ -17,24 +17,33 @@
 {{!
     @template tiny_cursive/saved_content
 
-    TODO describe template saved_content
-
+    Template for displaying saved content in a dropdown menu with a list of user comments
+    
     Example context (json):
     {
+        "comments": [
+            {
+                "usercomment": "This is a sample comment"
+            },
+            {
+                "usercomment": "Another saved comment example"
+            },
+            {
+                "usercomment": "Third example of saved content"
+            }
+        ]
     }
 }}
 
 <div>
     <div class="dropdown-header">
-        <div class="dropdown-title">Saved Content</div>
+        <div class="dropdown-title">{{#str}}savedcontent, tiny_cursive{{/str}} </div>
         <button class="close-btn">×</button>
     </div>
     <div class="saved-items" id="savedItems">
         {{#comments}}
          <div class="saved-item">
-            <!-- <div class="item-title">${item.title}</div> -->
             <div class="item-preview">{{usercomment}}</div>
-            <!-- <div class="item-date">${item.date}</div> -->
         </div>
         {{/comments}}
     </div>

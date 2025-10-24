@@ -177,6 +177,7 @@ $string['report_title'] = "Student Submission Analysis Report";
 $string['resubmit'] = "No payload data could be retrieved. Please check your connection and try resubmitting the request.";
 $string['resubmitbtn'] = "Resubmit";
 $string['retrivedta'] = "Retrieve Data";
+$string['savedcontent'] = 'Saved Content';
 $string['score'] = 'Score';
 $string['secretkey'] = 'Cursive Secret Key';
 $string['secretkey_desc'] = 'The API Secret Key of Cursive account. Please generate a new webservice token if you updated/added this key.';
