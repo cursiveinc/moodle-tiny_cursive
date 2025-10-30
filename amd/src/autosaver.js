@@ -47,6 +47,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
     var syncInterval = interval ? interval * 1000 : 10000; // Default: Sync Every 10s.
     var lastCaretPos = 1;
     let pastedContents = [];
+    let aiContents = [];
 
     const postOne = async(methodname, args) => {
         try {
@@ -171,6 +172,8 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
             filename = `${userid}_${resourceId}_${cmid}_${questionid}_${modulename}_attempt`;
         }
 
+        window.console.log("send key event received: ", editor.aiContent);
+
         if (localStorage.getItem(filename)) {
             let data = JSON.parse(localStorage.getItem(filename));
             data.push({
@@ -184,7 +187,8 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
                 personId: userid,
                 position: ed.caretPosition,
                 rePosition: ed.rePosition,
-                pastedContent: pastedContents
+                pastedContent: pastedContents,
+                aiContent : editor.aiContent
             });
             localStorage.setItem(filename, JSON.stringify(data));
         } else {
@@ -199,7 +203,8 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
                 personId: userid,
                 position: ed.caretPosition,
                 rePosition: ed.rePosition,
-                pastedContent: pastedContents
+                pastedContent: pastedContents,
+                aiContent : editor.aiContent
             }];
             localStorage.setItem(filename, JSON.stringify(data));
         }
@@ -271,6 +276,48 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
     editor.on('SetContent', () => {
         customTooltip();
     });
+
+    editor.on('execcommand', function (e) {
+        if (e.command === "mceInsertContent") {
+            let aiContent = e.value;
+
+            // Track AI content similar to paste content
+            aiContents.push(aiContent);
+
+            // Send AI insert event
+            let position = getCaretPosition(true);
+            sendKeyEvent("aiInsert", {
+                key: "ai",
+                keyCode: 0,
+                caretPosition: position.caretPosition,
+                rePosition: position.rePosition,
+                aiContent: aiContent
+            });
+        }
+    });
+    editor.on('input', function (e) {
+        let position = getCaretPosition(true);
+        editor.caretPosition = position.caretPosition;
+        editor.rePosition = position.rePosition;
+        // console.log(e);
+        // console.log("position: ", position.caretPosition);
+        // console.log("re-position: ", position.rePosition);
+        let aiContent = e.data;
+
+        if (e.inputType === 'insertReplacementText' ||
+            (e.inputType === 'insertText' && aiContent && aiContent.length > 1)) {
+
+            aiContents.push(aiContent);
+
+            e.key = "ai";
+            e.keyCode = 0;
+            e.caretPosition = position.caretPosition;
+            e.rePosition = position.rePosition;
+            e.aiContent = aiContent;
+
+            sendKeyEvent("aiInsert", e);
+        }
+    });
     /**
      * Constructs a mouse event object with caret position and button information
      * @param {Object} editor - The TinyMCE editor instance
@@ -320,8 +367,15 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
 
             let absolutePosition = 0;
             let node = rng.startContainer;
+            let offset = rng.startOffset;
 
-            absolutePosition = rng.startOffset;
+            // For selections, use the end position
+            if (rng.startContainer !== rng.endContainer || rng.startOffset !== rng.endOffset) {
+                node = rng.endContainer;
+                offset = rng.endOffset;
+            }
+
+            absolutePosition = offset;
 
             // Calculate position by walking through previous nodes
             while (node && node !== editor.getBody()) {

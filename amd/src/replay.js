@@ -49,6 +49,7 @@ export default class Replay {
         this.pastedEvents = [];
         this.currentPasteIndex = 0;
         this.pastedChars = [];
+        this.aiEvents = [];
 
         const element = document.getElementById(elementId);
         if (!element) {
@@ -92,6 +93,7 @@ export default class Replay {
         if (data.comments) {
             this.usercomments = Array.isArray(JSON.parse(data.comments)) ? JSON.parse(data.comments) : [];
         }
+        window.console.log(JSON.stringify(this.logData));
         if ('data' in this.logData) {
             this.logData = this.logData.data;
         }
@@ -104,6 +106,9 @@ export default class Replay {
                 for (let j = 0; j < event.pastedContent.length; j++) {
                     this.pastedEvents.push(event.pastedContent[j]);
                 }
+            }
+            if (event.event === 'aiInsert' && event.aiContent) {
+                this.aiEvents.push(event.aiContent);
             }
         }
         if (this.logData.length > 0 && this.logData[0].unixTimestamp) {
@@ -637,9 +642,19 @@ export default class Replay {
         const key = event.key;
         const charToInsert = this.applyKey(key);
         this.updateModifierStates(key);
+
+        // Check for selection before processing delete/backspace
+        const currentEventIndex = this.currentEventIndex;
+        const selection = this.detectSelection(currentEventIndex);
+
         if ((key === 'v' || key === 'V') && (this.isControlKeyPressed || this.isMetaKeyPressed)) {
             if (this.pastedEvents && this.currentPasteIndex < this.pastedEvents.length) {
                 const pastedContent = this.pastedEvents[this.currentPasteIndex];
+
+                if (selection) {
+                    ({text, cursor} = this.handleSelectionDeletion(selection, text, cursor, deletions));
+                }
+
                 ({text, cursor} = this.handlePasteInsert(pastedContent, text, cursor));
                 this.currentPasteIndex++;
                 this.isControlKeyPressed = false;
@@ -654,6 +669,18 @@ export default class Replay {
                 };
             }
         }
+
+        // Handle Backspace and Delete
+        if ((key === 'Backspace' || key === 'Delete') && selection && selection.length > 1) {
+            ({text, cursor} = this.handleSelectionDeletion(selection, text, cursor, deletions));
+            return {
+                text,
+                cursor,
+                updatedHighlights: highlights,
+                updatedDeleted: deletions
+            };
+        }
+
         if (this.isCtrlBackspace(key, cursor)) {
             ({text, cursor} = this.handleCtrlBackspace(text, cursor, deletions));
         } else if (this.isCtrlDelete(key, cursor, text)) {
@@ -671,6 +698,9 @@ export default class Replay {
         } else if (this.isRegularArrowMove(key)) {
             cursor = this.handleArrowMove(key, text, cursor);
         } else if (charToInsert && charToInsert.length > 0) {
+            if (selection && selection.length > 0) {
+                ({text, cursor} = this.handleSelectionDeletion(selection, text, cursor, deletions));
+            }
             ({text, cursor} = this.handleCharacterInsert(charToInsert, text, cursor, highlights));
         }
         return {
@@ -679,6 +709,116 @@ export default class Replay {
             updatedHighlights: highlights,
             updatedDeleted: deletions
         };
+    }
+
+    detectSelection(eventIndex) {
+        const currentEvent = this.logData[eventIndex];
+
+        if (currentEvent.event?.toLowerCase() === 'keydown' &&
+            (currentEvent.key === 'Backspace' || currentEvent.key === 'Delete')) {
+
+            const currentPos = currentEvent.rePosition;
+
+            // Look for the corresponding keyUp event
+            for (let i = eventIndex + 1; i < this.logData.length; i++) {
+                const nextEvent = this.logData[i];
+
+                if (nextEvent.event?.toLowerCase() === 'keyup' &&
+                    nextEvent.key === currentEvent.key) {
+
+                    const nextPos = nextEvent.rePosition;
+
+                    // Calculate the difference in positions
+                    const positionDiff = Math.abs(currentPos - nextPos);
+
+                    // Position changed by more than 1
+                    if (positionDiff > 1) {
+                        return {
+                            start: Math.min(currentPos, nextPos),
+                            end: Math.max(currentPos, nextPos),
+                            length: positionDiff
+                        };
+                    } else if (positionDiff === 1) {
+                        if (currentEvent.key === 'Backspace') {
+                            return {
+                                start: nextPos,
+                                end: currentPos,
+                                length: 1
+                            };
+                        } else {
+                            return {
+                                start: currentPos,
+                                end: nextPos,
+                                length: 1
+                            };
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+
+        // Also check for mouse-based selection
+        let mouseDownIndex = -1;
+        let mouseDownPos = -1;
+
+        for (let i = eventIndex - 1; i >= 0; i--) {
+            const evt = this.logData[i];
+            if (evt.event === 'mouseDown') {
+                mouseDownIndex = i;
+                mouseDownPos = evt.rePosition;
+                break;
+            }
+            if (evt.event?.toLowerCase() === 'keydown' &&
+                !['Shift', 'Control', 'Meta', 'Alt'].includes(evt.key)) {
+                break;
+            }
+        }
+
+        let mouseUpIndex = -1;
+        let mouseUpPos = -1;
+
+        for (let i = eventIndex - 1; i >= mouseDownIndex; i--) {
+            const evt = this.logData[i];
+            if (evt.event === 'mouseUp') {
+                mouseUpIndex = i;
+                mouseUpPos = evt.rePosition;
+                break;
+            }
+        }
+
+        // If we found both mouse events and they're at different positions
+        if (mouseDownIndex >= 0 && mouseUpIndex >= 0 && mouseDownPos !== mouseUpPos) {
+            return {
+                start: Math.min(mouseDownPos, mouseUpPos),
+                end: Math.max(mouseDownPos, mouseUpPos),
+                length: Math.abs(mouseUpPos - mouseDownPos)
+            };
+        }
+
+        return null;
+    }
+
+    handleSelectionDeletion(selection, text, cursor, deletions) {
+        const {start, end, length} = selection;
+
+        // Add each character in the selection to the deletions array
+        for (let i = start; i < end && i < text.length; i++) {
+            deletions.push({
+                index: start,
+                chars: text[i],
+                time: this.currentTime,
+                expiresAt: this.currentTime + 2000
+            });
+        }
+
+        text = text.substring(0, start) + text.substring(end);
+
+        this.shiftPastedCharsIndices(start, length);
+
+        cursor = start;
+
+        return {text, cursor};
     }
 
     // Handle Paste events to highlight pasted text
