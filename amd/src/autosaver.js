@@ -271,6 +271,29 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
     editor.on('SetContent', () => {
         customTooltip();
     });
+    editor.on('ResizeEditor', () => {
+        let current = document.querySelector('#id_onlinetext_editor_ifr');
+        let p1 = current.parentElement;
+        let p2 = p1.parentElement;
+        p2.style.backgroundColor = '#efefef';
+        current.classList.add('w-50');
+        current.style.boxShadow = '0 0 10px gray';
+        Object.assign(p1.style, {
+            display: 'flex',
+            justifyContent: 'center',
+            outline: 'none',
+            margin: '2rem 0 0'
+        });
+        let iframeBody =  current.contentDocument?.body || current.contentWindow?.document?.body;
+
+        if (iframeBody) {
+            iframeBody.style.backgroundColor = '#fafafa';
+            iframeBody.style.padding = '1rem';
+            console.log('Iframe body:', iframeBody);
+        } else {
+            console.warn('Iframe body not accessible yet.');
+        }
+    });
     /**
      * Constructs a mouse event object with caret position and button information
      * @param {Object} editor - The TinyMCE editor instance
