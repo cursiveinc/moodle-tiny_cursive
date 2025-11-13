@@ -15,8 +15,11 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace tiny_cursive;
+defined('MOODLE_INTERNAL') || die();
+require_once($CFG->libdir . '/externallib.php');
+require_once($CFG->dirroot . '/grade/grading/lib.php');
+require_once($CFG->dirroot . '/grade/grading/form/rubric/lib.php');
 
-use context_course;
 /**
  * Class constants
  *
@@ -162,5 +165,25 @@ class constants {
         }
 
         return false;
+    }
+
+    /**
+     * Get rubrics associated with a course module and course
+     *
+     * @param string $component The course module ID
+     * @param \stdClass $context The course ID
+     * @return array Array of rubric records containing id and name
+     */
+    public static function get_rubrics($component, $context) {
+
+        $gradingmanager = get_grading_manager($context, $component, 'submissions');
+        $controller = $gradingmanager->get_active_controller();
+
+        if (!$controller) {
+            return [];
+        }
+        $definition = $controller->get_definition();
+
+        return array_values($definition->rubric_criteria ?? []);
     }
 }

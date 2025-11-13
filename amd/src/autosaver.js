@@ -26,8 +26,10 @@ import {get_string as getString} from 'core/str';
 import {save, cancel, hidden} from 'core/modal_events';
 import $ from 'jquery';
 import {iconUrl, iconGrayUrl, tooltipCss} from 'tiny_cursive/common';
+import DocumentView from 'tiny_cursive/document_view';
+import {call as getUser} from "core/ajax";
 
-export const register = (editor, interval, userId, hasApiKey, MODULES) => {
+export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, submission) => {
 
     var isStudent = !($('#body').hasClass('teacher_admin'));
     var intervention = $('#body').hasClass('intervention');
@@ -39,14 +41,19 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
     var ed = "";
     var event = "";
     var filename = "";
-    var modulename = "";
     var questionid = 0;
-    var resourceId = 0;
     var quizSubmit = $('#mod_quiz-next-nav');
     let assignSubmit = $('#id_submitbutton');
     var syncInterval = interval ? interval * 1000 : 10000; // Default: Sync Every 10s.
     var lastCaretPos = 1;
     let pastedContents = [];
+    var isFullScreen = false;
+    var USER = null;
+    let ur = window.location.href;
+    let parm = new URL(ur);
+    let modulesInfo = getModulesInfo(ur, parm, MODULES);
+    var resourceId = modulesInfo.resourceId;
+    var modulename = modulesInfo.name;
 
     const postOne = async(methodname, args) => {
         try {
@@ -60,6 +67,15 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
             throw error;
         }
     };
+
+    getUser([{
+            methodname: 'core_user_get_users_by_field',
+            args: {field: 'id', values: [M.cfg.userId]},
+        }])[0].done(response => {
+            USER = response[0];
+        }).fail((ex) => {
+        window.console.error('Error fetching user data:', ex);
+    });
 
     assignSubmit.on('click', async function(e) {
         e.preventDefault();
@@ -87,7 +103,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
         localStorage.removeItem('lastCopyCutContent');
     });
 
-    const getModal = (e) => {
+    const getModal = () => {
 
         Promise.all([
             getString('tiny_cursive_srcurl', 'tiny_cursive'),
@@ -110,12 +126,6 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
                     modal.getRoot().on(save, function() {
 
                         var number = document.getElementById("inputUrl").value.trim();
-                        let ur = e.srcElement.baseURI;
-                        let parm = new URL(ur);
-                        let modulesInfo = getModulesInfo(ur, parm, MODULES);
-
-                        resourceId = modulesInfo.resourceId;
-                        modulename = modulesInfo.name;
 
                         if (number === "" || number === null || number === undefined) {
                             editor.execCommand('Undo');
@@ -157,12 +167,6 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
     const sendKeyEvent = (events, editor) => {
         ed = editor;
         event = events;
-        let ur = editor.srcElement.baseURI;
-        let parm = new URL(ur);
-        let modulesInfo = getModulesInfo(ur, parm, MODULES);
-
-        resourceId = modulesInfo.resourceId;
-        modulename = modulesInfo.name;
 
         filename = `${userid}_${resourceId}_${cmid}_${modulename}_attempt`;
 
@@ -272,27 +276,23 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
         customTooltip();
     });
     editor.on('ResizeEditor', () => {
-        let current = document.querySelector('#id_onlinetext_editor_ifr');
-        let p1 = current.parentElement;
-        let p2 = p1.parentElement;
-        p2.style.backgroundColor = '#efefef';
-        current.classList.add('w-50');
-        current.style.boxShadow = '0 0 10px gray';
-        Object.assign(p1.style, {
-            display: 'flex',
-            justifyContent: 'center',
-            outline: 'none',
-            margin: '2rem 0 0'
-        });
-        let iframeBody =  current.contentDocument?.body || current.contentWindow?.document?.body;
+        let view = new DocumentView(USER, Rubrics, submission, modulename);
 
-        if (iframeBody) {
-            iframeBody.style.backgroundColor = '#fafafa';
-            iframeBody.style.padding = '1rem';
-            console.log('Iframe body:', iframeBody);
-        } else {
-            console.warn('Iframe body not accessible yet.');
+        try {
+            if (isFullScreen) {
+                isFullScreen = false;
+                view.normalMode();
+            } else {
+                isFullScreen = true;
+                view.fullPageMode();
+            }
+        } catch (error) {
+            editor.windowManager.alert('Unable to initialize document view in Fullscreen mode. Opening default view.');
+            view.normalMode();
+            window.console.error('Error ResizeEditor event:', error);
         }
+
+
     });
     /**
      * Constructs a mouse event object with caret position and button information
@@ -509,10 +509,22 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
 
                 imgWrapper.appendChild(iconClone);
                 rightWrapper.appendChild(imgWrapper);
+                if (isFullScreen && modulename === 'assign') {
+                    let existsElement = document.querySelector('.tox-menubar[class*="cursive-menu-"] > div');
+                    if (existsElement) {
+                        existsElement.remove();
+                    }
 
-                if (targetMenu && !targetMenu.querySelector(`#${elementId}`)) {
-                    targetMenu.appendChild(rightWrapper);
+                    if (!document.querySelector(`#${elementId}`)) {
+                        rightWrapper.style.marginTop = '3px';
+                        document.querySelector('#tiny_cursive-fullpage-right-wrapper').prepend(rightWrapper);
+                    }
+                } else {
+                    if (targetMenu && !targetMenu.querySelector(`#${elementId}`)) {
+                        targetMenu.appendChild(rightWrapper);
+                    }
                 }
+
             }
         }
     }
@@ -526,10 +538,12 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
      * @param {string} tooltipId - ID for the tooltip element
      */
     function setTooltip(text, cursiveIcon, tooltipId) {
+
         if (document.querySelector(`#${tooltipId}`)) {
             return;
         }
         if (cursiveIcon) {
+
             const tooltipSpan = document.createElement('span');
             const description = document.createElement('span');
             const linebreak = document.createElement('br');

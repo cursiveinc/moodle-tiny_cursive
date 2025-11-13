@@ -33,6 +33,7 @@ use tiny_cursive\constants;
 defined('MOODLE_INTERNAL') || die;
 
 require_once($CFG->dirroot . '/mod/quiz/locallib.php');
+require_once($CFG->dirroot . '/mod/assign/locallib.php');
 require_once(__DIR__ . '/locallib.php');
 
 /**
@@ -1787,19 +1788,28 @@ class cursive_json_func_data extends external_api {
         self::validate_context($context);
         require_capability("tiny/cursive:writingreport", $context);
 
-        $remoteurl = get_config('tiny_cursive', 'python_server') . '/verify-token';
-        $moodleurl = $CFG->wwwroot;
-
-        $config = tiny_cursive_status($params['courseid']);
+        $config       = tiny_cursive_status($params['courseid']);
         $syncinterval = get_config('tiny_cursive', "syncinterval");
+        $cm = get_coursemodule_from_id('', $params['cmid'], $params['courseid'], false, MUST_EXIST);
+        $rubrics      = constants::get_rubrics("mod_{$cm->modname}", $context);
 
-        $data   = [
+        $assign = new assign($context, null, null);
+        $submission = $assign->get_user_submission($userid, false);
+        $grade = $assign->get_user_grade($userid, false);
+
+        $submissiondata = new stdClass();
+        $submissiondata->current = $submission;
+        $submissiondata->grade = $grade;
+
+        $data    = [
             'status'        => $config,
             'sync_interval' => $syncinterval,
             'userid'        => $USER->id,
             'apikey_status' => constants::has_api_key(),
             'mod_state'     => constants::is_active(),
             'plugins'       => json_encode(constants::NAMES),
+            'rubrics'       => json_encode($rubrics),
+            'submission'    => json_encode($submissiondata),
         ];
         return $data;
     }
@@ -1817,6 +1827,8 @@ class cursive_json_func_data extends external_api {
             'apikey_status' => new external_value(PARAM_BOOL, 'api key status'),
             'mod_state' => new external_value(PARAM_BOOL, "Cursive Module wise active/deactive state"),
             'plugins' => new external_value(PARAM_TEXT, "Supported Plugins Names"),
+            'rubrics' => new external_value(PARAM_TEXT, "Assignment or forums rubrics"),
+            'submission' => new external_value(PARAM_TEXT, "Submission status"),
         ]);
     }
 
