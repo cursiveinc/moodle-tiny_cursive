@@ -46,7 +46,6 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
     let assignSubmit = $('#id_submitbutton');
     var syncInterval = interval ? interval * 1000 : 10000; // Default: Sync Every 10s.
     var lastCaretPos = 1;
-    let pastedContents = [];
     let aiContents = [];
 
     const postOne = async(methodname, args) => {
@@ -172,8 +171,6 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
             filename = `${userid}_${resourceId}_${cmid}_${questionid}_${modulename}_attempt`;
         }
 
-        window.console.log("send key event received: ", editor.aiContent);
-
         if (localStorage.getItem(filename)) {
             let data = JSON.parse(localStorage.getItem(filename));
             data.push({
@@ -187,7 +184,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
                 personId: userid,
                 position: ed.caretPosition,
                 rePosition: ed.rePosition,
-                pastedContent: pastedContents,
+                pastedContent: editor.pastedContent,
                 aiContent : editor.aiContent
             });
             localStorage.setItem(filename, JSON.stringify(data));
@@ -203,7 +200,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
                 personId: userid,
                 position: ed.caretPosition,
                 rePosition: ed.rePosition,
-                pastedContent: pastedContents,
+                pastedContent: editor.pastedContent,
                 aiContent : editor.aiContent
             }];
             localStorage.setItem(filename, JSON.stringify(data));
@@ -226,18 +223,6 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
         if (isStudent && intervention) {
             if (pastedContent !== localStorage.getItem('lastCopyCutContent')) {
                 getModal(e);
-                pastedContents = [];
-                pastedContents.push(pastedContent);
-                let position = getCaretPosition(true);
-                editor.caretPosition = position.caretPosition;
-                editor.rePosition = position.rePosition;
-                sendKeyEvent("Paste", {
-                ...e,
-                        key: "v",
-                        keyCode: 86,
-                        caretPosition: editor.caretPosition,
-                        rePosition: editor.rePosition
-                    });
             }
         }
     });
@@ -279,33 +264,50 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
 
     editor.on('execcommand', function (e) {
         if (e.command === "mceInsertContent") {
-            let aiContent = e.value;
+            const contentObj = e.value;
 
-            // Track AI content similar to paste content
-            aiContents.push(aiContent);
+            const isPaste = contentObj && typeof contentObj === 'object' && contentObj.paste === true;
 
-            // Send AI insert event
+            let insertedContent = contentObj.content || contentObj;
+            let tempDiv = document.createElement('div');
+            tempDiv.innerHTML = insertedContent;
+            let text = tempDiv.textContent || tempDiv.innerText || '';
+
             let position = getCaretPosition(true);
-            sendKeyEvent("aiInsert", {
-                key: "ai",
-                keyCode: 0,
-                caretPosition: position.caretPosition,
-                rePosition: position.rePosition,
-                aiContent: aiContent
-            });
+            editor.caretPosition = position.caretPosition;
+            editor.rePosition = position.rePosition;
+
+            if (isPaste) {
+                sendKeyEvent("Paste", {
+                    key: "v",
+                    keyCode: 86,
+                    caretPosition: editor.caretPosition,
+                    rePosition: editor.rePosition,
+                    pastedContent: insertedContent,
+                    srcElement: { baseURI: window.location.href }
+                });
+            } else {
+                aiContents.push(text);
+
+                sendKeyEvent("aiInsert", {
+                    key: "ai",
+                    keyCode: 0,
+                    caretPosition: editor.caretPosition,
+                    rePosition: editor.rePosition,
+                    aiContent: text,
+                    srcElement: { baseURI: window.location.href }
+                });
+            }
         }
     });
+
     editor.on('input', function (e) {
         let position = getCaretPosition(true);
         editor.caretPosition = position.caretPosition;
         editor.rePosition = position.rePosition;
-        // console.log(e);
-        // console.log("position: ", position.caretPosition);
-        // console.log("re-position: ", position.rePosition);
         let aiContent = e.data;
 
-        if (e.inputType === 'insertReplacementText' ||
-            (e.inputType === 'insertText' && aiContent && aiContent.length > 1)) {
+        if (e.inputType === 'insertReplacementText' || (e.inputType === 'insertText' && aiContent && aiContent.length > 1)) {
 
             aiContents.push(aiContent);
 
@@ -318,6 +320,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
             sendKeyEvent("aiInsert", e);
         }
     });
+
     /**
      * Constructs a mouse event object with caret position and button information
      * @param {Object} editor - The TinyMCE editor instance
