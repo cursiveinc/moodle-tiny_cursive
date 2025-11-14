@@ -55,6 +55,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
     let modulesInfo = getModulesInfo(ur, parm, MODULES);
     var resourceId = modulesInfo.resourceId;
     var modulename = modulesInfo.name;
+    var errorAlert = true;
 
     const postOne = async(methodname, args) => {
         try {
@@ -295,7 +296,10 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
             }
         } catch (error) {
             isFullScreen = false;
-            editor.windowManager.alert('Unable to initialize document view in Fullscreen mode. Opening default view.');
+            if (errorAlert) {
+                errorAlert = false;
+                editor.windowManager.alert('Unable to initialize document view in Fullscreen mode. Opening default view.');
+            }
             view.normalMode();
             window.console.error('Error ResizeEditor event:', error);
         }
