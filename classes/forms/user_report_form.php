@@ -111,12 +111,18 @@ class user_report_form extends moodleform {
         $mdetail = [];
         $mdetail[0] = get_string('allmodule', 'tiny_cursive');
         if ($courseid) {
-            $modules = $DB->get_records('course_modules', ['course' => $courseid], '', 'id, instance');
-            foreach ($modules as $cm) {
-                $modinfo = get_fast_modinfo($courseid);
-                $cm = $modinfo->get_cm($cm->id);
-                $getmodulename = get_coursemodule_from_id($cm->modname, $cm->id, 0, false, MUST_EXIST);
-                $mdetail[$cm->id] = $getmodulename->name;
+            $configs = get_config('tiny_cursive');
+            $configs = array_filter((array)$configs, fn($key) => str_starts_with($key, 'CUR'), ARRAY_FILTER_USE_KEY);
+            $modinfo = get_fast_modinfo($courseid);
+            $cms     = $modinfo->get_cms(); // Course modules.
+            foreach ($cms as $cm) {
+                $key = "CUR{$courseid}{$cm->id}";
+                // Excluding cursive disabled modules.
+                if (empty($configs[$key]) || !(int)$configs[$key]) {
+                    continue;
+                }
+
+                $mdetail[$cm->id] = $cm->name ?? $cm->modname ?? "";
             }
         }
         return $mdetail;
