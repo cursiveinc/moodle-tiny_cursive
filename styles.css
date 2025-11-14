@@ -684,44 +684,18 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     background-color: #fff2cc;
 }
 
-.tiny_cursive-ai-suggested-char {
-    background-color: #e3f2fd;
-    /* Light blue background */
-    color: #1565c0;
-    /* Blue text */
-    border-bottom: 1px dotted #1976d2;
-    /* Dotted underline */
-    padding: 1px 2px;
-    border-radius: 2px;
-}
-
-/* AI Suggested text styling */
-.tiny_cursive-ai-suggested-char {
-    background-color: #e3f2fd;
-    /* Light blue background */
-    border-bottom: 2px dotted #2196f3;
-    /* Blue dotted underline */
-    color: #1976d2;
-    /* Blue text color */
-    transition: opacity 0.3s ease;
-}
-
 /* Combined styling for AI suggested + pasted text */
 .tiny_cursive-ai-suggested-char.tiny_cursive-pasted-char {
     font-weight: bold;
     background-color: #f3e5f5;
-    /* Light purple for AI + paste combination */
     border-bottom: 2px dotted #9c27b0;
-    /* Purple dotted underline */
     color: #7b1fa2;
 }
 
 /* Combined styling for AI suggested + highlighted text */
 .tiny_cursive-ai-suggested-char.tiny_cursive-highlighted-char {
     background-color: #e8f5e8;
-    /* Light green for AI + highlight combination */
     border-bottom: 2px dotted #4caf50;
-    /* Green dotted underline */
     color: #388e3c;
 }
 
@@ -729,9 +703,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
 .tiny_cursive-ai-suggested-char.tiny_cursive-pasted-char.tiny_cursive-highlighted-char {
     font-weight: bold;
     background-color: #fff3e0;
-    /* Light orange for all three */
     border-bottom: 2px dotted #ff9800;
-    /* Orange dotted underline */
     color: #f57c00;
 }
 
@@ -920,6 +892,19 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     max-height: 300px;
     overflow-y: auto;
     width: 100%;
+}
+
+.tiny_cursive-ai-char {
+    background-color: #ede9fe;
+    color: #111827;
+    font-weight: bold;
+    border-radius: 3px;
+    transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+.tiny_cursive-ai-char.tiny_cursive-highlighted-char {
+    background-color: #ddd6fe;
+    color: #000;
 }
 
 .tiny_cursive-replay-control {

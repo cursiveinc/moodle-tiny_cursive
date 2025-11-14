@@ -47,7 +47,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
     let assignSubmit = $('#id_submitbutton');
     var syncInterval = interval ? interval * 1000 : 10000; // Default: Sync Every 10s.
     var lastCaretPos = 1;
-    let pastedContents = [];
+    let aiContents = [];
     var isFullScreen = false;
     var user = null;
     let ur = window.location.href;
@@ -195,7 +195,8 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
                 personId: userid,
                 position: ed.caretPosition,
                 rePosition: ed.rePosition,
-                pastedContent: pastedContents
+                pastedContent: editor.pastedContent,
+                aiContent : editor.aiContent
             });
             localStorage.setItem(filename, JSON.stringify(data));
         } else {
@@ -210,7 +211,8 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
                 personId: userid,
                 position: ed.caretPosition,
                 rePosition: ed.rePosition,
-                pastedContent: pastedContents
+                pastedContent: editor.pastedContent,
+                aiContent : editor.aiContent
             }];
             localStorage.setItem(filename, JSON.stringify(data));
         }
@@ -232,18 +234,6 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
         if (isStudent && intervention) {
             if (pastedContent !== localStorage.getItem('lastCopyCutContent')) {
                 getModal(e);
-                pastedContents = [];
-                pastedContents.push(pastedContent);
-                let position = getCaretPosition(true);
-                editor.caretPosition = position.caretPosition;
-                editor.rePosition = position.rePosition;
-                sendKeyEvent("Paste", {
-                ...e,
-                        key: "v",
-                        keyCode: 86,
-                        caretPosition: editor.caretPosition,
-                        rePosition: editor.rePosition
-                    });
             }
         }
     });
@@ -301,6 +291,66 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
 
 
     });
+
+    editor.on('execcommand', function (e) {
+        if (e.command === "mceInsertContent") {
+            const contentObj = e.value;
+
+            const isPaste = contentObj && typeof contentObj === 'object' && contentObj.paste === true;
+
+            let insertedContent = contentObj.content || contentObj;
+            let tempDiv = document.createElement('div');
+            tempDiv.innerHTML = insertedContent;
+            let text = tempDiv.textContent || tempDiv.innerText || '';
+
+            let position = getCaretPosition(true);
+            editor.caretPosition = position.caretPosition;
+            editor.rePosition = position.rePosition;
+
+            if (isPaste) {
+                sendKeyEvent("Paste", {
+                    key: "v",
+                    keyCode: 86,
+                    caretPosition: editor.caretPosition,
+                    rePosition: editor.rePosition,
+                    pastedContent: insertedContent,
+                    srcElement: { baseURI: window.location.href }
+                });
+            } else {
+                aiContents.push(text);
+
+                sendKeyEvent("aiInsert", {
+                    key: "ai",
+                    keyCode: 0,
+                    caretPosition: editor.caretPosition,
+                    rePosition: editor.rePosition,
+                    aiContent: text,
+                    srcElement: { baseURI: window.location.href }
+                });
+            }
+        }
+    });
+
+    editor.on('input', function (e) {
+        let position = getCaretPosition(true);
+        editor.caretPosition = position.caretPosition;
+        editor.rePosition = position.rePosition;
+        let aiContent = e.data;
+
+        if (e.inputType === 'insertReplacementText' || (e.inputType === 'insertText' && aiContent && aiContent.length > 1)) {
+
+            aiContents.push(aiContent);
+
+            e.key = "ai";
+            e.keyCode = 0;
+            e.caretPosition = position.caretPosition;
+            e.rePosition = position.rePosition;
+            e.aiContent = aiContent;
+
+            sendKeyEvent("aiInsert", e);
+        }
+    });
+
     /**
      * Constructs a mouse event object with caret position and button information
      * @param {Object} editor - The TinyMCE editor instance
@@ -350,8 +400,15 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
 
             let absolutePosition = 0;
             let node = rng.startContainer;
+            let offset = rng.startOffset;
 
-            absolutePosition = rng.startOffset;
+            // For selections, use the end position
+            if (rng.startContainer !== rng.endContainer || rng.startOffset !== rng.endOffset) {
+                node = rng.endContainer;
+                offset = rng.endOffset;
+            }
+
+            absolutePosition = offset;
 
             // Calculate position by walking through previous nodes
             while (node && node !== editor.getBody()) {

@@ -49,6 +49,9 @@ export default class Replay {
         this.pastedEvents = [];
         this.currentPasteIndex = 0;
         this.pastedChars = [];
+        this.aiEvents = [];
+        this.currentAiIndex = 0;
+        this.aiChars = [];
 
         const element = document.getElementById(elementId);
         if (!element) {
@@ -100,10 +103,13 @@ export default class Replay {
         }
         for (let i = 0; i < this.logData.length; i++) {
             const event = this.logData[i];
-            if (event.event === 'Paste' && Array.isArray(event.pastedContent)) {
-                for (let j = 0; j < event.pastedContent.length; j++) {
-                    this.pastedEvents.push(event.pastedContent[j]);
+            if (event.event === 'Paste') {
+                if (typeof event.pastedContent === 'string' && event.pastedContent.trim() !== '') {
+                    this.pastedEvents.push(event.pastedContent);
                 }
+            }
+            if (event.event === 'aiInsert' && event.aiContent) {
+                this.aiEvents.push(event.aiContent);
             }
         }
         if (this.logData.length > 0 && this.logData[0].unixTimestamp) {
@@ -557,6 +563,8 @@ export default class Replay {
             this.isMetaKeyPressed = false;
             this.currentPasteIndex = 0;
             this.pastedChars = [];
+            this.currentAiIndex = 0;
+            this.aiChars = [];
         }
         if (this.playButton) {
             const pauseSvg = document.createElement('i');
@@ -592,7 +600,10 @@ export default class Replay {
             if (event.event?.toLowerCase() === 'keydown') {
                 ({text, cursor, updatedHighlights, updatedDeleted} =
                     this.processKeydownEvent(event, text, cursor, updatedHighlights, updatedDeleted));
-            }
+            } else if (event.event === 'aiInsert') {
+                ({text, cursor, updatedHighlights, updatedDeleted} =
+                    this.processAiInsertEvent(event, text, cursor, updatedHighlights, updatedDeleted));
+               }
 
             this.text = text;
             this.cursorPosition = cursor;
@@ -632,14 +643,254 @@ export default class Replay {
         return {lineIndex, col};
     }
 
+    processAiInsertEvent(event, text, cursor, highlights, deletions) {
+        if (this.aiEvents && this.currentAiIndex < this.aiEvents.length) {
+            const aiContent = this.aiEvents[this.currentAiIndex];
+            // Use event.rePosition which points to where the word to replace is
+            const targetPosition = event.rePosition;
+
+            ({text, cursor} = this.handleAiReplacement(aiContent, text, targetPosition, cursor, deletions));
+            this.currentAiIndex++;
+        }
+        return {
+            text,
+            cursor,
+            updatedHighlights: highlights,
+            updatedDeleted: deletions
+        };
+    }
+
+    handleAiReplacement(aiContent, text, targetPosition, currentCursor, deletions) {
+        const insertText = aiContent || '';
+
+        const aiWords = insertText.trim().split(/\s+/);
+        const isMultiWord = aiWords.length > 1;
+
+        let wordStart = targetPosition;
+        let wordEnd = targetPosition;
+
+        const isNewLineInsertion = insertText.startsWith('\n') || insertText.endsWith('\n');
+
+        if (isNewLineInsertion) {
+            wordStart = currentCursor;
+            wordEnd = currentCursor;
+        } else if (isMultiWord) {
+            // Find the line start - position right after the previous newline
+            let lineStart = 0;
+            for (let i = targetPosition - 1; i >= 0; i--) {
+                if (text[i] === '\n') {
+                    lineStart = i + 1;
+                    break;
+                }
+            }
+
+            // Find line end - position of the next newline
+            let lineEnd = text.length;
+            for (let i = targetPosition; i < text.length; i++) {
+                if (text[i] === '\n') {
+                    lineEnd = i;
+                    break;
+                }
+            }
+
+            // Now find the best matching sequence on the current line
+            let bestMatch = { start: -1, end: -1, score: -1 };
+            let pos = lineStart;
+
+            while (pos < lineEnd) {
+                while (pos < lineEnd && text[pos] === ' ') {
+                    pos++;
+                }
+                if (pos >= lineEnd) {
+                    break;
+                }
+
+                let seqStart = pos;
+                let seqWords = [];
+                let seqEnd = pos;
+
+                // Extract sequence of words
+                for (let w = 0; w < aiWords.length && seqEnd < lineEnd; w++) {
+                    while (seqEnd < lineEnd && text[seqEnd] === ' ') {
+                        seqEnd++;
+                    }
+                    if (seqEnd >= lineEnd) {
+                        break;
+                    }
+
+                    let wordStartPos = seqEnd;
+                    while (seqEnd < lineEnd && text[seqEnd] !== ' ') {
+                        seqEnd++;
+                    }
+
+                    if (seqEnd > wordStartPos) {
+                        seqWords.push(text.substring(wordStartPos, seqEnd));
+                    }
+                }
+
+                if (seqWords.length > 0) {
+                    let score = 0;
+                    const compareLength = Math.min(seqWords.length, aiWords.length);
+
+                    for (let i = 0; i < compareLength; i++) {
+                        const ai = aiWords[i].toLowerCase();
+                        const seq = seqWords[i].toLowerCase();
+
+                        if (ai === seq) {
+                            score += 10;
+                        } else if (ai.length >= 3 && seq.length >= 3 &&
+                                 ai.substring(0, 3) === seq.substring(0, 3)) {
+                            score += 5;
+                        } else {
+                            let common = 0;
+                            const minLen = Math.min(ai.length, seq.length);
+                            for (let j = 0; j < minLen; j++) {
+                                if (ai[j] === seq[j]) {
+                                    common++;
+                                }
+                            }
+                            score += common;
+                        }
+                    }
+
+                    if (seqStart <= targetPosition && seqEnd >= targetPosition) {
+                        score += 30;
+                    }
+
+                    if (score > bestMatch.score) {
+                        bestMatch = { start: seqStart, end: seqEnd, score: score };
+                    }
+                }
+
+                while (pos < lineEnd && text[pos] !== ' ') {
+                    pos++;
+                }
+            }
+
+            if (bestMatch.score >= 5 && bestMatch.start >= lineStart) {
+                wordStart = bestMatch.start;
+                wordEnd = bestMatch.end;
+            } else {
+                wordStart = targetPosition;
+                while (wordStart > lineStart && text[wordStart - 1] !== ' ') {
+                    wordStart--;
+                }
+                wordEnd = targetPosition;
+                while (wordEnd < lineEnd && text[wordEnd] !== ' ') {
+                    wordEnd++;
+                }
+            }
+        } else {
+            let searchPos = targetPosition;
+
+            while (searchPos > 0 && (text[searchPos] === ' ' || text[searchPos] === '\n' || searchPos === text.length)) {
+                searchPos--;
+            }
+
+            wordStart = searchPos;
+            while (wordStart > 0 && text[wordStart - 1] !== ' ' && text[wordStart - 1] !== '\n') {
+                wordStart--;
+            }
+
+            wordEnd = searchPos + 1;
+            while (wordEnd < text.length && text[wordEnd] !== ' ' && text[wordEnd] !== '\n') {
+                wordEnd++;
+            }
+        }
+
+        const wordToReplace = text.substring(wordStart, wordEnd);
+
+        if (wordToReplace.length > 0) {
+            for (let i = 0; i < wordToReplace.length; i++) {
+                deletions.push({
+                    index: wordStart + i,
+                    chars: wordToReplace[i],
+                    time: this.currentTime,
+                    expiresAt: this.currentTime + 2000
+                });
+            }
+        }
+
+        const replacedLength = wordToReplace.length;
+        text = text.substring(0, wordStart) + insertText + text.substring(wordEnd);
+        const positionDiff = insertText.length - replacedLength;
+
+        let newCursor = currentCursor;
+        if (isNewLineInsertion) {
+            // For newline insertions, cursor moves to end of inserted content
+            newCursor = wordStart + insertText.length;
+        } else if (targetPosition >= wordStart && targetPosition <= wordEnd) {
+            newCursor = wordStart + insertText.length;
+        } else if (currentCursor >= wordEnd) {
+            newCursor = currentCursor + positionDiff;
+        } else if (currentCursor > wordStart && currentCursor < wordEnd) {
+            newCursor = wordStart + insertText.length;
+        }
+
+        // Update pasted character indices
+        if (this.pastedChars) {
+            this.pastedChars = this.pastedChars.map(p => {
+                if (p.index >= wordEnd) {
+                    return { ...p, index: p.index + positionDiff };
+                } else if (p.index >= wordStart && p.index < wordEnd) {
+                    return null;
+                }
+                return p;
+            }).filter(p => p !== null);
+        }
+
+        // Mark characters as AI-inserted
+        if (!this.aiChars) {
+            this.aiChars = [];
+        }
+
+        if (insertText.trim() !== '') {
+            for (let i = 0; i < insertText.length; i++) {
+                this.aiChars.push({
+                    index: wordStart + i,
+                    chars: insertText[i]
+                });
+            }
+        }
+
+        // Update AI character indices
+        const justAddedIndices = new Set();
+        for (let i = 0; i < insertText.length; i++) {
+            justAddedIndices.add(wordStart + i);
+        }
+
+        this.aiChars = this.aiChars.map(p => {
+            if (!justAddedIndices.has(p.index)) {
+                if (p.index >= wordEnd) {
+                    return { ...p, index: p.index + positionDiff };
+                } else if (p.index >= wordStart && p.index < wordEnd) {
+                    return null;
+                }
+            }
+            return p;
+        }).filter(p => p !== null);
+
+        return {text, cursor: newCursor};
+    }
+
     // Handle keydown events (e.g., typing, backspace, Ctrl+V)
     processKeydownEvent(event, text, cursor, highlights, deletions) {
         const key = event.key;
         const charToInsert = this.applyKey(key);
         this.updateModifierStates(key);
+
+        // Check for selection before processing delete/backspace
+        const currentEventIndex = this.currentEventIndex;
+        const selection = this.detectSelection(currentEventIndex);
+
         if ((key === 'v' || key === 'V') && (this.isControlKeyPressed || this.isMetaKeyPressed)) {
             if (this.pastedEvents && this.currentPasteIndex < this.pastedEvents.length) {
                 const pastedContent = this.pastedEvents[this.currentPasteIndex];
+
+                if (selection) {
+                    ({text, cursor} = this.handleSelectionDeletion(selection, text, cursor, deletions));
+                }
+
                 ({text, cursor} = this.handlePasteInsert(pastedContent, text, cursor));
                 this.currentPasteIndex++;
                 this.isControlKeyPressed = false;
@@ -654,6 +905,18 @@ export default class Replay {
                 };
             }
         }
+
+        // Handle Backspace and Delete
+        if ((key === 'Backspace' || key === 'Delete') && selection && selection.length > 1) {
+            ({text, cursor} = this.handleSelectionDeletion(selection, text, cursor, deletions));
+            return {
+                text,
+                cursor,
+                updatedHighlights: highlights,
+                updatedDeleted: deletions
+            };
+        }
+
         if (this.isCtrlBackspace(key, cursor)) {
             ({text, cursor} = this.handleCtrlBackspace(text, cursor, deletions));
         } else if (this.isCtrlDelete(key, cursor, text)) {
@@ -671,6 +934,9 @@ export default class Replay {
         } else if (this.isRegularArrowMove(key)) {
             cursor = this.handleArrowMove(key, text, cursor);
         } else if (charToInsert && charToInsert.length > 0) {
+            if (selection && selection.length > 0) {
+                ({text, cursor} = this.handleSelectionDeletion(selection, text, cursor, deletions));
+            }
             ({text, cursor} = this.handleCharacterInsert(charToInsert, text, cursor, highlights));
         }
         return {
@@ -679,6 +945,75 @@ export default class Replay {
             updatedHighlights: highlights,
             updatedDeleted: deletions
         };
+    }
+
+    detectSelection(eventIndex) {
+        const currentEvent = this.logData[eventIndex];
+
+        if (currentEvent.event?.toLowerCase() === 'keydown' &&
+            (currentEvent.key === 'Backspace' || currentEvent.key === 'Delete')) {
+
+            const currentPos = currentEvent.rePosition;
+
+            for (let i = eventIndex + 1; i < this.logData.length; i++) {
+                const nextEvent = this.logData[i];
+
+                if (nextEvent.event?.toLowerCase() === 'keyup' &&
+                    nextEvent.key === currentEvent.key) {
+
+                    const nextPos = nextEvent.rePosition;
+
+                    // Calculate the difference in positions
+                    const positionDiff = Math.abs(currentPos - nextPos);
+
+                    if (positionDiff > 1) {
+                        return {
+                            start: Math.min(currentPos, nextPos),
+                            end: Math.max(currentPos, nextPos),
+                            length: positionDiff
+                        };
+                    } else if (positionDiff === 1) {
+                        if (currentEvent.key === 'Backspace') {
+                            return {
+                                start: nextPos,
+                                end: currentPos,
+                                length: 1
+                            };
+                        } else {
+                            return {
+                                start: currentPos,
+                                end: nextPos,
+                                length: 1
+                            };
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+        return null;
+    }
+
+    handleSelectionDeletion(selection, text, cursor, deletions) {
+        const {start, end, length} = selection;
+
+        // Add each character in the selection to the deletions array
+        for (let i = start; i < end && i < text.length; i++) {
+            deletions.push({
+                index: start,
+                chars: text[i],
+                time: this.currentTime,
+                expiresAt: this.currentTime + 2000
+            });
+        }
+
+        text = text.substring(0, start) + text.substring(end);
+
+        this.shiftPastedCharsIndices(start, length);
+
+        cursor = start;
+
+        return {text, cursor};
     }
 
     // Handle Paste events to highlight pasted text
@@ -713,6 +1048,17 @@ export default class Replay {
             }
             return p;
         }).filter(p => p !== null);
+
+        if (this.aiChars) {
+            this.aiChars = this.aiChars.map(p => {
+                if (p.index >= startIndex + numDeleted) {
+                    return {...p, index: p.index - numDeleted};
+                } else if (p.index >= startIndex && p.index < startIndex + numDeleted) {
+                    return null;
+                }
+                return p;
+            }).filter(p => p !== null);
+        }
     }
 
     // Update state for modifier keys (Control, paste events)
@@ -810,6 +1156,11 @@ export default class Replay {
         // Shift pasted chars indices after the insertion point
         if (this.pastedChars) {
             this.pastedChars = this.pastedChars.map(p => {
+                return p.index >= cursor ? {...p, index: p.index + 1} : p;
+            });
+        }
+        if (this.aiChars) {
+            this.aiChars = this.aiChars.map(p => {
                 return p.index >= cursor ? {...p, index: p.index + 1} : p;
             });
         }
@@ -956,13 +1307,16 @@ export default class Replay {
         this.isControlKeyPressed = false;
         this.isMetaKeyPressed = false;
         this.isPasteEvent = false;
-        this.pastedChars = []; // Reset pasted characters tracking
+        this.pastedChars = [];
         this.currentPasteIndex = 0;
+        this.currentAiIndex = 0;
+        this.aiChars = [];
         let text = '';
         let cursor = 0;
         let highlights = [];
         let deletions = [];
         let pasteIndex = 0;
+        let aiIndex = 0;
 
         for (let i = 0; i < this.logData.length; i++) {
             const event = this.logData[i];
@@ -970,7 +1324,8 @@ export default class Replay {
                 this.currentEventIndex = i;
                 break;
             }
-            if (event.rePosition !== undefined && (i === 0 || event.event === 'mouseDown' || event.event === 'mouseUp')) {
+            if (event.rePosition !== undefined && (this.currentEventIndex === 0 ||
+                event.event === 'mouseDown' || event.event === 'mouseUp')) {
                 cursor = Math.max(0, Math.min(event.rePosition, text.length));
             }
             if (event.event?.toLowerCase() === 'keydown') {
@@ -980,11 +1335,17 @@ export default class Replay {
                 }
                 ({text, cursor, updatedHighlights: highlights, updatedDeleted: deletions} =
                     this.processKeydownEvent(event, text, cursor, highlights, deletions));
+            } else if (event.event === 'aiInsert') {
+                this.currentAiIndex = aiIndex;
+                ({text, cursor, updatedHighlights: highlights, updatedDeleted: deletions} =
+                    this.processAiInsertEvent(event, text, cursor, highlights, deletions));
+                aiIndex++;
             }
             this.currentEventIndex = i + 1;
         }
 
         this.currentPasteIndex = pasteIndex;
+        this.currentAiIndex = aiIndex;
         this.text = text;
         this.cursorPosition = cursor;
         this.highlightedChars = highlights.filter(h => !h.expiresAt || h.expiresAt > targetTime);
@@ -1005,6 +1366,7 @@ export default class Replay {
         const highlightMap = {};
         const deletionMap = {};
         const pastedMap = {};
+        const aiMap = {};
         const currentTime = this.currentTime;
 
         highlights.forEach(h => {
@@ -1032,6 +1394,15 @@ export default class Replay {
             });
         }
 
+        // Process AI characters for styling
+        if (this.aiChars) {
+            this.aiChars.forEach(p => {
+                if (p.index < text.length) {
+                    aiMap[p.index] = true;
+                }
+            });
+        }
+
         // Find if we have out-of-bounds deletions (from Control+Backspace)
         const outOfRangeDeletions = deletions.filter(d => d.index >= text.length);
         const textLines = text.split('\n');
@@ -1049,21 +1420,23 @@ export default class Replay {
                         ${deletionMap[currentPosition].opacity};">${deletionMap[currentPosition].chars}</span>`;
                 }
                 const isPasted = pastedMap[currentPosition];
+                const isAi = aiMap[currentPosition];
                 const isHighlighted = highlightMap[currentPosition] && char !== ' ';
 
                 if (isPasted && isHighlighted) {
-                    // Character is both pasted and recently typed (highlighted) - show bold with highlight
                     html += `<span class="tiny_cursive-pasted-char tiny_cursive-highlighted-char" style="opacity:
                         ${highlightMap[currentPosition].opacity};">${char}</span>`;
+                } else if (isAi && isHighlighted) {
+                    html += `<span class="tiny_cursive-ai-char tiny_cursive-highlighted-char" style="opacity:
+                        ${highlightMap[currentPosition].opacity};">${char}</span>`;
                 } else if (isPasted) {
-                    // Character is pasted - show in bold
                     html += `<span class="tiny_cursive-pasted-char">${char === ' ' ? ' ' : this.escapeHtml(char)}</span>`;
+                } else if (isAi) {
+                    html += `<span class="tiny_cursive-ai-char">${char === ' ' ? ' ' : this.escapeHtml(char)}</span>`;
                 } else if (isHighlighted) {
-                    // Character is recently typed - show with green highlight
                     html += `<span class="tiny_cursive-highlighted-char" style="opacity:
                         ${highlightMap[currentPosition].opacity};">${char}</span>`;
                 } else {
-                    // Regular character
                     html += char === ' ' ? ' ' : this.escapeHtml(char);
                 }
                 currentPosition++;
