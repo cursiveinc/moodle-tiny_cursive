@@ -48,7 +48,14 @@ export default new Promise((resolve, reject) => {
                 }])[0].done((data) => {
                     if (data.status && page.includes(document.body.id) && data.mod_state) {
 
-                        Autosaver.register(editor, data.sync_interval, data.userid, data.apikey_status, JSON.parse(data.plugins));
+                        Autosaver.register(
+                            editor,
+                            data.sync_interval,
+                            data.userid,
+                            data.apikey_status,
+                            JSON.parse(data.plugins),
+                            JSON.parse(data.rubrics),
+                            JSON.parse(data.submission));
                     }
                 }).fail((error) => {
                     window.console.error('Error getting cursive config:', error);

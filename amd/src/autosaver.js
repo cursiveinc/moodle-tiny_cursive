@@ -27,8 +27,10 @@ import {save, cancel, hidden} from 'core/modal_events';
 import $ from 'jquery';
 import {iconUrl, iconGrayUrl, tooltipCss} from 'tiny_cursive/common';
 import Autosave from 'tiny_cursive/cursive_autosave';
+import DocumentView from 'tiny_cursive/document_view';
+import {call as getUser} from "core/ajax";
 
-export const register = (editor, interval, userId, hasApiKey, MODULES) => {
+export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, submission) => {
 
     var isStudent = !($('#body').hasClass('teacher_admin'));
     var intervention = $('#body').hasClass('intervention');
@@ -40,19 +42,19 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
     var ed = "";
     var event = "";
     var filename = "";
-    var modulename = "";
     var questionid = 0;
-    var resourceId = 0;
     var quizSubmit = $('#mod_quiz-next-nav');
     let assignSubmit = $('#id_submitbutton');
     var syncInterval = interval ? interval * 1000 : 10000; // Default: Sync Every 10s.
     var lastCaretPos = 1;
     let pastedContents = [];
+    var isFullScreen = false;
+    var user = null;
     let ur = window.location.href;
     let parm = new URL(ur);
     let modulesInfo = getModulesInfo(ur, parm, MODULES);
-    resourceId = modulesInfo.resourceId;
-    modulename = modulesInfo.name;
+    var resourceId = modulesInfo.resourceId;
+    var modulename = modulesInfo.name;
 
     const postOne = async(methodname, args) => {
         try {
@@ -72,6 +74,15 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
             throw error;
         }
     };
+
+    getUser([{
+            methodname: 'core_user_get_users_by_field',
+            args: {field: 'id', values: [M.cfg.userId]},
+        }])[0].done(response => {
+            user = response[0];
+        }).fail((ex) => {
+        window.console.error('Error fetching user data:', ex);
+    });
 
     assignSubmit.on('click', async function(e) {
         e.preventDefault();
@@ -99,7 +110,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
         localStorage.removeItem('lastCopyCutContent');
     });
 
-    const getModal = (e) => {
+    const getModal = () => {
 
         Promise.all([
             getString('tiny_cursive_srcurl', 'tiny_cursive'),
@@ -163,12 +174,6 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
     const sendKeyEvent = (events, editor) => {
         ed = editor;
         event = events;
-        let ur = editor.srcElement.baseURI;
-        let parm = new URL(ur);
-        let modulesInfo = getModulesInfo(ur, parm, MODULES);
-
-        resourceId = modulesInfo.resourceId;
-        modulename = modulesInfo.name;
 
         filename = `${userid}_${resourceId}_${cmid}_${modulename}_attempt`;
 
@@ -276,6 +281,25 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
     });
     editor.on('SetContent', () => {
         customTooltip();
+    });
+    editor.on('ResizeEditor', () => {
+        let view = new DocumentView(user, Rubrics, submission, modulename);
+
+        try {
+            if (isFullScreen) {
+                isFullScreen = false;
+                view.normalMode();
+            } else {
+                isFullScreen = true;
+                view.fullPageMode();
+            }
+        } catch (error) {
+            editor.windowManager.alert('Unable to initialize document view in Fullscreen mode. Opening default view.');
+            view.normalMode();
+            window.console.error('Error ResizeEditor event:', error);
+        }
+
+
     });
     /**
      * Constructs a mouse event object with caret position and button information
@@ -492,9 +516,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
                 imgWrapper.id = elementId;
 
                 imgWrapper.appendChild(iconClone);
-
-                if (!targetMenu?.querySelector('.tiny_cursive_savingState')) {
-                    let moduleIds = {
+                let moduleIds = {
                         resourceId: resourceId,
                         cmid: cmid,
                         modulename: 'assign',
@@ -502,14 +524,30 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
                         userid: userid,
                         courseid: courseid};
 
-                    Autosave.getInstance(editor, rightWrapper, moduleIds);
-
+                if (!targetMenu?.querySelector('.tiny_cursive_savingState')) {
+                    Autosave.destroyInstance();
+                    Autosave.getInstance(editor, rightWrapper, moduleIds, isFullScreen);
                 }
                 rightWrapper.appendChild(imgWrapper);
+                if (isFullScreen && modulename === 'assign') {
+                    let existsElement = document.querySelector('.tox-menubar[class*="cursive-menu-"] > div');
+                    if (existsElement) {
+                        existsElement.remove();
+                    }
 
-                if (targetMenu && !targetMenu.querySelector(`#${elementId}`)) {
-                    targetMenu.appendChild(rightWrapper);
+                    if (!document.querySelector(`#${elementId}`)) {
+                        rightWrapper.style.marginTop = '3px';
+                        document.querySelector('#tiny_cursive-fullpage-right-wrapper').prepend(rightWrapper);
+                    }
+
+                    Autosave.destroyInstance();
+                    Autosave.getInstance(editor, rightWrapper, moduleIds, isFullScreen);
+                } else {
+                    if (targetMenu && !targetMenu.querySelector(`#${elementId}`)) {
+                        targetMenu.appendChild(rightWrapper);
+                    }
                 }
+
             }
         }
     }
@@ -523,10 +561,12 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
      * @param {string} tooltipId - ID for the tooltip element
      */
     function setTooltip(text, cursiveIcon, tooltipId) {
+
         if (document.querySelector(`#${tooltipId}`)) {
             return;
         }
         if (cursiveIcon) {
+
             const tooltipSpan = document.createElement('span');
             const description = document.createElement('span');
             const linebreak = document.createElement('br');

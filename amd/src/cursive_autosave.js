@@ -24,13 +24,14 @@
 import { iconSaving, iconSaved, iconOffline } from 'tiny_cursive/common';
 import templates from 'core/templates';
 import { call } from 'core/ajax';
+import Icons from 'tiny_cursive/svg_repo';
 
 export default class CursiveAutosave {
 
     static instance = null;
 
 
-    constructor(editor, rightWrapper, modules) {
+    constructor(editor, rightWrapper, modules, isFullScreen) {
         if (CursiveAutosave.instance) {
             return CursiveAutosave.instance;
         }
@@ -38,6 +39,8 @@ export default class CursiveAutosave {
         this.editor = editor;
         this.module = modules;
         this.savingState = '';
+        this.rightWrapper = rightWrapper;
+        this.isFullScreen = isFullScreen;
         // Bind methods that will be used as event listener
         this.fetchSavedContent = this.fetchSavedContent.bind(this);
         this.handleEscapeKey = this.handleEscapeKey.bind(this);
@@ -45,20 +48,38 @@ export default class CursiveAutosave {
         CursiveAutosave.instance = this;
     }
 
-    static getInstance(editor, rightWrapper, modules) {
+    static getInstance(editor, rightWrapper, modules, isFullScreen) {
         if (!this.instance) {
-            this.instance = new CursiveAutosave(editor, rightWrapper, modules);
+            this.instance = new CursiveAutosave(editor, rightWrapper, modules, isFullScreen);
         }
-        this.instance.init(rightWrapper);
+        this.isFullScreen = isFullScreen;
+        this.instance.init();
         return this.instance;
     }
 
-    init(rightWrapper) {
+    init() {
         const stateWrapper = this.cursiveSavingState(this.savingState);
         stateWrapper.classList.add('tiny_cursive_savingState', 'btn');
         stateWrapper.id = 'tiny_cursive_savingState';
-        rightWrapper.appendChild(stateWrapper);
+
+        if (this.isFullScreen) {
+            this.rightWrapper.prepend(stateWrapper);
+        } else {
+            this.rightWrapper.appendChild(stateWrapper);
+        }
+
         stateWrapper.addEventListener('click', this.fetchSavedContent);
+    }
+
+    destroy() {
+        CursiveAutosave.instance = null;
+    }
+
+    static destroyInstance() {
+        if (this.instance) {
+            this.instance.destroy();
+            this.instance = null;
+        }
     }
 
     /**
@@ -74,12 +95,14 @@ export default class CursiveAutosave {
         let textSpan = document.createElement('span');
         let button = document.createElement('button');
 
+        textSpan.style.fontSize = '0.75rem';
+        textSpan.style.color = 'gray';
         if (state) {
             textSpan.textContent = this.getStateText(state);
             icon.src = this.getStateIcon(state);
         }
-        icon.style.width = '24px';
-        icon.style.height = '24px';
+        icon.style.width = '20px';
+        icon.style.height = '20px';
         icon.style.marginRight = '5px';
         icon.style.display = 'none';
         wrapperDiv.style.marginRight = '0.5rem';
@@ -123,7 +146,7 @@ export default class CursiveAutosave {
     getStateText(state) {
         switch (state) {
             case 'saving': return 'Saving';
-            case 'saved': return 'Saved';
+            case 'saved': return 'Saved recently';
             case 'offline': return 'Offline';
             default: return '';
         }
@@ -139,7 +162,7 @@ export default class CursiveAutosave {
         switch (state) {
             case 'saving': return iconSaving;
             case 'saved': return iconSaved;
-            case 'offline': return iconOffline;
+            case 'offline': return 'data:image/svg+xml;base64,' + btoa(Icons.offline);
             default: return '';
         }
     }
@@ -182,6 +205,7 @@ export default class CursiveAutosave {
             this.renderCommentList(context, editorWrapper);
 
         }).fail((error) => {
+            this.editor.windowManager.alert('You are currently offline. Saved content cannot be retrieved until you are back online.');
             window.console.error('Error fetching saved content:', error);
         });
     }
