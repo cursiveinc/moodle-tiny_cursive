@@ -21,7 +21,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-import {iconSaving, iconSaved} from 'tiny_cursive/common';
+import {iconSaved} from 'tiny_cursive/common';
 import templates from 'core/templates';
 import {call} from 'core/ajax';
 import Icons from 'tiny_cursive/svg_repo';
@@ -160,7 +160,7 @@ export default class CursiveAutosave {
      */
     getStateIcon(state) {
         switch (state) {
-            case 'saving': return iconSaving;
+            case 'saving': return iconSaved;
             case 'saved': return iconSaved;
             case 'offline': return 'data:image/svg+xml;base64,' + btoa(Icons.offline);
             default: return '';
