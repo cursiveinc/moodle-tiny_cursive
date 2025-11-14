@@ -284,6 +284,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
                 view.fullPageMode();
             }
         } catch (error) {
+            isFullScreen = false;
             editor.windowManager.alert('Unable to initialize document view in Fullscreen mode. Opening default view.');
             view.normalMode();
             window.console.error('Error ResizeEditor event:', error);

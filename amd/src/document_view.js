@@ -401,16 +401,19 @@ export default class DocumentView {
         const remainingLabel = this.create('span');
         const remainingValue = this.create('span');
 
+        let openDate = open?.textContent.replace("Opened:", "")?.trim();
+        let dueDate = due?.textContent.replace("Due:", "")?.trim();
+
         openedLabel.textContent = 'Opened: ';
-        openedValue.textContent = this.formatDate(new Date(open.textContent.replace("Opened:", "").trim()));
+        openedValue.textContent = this.formatDate( openDate ? new Date(openDate) : null);
         openedValue.className = 'text-dark';
 
         dueLabel.textContent = 'Due: ';
-        dueValue.textContent = this.formatDate(new Date(due.textContent.replace("Due:", "").trim()));
+        dueValue.textContent = this.formatDate( dueDate ? new Date(dueDate) : null);
         dueValue.className = 'text-danger';
 
         remainingLabel.textContent = 'Remaining: ';
-        remainingValue.textContent = this.calculateDate(due.textContent.replace("Due:", "").trim());
+        remainingValue.textContent = this.calculateDate(dueDate);
         remainingValue.className = 'text-danger';
 
         openedWrapper.className = 'd-flex justify-content-between';
@@ -427,11 +430,17 @@ export default class DocumentView {
     }
 
     formatDate(date) {
+        if (!date) {
+            return '-';
+        }
         let options = {year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true};
         return date.toLocaleString('en-US', options);
     }
 
     calculateDate(date) {
+        if (!date) {
+            return '-';
+        }
         const date1 = new Date(date); // Due date (local time)
         const now = new Date(); // Current date/time
 
