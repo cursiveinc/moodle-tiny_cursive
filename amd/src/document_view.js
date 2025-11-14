@@ -163,9 +163,12 @@ export default class DocumentView {
         let courseName = document.querySelector('#page-navbar > nav > ol > li:nth-child(1) > a');
         let courseDes = document.querySelector('#intro');
         let Dates = document.querySelector('.activity-dates');
+        let openDate, dueDate = null;
 
-        let openDate = Dates.querySelector('div:nth-child(1)');
-        let dueDate = Dates.querySelector('div:nth-child(2)');
+        if (Dates) {
+            openDate = Dates.querySelector('div:nth-child(1)');
+            dueDate = Dates.querySelector('div:nth-child(2)');
+        }
 
         content.append(
             this.createBox({
@@ -201,15 +204,17 @@ export default class DocumentView {
             );
         }
 
-        content.append(
-            this.createBox({
-                bg: 'bg-amber',
-                titleColor: 'text-dark',
-                icon: Icons.time,
-                title: 'Important Dates',
-                bodyHTML: this.generateImportantDates(openDate, dueDate)
-            })
-        );
+        if (Dates) {
+            content.append(
+                this.createBox({
+                    bg: 'bg-amber',
+                    titleColor: 'text-dark',
+                    icon: Icons.time,
+                    title: 'Important Dates',
+                    bodyHTML: this.generateImportantDates(openDate, dueDate)
+                })
+            );
+        }
 
         content.append(
             this.createBox({
@@ -226,7 +231,7 @@ export default class DocumentView {
 
     }
     // Helper to create info boxes
-    createBox({bg, titleColor, icon, title, bodyHTML}) {
+    createBox({ bg, titleColor, icon, title, bodyHTML }) {
         const box = this.create('div');
         box.className = `tiny_cursive-fullpage-card ${bg}`;
 
@@ -405,11 +410,11 @@ export default class DocumentView {
         let dueDate = due?.textContent.replace("Due:", "")?.trim();
 
         openedLabel.textContent = 'Opened: ';
-        openedValue.textContent = this.formatDate( openDate ? new Date(openDate) : null);
+        openedValue.textContent = this.formatDate(openDate ? new Date(openDate) : null);
         openedValue.className = 'text-dark';
 
         dueLabel.textContent = 'Due: ';
-        dueValue.textContent = this.formatDate( dueDate ? new Date(dueDate) : null);
+        dueValue.textContent = this.formatDate(dueDate ? new Date(dueDate) : null);
         dueValue.className = 'text-danger';
 
         remainingLabel.textContent = 'Remaining: ';
@@ -433,7 +438,7 @@ export default class DocumentView {
         if (!date) {
             return '-';
         }
-        let options = {year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true};
+        let options = { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true };
         return date.toLocaleString('en-US', options);
     }
 
