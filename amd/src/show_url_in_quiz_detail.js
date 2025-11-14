@@ -97,7 +97,10 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
 
                         var content = $('.que.essay .editquestion a[href*="question/bank/editquestion/question.php"][href*="&id='
                             + data.data.questionid + '"]');
-
+                        if(content.length == 0) {
+                            content = $('.que.aitext .editquestion a[href*="question/bank/editquestion/question.php"][href*="&id='
+                            + data.data.questionid + '"]');
+                        }
                         var filepath = '';
                         if (data.data.filename) {
                             filepath = data.data.filename;

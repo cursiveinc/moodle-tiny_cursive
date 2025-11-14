@@ -21,9 +21,9 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-import { iconSaving, iconSaved, iconOffline } from 'tiny_cursive/common';
+import {iconSaving, iconSaved} from 'tiny_cursive/common';
 import templates from 'core/templates';
-import { call } from 'core/ajax';
+import {call} from 'core/ajax';
 import Icons from 'tiny_cursive/svg_repo';
 
 export default class CursiveAutosave {
@@ -205,7 +205,8 @@ export default class CursiveAutosave {
             this.renderCommentList(context, editorWrapper);
 
         }).fail((error) => {
-            this.editor.windowManager.alert('You are currently offline. Saved content cannot be retrieved until you are back online.');
+            this.editor.windowManager.alert(`You are currently offline. Saved content
+                                    cannot be retrieved until you are back online.`);
             window.console.error('Error fetching saved content:', error);
         });
     }
