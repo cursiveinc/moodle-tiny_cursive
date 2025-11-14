@@ -25,9 +25,8 @@ import {create} from 'core/modal_factory';
 import {get_string as getString} from 'core/str';
 import {save, cancel, hidden} from 'core/modal_events';
 import $ from 'jquery';
-import {iconSaving, iconSaved, iconOffline, iconUrl, iconGrayUrl, tooltipCss} from 'tiny_cursive/common';
-import templates from 'core/templates';
-
+import {iconUrl, iconGrayUrl, tooltipCss} from 'tiny_cursive/common';
+import Autosave from 'tiny_cursive/cursive_autosave';
 
 export const register = (editor, interval, userId, hasApiKey, MODULES) => {
 
@@ -49,7 +48,11 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
     var syncInterval = interval ? interval * 1000 : 10000; // Default: Sync Every 10s.
     var lastCaretPos = 1;
     let pastedContents = [];
-    var savingState = ''; // Possible values: 'saving', 'saved', 'offline'
+    let ur = window.location.href;
+    let parm = new URL(ur);
+    let modulesInfo = getModulesInfo(ur, parm, MODULES);
+    resourceId = modulesInfo.resourceId;
+    modulename = modulesInfo.name;
 
     const postOne = async(methodname, args) => {
         try {
@@ -59,12 +62,12 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
             }])[0];
             if (response) {
                 setTimeout(() => {
-                    updateSavingState('saved');
+                    Autosave.updateSavingState('saved');
                 }, 1000);
             }
             return response;
         } catch (error) {
-            updateSavingState('offline');
+            Autosave.updateSavingState('offline');
             window.console.error('Error in postOne:', error);
             throw error;
         }
@@ -119,12 +122,6 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
                     modal.getRoot().on(save, function() {
 
                         var number = document.getElementById("inputUrl").value.trim();
-                        let ur = e.srcElement.baseURI;
-                        let parm = new URL(ur);
-                        let modulesInfo = getModulesInfo(ur, parm, MODULES);
-
-                        resourceId = modulesInfo.resourceId;
-                        modulename = modulesInfo.name;
 
                         if (number === "" || number === null || number === undefined) {
                             editor.execCommand('Undo');
@@ -388,7 +385,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
             localStorage.removeItem(filename);
             let originalText = editor.getContent({format: 'text'});
             try {
-                updateSavingState('saving');
+                Autosave.updateSavingState('saving');
                 // eslint-disable-next-line
                 return await postOne('cursive_write_local_to_json', {
                     key: ed.key,
@@ -496,12 +493,17 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
 
                 imgWrapper.appendChild(iconClone);
 
-                 if (!targetMenu?.querySelector('.tiny_cursive_savingState')) {
-                    const stateWrapper = cursiveSavingState(savingState);
-                    stateWrapper.classList.add('tiny_cursive_savingState', 'btn');
-                    stateWrapper.id = 'tiny_cursive_savingState';
-                    rightWrapper.appendChild(stateWrapper);
-                    stateWrapper.addEventListener('click', fetchSavedContent);
+                if (!targetMenu?.querySelector('.tiny_cursive_savingState')) {
+                    let moduleIds = {
+                        resourceId: resourceId,
+                        cmid: cmid,
+                        modulename: 'assign',
+                        questionid: questionid,
+                        userid: userid,
+                        courseid: courseid};
+
+                    Autosave.getInstance(editor, rightWrapper, moduleIds);
+
                 }
                 rightWrapper.appendChild(imgWrapper);
 
@@ -509,195 +511,6 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
                     targetMenu.appendChild(rightWrapper);
                 }
             }
-        }
-    }
-
-    /**
-     * Creates a wrapper div containing an icon and text to display the saving state
-     * @param {string} state - The current saving state ('saving', 'saved', or 'offline')
-     * @returns {HTMLElement} A div element containing the state icon and text
-     * @function SavingState
-     * @description Creates and returns a div element with an icon and text span to show the current saving state.
-     * The icon and text are updated based on the provided state parameter.
-     */
-    function cursiveSavingState(state) {
-        let wrapperDiv = document.createElement('div');
-        let icon = document.createElement('img');
-        let textSpan = document.createElement('span');
-        let button = document.createElement('button');
-
-        if (state) {
-            textSpan.textContent = getStateText(state);
-            icon.src = getStateIcon(state);
-        }
-        icon.style.width = '28px';
-        icon.style.height = '28px';
-        icon.style.marginRight = '5px';
-        icon.style.display = 'none';
-        wrapperDiv.style.marginRight = '0.5rem';
-        wrapperDiv.style.verticalAlign = 'middle';
-
-        wrapperDiv.appendChild(icon);
-        wrapperDiv.appendChild(textSpan);
-        button.appendChild(wrapperDiv);
-
-        return button;
-    }
-
-    /**
-     * Updates the saving state icon and text in the editor
-     * @param {string} state - The state to update to ('saving', 'saved', or 'offline')
-     * @function updateSavingState
-     * @description Updates the global saving state and modifies the UI elements to reflect the new state
-     */
-    function updateSavingState(state) {
-        savingState = state;
-        let stateWrapper = document.querySelector('.tiny_cursive_savingState');
-
-        if (!stateWrapper) {
-            return;
-        }
-
-        let img = stateWrapper.querySelector('img');
-        let span = stateWrapper.querySelector('span');
-
-        img.style.display = 'inline';
-        span.textContent = getStateText(state);
-        img.src = getStateIcon(state);
-    }
-
-    /**
-     * Gets the display text for a given saving state
-     * @param {string} state - The state to get text for ('saving', 'saved', or 'offline')
-     * @returns {string} The text to display for the given state
-     * @function getStateText
-     * @description Returns appropriate text label based on the current saving state
-     */
-    function getStateText(state) {
-        switch (state) {
-            case 'saving': return 'Saving';
-            case 'saved': return 'Saved';
-            case 'offline': return 'Offline';
-            default: return '';
-        }
-    }
-
-    /**
-     * Gets the icon URL for a given saving state
-     * @param {string} state - The state to get icon for ('saving', 'saved', or 'offline')
-     * @returns {string} The URL of the icon image for the given state
-     * @function getStateIcon
-     * @description Returns appropriate icon URL based on the current saving state
-     */
-    function getStateIcon(state) {
-        switch (state) {
-            case 'saving': return iconSaving;
-            case 'saved': return iconSaved;
-            case 'offline': return iconOffline;
-            default: return '';
-        }
-    }
-
-    /**
-     * Fetches and displays saved content in a dropdown
-     * @async
-     * @param {Event} e - The event object
-     * @function fetchSavedContent
-     * @description Handles fetching and displaying saved content when the save state button is clicked.
-     * If the dropdown is already visible, it will be closed. Otherwise it will fetch saved content
-     * from the server (or use cached content if available) and display it in a dropdown panel.
-     * @throws {Error} Logs error to console if fetching content fails
-     */
-    async function fetchSavedContent(e) {
-        e.preventDefault();
-
-        let dropdown = document.querySelector('#savedDropdown');
-        let isVisible = dropdown?.classList?.contains('show');
-
-        if (isVisible) {
-            closeSavedDropdown();
-            return;
-        }
-        const editorWrapper = document.querySelector('#tiny_cursive_savingState');
-
-        let args = {
-            id: resourceId,
-            cmid: cmid,
-            modulename: `${modulename}_autosave`,
-            questionid: questionid,
-            userid: userid,
-            courseid: courseid
-        };
-
-        call([{
-                methodname: "cursive_get_autosave_content",
-                args: args
-            }])[0].done((data) => {
-                let context = {comments: JSON.parse(data)};
-                renderCommentList(context, editorWrapper);
-
-            }).fail((error) => {
-                window.console.error('Error fetching saved content:', error);
-            });
-    }
-
-    /**
-     * Toggles the visibility of the saved content dropdown
-     * @function toggleSavedDropdown
-     * @description Checks if the saved content dropdown is currently visible and either closes or opens it accordingly.
-     * If visible, calls closeSavedDropdown(). If hidden, calls openSavedDropdown().
-     */
-    function toggleSavedDropdown() {
-        const dropdown = document.querySelector('#savedDropdown');
-        const isVisible = dropdown?.classList?.contains('show');
-
-        if (isVisible) {
-            closeSavedDropdown();
-        } else {
-            openSavedDropdown();
-        }
-    }
-
-    /**
-     * Opens the saved content dropdown panel
-     * @function openSavedDropdown
-     * @description Shows the saved content dropdown by adding the 'show' class and sets up an event listener
-     * for the Escape key to allow closing the dropdown. This function is called when toggling the dropdown open.
-     */
-    function openSavedDropdown() {
-        const dropdown = document.querySelector('#savedDropdown');
-
-        dropdown.classList.add('show');
-
-        // Add event listener to close on Escape key
-        document.addEventListener('keydown', handleEscapeKey);
-    }
-
-    /**
-     * Closes the saved content dropdown panel
-     * @function closeSavedDropdown
-     * @description Removes the 'show' class from the dropdown to hide it, removes the dropdown element from the DOM,
-     * and removes the Escape key event listener. This function is called when toggling the dropdown closed or when
-     * clicking outside the dropdown.
-     */
-    function closeSavedDropdown() {
-        const dropdown = document.querySelector('#savedDropdown');
-        dropdown.classList.remove('show');
-        dropdown.remove();
-
-        // Remove event listener
-        document.removeEventListener('keydown', handleEscapeKey);
-    }
-
-    /**
-     * Handles the Escape key press event for closing the saved content dropdown
-     * @param {KeyboardEvent} event - The keyboard event object
-     * @function handleEscapeKey
-     * @description Event handler that checks if the Escape key was pressed and closes the saved content dropdown if it was
-     */
-    function handleEscapeKey(event) {
-        if (event.key === 'Escape') {
-            closeSavedDropdown();
         }
     }
 
@@ -771,66 +584,6 @@ export const register = (editor, interval, userId, hasApiKey, MODULES) => {
         }
 
         return {resourceId: resourceId, name: modulename};
-    }
-
-    /**
-     * Renders the saved content dropdown list using a template
-     * @param {Object} context - The context object containing saved comments data to render
-     * @param {HTMLElement} editorWrapper - The wrapper element to attach the dropdown to
-     * @function renderCommentList
-     * @description Renders the saved content dropdown using the tiny_cursive/saved_content template.
-     * Creates and positions the dropdown relative to the editor wrapper element.
-     * Handles toggling visibility and caching of the saved content.
-     * @throws {Error} Logs error to console if template rendering fails
-     */
-    function renderCommentList(context, editorWrapper) {
-        templates.render('tiny_cursive/saved_content', context).then(html => {
-            editorWrapper.style.position = 'relative';
-
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = html.trim();
-            tempDiv.id = 'savedDropdown';
-            tempDiv.classList.add('saved-dropdown');
-
-            if (!tempDiv) {
-                window.console.error("Saved content template rendered empty or invalid HTML.");
-                return false;
-            }
-
-            // Add to DOM if not already added
-            let existingPanel = document.querySelector('#savedDropdown');
-
-            if (!existingPanel) {
-                editorWrapper.appendChild(tempDiv);
-                existingPanel = tempDiv;
-            }
-
-            // Toggle visibility
-            existingPanel.classList.toggle('active');
-            toggleSavedDropdown();
-
-            insertSavedItems();
-
-            return true;
-
-        }).catch(error => window.console.error(error));
-    }
-
-    /**
-     * Adds click event listeners to saved content items to insert them into the editor
-     * @function insertSavedItems
-     * @description Finds all elements with class 'item-preview' and adds click handlers that will
-     * insert the element's text content into the editor when clicked. The text is inserted with
-     * a leading space.
-     * @returns {void}
-     */
-    function insertSavedItems() {
-        const items = document.querySelectorAll('.item-preview');
-        items.forEach(element => {
-            element.addEventListener('click', function() {
-                editor.insertContent(" " + this.textContent);
-            });
-        });
     }
 
     window.addEventListener('unload', () => {
