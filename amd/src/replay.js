@@ -369,29 +369,6 @@ export default class Replay {
             }
         }
 
-        if (this.usercomments.length > 0 && this.pasteTimestamps.length === 0) {
-            this.usercomments.forEach((comment, i) => {
-                this.pasteTimestamps.push({
-                    index: i,
-                    time: 0,
-                    formattedTime: this.formatTime(0),
-                    pastedText: comment,
-                    timestamp: 0
-                });
-            });
-        }
-
-        while (this.pasteTimestamps.length < this.usercomments.length) {
-            const lastIndex = this.pasteTimestamps.length;
-            this.pasteTimestamps.push({
-                index: lastIndex,
-                time: 0,
-                formattedTime: this.formatTime(0),
-                pastedText: this.usercomments[lastIndex],
-                timestamp: 0
-            });
-        }
-
         if (this.pasteEventsPanel) {
             this.populatePasteEventsPanel(this.pasteEventsPanel);
         }
