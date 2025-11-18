@@ -283,19 +283,17 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
     editor.on('SetContent', () => {
         customTooltip();
     });
-    editor.on('ResizeEditor', () => {
-        let view = new DocumentView(user, Rubrics, submission, modulename);
 
+    editor.on('FullscreenStateChanged', (e) => {
+        let view = new DocumentView(user, Rubrics, submission, modulename, editor);
+        isFullScreen = e.state;
         try {
-            if (isFullScreen) {
-                isFullScreen = false;
+            if (!e.state) {
                 view.normalMode();
             } else {
-                isFullScreen = true;
                 view.fullPageMode();
             }
         } catch (error) {
-            isFullScreen = false;
             if (errorAlert) {
                 errorAlert = false;
                 editor.windowManager.alert('Unable to initialize document view in Fullscreen mode. Opening default view.');
@@ -303,9 +301,8 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
             view.normalMode();
             window.console.error('Error ResizeEditor event:', error);
         }
-
-
     });
+
     /**
      * Constructs a mouse event object with caret position and button information
      * @param {Object} editor - The TinyMCE editor instance
@@ -519,22 +516,23 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
                 rightWrapper.style.display = 'flex';
                 rightWrapper.style.alignItems = 'center';
                 imgWrapper.id = elementId;
+                imgWrapper.style.marginLeft = '.2rem';
 
                 imgWrapper.appendChild(iconClone);
                 let moduleIds = {
-                        resourceId: resourceId,
-                        cmid: cmid,
-                        modulename: 'assign',
-                        questionid: questionid,
-                        userid: userid,
-                        courseid: courseid};
+                    resourceId: resourceId,
+                    cmid: cmid,
+                    modulename: modulename,
+                    questionid: questionid,
+                    userid: userid,
+                    courseid: courseid};
 
                 if (!targetMenu?.querySelector('.tiny_cursive_savingState')) {
                     Autosave.destroyInstance();
                     Autosave.getInstance(editor, rightWrapper, moduleIds, isFullScreen);
                 }
                 rightWrapper.appendChild(imgWrapper);
-                if (isFullScreen && modulename === 'assign') {
+                if (isFullScreen && (modulename === 'assign' || modulename === 'forum')) {
                     let existsElement = document.querySelector('.tox-menubar[class*="cursive-menu-"] > div');
                     if (existsElement) {
                         existsElement.remove();

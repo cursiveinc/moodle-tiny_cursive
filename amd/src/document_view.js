@@ -24,11 +24,13 @@
 import Icons from 'tiny_cursive/svg_repo';
 export default class DocumentView {
 
-    constructor(User, Rubrics, submission, modulename) {
+    constructor(User, Rubrics, submission, modulename, editor) {
         this.User = User;
         this.Rubrics = Rubrics;
         this.submission = submission;
         this.module = modulename;
+        this.editor = editor;
+        this.moduleIcon = Icons.assignment;
     }
 
     normalMode() {
@@ -57,90 +59,80 @@ export default class DocumentView {
                 iframeBody.style.padding = '0';
             }
             document.head.querySelector('#tiny_cursive-fullpage-mode-style')?.remove();
+        } else if (this.module === 'forum') {
+            document.getElementById('tiny_cursive-fullpage-custom-header')?.remove();
+            document.getElementById('cursive-fullpagemode-sidebar')?.remove();
+
+            let current = document.querySelector('#id_message_ifr');
+            let p1 = current.parentElement;
+            let p2 = p1.parentElement;
+
+            p2.style.backgroundColor = '';
+            current.style.width = '';
+            current.style.minWidth = '';
+            current.style.boxShadow = '';
+            Object.assign(p1.style, {
+                display: '',
+                justifyContent: '',
+                outline: '',
+                margin: ''
+            });
+            p1.classList.remove('tiny-cursive-editor-container');
+            p2.style.position = '';
+            let iframeBody = current.contentDocument?.body || current.contentWindow?.document?.body;
+            if (iframeBody) {
+                iframeBody.style.padding = '0';
+            }
+            document.head.querySelector('#tiny_cursive-fullpage-mode-style')?.remove();
         }
 
     }
 
     fullPageMode() {
+
         if (this.module === 'assign') {
-            let current = document.querySelector('#id_onlinetext_editor_ifr');
-            let p1 = current.parentElement;
-            let p2 = p1.parentElement;
-            let p3 = p2.parentElement;
-            let p4 = p3.parentElement;
-
-            let statusBar = document.querySelector('.tox-statusbar__right-container > button');
-            let assignName = document.querySelector('.page-context-header');
-            assignName.classList.remove('mb-2');
-
-            let header = this.create('div');
-            header.id = 'tiny_cursive-fullpage-custom-header';
-            header.style.backgroundColor = 'white';
-            header.style.display = 'flex';
-            header.style.justifyContent = 'space-between';
-
-            let btn = this.create('input');
-            btn.className = 'tiny_cursive-fullpage-submit-btn';
-            btn.value = 'Save changes';
-            btn.type = 'submit';
-            btn.style.margin = '.5rem';
-
-            const leftSide = this.create('div');
-            leftSide.style.display = 'flex';
-            leftSide.style.alignItems = 'center';
-            leftSide.style.margin = '0 1rem';
-
-            const rightSide = this.create('div');
-            rightSide.style.display = 'flex';
-            rightSide.style.alignItems = 'center';
-            rightSide.style.margin = '0 1rem';
-            rightSide.id = 'tiny_cursive-fullpage-right-wrapper';
-
-            rightSide.appendChild(btn);
-            leftSide.appendChild(assignName.cloneNode(true));
-
-
-            header.appendChild(leftSide);
-            header.appendChild(rightSide);
-
-            p4.insertBefore(header, p4.firstChild);
-            p2.style.backgroundColor = '#efefef';
-            current.style.width = '750px';
-            current.style.minWidth = '750px';
-            current.style.boxShadow = '0 10px 15px -3px rgb(0 0 0/0.1),0 4px 6px -4px rgb(0 0 0/0.1)';
-            Object.assign(p1.style, {
-                display: 'flex',
-                justifyContent: 'center',
-                outline: 'none',
-                margin: '2rem 0 0'
-            });
-            const style = this.create('style');
-            style.id = 'tiny_cursive-fullpage-mode-style';
-            style.textContent = `
-        .tox.tox-edit-focus .tox-edit-area::before {
-            opacity: 0;
-        }
-        `;
-            document.head.appendChild(style);
-
-            let iframeBody = current.contentDocument?.body || current.contentWindow?.document?.body;
-
-            if (iframeBody) {
-                iframeBody.style.padding = '0.5in';
-            }
-            p2.style.position = 'relative';
-            document.getElementById('cursive-fullpagemode-sidebar')?.remove();
-            p2.appendChild(this.docSideBar(statusBar));
+            this.moduleIcon = Icons.assignment;
+            this.fullPageModule('onlinetext_editor');
+        } else if (this.module === 'forum') {
+            this.moduleIcon = Icons.forum;
+            this.fullPageModule('message');
         }
     }
 
     docSideBar(status) {
+
+        let url = new URL(window.location.href);
+        let replyId = url.searchParams.get("reply");
+        let toggle = document.querySelector('#cursive-fullpagemode-sidebar-toggle');
 
         const container = this.create('div');
         container.id = 'cursive-fullpagemode-sidebar';
         container.className = 'bg-white h-100 shadow';
         container.style.width = '300px';
         container.style.overflow = 'auto';
+
+        let crossBtn = this.create('span');
+        crossBtn.className = 'btn p-2';
+        crossBtn.innerHTML = Icons.close;
+        crossBtn.id = 'cursive-collapse-sidebar';
+
+        crossBtn.addEventListener('click', () => {
+            container.style.transition = 'width 0.3s ease';
+            container.style.width = '0';
+            toggle.style.display = 'flex';
+        });
+        toggle?.addEventListener('click', function(){
+            toggle.style.display = 'none';
+            container.style.width = '300px';
+        });
+
+        let btnWrapper = this.create('div');
+        btnWrapper.style.padding = '0 1rem';
+        btnWrapper.style.position = 'sticky';
+        btnWrapper.style.top = '0';
+        btnWrapper.style.backgroundColor = 'white';
+        btnWrapper.append(crossBtn);
+
 
         const header = this.create('div');
         header.className = 'border-bottom p-4';
@@ -169,7 +161,9 @@ export default class DocumentView {
             openDate = Dates.querySelector('div:nth-child(1)');
             dueDate = Dates.querySelector('div:nth-child(2)');
         }
-
+        if (this.module === 'forum') {
+            this.checkForumSubject();
+        }
         content.append(
             this.createBox({
                 bg: 'bg-info',
@@ -181,23 +175,39 @@ export default class DocumentView {
         );
 
 
-        if (courseDes.textContent.trim() !== '') {
+        if (courseDes && courseDes?.textContent.trim() !== '') {
             content.append(
                 this.createBox({
                     bg: 'bg-gray',
                     titleColor: 'text-dark',
-                    icon: Icons.assignment,
+                    icon: this.moduleIcon,
                     title: 'Assignment Description',
                     bodyHTML: courseDes.innerHTML
                 })
             );
         }
+
+        if (this.module === 'forum' && replyId) {
+            let replyPost = document.querySelector(`#post-content-${replyId}`);
+            if (replyPost?.textContent.trim()) {
+                content.append(
+                    this.createBox({
+                        bg: 'bg-gray',
+                        titleColor: 'text-dark',
+                        icon: this.moduleIcon,
+                        title: 'Replying to Post',
+                        bodyHTML: replyPost.textContent.trim()
+                    })
+                );
+            }
+        }
+
         if (Object.keys(this.Rubrics).length) {
             content.append(
                 this.createBox({
                     bg: 'bg-gray',
                     titleColor: 'text-dark',
-                    icon: Icons.assignment,
+                    icon: this.moduleIcon,
                     title: 'Assessment Rubrics',
                     bodyHTML: this.generateRubrics(this.Rubrics)
                 })
@@ -220,13 +230,13 @@ export default class DocumentView {
             this.createBox({
                 bg: 'bg-green',
                 titleColor: 'text-success',
-                icon: Icons.assignment,
+                icon: this.moduleIcon,
                 title: 'Submission Status',
                 bodyHTML: this.submissionStatus(this.submission)
             })
         );
 
-        container.append(header, content);
+        container.append(btnWrapper, header, content);
         return container;
 
     }
@@ -292,7 +302,7 @@ export default class DocumentView {
         statusName.textContent = 'Status: ';
 
         const statusValue = this.create('span');
-        const isNew = submission.current.status === 'new';
+        const isNew = submission?.current?.status === 'new';
         statusValue.textContent = isNew ? 'Draft (Not submitted)' : 'Draft (Submitted)';
         statusValue.className = `tiny_cursive-status-value ${isNew ? 'tiny_cursive-status-red' : 'tiny_cursive-status-green'}`;
 
@@ -304,7 +314,7 @@ export default class DocumentView {
         const modifiedName = this.create('span');
         modifiedName.textContent = 'Last Modified: ';
         const modifiedValue = this.create('span');
-        if (submission.current?.timemodified) {
+        if (submission?.current?.timemodified) {
             const date = new Date(submission.current.timemodified * 1000);
             modifiedValue.textContent = this.formatDate(date);
         } else {
@@ -320,7 +330,7 @@ export default class DocumentView {
 
         const gradeValue = this.create('span');
 
-        if (submission.grade) {
+        if (submission?.grade) {
             gradeValue.textContent = Number(submission.grade.grade) > 0
                 ? submission.grade.grade
                 : 'Not graded';
@@ -463,6 +473,100 @@ export default class DocumentView {
         }
 
     }
+
+    fullPageModule(module) {
+        let current = document.querySelector(`#id_${module}_ifr`);
+        let p1 = current.parentElement;
+        let p2 = p1.parentElement;
+        let p3 = p2.parentElement;
+        let p4 = p3.parentElement;
+
+        let statusBar = document.querySelector('.tox-statusbar__right-container > button');
+        let assignName = document.querySelector('.page-context-header');
+        assignName.classList.remove('mb-2');
+
+        let header = this.create('div');
+        header.id = 'tiny_cursive-fullpage-custom-header';
+        header.style.backgroundColor = 'white';
+        header.style.display = 'flex';
+        header.style.justifyContent = 'space-between';
+
+        let btn = this.create('input');
+        btn.className = 'tiny_cursive-fullpage-submit-btn';
+        btn.value = 'Save changes';
+        btn.type = 'submit';
+        btn.style.margin = '.5rem';
+
+        const leftSide = this.create('div');
+        leftSide.style.display = 'flex';
+        leftSide.style.alignItems = 'center';
+        leftSide.style.margin = '0 1rem';
+
+        const rightSide = this.create('div');
+        rightSide.style.display = 'flex';
+        rightSide.style.alignItems = 'center';
+        rightSide.style.margin = '0 1rem';
+        rightSide.id = 'tiny_cursive-fullpage-right-wrapper';
+
+        rightSide.appendChild(btn);
+        leftSide.appendChild(assignName.cloneNode(true));
+
+
+        header.appendChild(leftSide);
+        header.appendChild(rightSide);
+
+        p4.insertBefore(header, p4.firstChild);
+        p2.style.backgroundColor = '#efefef';
+        current.style.width = '750px';
+        current.style.minWidth = '750px';
+        current.style.boxShadow = '0 10px 15px -3px rgb(0 0 0/0.1),0 4px 6px -4px rgb(0 0 0/0.1)';
+        Object.assign(p1.style, {
+            display: 'flex',
+            justifyContent: 'center',
+            outline: 'none',
+            margin: '2rem 0 0'
+        });
+        const style = this.create('style');
+        style.id = 'tiny_cursive-fullpage-mode-style';
+        style.textContent = `
+            .tox.tox-edit-focus .tox-edit-area::before {
+                opacity: 0;
+            }
+            `;
+        document.head.appendChild(style);
+
+        let iframeBody = current.contentDocument?.body || current.contentWindow?.document?.body;
+
+        if (iframeBody) {
+            iframeBody.style.padding = '0.5in';
+        }
+        p2.style.position = 'relative';
+        document.getElementById('cursive-fullpagemode-sidebar')?.remove();
+
+        let toggle = this.create('div');
+        toggle.id = 'cursive-fullpagemode-sidebar-toggle';
+        toggle.innerHTML = Icons.hamburger;
+        p2.appendChild(toggle);
+        p2.appendChild(this.docSideBar(statusBar));
+    }
+
+    checkForumSubject() {
+        const form = document.querySelector('#tiny_cursive-fullpage-right-wrapper > input');
+        const msg = 'Subject or message cannot be empty.';
+
+        if (form) {
+            form.addEventListener('click', (e) => {
+                const subjectInput = document.getElementById('id_subject');
+                let content = this.editor.getContent().trim();
+                if (!subjectInput || subjectInput.value.trim() === '' || content === '') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.editor.windowManager.alert(msg);
+                }
+            });
+        }
+    }
+
 
     create(tag) {
         return document.createElement(tag);

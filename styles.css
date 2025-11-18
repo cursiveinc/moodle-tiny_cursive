@@ -1665,7 +1665,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
 }
 
 .saved-items {
-    max-height: 250px;
+    max-height: 200px;
     overflow-y: auto;
 }
 
@@ -1885,4 +1885,45 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
 .tiny_cursive-word-counter {
     margin-top: 0.75rem !important;
     font-size: 14px !important;
+}
+
+
+#cursive-fullpagemode-sidebar-toggle {
+    position: absolute;
+    top: 2%;
+    right: -15px;
+    width: 50px;
+    height: 40px;
+    border-radius: 30% 0 0 30%;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+    display: none;
+    align-items: center;
+    padding-left: .4rem;
+    background-color: white;
+}
+#cursive-fullpagemode-sidebar {
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #999 transparent;
+}
+
+/* Chrome, Edge, Safari */
+#cursive-fullpagemode-sidebar::-webkit-scrollbar {
+    width: 8px;
+
+}
+
+#cursive-fullpagemode-sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#cursive-fullpagemode-sidebar::-webkit-scrollbar-thumb {
+    background: #bcbcbc;
+    border-radius: 4px;
+}
+
+#cursive-fullpagemode-sidebar::-webkit-scrollbar-thumb:hover {
+    background: #9a9a9a;
 }

@@ -53,7 +53,10 @@ export default class CursiveAutosave {
             this.instance = new CursiveAutosave(editor, rightWrapper, modules, isFullScreen);
         }
         this.isFullScreen = isFullScreen;
-        this.instance.init();
+        if (!document.querySelector('#tiny_cursive_savingState')) {
+            this.instance.init();
+        }
+
         return this.instance;
     }
 
@@ -94,6 +97,7 @@ export default class CursiveAutosave {
         let icon = document.createElement('img');
         let textSpan = document.createElement('span');
         let button = document.createElement('button');
+        button.style.padding = '.3rem';
 
         textSpan.style.fontSize = '0.75rem';
         textSpan.style.color = 'gray';
@@ -105,7 +109,6 @@ export default class CursiveAutosave {
         icon.style.height = '20px';
         icon.style.marginRight = '5px';
         icon.style.display = 'none';
-        wrapperDiv.style.marginRight = '0.5rem';
         wrapperDiv.style.verticalAlign = 'middle';
 
         wrapperDiv.appendChild(icon);

@@ -1797,15 +1797,17 @@ class cursive_json_func_data extends external_api {
         $config       = tiny_cursive_status($params['courseid']);
         $syncinterval = get_config('tiny_cursive', "syncinterval");
         $cm = get_coursemodule_from_id('', $params['cmid'], $params['courseid'], false, MUST_EXIST);
-        $rubrics      = constants::get_rubrics("mod_{$cm->modname}", $context);
-
-        $assign = new assign($context, null, null);
-        $submission = $assign->get_user_submission($userid, false);
-        $grade = $assign->get_user_grade($userid, false);
+        $rubrics      = constants::get_rubrics("mod_{$cm->modname}", $context, $cm->modname);
 
         $submissiondata = new stdClass();
-        $submissiondata->current = $submission;
-        $submissiondata->grade = $grade;
+        if ($cm->modname === 'assign') {
+            $assign = new assign($context, null, null);
+            $submission = $assign->get_user_submission($userid, false);
+            $grade = $assign->get_user_grade($userid, false);
+
+            $submissiondata->current = $submission;
+            $submissiondata->grade = $grade;
+        }
 
         $data    = [
             'status'        => $config,
