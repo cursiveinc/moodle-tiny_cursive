@@ -33,7 +33,13 @@ class constants {
      * const array NAMES List of module names where cursive can be used
      */
     public const NAMES = ["assign", "forum", "quiz", "lesson", "oublog"];
-
+    /**
+     * Array mapping module names to their corresponding rubric areas.
+     * Used to identify the correct rubric area for different module types.
+     * const array RUBRIC_AREA Mapping of module names to rubric areas
+     */
+    public const RUBRIC_AREA = ['assign' => 'submissions', 'forum' => 'forum', 'quiz' => 'quiz', 'lesson' =>
+                               'lesson', 'oublog' => 'oublog'];
 
     /**
      * Array mapping page body IDs to their corresponding handler functions and module types.
@@ -264,9 +270,9 @@ class constants {
      * @param \stdClass $context The course ID
      * @return array Array of rubric records containing id and name
      */
-    public static function get_rubrics($component, $context) {
+    public static function get_rubrics($component, $context, $area) {
 
-        $gradingmanager = get_grading_manager($context, $component, 'submissions');
+        $gradingmanager = get_grading_manager($context, $component, self::RUBRIC_AREA[$area]);
         $controller = $gradingmanager->get_active_controller();
 
         if (!$controller) {
