@@ -273,7 +273,6 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
     editor.on('SetContent', () => {
         customTooltip();
     });
-
     editor.on('FullscreenStateChanged', (e) => {
         let view = new DocumentView(user, Rubrics, submission, modulename, editor);
         isFullScreen = e.state;
