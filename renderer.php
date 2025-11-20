@@ -150,7 +150,6 @@ class tiny_cursive_renderer extends plugin_renderer_base {
         $totaltime = "0";
         $icon      = html_writer::tag('i', $svg, ['class' => 'tiny_cursive-analytics-icon']);
         $user      = $DB->get_record('user', ['id' => $userid], '*', MUST_EXIST);
-        $modinfo = get_fast_modinfo($courseid);
 
         $dwnldicon = $this->output->pix_icon(
             'download',
@@ -222,6 +221,7 @@ class tiny_cursive_renderer extends plugin_renderer_base {
 
             $cm = null;
             if ($courseid) {
+                $modinfo = get_fast_modinfo($courseid);
                 if ($modinfo) {
                     $cm = $modinfo->get_cm($user->cmid);
                 }

@@ -302,6 +302,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
             let tempDiv = document.createElement('div');
             tempDiv.innerHTML = insertedContent;
             let text = tempDiv.textContent || tempDiv.innerText || '';
+            let pastedText = tempDiv.textContent || tempDiv.innerText || '';
 
             let position = getCaretPosition(true);
             editor.caretPosition = position.caretPosition;
@@ -313,7 +314,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
                     keyCode: 86,
                     caretPosition: editor.caretPosition,
                     rePosition: editor.rePosition,
-                    pastedContent: insertedContent,
+                    pastedContent: pastedText,
                     srcElement: { baseURI: window.location.href }
                 });
             } else {
@@ -397,30 +398,20 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
             if (!editor || !editor.selection) {
                 return {caretPosition: 0, rePosition: 0};
             }
-            const rng = editor.selection.getRng();
 
-            let absolutePosition = 0;
-            let node = rng.startContainer;
-            let offset = rng.startOffset;
+            const body = editor.getBody();
 
-            // For selections, use the end position
-            if (rng.startContainer !== rng.endContainer || rng.startOffset !== rng.endOffset) {
-                node = rng.endContainer;
-                offset = rng.endOffset;
-            }
+            // Get the selection
+            const range = editor.selection.getRng();
 
-            absolutePosition = offset;
+            // Calculate position by creating a range from start of body to cursor
+            const preCaretRange = range.cloneRange();
+            preCaretRange.selectNodeContents(body);
+            preCaretRange.setEnd(range.endContainer, range.endOffset);
 
-            // Calculate position by walking through previous nodes
-            while (node && node !== editor.getBody()) {
-                while (node.previousSibling) {
-                    node = node.previousSibling;
-                    if (node.textContent) {
-                        absolutePosition += node.textContent.length;
-                    }
-                }
-                node = node.parentNode;
-            }
+            // Get text content - this gives us the actual character position
+            const textBeforeCursor = preCaretRange.toString();
+            const absolutePosition = textBeforeCursor.length;
 
             if (skip) {
                 return {
