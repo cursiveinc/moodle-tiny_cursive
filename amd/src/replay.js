@@ -95,6 +95,7 @@ export default class Replay {
         if (data.comments) {
             this.usercomments = Array.isArray(JSON.parse(data.comments)) ? JSON.parse(data.comments) : [];
         }
+        window.console.log(JSON.stringify(this.logData));
         if ('data' in this.logData) {
             this.logData = this.logData.data;
         }
@@ -639,10 +640,8 @@ export default class Replay {
 
     handleAiReplacement(aiContent, text, targetPosition, currentCursor, deletions) {
         const insertText = aiContent || '';
-
         const aiWords = insertText.trim().split(/\s+/);
         const isMultiWord = aiWords.length > 1;
-
         let wordStart = targetPosition;
         let wordEnd = targetPosition;
 
@@ -651,8 +650,7 @@ export default class Replay {
         if (isNewLineInsertion) {
             wordStart = currentCursor;
             wordEnd = currentCursor;
-        } else if (isMultiWord) {
-            // Find the line start - position right after the previous newline
+        } else {
             let lineStart = 0;
             for (let i = targetPosition - 1; i >= 0; i--) {
                 if (text[i] === '\n') {
@@ -661,7 +659,6 @@ export default class Replay {
                 }
             }
 
-            // Find line end - position of the next newline
             let lineEnd = text.length;
             for (let i = targetPosition; i < text.length; i++) {
                 if (text[i] === '\n') {
@@ -670,113 +667,174 @@ export default class Replay {
                 }
             }
 
-            // Now find the best matching sequence on the current line
-            let bestMatch = { start: -1, end: -1, score: -1 };
-            let pos = lineStart;
+            const lineText = text.substring(lineStart, lineEnd);
 
-            while (pos < lineEnd) {
-                while (pos < lineEnd && text[pos] === ' ') {
+            // Extract all words from the current line
+            const words = [];
+            let pos = 0;
+
+            while (pos < lineText.length) {
+                while (pos < lineText.length && lineText[pos] === ' ') {
                     pos++;
                 }
-                if (pos >= lineEnd) {
+                if (pos >= lineText.length) {
                     break;
                 }
 
-                let seqStart = pos;
-                let seqWords = [];
-                let seqEnd = pos;
-
-                // Extract sequence of words
-                for (let w = 0; w < aiWords.length && seqEnd < lineEnd; w++) {
-                    while (seqEnd < lineEnd && text[seqEnd] === ' ') {
-                        seqEnd++;
-                    }
-                    if (seqEnd >= lineEnd) {
-                        break;
-                    }
-
-                    let wordStartPos = seqEnd;
-                    while (seqEnd < lineEnd && text[seqEnd] !== ' ') {
-                        seqEnd++;
-                    }
-
-                    if (seqEnd > wordStartPos) {
-                        seqWords.push(text.substring(wordStartPos, seqEnd));
-                    }
+                const start = pos;
+                while (pos < lineText.length && lineText[pos] !== ' ') {
+                    pos++;
                 }
 
-                if (seqWords.length > 0) {
-                    let score = 0;
+                if (pos > start) {
+                    words.push({
+                        text: lineText.substring(start, pos),
+                        start: lineStart + start,
+                        end: lineStart + pos
+                    });
+                }
+            }
+
+            if (words.length === 0) {
+                wordStart = currentCursor;
+                wordEnd = currentCursor;
+            } else if (isMultiWord) {
+                let bestMatch = { start: -1, end: -1, score: -1, wordCount: 0, similarityScore: 0 };
+
+                for (let i = 0; i < words.length; i++) {
+                    let seqWords = [];
+
+                    for (let j = 0; j < aiWords.length && i + j < words.length; j++) {
+                        seqWords.push(words[i + j]);
+                    }
+
+                    if (seqWords.length === 0) {
+                        continue;
+                    }
+                    let similarityScore = 0;
+                    let positionScore = 0;
                     const compareLength = Math.min(seqWords.length, aiWords.length);
 
-                    for (let i = 0; i < compareLength; i++) {
-                        const ai = aiWords[i].toLowerCase();
-                        const seq = seqWords[i].toLowerCase();
+                    for (let k = 0; k < compareLength; k++) {
+                        const ai = aiWords[k].toLowerCase();
+                        const seq = seqWords[k].text.toLowerCase();
 
                         if (ai === seq) {
-                            score += 10;
-                        } else if (ai.length >= 3 && seq.length >= 3 &&
-                                 ai.substring(0, 3) === seq.substring(0, 3)) {
-                            score += 5;
+                            similarityScore += 10;
                         } else {
-                            let common = 0;
-                            const minLen = Math.min(ai.length, seq.length);
-                            for (let j = 0; j < minLen; j++) {
-                                if (ai[j] === seq[j]) {
-                                    common++;
-                                }
-                            }
-                            score += common;
+                            const similarity = this.calculateSimilarity(ai, seq);
+                            similarityScore += similarity * 10;
                         }
                     }
 
-                    if (seqStart <= targetPosition && seqEnd >= targetPosition) {
-                        score += 30;
+                    const seqStart = seqWords[0].start;
+                    const seqEndPos = seqWords[seqWords.length - 1].end;
+
+                    if (targetPosition >= seqStart && targetPosition <= seqEndPos) {
+                        positionScore += 10;
+                        if (targetPosition >= seqWords[0].start && targetPosition <= seqWords[0].end) {
+                            positionScore += 5;
+                        }
                     }
 
-                    if (score > bestMatch.score) {
-                        bestMatch = { start: seqStart, end: seqEnd, score: score };
+                    const totalScore = similarityScore + positionScore + seqWords.length;
+
+                    // Prefer matches with higher similarity score
+                    if (totalScore > bestMatch.score ||
+                        (totalScore === bestMatch.score && similarityScore > bestMatch.similarityScore)) {
+                        bestMatch = {
+                            start: seqWords[0].start,
+                            end: seqWords[seqWords.length - 1].end,
+                            score: totalScore,
+                            wordCount: seqWords.length,
+                            similarityScore: similarityScore
+                        };
                     }
                 }
 
-                while (pos < lineEnd && text[pos] !== ' ') {
-                    pos++;
+                if (bestMatch.score > 10) {
+                    wordStart = bestMatch.start;
+                    wordEnd = bestMatch.end;
+                } else {
+                    const closest = this.findClosestWord(words, targetPosition);
+                    wordStart = closest.start;
+                    wordEnd = closest.end;
                 }
-            }
-
-            if (bestMatch.score >= 5 && bestMatch.start >= lineStart) {
-                wordStart = bestMatch.start;
-                wordEnd = bestMatch.end;
             } else {
-                wordStart = targetPosition;
-                while (wordStart > lineStart && text[wordStart - 1] !== ' ') {
-                    wordStart--;
+                const aiWord = aiWords[0].toLowerCase();
+                let bestSimilarityMatch = null;
+                let bestSimilarityScore = 0;
+
+                // Find the word with best similarity
+                for (const word of words) {
+                    let similarity = this.calculateSimilarity(aiWord, word.text.toLowerCase());
+
+                    const wordLower = word.text.toLowerCase();
+                    if (wordLower.length < aiWord.length * 0.5 && aiWord.startsWith(wordLower)) {
+                        similarity = similarity * 0.3;
+                    }
+
+                    if (similarity > bestSimilarityScore) {
+                        bestSimilarityScore = similarity;
+                        bestSimilarityMatch = word;
+                    }
                 }
-                wordEnd = targetPosition;
-                while (wordEnd < lineEnd && text[wordEnd] !== ' ') {
-                    wordEnd++;
+
+                // Use high similarity match if > 0.5
+                if (bestSimilarityScore > 0.5 && bestSimilarityMatch) {
+                    wordStart = bestSimilarityMatch.start;
+                    wordEnd = bestSimilarityMatch.end;
+                } else {
+                    // Fall back to position + similarity scoring
+                    let bestMatch = { word: null, score: -1 };
+
+                    for (const word of words) {
+                        let score = 0;
+
+                        // Position score
+                        if (targetPosition >= word.start && targetPosition <= word.end) {
+                            score += 30;
+                        } else {
+                            const distance = Math.min(
+                                Math.abs(targetPosition - word.start),
+                                Math.abs(targetPosition - word.end)
+                            );
+                            score += Math.max(0, 20 - distance);
+                        }
+
+                        // Similarity score with penalty for short prefix matches
+                        let similarity = this.calculateSimilarity(aiWord, word.text.toLowerCase());
+                        const wordLower = word.text.toLowerCase();
+                        if (wordLower.length < aiWord.length * 0.5 && aiWord.startsWith(wordLower)) {
+                            similarity = similarity * 0.3;
+                        }
+                        score += similarity * 10;
+
+                        if (score > bestMatch.score) {
+                            bestMatch = { word, score };
+                        }
+                    }
+
+                    if (bestMatch.word) {
+                        wordStart = bestMatch.word.start;
+                        wordEnd = bestMatch.word.end;
+                    } else {
+                        wordStart = targetPosition;
+                        while (wordStart > lineStart && text[wordStart - 1] !== ' ' && text[wordStart - 1] !== '\n') {
+                            wordStart--;
+                        }
+                        wordEnd = targetPosition;
+                        while (wordEnd < lineEnd && text[wordEnd] !== ' ' && text[wordEnd] !== '\n') {
+                            wordEnd++;
+                        }
+                    }
                 }
-            }
-        } else {
-            let searchPos = targetPosition;
-
-            while (searchPos > 0 && (text[searchPos] === ' ' || text[searchPos] === '\n' || searchPos === text.length)) {
-                searchPos--;
-            }
-
-            wordStart = searchPos;
-            while (wordStart > 0 && text[wordStart - 1] !== ' ' && text[wordStart - 1] !== '\n') {
-                wordStart--;
-            }
-
-            wordEnd = searchPos + 1;
-            while (wordEnd < text.length && text[wordEnd] !== ' ' && text[wordEnd] !== '\n') {
-                wordEnd++;
             }
         }
 
         const wordToReplace = text.substring(wordStart, wordEnd);
 
+        // Mark replaced characters as deleted
         if (wordToReplace.length > 0) {
             for (let i = 0; i < wordToReplace.length; i++) {
                 deletions.push({
@@ -794,7 +852,6 @@ export default class Replay {
 
         let newCursor = currentCursor;
         if (isNewLineInsertion) {
-            // For newline insertions, cursor moves to end of inserted content
             newCursor = wordStart + insertText.length;
         } else if (targetPosition >= wordStart && targetPosition <= wordEnd) {
             newCursor = wordStart + insertText.length;
@@ -803,7 +860,6 @@ export default class Replay {
         } else if (currentCursor > wordStart && currentCursor < wordEnd) {
             newCursor = wordStart + insertText.length;
         }
-
         // Update pasted character indices
         if (this.pastedChars) {
             this.pastedChars = this.pastedChars.map(p => {
@@ -848,6 +904,78 @@ export default class Replay {
         }).filter(p => p !== null);
 
         return {text, cursor: newCursor};
+    }
+
+    // Calculate similarity between two strings
+    calculateSimilarity(str1, str2) {
+        if (str1 === str2) {
+            return 1;
+        }
+        if (str1.length === 0 || str2.length === 0) {
+            return 0;
+        }
+
+        // Check if one string is a prefix of the other
+        if (str1.startsWith(str2) || str2.startsWith(str1)) {
+            return 0.8;
+        }
+
+        // Levenshtein distance
+        const len1 = str1.length;
+        const len2 = str2.length;
+        const matrix = Array(len2 + 1).fill(null).map(() => Array(len1 + 1).fill(0));
+
+        for (let i = 0; i <= len1; i++) {
+            matrix[0][i] = i;
+        }
+        for (let j = 0; j <= len2; j++) {
+            matrix[j][0] = j;
+        }
+
+        for (let j = 1; j <= len2; j++) {
+            for (let i = 1; i <= len1; i++) {
+                const cost = str1[i - 1] === str2[j - 1] ? 0 : 1;
+                matrix[j][i] = Math.min(
+                    matrix[j][i - 1] + 1,
+                    matrix[j - 1][i] + 1,
+                    matrix[j - 1][i - 1] + cost
+                );
+            }
+        }
+
+        const maxLen = Math.max(len1, len2);
+        return 1 - (matrix[len2][len1] / maxLen);
+    }
+
+    // Find the word closest to a target position
+    findClosestWord(words, targetPosition) {
+        if (words.length === 0) {
+            return { start: targetPosition, end: targetPosition };
+        }
+
+        let closest = words[0];
+        let minDistance = Math.min(
+            Math.abs(targetPosition - words[0].start),
+            Math.abs(targetPosition - words[0].end)
+        );
+
+        for (const word of words) {
+            if (targetPosition >= word.start && targetPosition <= word.end) {
+                return word;
+            }
+
+            const distance = Math.min(
+                Math.abs(targetPosition - word.start),
+                Math.abs(targetPosition - word.end)
+            );
+
+            if (distance < minDistance) {
+                minDistance = distance;
+                closest = word;
+            }
+        }
+
+        return closest;
     }
 
     // Handle keydown events (e.g., typing, backspace, Ctrl+V)
