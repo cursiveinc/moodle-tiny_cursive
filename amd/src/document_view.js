@@ -104,6 +104,7 @@ export default class DocumentView {
         let url = new URL(window.location.href);
         let replyId = url.searchParams.get("reply");
         let toggle = document.querySelector('#cursive-fullpagemode-sidebar-toggle');
+        let timelimitBlock = document.querySelector('#mod_assign_timelimit_block > div > div');
 
         const container = this.create('div');
         container.id = 'cursive-fullpagemode-sidebar';
@@ -121,7 +122,7 @@ export default class DocumentView {
             container.style.width = '0';
             toggle.style.display = 'flex';
         });
-        toggle?.addEventListener('click', function(){
+        toggle?.addEventListener('click', function () {
             toggle.style.display = 'none';
             container.style.width = '300px';
         });
@@ -135,19 +136,30 @@ export default class DocumentView {
 
 
         const header = this.create('div');
-        header.className = 'border-bottom p-4';
+        header.className = 'border-bottom p-3 bg-light';
         header.style.position = 'sticky';
         header.style.top = '0';
-        header.style.backgroundColor = 'white';
 
         const headerTitle = this.create('h3');
-        headerTitle.className = 'mb-1';
+        const headerIcon = this.create('span');
+        headerIcon.className = 'bg-primary p-2 text-white me-2 rounded';
+        headerTitle.className = 'mb-3';
         headerTitle.textContent = 'Assignment Details';
         headerTitle.style.fontWeight = '600';
+        let AssignIcon = Icons.assignment;
+
+        headerIcon.insertAdjacentHTML('afterbegin', AssignIcon.replace('me-2', ''));
+        headerTitle.prepend(headerIcon);
 
         let wordCount = this.wordCounter(status);
 
-        header.append(headerTitle, wordCount);
+        if (timelimitBlock) {
+            let timer = this.timerCountDown(timelimitBlock);
+            header.append(headerTitle, wordCount, timer);
+        } else {
+            header.append(headerTitle, wordCount);
+        }
+
 
         const content = this.create('div');
         content.className = 'p-3';
@@ -346,13 +358,32 @@ export default class DocumentView {
 
     wordCounter(status) {
         const wordCount = this.create('div');
-        wordCount.className = 'tiny_cursive-word-counter';
-        wordCount.textContent = '0 words';
+        wordCount.className = 'bg-white rounded shadow-sm p-2 d-flex justify-content-between my-2';
+
+        const labelDiv = this.create('div');
+        const label = this.create('span');
+        const value = this.create('span');
+        const icon = this.create('span');
+        icon.className = 'me-2';
+        icon.innerHTML = Icons.assignment;
+
+        labelDiv.appendChild(icon);
+        labelDiv.append(label);
+
+        label.textContent = 'Word Count: ';
+        value.textContent = '0';
+        value.className = 'text-primary';
+        value.style.fontWeight = '600';
+        value.style.fontSize = '14px';
+
+        wordCount.append(labelDiv, value);
+        wordCount.style.fontSize = '12px';
 
         const observer = new MutationObserver(() => {
             const newText = status.textContent.trim();
-            wordCount.textContent = `${newText}`;
+            value.textContent = `${newText.replace('words', '')}`;
         });
+
         observer.observe(status, {
             characterData: true,
             subtree: true,
@@ -360,6 +391,58 @@ export default class DocumentView {
         });
 
         return wordCount;
+    }
+
+
+    timerCountDown(timer) {
+
+        let warningDiv = document.querySelector('#user-notifications > div');
+        if (warningDiv) {
+            let clone = warningDiv.cloneNode(true);
+            clone.querySelector('button')?.remove();
+            this.editor.notificationManager.open({
+                text: clone.textContent,
+                type: 'error'
+            });
+        }
+
+
+        const timerCount = this.create('div');
+        timerCount.className = 'bg-white rounded shadow-sm p-2 d-flex justify-content-between my-2';
+
+        const labelDiv = this.create('div');
+        const label = this.create('span');
+        const value = this.create('span');
+        const icon = this.create('span');
+        icon.innerHTML = Icons.time;
+
+        labelDiv.appendChild(icon);
+        labelDiv.append(label);
+
+        label.textContent = 'Time Left: ';
+        value.textContent = '00:00:00';
+        value.className = warningDiv ? 'text-danger': 'text-primary';
+        value.style.fontWeight = '600';
+        value.style.fontSize = '14px';
+
+        timerCount.append(labelDiv, value);
+        timerCount.style.fontSize = '12px';
+        if (timer) {
+            const observer = new MutationObserver(() => {
+                const newText = timer.textContent.trim();
+                value.textContent = `${newText}`;
+            });
+            observer.observe(timer, {
+                characterData: true,
+                subtree: true,
+                childList: true
+            });
+        } else {
+            value.textContent = `No limit`;
+        }
+
+
+        return timerCount;
     }
 
 

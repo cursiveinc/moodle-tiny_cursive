@@ -1796,14 +1796,14 @@ class cursive_json_func_data extends external_api {
 
         $config       = tiny_cursive_status($params['courseid']);
         $syncinterval = get_config('tiny_cursive', "syncinterval");
-        $cm = get_coursemodule_from_id('', $params['cmid'], $params['courseid'], false, MUST_EXIST);
+        $cm           = get_coursemodule_from_id('', $params['cmid'], $params['courseid'], false, MUST_EXIST);
         $rubrics      = constants::get_rubrics("mod_{$cm->modname}", $context, $cm->modname);
 
         $submissiondata = new stdClass();
         if ($cm->modname === 'assign') {
-            $assign = new assign($context, null, null);
-            $submission = $assign->get_user_submission($userid, false);
-            $grade = $assign->get_user_grade($userid, false);
+            $assign     = new assign($context, null, null);
+            $submission = $assign->get_user_submission($USER->id, false);
+            $grade      = $assign->get_user_grade($USER->id, false);
 
             $submissiondata->current = $submission;
             $submissiondata->grade = $grade;
@@ -2121,7 +2121,7 @@ class cursive_json_func_data extends external_api {
                 'userid' => $params['userid'],
                 'questionid' => $params['questionid'],
                 'courseid' => $params['courseid'],
-            ], '', 'usercomment');
+            ], 'id desc', 'usercomment, timemodified');
         } else {
             $record = $DB->get_records('tiny_cursive_comments', [
                 'cmid' => $params['cmid'],
@@ -2129,7 +2129,7 @@ class cursive_json_func_data extends external_api {
                 'resourceid' => $params['id'],
                 'userid' => $params['userid'],
                 'courseid' => $params['courseid'],
-            ], '', 'usercomment');
+            ], 'id desc', 'usercomment, timemodified');
         }
 
         if ($record) {

@@ -118,8 +118,10 @@ class user_report_form extends moodleform {
             foreach ($cms as $cm) {
                 $key = "CUR{$courseid}{$cm->id}";
                 // Excluding cursive disabled modules.
-                if (empty($configs[$key]) || !(int)$configs[$key]) {
-                    continue;
+                if (array_key_exists($key, $configs)) {
+                    if (!(int)$configs[$key]) {
+                        continue;
+                    }
                 }
 
                 $mdetail[$cm->id] = $cm->name ?? $cm->modname ?? "";

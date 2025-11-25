@@ -1631,12 +1631,13 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
 
 .dropdown-header {
     /* stylelint-disable-next-line declaration-no-important */
-    padding: 1rem !important;
+    padding: .5rem !important;
     border-bottom: 1px solid #e9ecef;
     /* stylelint-disable-next-line declaration-no-important */
     display: flex !important;
     align-items: center;
     justify-content: space-between;
+    font-weight: 600 !important;
 }
 
 .dropdown-title {
@@ -1667,6 +1668,11 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
 .saved-items {
     max-height: 200px;
     overflow-y: auto;
+}
+.cursive-saved-times {
+    font-size: 12px !important;
+    color: gray !important;
+    margin: .3rem 0 0 0 !important;
 }
 
 .saved-item {
@@ -1707,7 +1713,6 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
 
 .item-preview {
     font-size: 12px !important;
-    color: #6c757d !important;
     line-height: 1.4 !important;
     display: -webkit-box;
     -webkit-line-clamp: 2;
