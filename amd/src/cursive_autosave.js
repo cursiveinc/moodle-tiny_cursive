@@ -44,7 +44,7 @@ export default class CursiveAutosave {
         // Bind methods that will be used as event listener
         this.fetchSavedContent = this.fetchSavedContent.bind(this);
         this.handleEscapeKey = this.handleEscapeKey.bind(this);
-
+        this._savingTimer = null;
         CursiveAutosave.instance = this;
     }
 
@@ -101,6 +101,7 @@ export default class CursiveAutosave {
 
         textSpan.style.fontSize = '0.75rem';
         textSpan.style.color = 'gray';
+        textSpan.id = 'CursiveStateText';
         if (state) {
             textSpan.textContent = this.getStateText(state);
             icon.src = this.getStateIcon(state);
@@ -127,6 +128,7 @@ export default class CursiveAutosave {
         const instance = this.instance;
         instance.savingState = state;
         let stateWrapper = document.querySelector('.tiny_cursive_savingState');
+        let stateTextEl = document.getElementById('CursiveStateText');
 
         if (!stateWrapper) {
             return;
@@ -138,6 +140,16 @@ export default class CursiveAutosave {
         img.style.display = 'inline';
         span.textContent = instance.getStateText(state);
         img.src = instance.getStateIcon(state);
+
+        if (instance._savingTimer) {
+            clearTimeout(instance._savingTimer);
+        }
+
+        if (state === 'saved' && stateTextEl) {
+            instance._savingTimer = setTimeout(() => {
+                stateTextEl.textContent = '';
+            }, 5000);
+        }
     }
 
     /**
@@ -148,9 +160,9 @@ export default class CursiveAutosave {
      */
     getStateText(state) {
         switch (state) {
-            case 'saving': return 'Saving';
-            case 'saved': return 'Saved recently';
-            case 'offline': return 'Offline';
+            case 'saving': return 'saving';
+            case 'saved': return 'saved';
+            case 'offline': return 'offline';
             default: return '';
         }
     }
@@ -205,6 +217,9 @@ export default class CursiveAutosave {
             args: args
         }])[0].done((data) => {
             let context = { comments: JSON.parse(data) };
+            Object.values(context.comments).forEach(content => {
+                content.time = this.timeAgo(content.timemodified);
+            });
             this.renderCommentList(context, editorWrapper);
 
         }).fail((error) => {
@@ -268,6 +283,45 @@ export default class CursiveAutosave {
         if (event.key === 'Escape') {
             this.closeSavedDropdown();
         }
+    }
+
+    timeAgo(unixTime) {
+        const seconds = Math.floor(Date.now() / 1000) - unixTime;
+
+        if (seconds < 5) {
+            return "just now";
+        }
+        if (seconds < 60) {
+            return `${seconds} sec ago`;
+        }
+
+        const minutes = Math.floor(seconds / 60);
+        if (minutes < 60) {
+            return `${minutes} min ago`;
+        }
+
+        const hours = Math.floor(minutes / 60);
+        if (hours < 24) {
+            return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+        }
+
+        const days = Math.floor(hours / 24);
+        if (days < 7) {
+            return `${days} day${days > 1 ? "s" : ""} ago`;
+        }
+
+        const weeks = Math.floor(days / 7);
+        if (weeks < 4) {
+            return `${weeks} week${weeks > 1 ? "s" : ""} ago`;
+        }
+
+        const months = Math.floor(days / 30);
+        if (months < 12) {
+            return `${months} month${months > 1 ? "s" : ""} ago`;
+        }
+
+        const years = Math.floor(days / 365);
+        return `${years} year${years > 1 ? "s" : ""} ago`;
     }
 
 
