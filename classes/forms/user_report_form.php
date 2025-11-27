@@ -26,6 +26,7 @@
 namespace tiny_cursive\forms;
 use context_course;
 use moodleform;
+use tiny_cursive\constants;
 
 /**
  * Tiny cursive plugin.
@@ -106,27 +107,36 @@ class user_report_form extends moodleform {
      * @return array
      */
     public function get_modules($courseid) {
-        // Get users dropdown.
         global $DB;
-        $mdetail = [];
-        $mdetail[0] = get_string('allmodule', 'tiny_cursive');
-        if ($courseid) {
-            $configs = get_config('tiny_cursive');
-            $configs = array_filter((array)$configs, fn($key) => str_starts_with($key, 'CUR'), ARRAY_FILTER_USE_KEY);
-            $modinfo = get_fast_modinfo($courseid);
-            $cms     = $modinfo->get_cms(); // Course modules.
-            foreach ($cms as $cm) {
-                $key = "CUR{$courseid}{$cm->id}";
-                // Excluding cursive disabled modules.
-                if (array_key_exists($key, $configs)) {
-                    if (!(int)$configs[$key]) {
-                        continue;
-                    }
-                }
+        // Default option: All modules.
+        $mdetail = [0 => get_string('allmodule', 'tiny_cursive')];
 
-                $mdetail[$cm->id] = $cm->name ?? $cm->modname ?? "";
-            }
+        if (!$courseid) {
+            return $mdetail;
         }
+
+        $configs = array_filter(
+            (array) get_config('tiny_cursive'),
+            fn($key) => str_starts_with($key, 'CUR'),
+            ARRAY_FILTER_USE_KEY
+        );
+
+        $modinfo = get_fast_modinfo($courseid);
+        $cms = $modinfo->get_cms();
+
+        foreach ($cms as $cm) {
+            if (!in_array($cm->modname, constants::NAMES, true)) {
+                continue;
+            }
+
+            $key = "CUR{$courseid}{$cm->id}";
+            if (isset($configs[$key]) && !(int)$configs[$key]) {
+                continue;
+            }
+            // Add module name.
+            $mdetail[$cm->id] = $cm->name ?: $cm->modname;
+        }
+
         return $mdetail;
     }
 
