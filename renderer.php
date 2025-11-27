@@ -70,8 +70,11 @@ class tiny_cursive_renderer extends plugin_renderer_base {
             $filepath = $user->filename;
             $key = "CUR{$courseid}{$cm->id}";
 
+            if (!in_array($cm->modname, constants::NAMES, true)) {
+                continue;
+            }
             // Excluding cursive disabled modules.
-            if (empty($configs[$key]) || !(int)$configs[$key]) {
+            if (isset($configs[$key]) && !(int)$configs[$key]) {
                 continue;
             }
 
