@@ -20,14 +20,17 @@
  * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
  */
 
-define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./analytic_button", "./analytic_events"], function(
+define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./analytic_button", "./analytic_events",
+    "./replay_button", "./replay_modal",], function(
     $,
     AJAX,
     str,
     templates,
     Replay,
     analyticButton,
-    AnalyticEvents
+    AnalyticEvents,
+    replayButton,
+    replayModal
 ) {
     const replayInstances = {};
     // eslint-disable-next-line
@@ -107,6 +110,33 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
                         }
                         let analyticButtonDiv = document.createElement('div');
                         analyticButtonDiv.classList.add('text-center', 'mt-2');
+
+                        if (!hasApiKey) {
+                            $(analyticButtonDiv).html(replayButton(userid + questionid));
+                            content.parent().parent().parent().find('.qtext').append(analyticButtonDiv);
+
+                            $(document).off('click', '#replay' + userid + questionid).
+                            on('click', '#replay' + userid + questionid, function(e) {
+                                e.preventDefault();
+
+                                const context = {
+                                    mid: userid,
+                                    quizid: questionid
+                                };
+
+                                replayModal.create({templateContext: context}).then(modal => {
+                                    modal.show();
+                                    window.video_playback(userid, filepath, questionid);
+
+                                    return modal;
+                                }).catch(error => {
+                                    window.console.error('Failed to create replay modal:', error);
+                                });
+                            });
+
+                            return;
+                        }
+
                         analyticButtonDiv.append(analyticButton(hasApiKey ? data.data.effort_ratio : "", userid, questionid));
                         content.parent().parent().parent().find('.qtext').append(analyticButtonDiv);
 

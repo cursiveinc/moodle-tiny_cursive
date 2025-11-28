@@ -6,6 +6,14 @@
     width: 30px;
 }
 
+.tiny_cursive-replay-bar-icon {
+    filter: brightness(0) invert(1);
+    padding: 2px 5px;
+    /* margin: 3px; */
+    height: 30px;
+    width: 30px;
+}
+
 .tiny_cursive_table {
     width: 100%;
     margin-bottom: 1rem;
@@ -613,7 +621,18 @@
     color: white;
 }
 
+.tiny_cursive-replay-button {
+    background: #306ab3;
+    text-decoration: none;
+    color: white;
+}
+
 .tiny_cursive-analytics-button:hover {
+    text-decoration: none;
+    transform: scale(1.05);
+}
+
+.tiny_cursive-replay-button:hover {
     text-decoration: none;
     transform: scale(1.05);
 }
@@ -1438,6 +1457,16 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     transition: background 0.3s ease, transform 0.2s ease;
 }
 
+.tiny_cursive-replay-button {
+    display: flex;
+    width: fit-content;
+    border-radius: .5rem;
+    overflow: hidden;
+    font-family: Arial, sans-serif;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+
 .tiny_cursive-analytics-left {
     background-color: #306ab3;
     color: white;
@@ -1447,7 +1476,21 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     padding: 6px 14px;
 }
 
+.tiny_cursive-replay-left {
+    background-color: #306ab3;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+}
+
 .tiny_cursive-analytics-label {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.tiny_cursive-replay-label {
     font-weight: 600;
     font-size: 14px;
 }
