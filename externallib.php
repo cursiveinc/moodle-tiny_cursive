@@ -23,6 +23,7 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use mod_quiz\quiz_settings;
 use tiny_cursive\tiny_cursive_data;
 use core_external\external_api;
 use core_external\external_function_parameters;
@@ -1681,15 +1682,7 @@ class cursive_json_func_data extends external_api {
 
         $userdata["clientId"] = $CFG->wwwroot;
         $userdata["personId"] = $USER->id;
-        $editoridarr = explode(':', $params['editorid']);
-        $questionid = "";
-        if (count($editoridarr) > 1) {
-            $uniqueid = substr($editoridarr[0] . "\n", 1);
-            $slot = substr($editoridarr[1] . "\n", 0, -11);
-            $quba = question_engine::load_questions_usage_by_activity($uniqueid);
-            $question = $quba->get_question($slot, false);
-            $questionid = $question->id;
-        }
+        $questionid = constants::get_question_id($params['editorid']);
 
         $fname = $USER->id . '_' . $params['resourceId'] . '_' . $params['cmid'] . '_attempt' . '.json';
         if ($questionid) {
@@ -1808,6 +1801,14 @@ class cursive_json_func_data extends external_api {
             $submissiondata->current = $submission;
             $submissiondata->grade = $grade;
         }
+        $quizdata = new stdClass();
+        if ($cm->modname === 'quiz') {
+            $quiz = quiz_settings::create_for_cmid($params['cmid'], $USER->id);
+            $quiz = $quiz->get_quiz();
+            $quizdata->intro = base64_encode($quiz->intro);
+            $quizdata->open = $quiz->timeopen;
+            $quizdata->close = $quiz->timeclose;
+        }
 
         $data    = [
             'status'        => $config,
@@ -1818,6 +1819,7 @@ class cursive_json_func_data extends external_api {
             'plugins'       => json_encode(constants::NAMES),
             'rubrics'       => json_encode($rubrics),
             'submission'    => json_encode($submissiondata),
+            'quizinfo'      => json_encode($quizdata),
         ];
         return $data;
     }
@@ -1837,6 +1839,7 @@ class cursive_json_func_data extends external_api {
             'plugins' => new external_value(PARAM_TEXT, "Supported Plugins Names"),
             'rubrics' => new external_value(PARAM_TEXT, "Assignment or forums rubrics"),
             'submission' => new external_value(PARAM_TEXT, "Submission status"),
+            'quizinfo' => new external_value(PARAM_TEXT, 'quiz info'),
         ]);
     }
 
@@ -2069,7 +2072,7 @@ class cursive_json_func_data extends external_api {
                 'id' => new external_value(PARAM_INT, 'id', VALUE_DEFAULT, null),
                 'modulename' => new external_value(PARAM_TEXT, 'modulename', VALUE_DEFAULT, ''),
                 'cmid' => new external_value(PARAM_INT, 'cmid', VALUE_DEFAULT, null),
-                'questionid' => new external_value(PARAM_INT, 'questionid', VALUE_DEFAULT, null),
+                'editorid' => new external_value(PARAM_TEXT, 'editor id', VALUE_DEFAULT, null),
                 'userid' => new external_value(PARAM_INT, 'userid', VALUE_DEFAULT, null),
                 'courseid' => new external_value(PARAM_INT, 'courseid', VALUE_DEFAULT, null),
             ]);
@@ -2086,7 +2089,7 @@ class cursive_json_func_data extends external_api {
      * @param int $courseid Optional course ID, defaults to 0
      * @return string JSON encoded array of autosaved comments
      */
-    public static function get_autosave_content($id, $modulename, $cmid, $questionid = 0, $userid = 0, $courseid = 0) {
+    public static function get_autosave_content($id, $modulename, $cmid, $editorid = "", $userid = 0, $courseid = 0) {
         global $DB, $USER;
 
         $params = self::validate_parameters(
@@ -2095,7 +2098,7 @@ class cursive_json_func_data extends external_api {
                 'id' => $id,
                 'modulename' => $modulename,
                 'cmid' => $cmid,
-                'questionid' => $questionid,
+                'editorid' => $editorid,
                 'userid' => $userid,
                 'courseid' => $courseid,
             ],
@@ -2113,13 +2116,14 @@ class cursive_json_func_data extends external_api {
         self::validate_context($context);
         require_capability("tiny/cursive:writingreport", $context);
 
-        if ($params['questionid']) {
+        $questionid = constants::get_question_id($params['editorid']);
+        if ($questionid) {
             $record = $DB->get_records('tiny_cursive_comments', [
                 'cmid' => $params['cmid'],
                 'modulename' => $params['modulename'],
                 'resourceid' => $params['id'],
                 'userid' => $params['userid'],
-                'questionid' => $params['questionid'],
+                'questionid' => $questionid,
                 'courseid' => $params['courseid'],
             ], 'id desc', 'usercomment, timemodified');
         } else {

@@ -21,7 +21,6 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-import {iconSaved} from 'tiny_cursive/common';
 import templates from 'core/templates';
 import {call} from 'core/ajax';
 import Icons from 'tiny_cursive/svg_repo';
@@ -52,8 +51,11 @@ export default class CursiveAutosave {
         if (!this.instance) {
             this.instance = new CursiveAutosave(editor, rightWrapper, modules, isFullScreen);
         }
-        this.isFullScreen = isFullScreen;
-        if (!document.querySelector('#tiny_cursive_savingState')) {
+        this.instance.isFullScreen = isFullScreen;
+        const hasState = modules.modulename === 'quiz'
+            ? document.querySelector(`#tiny_cursive_savingState${modules.questionid}`)
+            : document.querySelector('#tiny_cursive_savingState');
+        if (!hasState) {
             this.instance.init();
         }
 
@@ -63,14 +65,13 @@ export default class CursiveAutosave {
     init() {
         const stateWrapper = this.cursiveSavingState(this.savingState);
         stateWrapper.classList.add('tiny_cursive_savingState', 'btn');
-        stateWrapper.id = 'tiny_cursive_savingState';
-
-        if (this.isFullScreen) {
-            this.rightWrapper.prepend(stateWrapper);
+        if (this.module.modulename === 'quiz') {
+            stateWrapper.id = `tiny_cursive_savingState${this.module.questionid}`;
         } else {
-            this.rightWrapper.appendChild(stateWrapper);
+            stateWrapper.id = 'tiny_cursive_savingState';
         }
 
+        this.rightWrapper.prepend(stateWrapper);
         stateWrapper.addEventListener('click', this.fetchSavedContent);
     }
 
@@ -94,25 +95,30 @@ export default class CursiveAutosave {
  */
     cursiveSavingState(state) {
         let wrapperDiv = document.createElement('div');
-        let icon = document.createElement('img');
         let textSpan = document.createElement('span');
         let button = document.createElement('button');
+        let iconSpan = document.createElement('span');
+
         button.style.padding = '.3rem';
 
         textSpan.style.fontSize = '0.75rem';
         textSpan.style.color = 'gray';
-        textSpan.id = 'CursiveStateText';
+
+        if (this.module.modulename === 'quiz') {
+            iconSpan.id = `CursiveCloudIcon${this.module.questionid}`;
+            textSpan.id = `CursiveStateText${this.module.questionid}`;
+        } else {
+            iconSpan.id = 'CursiveCloudIcon';
+            textSpan.id = 'CursiveStateText';
+        }
         if (state) {
             textSpan.textContent = this.getStateText(state);
-            icon.src = this.getStateIcon(state);
+            iconSpan.innerHTML = this.getStateIcon(state);
         }
-        icon.style.width = '20px';
-        icon.style.height = '20px';
-        icon.style.marginRight = '5px';
-        icon.style.display = 'none';
+
         wrapperDiv.style.verticalAlign = 'middle';
 
-        wrapperDiv.appendChild(icon);
+        wrapperDiv.appendChild(iconSpan);
         wrapperDiv.appendChild(textSpan);
         button.appendChild(wrapperDiv);
 
@@ -127,19 +133,35 @@ export default class CursiveAutosave {
     static updateSavingState(state) {
         const instance = this.instance;
         instance.savingState = state;
-        let stateWrapper = document.querySelector('.tiny_cursive_savingState');
-        let stateTextEl = document.getElementById('CursiveStateText');
+        let stateWrapper = null;
+        if (instance.module.modulename === 'quiz') {
+            stateWrapper = document.querySelector(`#tiny_cursive_savingState${instance.module.questionid}`);
+        } else {
+            stateWrapper = document.querySelector('#tiny_cursive_savingState');
+        }
+
+        let iconSpan = '';
+        let stateTextEl = '';
 
         if (!stateWrapper) {
             return;
         }
 
-        let img = stateWrapper.querySelector('img');
-        let span = stateWrapper.querySelector('span');
+        if (instance.module.modulename === 'quiz') {
+            iconSpan = stateWrapper.querySelector(`#CursiveCloudIcon${instance.module.questionid}`);
+            stateTextEl = stateWrapper.querySelector(`#CursiveStateText${instance.module.questionid}`);
+        } else {
+            iconSpan = stateWrapper.querySelector('#CursiveCloudIcon');
+            stateTextEl = stateWrapper.querySelector('#CursiveStateText');
+        }
 
-        img.style.display = 'inline';
-        span.textContent = instance.getStateText(state);
-        img.src = instance.getStateIcon(state);
+
+
+        if (stateTextEl && iconSpan) {
+            stateTextEl.textContent = instance.getStateText(state);
+            iconSpan.innerHTML = instance.getStateIcon(state);
+        }
+
 
         if (instance._savingTimer) {
             clearTimeout(instance._savingTimer);
@@ -175,8 +197,8 @@ export default class CursiveAutosave {
      */
     getStateIcon(state) {
         switch (state) {
-            case 'saving': return iconSaved;
-            case 'saved': return iconSaved;
+            case 'saving': return Icons.cloudSave;
+            case 'saved': return Icons.cloudSave;
             case 'offline': return 'data:image/svg+xml;base64,' + btoa(Icons.offline);
             default: return '';
         }
@@ -201,13 +223,18 @@ export default class CursiveAutosave {
             this.closeSavedDropdown();
             return;
         }
-        const editorWrapper = document.querySelector('#tiny_cursive_savingState');
+        let editorWrapper = null;
+        if (this.module.modulename === 'quiz') {
+            editorWrapper = document.querySelector(`#tiny_cursive_savingState${this.module.questionid}`);
+        } else {
+            editorWrapper = document.querySelector('#tiny_cursive_savingState');
+        }
 
         let args = {
             id: this.module.resourceId,
             cmid: this.module.cmid,
             modulename: `${this.module.modulename}_autosave`,
-            questionid: this.module.questionid,
+            editorid: this.editor?.id,
             userid: this.module.userid,
             courseid: this.module.courseid
         };
@@ -252,10 +279,10 @@ export default class CursiveAutosave {
      */
     openSavedDropdown() {
         const dropdown = document.querySelector('#savedDropdown');
-
         dropdown.classList.add('show');
 
         // Add event listener to close on Escape key
+        document.removeEventListener('keydown', this.handleEscapeKey);
         document.addEventListener('keydown', this.handleEscapeKey);
     }
 
@@ -267,11 +294,11 @@ export default class CursiveAutosave {
      */
     closeSavedDropdown() {
         const dropdown = document.querySelector('#savedDropdown');
-        dropdown.classList.remove('show');
-        dropdown.remove();
-
-        // Remove event listener
-        document.removeEventListener('keydown', this.handleEscapeKey);
+        if (dropdown) {
+            dropdown.classList.remove('show');
+            dropdown.remove();
+            document.removeEventListener('keydown', this.handleEscapeKey);
+        }
     }
 
     /**
@@ -358,7 +385,7 @@ export default class CursiveAutosave {
 
             // Toggle visibility
             existingPanel.classList.toggle('active');
-            this.toggleSavedDropdown();
+            this.openSavedDropdown();
 
             this.insertSavedItems(this.editor);
 
