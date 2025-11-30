@@ -30,7 +30,7 @@ import Autosave from 'tiny_cursive/cursive_autosave';
 import DocumentView from 'tiny_cursive/document_view';
 import {call as getUser} from "core/ajax";
 
-export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, submission) => {
+export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, submission, quizInfo) => {
 
     var isStudent = !($('#body').hasClass('teacher_admin'));
     var intervention = $('#body').hasClass('intervention');
@@ -82,8 +82,8 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
         }])[0].done(response => {
             user = response[0];
         }).fail((ex) => {
-        window.console.error('Error fetching user data:', ex);
-    });
+            window.console.error('Error fetching user data:', ex);
+        });
 
     assignSubmit.on('click', async function(e) {
         e.preventDefault();
@@ -285,7 +285,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
     });
 
     editor.on('FullscreenStateChanged', (e) => {
-        let view = new DocumentView(user, Rubrics, submission, modulename, editor);
+        let view = new DocumentView(user, Rubrics, submission, modulename, editor, quizInfo);
         isFullScreen = e.state;
         try {
             if (!e.state) {
@@ -504,53 +504,80 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
      * @param {Array} classArray - Array of class names for the menubar div elements
      */
     function cursiveState(cursiveIcon, menubarDiv, classArray) {
-        if (menubarDiv) {
-            for (let index in classArray) {
-                const rightWrapper = document.createElement('div');
-                const imgWrapper = document.createElement('span');
-                const iconClone = cursiveIcon.cloneNode(true);
-                const targetMenu = document.querySelector('.' + classArray[index]);
-                let elementId = "tiny_cursive_StateIcon" + index;
+        if (!menubarDiv) {
+            return;
+        }
 
-                rightWrapper.style.marginLeft = 'auto';
-                rightWrapper.style.display = 'flex';
-                rightWrapper.style.alignItems = 'center';
-                imgWrapper.id = elementId;
-                imgWrapper.style.marginLeft = '.2rem';
+        for (let index in classArray) {
+            const rightWrapper = document.createElement('div');
+            const imgWrapper = document.createElement('span');
+            const iconClone = cursiveIcon.cloneNode(true);
+            const targetMenu = document.querySelector('.' + classArray[index]);
+            let elementId = "tiny_cursive_StateIcon" + index;
 
-                imgWrapper.appendChild(iconClone);
-                let moduleIds = {
-                    resourceId: resourceId,
-                    cmid: cmid,
-                    modulename: modulename,
-                    questionid: questionid,
-                    userid: userid,
-                    courseid: courseid};
+            rightWrapper.style.cssText = `
+                        margin-left: auto;
+                        display: flex;
+                        align-items: center;
+                    `;
 
-                if (!targetMenu?.querySelector('.tiny_cursive_savingState')) {
-                    Autosave.destroyInstance();
-                    Autosave.getInstance(editor, rightWrapper, moduleIds, isFullScreen);
+            imgWrapper.id = elementId;
+            imgWrapper.style.marginLeft = '.2rem';
+            imgWrapper.appendChild(iconClone);
+            rightWrapper.appendChild(imgWrapper);
+
+            let moduleIds = {
+                resourceId: resourceId,
+                cmid: cmid,
+                modulename: modulename,
+                questionid: questionid,
+                userid: userid,
+                courseid: courseid};
+
+            if (isFullScreen && (modulename === 'assign' || modulename === 'forum')) {
+                let existsElement = document.querySelector('.tox-menubar[class*="cursive-menu-"] > div');
+                if (existsElement) {
+                    existsElement.remove();
                 }
-                rightWrapper.appendChild(imgWrapper);
-                if (isFullScreen && (modulename === 'assign' || modulename === 'forum')) {
-                    let existsElement = document.querySelector('.tox-menubar[class*="cursive-menu-"] > div');
-                    if (existsElement) {
-                        existsElement.remove();
-                    }
 
-                    if (!document.querySelector(`#${elementId}`)) {
-                        rightWrapper.style.marginTop = '3px';
-                        document.querySelector('#tiny_cursive-fullpage-right-wrapper').prepend(rightWrapper);
-                    }
+                if (!document.querySelector(`#${elementId}`)) {
+                    rightWrapper.style.marginTop = '3px';
+                    document.querySelector('#tiny_cursive-fullpage-right-wrapper').prepend(rightWrapper);
+                }
 
-                    Autosave.destroyInstance();
-                    Autosave.getInstance(editor, rightWrapper, moduleIds, isFullScreen);
+                Autosave.destroyInstance();
+                Autosave.getInstance(editor, rightWrapper, moduleIds, isFullScreen);
+            } else if (isFullScreen && modulename === 'quiz') {
+                let existingElement = editor.container?.childNodes[1]?.childNodes[0]?.childNodes[0]?.childNodes[7];
+                let newHeader = editor.container?.childNodes[0];
+                if (existingElement) {
+                    existingElement.remove();
+                }
+
+                if (newHeader && !newHeader.querySelector(`span[id*=tiny_cursive_StateIcon]`)) {
+                    rightWrapper.style.marginTop = '3px';
+                    document.querySelector('#tiny_cursive-fullpage-right-wrapper').prepend(rightWrapper);
+                }
+                Autosave.destroyInstance();
+                Autosave.getInstance(editor, rightWrapper, moduleIds, isFullScreen);
+            } else {
+                let menubar = editor?.container?.children[0]?.childNodes[0]?.childNodes[0];
+
+                if (targetMenu && !targetMenu.querySelector(`#${elementId}`)) {
+                    targetMenu.appendChild(rightWrapper);
+                }
+
+                if (modulename === 'quiz' && menubar) {
+                    let wrapper = menubar.querySelector('span[id*="tiny_cursive_StateIcon"]');
+
+                    if (wrapper) {
+                        Autosave.destroyInstance();
+                        Autosave.getInstance(editor, wrapper?.parentElement, moduleIds, isFullScreen);
+                    }
                 } else {
-                    if (targetMenu && !targetMenu.querySelector(`#${elementId}`)) {
-                        targetMenu.appendChild(rightWrapper);
-                    }
+                    Autosave.destroyInstance();
+                    Autosave.getInstance(editor, rightWrapper, moduleIds, isFullScreen);
                 }
-
             }
         }
     }

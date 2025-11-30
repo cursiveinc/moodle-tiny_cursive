@@ -15,6 +15,8 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace tiny_cursive;
+
+use question_engine;
 defined('MOODLE_INTERNAL') || die();
 require_once($CFG->libdir . '/externallib.php');
 require_once($CFG->dirroot . '/grade/grading/lib.php');
@@ -281,5 +283,23 @@ class constants {
         $definition = $controller->get_definition();
 
         return array_values($definition->rubric_criteria ?? []);
+    }
+
+    /**
+     * Extracts the question ID from an editor ID string
+     *
+     * @param string $editorid The editor ID containing question information
+     * @return int|null The question ID if found, null otherwise
+     */
+    public static function get_question_id($editorid) {
+        $editoridarr = explode(':', $editorid);
+        if (count($editoridarr) > 1) {
+            $uniqueid = substr($editoridarr[0] . "\n", 1);
+            $slot = substr($editoridarr[1] . "\n", 0, -11);
+            $quba = question_engine::load_questions_usage_by_activity($uniqueid);
+            $question = $quba->get_question($slot, false);
+            return $question->id;
+        }
+        return 0;
     }
 }

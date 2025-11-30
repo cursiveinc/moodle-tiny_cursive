@@ -24,78 +24,36 @@
 import Icons from 'tiny_cursive/svg_repo';
 export default class DocumentView {
 
-    constructor(User, Rubrics, submission, modulename, editor) {
+    constructor(User, Rubrics, submission, modulename, editor, quizInfo) {
         this.User = User;
         this.Rubrics = Rubrics;
         this.submission = submission;
         this.module = modulename;
         this.editor = editor;
         this.moduleIcon = Icons.assignment;
+        this.quizInfo = quizInfo;
     }
 
     normalMode() {
         if (this.module === 'assign') {
-            document.getElementById('tiny_cursive-fullpage-custom-header')?.remove();
-            document.getElementById('cursive-fullpagemode-sidebar')?.remove();
-
-            let current = document.querySelector('#id_onlinetext_editor_ifr');
-            let p1 = current.parentElement;
-            let p2 = p1.parentElement;
-
-            p2.style.backgroundColor = '';
-            current.style.width = '';
-            current.style.minWidth = '';
-            current.style.boxShadow = '';
-            Object.assign(p1.style, {
-                display: '',
-                justifyContent: '',
-                outline: '',
-                margin: ''
-            });
-            p1.classList.remove('tiny-cursive-editor-container');
-            p2.style.position = '';
-            let iframeBody = current.contentDocument?.body || current.contentWindow?.document?.body;
-            if (iframeBody) {
-                iframeBody.style.padding = '0';
-            }
-            document.head.querySelector('#tiny_cursive-fullpage-mode-style')?.remove();
+            this.normalizePage('id_onlinetext_editor_ifr');
+        } else if (this.module === 'quiz') {
+            this.normalizePage(`${this.editor?.id}_ifr`);
         } else if (this.module === 'forum') {
-            document.getElementById('tiny_cursive-fullpage-custom-header')?.remove();
-            document.getElementById('cursive-fullpagemode-sidebar')?.remove();
-
-            let current = document.querySelector('#id_message_ifr');
-            let p1 = current.parentElement;
-            let p2 = p1.parentElement;
-
-            p2.style.backgroundColor = '';
-            current.style.width = '';
-            current.style.minWidth = '';
-            current.style.boxShadow = '';
-            Object.assign(p1.style, {
-                display: '',
-                justifyContent: '',
-                outline: '',
-                margin: ''
-            });
-            p1.classList.remove('tiny-cursive-editor-container');
-            p2.style.position = '';
-            let iframeBody = current.contentDocument?.body || current.contentWindow?.document?.body;
-            if (iframeBody) {
-                iframeBody.style.padding = '0';
-            }
-            document.head.querySelector('#tiny_cursive-fullpage-mode-style')?.remove();
+            this.normalizePage('id_message_ifr');
         }
-
     }
 
     fullPageMode() {
-
         if (this.module === 'assign') {
             this.moduleIcon = Icons.assignment;
             this.fullPageModule('onlinetext_editor');
         } else if (this.module === 'forum') {
             this.moduleIcon = Icons.forum;
             this.fullPageModule('message');
+        } else if (this.module === 'quiz' && this.editor?.id) {
+            this.moduleIcon = Icons.quiz;
+            this.fullPageModule(this.editor?.id);
         }
     }
 
@@ -104,7 +62,9 @@ export default class DocumentView {
         let url = new URL(window.location.href);
         let replyId = url.searchParams.get("reply");
         let toggle = document.querySelector('#cursive-fullpagemode-sidebar-toggle');
-        let timelimitBlock = document.querySelector('#mod_assign_timelimit_block > div > div');
+        let timelimitBlock = this.module === 'quiz' ?
+            document.querySelector('#quiz-time-left') : document.querySelector('#mod_assign_timelimit_block > div > div');
+        let headerInfo = this.getSidebarTitle();
 
         const container = this.create('div');
         container.id = 'cursive-fullpagemode-sidebar';
@@ -141,19 +101,15 @@ export default class DocumentView {
         header.style.top = '0';
 
         const headerTitle = this.create('h3');
-        const headerIcon = this.create('span');
-        headerIcon.className = 'bg-primary p-2 text-white me-2 rounded';
-        headerTitle.className = 'mb-3';
-        headerTitle.textContent = 'Assignment Details';
+        headerTitle.className = 'mb-3 d-flex align-items-center';
+        headerTitle.textContent = `${headerInfo.title} details`;
         headerTitle.style.fontWeight = '600';
-        let AssignIcon = Icons.assignment;
 
-        headerIcon.insertAdjacentHTML('afterbegin', AssignIcon.replace('me-2', ''));
-        headerTitle.prepend(headerIcon);
+        headerTitle.prepend(document.querySelector('.page-header-image > div').cloneNode(true));
 
         let wordCount = this.wordCounter(status);
 
-        if (timelimitBlock) {
+        if (timelimitBlock && timelimitBlock?.textContent) {
             let timer = this.timerCountDown(timelimitBlock);
             header.append(headerTitle, wordCount, timer);
         } else {
@@ -214,6 +170,47 @@ export default class DocumentView {
             }
         }
 
+        if (this.module === 'quiz' && this.editor?.id) {
+            let questionId = this.getQuestionId(this.editor?.id);
+            let question = document.querySelector(`#question-${questionId} .qtext`);
+            let intro = atob(this.quizInfo.intro);
+            if (question?.textContent.trim()) {
+                content.append(
+                    this.createBox({
+                        bg: 'bg-amber',
+                        titleColor: 'text-dark',
+                        icon: this.moduleIcon,
+                        title: 'Answering to question',
+                        bodyHTML: question.textContent
+                    })
+                );
+            }
+
+            if (intro && intro.trim() !== '') {
+                content.append(
+                    this.createBox({
+                        bg: 'bg-gray',
+                        titleColor: 'text-dark',
+                        icon: this.moduleIcon,
+                        title: 'Quiz Description',
+                        bodyHTML: intro
+                    })
+                );
+            }
+
+            if (Number(this.quizInfo.open)) {
+                content.append(
+                    this.createBox({
+                        bg: 'bg-amber',
+                        titleColor: 'text-dark',
+                        icon: Icons.time,
+                        title: 'Important Dates',
+                        bodyHTML: this.generateImportantDates(Number(this.quizInfo.open), Number(this.quizInfo.close))
+                    })
+                );
+            }
+        }
+
         if (Object.keys(this.Rubrics).length) {
             content.append(
                 this.createBox({
@@ -258,7 +255,7 @@ export default class DocumentView {
         box.className = `tiny_cursive-fullpage-card ${bg}`;
 
         const heading = this.create('h4');
-        heading.className = `tiny_cursive-fullpage-card-header ${titleColor}  mb-2 d-flex align-items-center`;
+        heading.className = `tiny_cursive-fullpage-card-header ${titleColor} d-flex align-items-center`;
         heading.innerHTML = `${icon} ${title}`;
 
         const body = this.create('div');
@@ -421,7 +418,7 @@ export default class DocumentView {
 
         label.textContent = 'Time Left: ';
         value.textContent = '00:00:00';
-        value.className = warningDiv ? 'text-danger': 'text-primary';
+        value.className = warningDiv ? 'text-danger' : 'text-primary';
         value.style.fontWeight = '600';
         value.style.fontSize = '14px';
 
@@ -487,6 +484,8 @@ export default class DocumentView {
     generateImportantDates(open, due) {
 
         const wrapper = this.create('div');
+        let openDate = null;
+        let dueDate = null;
 
         const openedWrapper = this.create('div');
         const dueWrapper = this.create('div');
@@ -498,9 +497,13 @@ export default class DocumentView {
         const dueValue = this.create('span');
         const remainingLabel = this.create('span');
         const remainingValue = this.create('span');
-
-        let openDate = open?.textContent.replace("Opened:", "")?.trim();
-        let dueDate = due?.textContent.replace("Due:", "")?.trim();
+        if (this.module === 'quiz') {
+            openDate = open * 1000;
+            dueDate = due * 1000;
+        } else {
+            openDate = open?.textContent.replace("Opened:", "")?.trim();
+            dueDate = due?.textContent.replace("Due:", "")?.trim();
+        }
 
         openedLabel.textContent = 'Opened: ';
         openedValue.textContent = this.formatDate(openDate ? new Date(openDate) : null);
@@ -531,6 +534,7 @@ export default class DocumentView {
         if (!date) {
             return '-';
         }
+
         let options = { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true };
         return date.toLocaleString('en-US', options);
     }
@@ -558,7 +562,9 @@ export default class DocumentView {
     }
 
     fullPageModule(module) {
-        let current = document.querySelector(`#id_${module}_ifr`);
+        let current = this.module === 'quiz' ?
+            document.getElementById(`${module}_ifr`) : document.querySelector(`#id_${module}_ifr`);
+
         let p1 = current.parentElement;
         let p2 = p1.parentElement;
         let p3 = p2.parentElement;
@@ -573,12 +579,20 @@ export default class DocumentView {
         header.style.backgroundColor = 'white';
         header.style.display = 'flex';
         header.style.justifyContent = 'space-between';
+        let btn = null;
 
-        let btn = this.create('input');
-        btn.className = 'tiny_cursive-fullpage-submit-btn';
-        btn.value = 'Save changes';
-        btn.type = 'submit';
-        btn.style.margin = '.5rem';
+        if (this.module === 'quiz') {
+            btn = document.querySelector('#mod_quiz-next-nav').cloneNode(true);
+            btn.className = 'tiny_cursive-fullpage-submit-btn';
+            btn.style.margin = '.5rem';
+        } else {
+            btn = this.create('input');
+            btn.className = 'tiny_cursive-fullpage-submit-btn';
+            btn.value = 'Save changes';
+            btn.type = 'submit';
+            btn.style.margin = '.5rem';
+        }
+
 
         const leftSide = this.create('div');
         leftSide.style.display = 'flex';
@@ -633,6 +647,33 @@ export default class DocumentView {
         p2.appendChild(this.docSideBar(statusBar));
     }
 
+    normalizePage(editorId) {
+        document.getElementById('tiny_cursive-fullpage-custom-header')?.remove();
+        document.getElementById('cursive-fullpagemode-sidebar')?.remove();
+
+        let current = document.getElementById(editorId);
+        let p1 = current.parentElement;
+        let p2 = p1.parentElement;
+
+        p2.style.backgroundColor = '';
+        current.style.width = '';
+        current.style.minWidth = '';
+        current.style.boxShadow = '';
+        Object.assign(p1.style, {
+            display: '',
+            justifyContent: '',
+            outline: '',
+            margin: ''
+        });
+        p1.classList.remove('tiny-cursive-editor-container');
+        p2.style.position = '';
+        let iframeBody = current.contentDocument?.body || current.contentWindow?.document?.body;
+        if (iframeBody) {
+            iframeBody.style.padding = '0';
+        }
+        document.head.querySelector('#tiny_cursive-fullpage-mode-style')?.remove();
+    }
+
     checkForumSubject() {
         const form = document.querySelector('#tiny_cursive-fullpage-right-wrapper > input');
         const msg = 'Subject or message cannot be empty.';
@@ -647,6 +688,35 @@ export default class DocumentView {
                     this.editor.windowManager.alert(msg);
                 }
             });
+        }
+    }
+
+    getSidebarTitle() {
+        switch(this.module) {
+            case 'assign':
+                return {title: 'Assignment', icon: Icons.assignment};
+            case 'forum':
+                return {title: 'Discussion', icon: Icons.forum};
+            case 'lesson':
+                return {title: 'Lesson', icon: Icons.forum};
+            case 'quiz':
+                return {title: 'Quiz', icon: Icons.quiz};
+            case 'oublog':
+                return {title: 'Blog', icon: Icons.quiz};
+            default:
+                return {title: 'Page', icon: Icons.quiz};
+        }
+    }
+
+    getQuestionId(editoId) {
+        try {
+            if (!editoId || typeof editoId !== 'string') {
+                return '';
+            }
+            return editoId.replace(/^q(\d+):(\d+)_.*$/, "$1-$2");
+        } catch (error) {
+            window.console.error('Error getting question ID:', error);
+            return '';
         }
     }
 

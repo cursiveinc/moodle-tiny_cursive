@@ -55,8 +55,10 @@ export default new Promise((resolve, reject) => {
                             data.apikey_status,
                             JSON.parse(data.plugins),
                             JSON.parse(data.rubrics),
-                            JSON.parse(data.submission));
-                    }
+                            JSON.parse(data.submission),
+                            JSON.parse(data.quizinfo),
+                        );
+                }
                 }).fail((error) => {
                     window.console.error('Error getting cursive config:', error);
                 });
