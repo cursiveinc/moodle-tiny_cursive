@@ -35,24 +35,35 @@ export default class DocumentView {
     }
 
     normalMode() {
+        let id = this.editor?.id + "_ifr";
         if (this.module === 'assign') {
-            this.normalizePage('id_onlinetext_editor_ifr');
+            this.normalizePage(id);
         } else if (this.module === 'quiz') {
-            this.normalizePage(`${this.editor?.id}_ifr`);
+            this.normalizePage(id);
         } else if (this.module === 'forum') {
-            this.normalizePage('id_message_ifr');
+            this.normalizePage(id);
+        } else if (this.module === 'lesson') {
+            this.normalizePage(id);
+        } else if (this.module === 'oublog') {
+            this.normalizePage(id);
         }
     }
 
     fullPageMode() {
+
         if (this.module === 'assign') {
             this.moduleIcon = Icons.assignment;
-            this.fullPageModule('onlinetext_editor');
+            this.fullPageModule(this.editor?.id);
         } else if (this.module === 'forum') {
             this.moduleIcon = Icons.forum;
-            this.fullPageModule('message');
+            this.fullPageModule(this.editor?.id);
         } else if (this.module === 'quiz' && this.editor?.id) {
             this.moduleIcon = Icons.quiz;
+            this.fullPageModule(this.editor?.id);
+        } else if (this.module === 'lesson') {
+            this.moduleIcon = Icons.lesson;
+            this.fullPageModule(this.editor?.id);
+        } else if (this.module === 'oublog') {
             this.fullPageModule(this.editor?.id);
         }
     }
@@ -62,9 +73,9 @@ export default class DocumentView {
         let url = new URL(window.location.href);
         let replyId = url.searchParams.get("reply");
         let toggle = document.querySelector('#cursive-fullpagemode-sidebar-toggle');
-        let timelimitBlock = this.module === 'quiz' ?
-            document.querySelector('#quiz-time-left') : document.querySelector('#mod_assign_timelimit_block > div > div');
+        let timelimitBlock = this.getTimerBlock(this.module);
         let headerInfo = this.getSidebarTitle();
+        let progressBar = document.querySelector('.box.progress_bar');
 
         const container = this.create('div');
         container.id = 'cursive-fullpagemode-sidebar';
@@ -142,6 +153,17 @@ export default class DocumentView {
             })
         );
 
+        if (this.module === 'lesson' && progressBar) {
+            content.append(
+                this.createBox({
+                    bg: 'bg-gray',
+                    titleColor: 'text-dark',
+                    icon: this.moduleIcon,
+                    title: 'Progress',
+                    bodyHTML: progressBar.innerHTML
+                })
+            );
+        }
 
         if (courseDes && courseDes?.textContent.trim() !== '') {
             content.append(
@@ -149,7 +171,7 @@ export default class DocumentView {
                     bg: 'bg-gray',
                     titleColor: 'text-dark',
                     icon: this.moduleIcon,
-                    title: 'Assignment Description',
+                    title: `${this.getSidebarTitle().title} Description`,
                     bodyHTML: courseDes.innerHTML
                 })
             );
@@ -234,16 +256,17 @@ export default class DocumentView {
                 })
             );
         }
-
-        content.append(
-            this.createBox({
-                bg: 'bg-green',
-                titleColor: 'text-success',
-                icon: this.moduleIcon,
-                title: 'Submission Status',
-                bodyHTML: this.submissionStatus(this.submission)
-            })
-        );
+        if (this.module === 'assign') {
+            content.append(
+                this.createBox({
+                    bg: 'bg-green',
+                    titleColor: 'text-success',
+                    icon: this.moduleIcon,
+                    title: 'Submission Status',
+                    bodyHTML: this.submissionStatus(this.submission)
+                })
+            );
+        }
 
         container.append(btnWrapper, header, content);
         return container;
@@ -501,8 +524,8 @@ export default class DocumentView {
             openDate = open * 1000;
             dueDate = due * 1000;
         } else {
-            openDate = open?.textContent.replace("Opened:", "")?.trim();
-            dueDate = due?.textContent.replace("Due:", "")?.trim();
+            openDate = this.extractDate(open?.textContent);
+            dueDate = this.extractDate(due?.textContent);
         }
 
         openedLabel.textContent = 'Opened: ';
@@ -539,6 +562,20 @@ export default class DocumentView {
         return date.toLocaleString('en-US', options);
     }
 
+    extractDate(text) {
+        if (!text) {
+            return '-';
+        }
+        // Split on first colon and return the right part
+        const parts = text?.split(':');
+        if (parts.length > 1) {
+            return parts.slice(1).join(':').trim();
+        }
+
+        return text.trim(); // fallback
+    }
+
+
     calculateDate(date) {
         if (!date) {
             return '-';
@@ -563,7 +600,7 @@ export default class DocumentView {
 
     fullPageModule(module) {
         let current = this.module === 'quiz' ?
-            document.getElementById(`${module}_ifr`) : document.querySelector(`#id_${module}_ifr`);
+            document.getElementById(`${module}_ifr`) : document.querySelector(`#${module}_ifr`);
 
         let p1 = current.parentElement;
         let p2 = p1.parentElement;
@@ -692,19 +729,36 @@ export default class DocumentView {
     }
 
     getSidebarTitle() {
-        switch(this.module) {
+        switch (this.module) {
             case 'assign':
-                return {title: 'Assignment', icon: Icons.assignment};
+                return { title: 'Assignment', icon: Icons.assignment };
             case 'forum':
-                return {title: 'Discussion', icon: Icons.forum};
+                return { title: 'Discussion', icon: Icons.forum };
             case 'lesson':
-                return {title: 'Lesson', icon: Icons.forum};
+                return { title: 'Lesson', icon: Icons.forum };
             case 'quiz':
-                return {title: 'Quiz', icon: Icons.quiz};
+                return { title: 'Quiz', icon: Icons.quiz };
             case 'oublog':
-                return {title: 'Blog', icon: Icons.quiz};
+                return { title: 'Blog', icon: Icons.quiz };
             default:
-                return {title: 'Page', icon: Icons.quiz};
+                return { title: 'Page', icon: Icons.quiz };
+        }
+    }
+
+    getTimerBlock(module) {
+        switch (module) {
+            case 'assign':
+                return document.querySelector('#mod_assign_timelimit_block > div > div');
+            case 'forum':
+                return document.querySelector('#mod_forum_timelimit_block');
+            case 'lesson':
+                return document.querySelector('#lesson-timer');
+            case 'quiz':
+                return document.querySelector('#quiz-time-left');
+            case 'oublog':
+                return document.querySelector('#mod_oublog_timelimit_block');
+            default:
+                return null;
         }
     }
 
