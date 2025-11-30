@@ -582,8 +582,9 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
                 questionid: questionid,
                 userid: userid,
                 courseid: courseid};
-
-            if (isFullScreen && (modulename === 'assign' || modulename === 'forum')) {
+            // Document mode, other modules single editor instances
+            if (isFullScreen && (modulename === 'assign' || modulename === 'forum'
+                || modulename === 'lesson' || modulename === 'oublog' )) {
                 let existsElement = document.querySelector('.tox-menubar[class*="cursive-menu-"] > div');
                 if (existsElement) {
                     existsElement.remove();
@@ -596,7 +597,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
 
                 Autosave.destroyInstance();
                 Autosave.getInstance(editor, rightWrapper, moduleIds, isFullScreen);
-            } else if (isFullScreen && modulename === 'quiz') {
+            } else if (isFullScreen && modulename === 'quiz') { // Document mode, quiz multiple editor instances
                 let existingElement = editor.container?.childNodes[1]?.childNodes[0]?.childNodes[0]?.childNodes[7];
                 let newHeader = editor.container?.childNodes[0];
                 if (existingElement) {
@@ -609,13 +610,13 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
                 }
                 Autosave.destroyInstance();
                 Autosave.getInstance(editor, rightWrapper, moduleIds, isFullScreen);
-            } else {
+            } else { // Regular view
                 let menubar = editor?.container?.children[0]?.childNodes[0]?.childNodes[0];
 
                 if (targetMenu && !targetMenu.querySelector(`#${elementId}`)) {
                     targetMenu.appendChild(rightWrapper);
                 }
-
+                // Regular view, multiple editor instances
                 if (modulename === 'quiz' && menubar) {
                     let wrapper = menubar.querySelector('span[id*="tiny_cursive_StateIcon"]');
 

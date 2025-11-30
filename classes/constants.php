@@ -123,6 +123,9 @@ class constants {
             $apikey = $key->status ?? false;
             set_config('apiKey', $apikey, 'tiny_cursive');
             set_config('ApiSyncInterval', strtotime('+5 minutes'), 'tiny_cursive');
+        } else { // If no secret key.
+            set_config('apiKey', false, 'tiny_cursive');
+            set_config('ApiSyncInterval', strtotime('+5 minutes'), 'tiny_cursive');
         }
 
         return boolval($apikey);
