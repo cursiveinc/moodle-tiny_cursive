@@ -95,7 +95,6 @@ export default class Replay {
         if (data.comments) {
             this.usercomments = Array.isArray(JSON.parse(data.comments)) ? JSON.parse(data.comments) : [];
         }
-        window.console.log(JSON.stringify(this.logData));
         if ('data' in this.logData) {
             this.logData = this.logData.data;
         }

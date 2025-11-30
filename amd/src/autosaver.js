@@ -260,8 +260,10 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
         localStorage.setItem('lastCopyCutContent', selectedContent.trim());
     });
     editor.on('mouseDown', async(editor) => {
-        constructMouseEvent(editor);
-        sendKeyEvent("mouseDown", editor);
+        setTimeout(() => {
+            constructMouseEvent(editor);
+            sendKeyEvent("mouseDown", editor);
+        }, 0);
     });
     editor.on('mouseUp', async(editor) => {
         constructMouseEvent(editor);
