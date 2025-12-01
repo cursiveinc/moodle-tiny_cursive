@@ -28,8 +28,6 @@ export default {
     pluginName: `${component}/plugin`,
     iconUrl: M.util.image_url('cursive', 'tiny_cursive'),
     iconSaving: M.util.image_url('rotate', 'tiny_cursive'),
-    iconOffline: M.util.image_url('offline', 'tiny_cursive'),
-    iconSaved: M.util.image_url('cloud-saved', 'tiny_cursive'),
     iconGrayUrl: M.util.image_url('cursive_gray', 'tiny_cursive'),
     tooltipCss: {
         display: 'block',

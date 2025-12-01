@@ -70,13 +70,13 @@
     align-items: center;
 }
 
-.tiny_cursive-analytics-header .close-btn {
+.tiny_cursive-analytics-header .tiny_cursive-close-btn {
     font-size: 1.2rem;
     cursor: pointer;
 
 }
 
-.tiny_cursive-analytics-header .close-btn span {
+.tiny_cursive-analytics-header .tiny_cursive-close-btn span {
     font-size: 1.5rem;
     padding: .25rem .7rem;
     transition: .3s ease-in-out;
@@ -85,7 +85,7 @@
     font-weight: 700;
 }
 
-.tiny_cursive-analytics-header .close-btn:hover span {
+.tiny_cursive-analytics-header .tiny_cursive-close-btn:hover span {
     /* stylelint-disable-next-line declaration-no-important */
     background-color: rgb(211, 0, 0) !important;
 }
@@ -1478,7 +1478,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
 }
 
 /* Notification Button */
-.notification-btn {
+.tiny_cursive-notification-btn {
     position: relative;
     /* background: none; */
     border: none;
@@ -1491,16 +1491,16 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
 
 }
 
-.notification-btn:hover {
+.tiny_cursive-notification-btn:hover {
     background: #e9ecef;
     color: #495057;
 }
 
-.notification-btn.has-alert {
+.tiny_cursive-notification-btn.has-alert {
     color: #dc3545;
 }
 
-.notification-btn.has-alert::after {
+.tiny_cursive-notification-btn.has-alert::after {
     content: '';
     position: absolute;
     top: 6px;
@@ -1529,65 +1529,8 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     }
 }
 
-/* Slide panel hidden by default */
-#savedContentPanel {
-    position: absolute;
-    top: 0;
-    right: -320px;
-    /* keep it offscreen */
-    width: 300px;
-    height: 100%;
-    background: #fff;
-    border-left: 1px solid #ddd;
-    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.2);
-    overflow-y: auto;
-    z-index: 9999;
-    padding: 1rem;
-
-    /* transitions */
-    opacity: 0;
-    transition: right 0.3s ease, opacity 0.3s ease;
-}
-
-/* Active (visible) state */
-#savedContentPanel.active {
-    right: 0;
-    /* slide in */
-    opacity: 1;
-    /* fade in */
-}
-
-.button-container {
-    position: relative;
-    display: inline-block;
-}
-
-.saved-button {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    background: #28a745;
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 20px;
-    cursor: pointer;
-    font-size: 14px;
-    transition: background-color 0.2s;
-}
-
-.saved-button:hover {
-    background: #218838;
-}
-
-.saved-icon {
-    width: 16px;
-    height: 16px;
-    fill: currentColor;
-}
-
 /* Saved Content Dropdown */
-.saved-dropdown {
+.tiny_cursive-saved-dropdown {
     display: none;
     /* stylelint-disable-next-line declaration-no-important */
     position: absolute !important;
@@ -1604,7 +1547,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     z-index: 10000;
 }
 
-.saved-dropdown.show {
+.tiny_cursive-saved-dropdown.show {
     opacity: 1;
     display: block;
     transform: translateY(0);
@@ -1615,7 +1558,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
-.saved-dropdown::before {
+.tiny_cursive-saved-dropdown::before {
     content: '';
     position: absolute;
     top: -8px;
@@ -1629,7 +1572,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     transform: rotate(45deg);
 }
 
-.dropdown-header {
+.tiny_cursive-dropdown-header {
     /* stylelint-disable-next-line declaration-no-important */
     padding: .5rem !important;
     border-bottom: 1px solid #e9ecef;
@@ -1640,12 +1583,12 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     font-weight: 600 !important;
 }
 
-.dropdown-title {
+.tiny_cursive-dropdown-title {
     font-weight: 600;
     color: #495057;
 }
 
-.close-btn {
+.tiny_cursive-close-btn {
     background: none;
     border: none;
     font-size: 18px;
@@ -1660,12 +1603,12 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     border-radius: 4px;
 }
 
-.close-btn:hover {
+.tiny_cursive-close-btn:hover {
     background: #f8f9fa;
     color: #495057;
 }
 
-.saved-items {
+.tiny_cursive-saved-items {
     max-height: 200px;
     overflow-y: auto;
 }
@@ -1675,7 +1618,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     margin: .3rem 0 0 0 !important;
 }
 
-.saved-item {
+.tiny_cursive-saved-item {
     /* stylelint-disable declaration-no-important */
     padding: 12px 16px !important;
     border-bottom: 1px solid #f8f9fa !important;
@@ -1689,19 +1632,19 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
 
 }
 
-.saved-item::-webkit-scrollbar {
+.tiny_cursive-saved-item::-webkit-scrollbar {
     width: 6px;
 }
 
-.saved-item::-webkit-scrollbar-thumb:hover {
+.tiny_cursive-saved-item::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(180deg, #666, #444);
 }
 
-.saved-item:hover {
+.tiny_cursive-saved-item:hover {
     background: #f8f9fa;
 }
 
-.saved-item:last-child {
+.tiny_cursive-saved-item:last-child {
     border-bottom: none;
 }
 
@@ -1711,7 +1654,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     margin-bottom: 4px;
 }
 
-.item-preview {
+.tiny_cursive-item-preview {
     font-size: 12px !important;
     line-height: 1.4 !important;
     display: -webkit-box;
@@ -1720,50 +1663,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     overflow: hidden;
 }
 
-.item-date {
-    font-size: 11px;
-    color: #adb5bd;
-    margin-top: 4px;
-}
-
-.empty-state {
-    padding: 40px 16px;
-    text-align: center;
-    color: #6c757d;
-}
-
-.empty-icon {
-    font-size: 32px;
-    margin-bottom: 8px;
-    opacity: 0.5;
-}
-
-/* Overlay */
-.dropdown-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: transparent;
-    z-index: 999;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s ease;
-}
-
-.dropdown-overlay.show {
-    opacity: 1;
-    visibility: visible;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .saved-dropdown {
-        width: 280px;
-        right: -20px;
-    }
-}/* stylelint-disable declaration-no-important */
+/* stylelint-disable declaration-no-important */
 /* Doc Mode CSS */
 .tiny_cursive-fullpage-card {
     border-radius: 8px !important;
