@@ -21,7 +21,7 @@
  */
 
 define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./analytic_button", "./analytic_events",
-    "./replay_button", "./replay_modal"], function(
+    "./replay_button"], function(
     $,
     AJAX,
     str,
@@ -30,7 +30,6 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
     analyticButton,
     AnalyticEvents,
     replayButton,
-    replayModal
 ) {
     const replayInstances = {};
     // eslint-disable-next-line
@@ -119,29 +118,9 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
 
                     if (!hasApiKey) {
                         $(analyticButtonDiv).html(replayButton(userid));
-
-                        $(document).off('click', '#replay' + userid).
-                        on('click', '#replay' + userid, function(e) {
-                            e.preventDefault();
-
-                            const context = {
-                                mid: userid
-                            };
-
-                            replayModal.create({templateContext: context}).then(modal => {
-                                modal.show();
-                                window.video_playback(userid, filepath);
-
-                                return modal;
-                            }).catch(error => {
-                                window.console.error('Failed to create replay modal:', error);
-                            });
-                        });
-
-                        return;
+                    } else {
+                        analyticButtonDiv.append(analyticButton(data.data.effort_ratio, userid));
                     }
-
-                    analyticButtonDiv.append(analyticButton(hasApiKey ? data.data.effort_ratio : "", userid));
 
                     let myEvents = new AnalyticEvents();
                     var context = {

@@ -21,7 +21,7 @@
  */
 
 define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", './analytic_button', './replay_button',
-"./analytic_events", "core/modal_events", "./replay_modal", 'core/modal_save_cancel', 'core/modal_factory', 'core/modal'],
+"./analytic_events", "core/modal_events", 'core/modal_save_cancel', 'core/modal_factory', 'core/modal'],
     function(
     $,
     AJAX,
@@ -32,7 +32,6 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", './anal
     replayButton,
     AnalyticEvents,
     Events,
-    replayModal,
     Modal,
     Factory,
     Alert
@@ -99,26 +98,6 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", './anal
                     context.userid = mid;
                     let cmid = $(this).data("cmid");
 
-
-                        // If no API key, show only replay button and skip analytics
-                        if (!hasApiKey) {
-                            $(this).html(replayButton(mid));
-
-                            $(document).off('click', '#replay' + mid).on('click', '#replay' + mid, function(e) {
-                                e.preventDefault();
-                                const context = {
-                                    mid: mid
-                                };
-                                replayModal.create({templateContext: context}).then(modal => {
-                                    modal.show();
-                                    window.video_playback(mid, filepath);
-                                    return modal;
-                                }).catch(error => {
-                                    window.console.error('Failed to create replay modal:', error);
-                                });
-                            });
-                            return;
-                    }
                     AJAX.call([{
                         methodname: 'cursive_get_writing_statistics',
                         args: {
@@ -128,7 +107,12 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", './anal
                     }])[0].done(response => {
                         let data = JSON.parse(response.data);
 
-                        $(this).html(analyticButton(hasApiKey ? data.effort_ratio : "", $(this).data('id')));
+                        // Show replay button if no API key, otherwise show analytics button
+                        if (!hasApiKey) {
+                            $(this).html(replayButton(mid));
+                        } else {
+                            $(this).html(analyticButton(data.effort_ratio, $(this).data('id')));
+                        }
 
                         context.formattime = myEvents.formatedTime(data);
                         context.tabledata = data;
