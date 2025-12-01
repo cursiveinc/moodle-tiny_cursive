@@ -21,7 +21,7 @@
  */
 
 define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./analytic_button",
-    "./replay_button", "./analytic_events", "./replay_modal"], function(
+    "./replay_button", "./analytic_events"], function(
     $,
     AJAX,
     str,
@@ -29,8 +29,7 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
     Replay,
     analyticButton,
     replayButton,
-    AnalyticEvents,
-    replayModal
+    AnalyticEvents
 ) {
     const replayInstances = {};
     // eslint-disable-next-line camelcase
@@ -92,34 +91,12 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
 
                         let analyticButtonDiv = document.createElement('div');
 
-                        // If no API key, show only replay button
                         if (!hasApiKey) {
                             $(analyticButtonDiv).html(replayButton(ids));
-                            analyticButtonDiv.classList.add('text-center', 'my-2');
-                            analyticButtonDiv.dataset.region = "analytic-div" + ids;
-                            $("#" + entry.id).find('#post-content-' + ids).prepend(analyticButtonDiv);
-
-                            $(document).off('click', '#replay' + ids).on('click', '#replay' + ids, function(e) {
-                                e.preventDefault();
-
-                                const context = {
-                                    mid: ids
-                                };
-
-                                replayModal.create({templateContext: context}).then(modal => {
-                                    modal.show();
-                                    window.video_playback(ids, filepath);
-
-                                    return modal;
-                                }).catch(error => {
-                                    window.console.error('Failed to create replay modal:', error);
-                                });
-                            });
-
-                            return;
+                        } else {
+                            analyticButtonDiv.append(analyticButton(data.data.effort_ratio, ids));
                         }
 
-                        analyticButtonDiv.append(analyticButton(hasApiKey ? data.data.effort_ratio : "", ids));
                         analyticButtonDiv.classList.add('text-center', 'my-2');
                         analyticButtonDiv.dataset.region = "analytic-div" + ids;
 

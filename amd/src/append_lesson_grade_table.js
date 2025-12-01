@@ -30,7 +30,6 @@ import templates from 'core/templates';
 import AnalyticEvents from './analytic_events';
 import analyticButton from './analytic_button';
 import replayButton from './replay_button';
-import replayModal from './replay_modal';
 import * as Str from 'core/str';
 
 export const init = (scoreSetting, showcomment, hasApiKey) => {
@@ -120,40 +119,12 @@ export const init = (scoreSetting, showcomment, hasApiKey) => {
             let analyticButtonDiv = document.createElement('div');
             let analyticsColumn = document.createElement('td');
 
-            // If no API key, show only replay button
             if (!hasApiKey) {
                 $(analyticButtonDiv).html(replayButton(userid));
-                analyticButtonDiv.dataset.region = "analytic-div" + userid;
-                analyticsColumn.append(analyticButtonDiv);
-
-                if (grade) {
-                    analyticButtonDiv.classList.add('w-100');
-                    $('#fitem_id_response_editor .felement').prepend(analyticButtonDiv);
-                } else {
-                    $emailLink.closest('tr').find('td:eq(1)').after(analyticsColumn);
-                }
-
-                $(document).off('click', '#replay' + userid).on('click', '#replay' + userid, function(e) {
-                    e.preventDefault();
-
-                    const context = {
-                        mid: userid
-                    };
-
-                    replayModal.create({templateContext: context}).then(modal => {
-                        modal.show();
-                        window.video_playback(userid, filepath);
-
-                        return modal;
-                    }).catch(error => {
-                        window.console.error('Failed to create replay modal:', error);
-                    });
-                });
-
-                return;
+            } else {
+                analyticButtonDiv.append(analyticButton(data.res.effort_ratio, userid));
             }
 
-            analyticButtonDiv.append(analyticButton(hasApiKey ? data.res.effort_ratio : "", userid));
             analyticButtonDiv.dataset.region = "analytic-div" + userid;
             analyticsColumn.append(analyticButtonDiv);
             if (grade) {

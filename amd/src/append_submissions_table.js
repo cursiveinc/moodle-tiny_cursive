@@ -29,7 +29,6 @@ define([
     './analytic_button',
     './replay_button',
     './analytic_events',
-    './replay_modal',
     'core/str'], function(
     $,
     AJAX,
@@ -39,7 +38,6 @@ define([
     analyticButton,
     replayButton,
     AnalyticEvents,
-    replayModal,
     Str
 ) {
     const replayInstances = {};
@@ -103,31 +101,11 @@ define([
 
                                 const tableCell = document.createElement('td');
 
-                                // If no API key, show only replay button
                                 if (!hasApiKey) {
                                     $(tableCell).html(replayButton(userid));
-                                    $(tr).find('td').eq(3).after(tableCell);
-
-                                    $(document).off('click', '#replay' + userid).on('click', '#replay' + userid, function(e) {
-                                        e.preventDefault();
-
-                                        const context = {
-                                            mid: userid
-                                        };
-
-                                        replayModal.create({templateContext: context}).then(modal => {
-                                            modal.show();
-                                            window.video_playback(userid, filepath);
-                                            return modal;
-                                        }).catch(error => {
-                                            window.console.error('Failed to create replay modal:', error);
-                                        });
-                                    });
-
-                                    return;
+                                } else {
+                                    tableCell.appendChild(analyticButton(data.res.effort_ratio, userid));
                                 }
-
-                                tableCell.appendChild(analyticButton(hasApiKey ? data.res.effort_ratio : "", userid));
                                 $(tr).find('td').eq(3).after(tableCell);
 
                                 // Get Module Name from element.

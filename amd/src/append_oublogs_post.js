@@ -28,7 +28,6 @@ import templates from 'core/templates';
 import AnalyticEvents from './analytic_events';
 import analyticButton from './analytic_button';
 import replayButton from './replay_button';
-import replayModal from './replay_modal';
 import Replay from './replay';
 
 export const init = (scoreSetting, comments, hasApiKey) => {
@@ -78,28 +77,9 @@ export const init = (scoreSetting, comments, hasApiKey) => {
 
                 if (!hasApiKey) {
                     Element.find('.oublog-post-links').append(replayButton(userid));
-
-                    $(document).off('click', '#replay' + userid).on('click', '#replay' + userid, function(e) {
-                        e.preventDefault();
-
-                        const context = {
-                            mid: userid
-                        };
-
-                        replayModal.create({templateContext: context}).then(modal => {
-                            modal.show();
-                            window.video_playback(userid, filepath);
-
-                            return modal;
-                        }).catch(error => {
-                            window.console.error('Failed to create replay modal:', error);
-                        });
-                    });
-
-                    return;
+                } else {
+                    Element.find('.oublog-post-links').append(analyticButton(data.res.effort_ratio, userid));
                 }
-
-                Element.find('.oublog-post-links').append(analyticButton(hasApiKey ? data.res.effort_ratio : "", userid));
 
                 let myEvents = new AnalyticEvents();
                 var context = {
