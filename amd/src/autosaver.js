@@ -296,7 +296,9 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
         } catch (error) {
             if (errorAlert) {
                 errorAlert = false;
-                editor.windowManager.alert('Unable to initialize document view in Fullscreen mode. Opening default view.');
+                getString('fullmodeerror', 'tiny_cursive').then(str => {
+                    editor.windowManager.alert(str);
+                });
             }
             view.normalMode();
             window.console.error('Error ResizeEditor event:', error);
@@ -627,7 +629,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
      * @returns {Object|boolean} Object containing resourceId and module name if found, false if no valid module
      */
     function getModulesInfo(ur, parm, MODULES) {
-
+        fetchStrings();
         if (!MODULES.some(module => ur.includes(module))) {
             return false;
         }
@@ -655,6 +657,61 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
         }
 
         return {resourceId: resourceId, name: modulename};
+    }
+
+    /**
+     * Fetches and caches localized strings used in the UI
+     * @function fetchStrings
+     * @description Retrieves strings for sidebar titles and document sidebar elements if not already cached in localStorage
+     * Uses Promise.all to fetch multiple strings in parallel for better performance
+     * Stores the fetched strings in localStorage under 'sbTitle' and 'docSideBar' keys
+     */
+    function fetchStrings() {
+        if (!localStorage.getItem('sbTitle')) {
+            Promise.all([
+                getString('assignment', 'tiny_cursive'),
+                getString('discussion', 'tiny_cursive'),
+                getString('pluginname', 'mod_quiz'),
+                getString('pluginname', 'mod_lesson'),
+                getString('description', 'tiny_cursive'),
+            ]).then(function (strings) {
+                localStorage.setItem('sbTitle', JSON.stringify(strings));
+            });
+        }
+        if (!localStorage.getItem('docSideBar')) {
+            Promise.all([
+                getString('details', 'tiny_cursive'),
+                getString('student_info', 'tiny_cursive'),
+                getString('progress', 'tiny_cursive'),
+                getString('description', 'tiny_cursive'),
+                getString('replyingto', 'tiny_cursive'),
+                getString('answeringto', 'tiny_cursive'),
+                getString('importantdates', 'tiny_cursive'),
+                getString('rubrics', 'tiny_cursive'),
+                getString('submission_status', 'tiny_cursive'),
+                getString('status', 'tiny_cursive'),
+                getString('draft', 'tiny_cursive'),
+                getString('draftnot', 'tiny_cursive'),
+                getString('last_modified', 'tiny_cursive'),
+                getString('gradings', 'tiny_cursive'),
+                getString('gradenot', 'tiny_cursive'),
+                getString('word_count', 'tiny_cursive'),
+                getString('timeleft', 'tiny_cursive'),
+                getString('nolimit', 'tiny_cursive'),
+                getString('name', 'tiny_cursive'),
+                getString('userename', 'tiny_cursive'),
+                getString('course', 'tiny_cursive'),
+                getString('opened', 'tiny_cursive'),
+                getString('due', 'tiny_cursive'),
+                getString('overdue', 'tiny_cursive'),
+                getString('remaining', 'tiny_cursive'),
+                getString('savechanges', 'tiny_cursive'),
+                getString('subjectnot', 'tiny_cursive'),
+                getString('remaining', 'tiny_cursive'),
+            ]).then(function (strings) {
+                localStorage.setItem('docSideBar', JSON.stringify(strings));
+            });
+        }
     }
 
     window.addEventListener('unload', () => {
