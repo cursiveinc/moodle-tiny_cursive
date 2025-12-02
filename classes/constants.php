@@ -113,19 +113,32 @@ class constants {
         global $CFG;
         require_once($CFG->dirroot . '/lib/editor/tiny/plugins/cursive/lib.php');
 
-        $secret   = get_config('tiny_cursive', 'secretkey');
-        $interval = get_config('tiny_cursive', 'ApiSyncInterval') > time();
-        $apikey   = get_config('tiny_cursive', 'apiKey');
+        $secret       = get_config('tiny_cursive', 'secretkey');
+        $apikey       = get_config('tiny_cursive', 'apiKey');
+        $syncinterval = get_config('tiny_cursive', 'ApiSyncInterval') ?: 0;
+        $now          = time();
+        $nextsync     = strtotime('+5 minutes');
 
-        if (!$interval && !empty($secret)) {
-            $key = cursive_approve_token();
-            $key = json_decode($key);
-            $apikey = $key->status ?? false;
-            set_config('apiKey', $apikey, 'tiny_cursive');
-            set_config('ApiSyncInterval', strtotime('+5 minutes'), 'tiny_cursive');
-        } else { // If no secret key.
-            set_config('apiKey', false, 'tiny_cursive');
-            set_config('ApiSyncInterval', strtotime('+5 minutes'), 'tiny_cursive');
+        if (empty($secret)) {
+            if ($apikey !== false || $apikey !== "0") {
+                set_config('apiKey', false, 'tiny_cursive');
+            }
+            if ($syncinterval < $now) {
+                set_config('ApiSyncInterval', $nextsync, 'tiny_cursive');
+            }
+            return false;
+        }
+
+        if ($syncinterval <= $now) {
+            $response = cursive_approve_token();
+            $data      = json_decode($key);
+            $newkey = (!empty($data->status) && $data->status) ? $data->status : false;
+
+            if ($newkey != $apikey) {
+                set_config('apiKey', $newkey, 'tiny_cursive');
+            }
+            set_config('ApiSyncInterval', $nextsync, 'tiny_cursive');
+            $apikey = $newkey;
         }
 
         return boolval($apikey);
