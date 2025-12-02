@@ -34,14 +34,14 @@ class constants {
      * Array of supported activity module names.
      * const array NAMES List of module names where cursive can be used
      */
-    public const NAMES = ["assign", "forum", "quiz", "lesson", "oublog"];
+    public const NAMES = ["assign", "forum", "quiz", "lesson"]; // Excluded oublog.
     /**
      * Array mapping module names to their corresponding rubric areas.
      * Used to identify the correct rubric area for different module types.
      * const array RUBRIC_AREA Mapping of module names to rubric areas
      */
     public const RUBRIC_AREA = ['assign' => 'submissions', 'forum' => 'forum', 'quiz' => 'quiz', 'lesson' =>
-                               'lesson', 'oublog' => 'oublog'];
+                               'lesson'];
 
     /**
      * Array mapping page body IDs to their corresponding handler functions and module types.
@@ -58,7 +58,6 @@ class constants {
             'page-mod-quiz-review'          => ['show_url_in_quiz_detail', 'quiz'],
             'page-course-view-participants' => ['append_participants_table', 'course'],
             'page-mod-lesson-essay'         => ['append_lesson_grade_table', 'lesson'],
-            'page-mod-oublog-viewpost'      => ['append_oublogs_post', 'oublog'],
         ];
 
 
