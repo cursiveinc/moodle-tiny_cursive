@@ -537,7 +537,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
                 courseid: courseid};
             // Document mode, other modules single editor instances
             if (isFullScreen && (modulename === 'assign' || modulename === 'forum'
-                || modulename === 'lesson' || modulename === 'oublog' )) {
+                || modulename === 'lesson')) {
                 let existsElement = document.querySelector('.tox-menubar[class*="cursive-menu-"] > div');
                 if (existsElement) {
                     existsElement.remove();

@@ -45,8 +45,6 @@ export default class DocumentView {
             this.normalizePage(id);
         } else if (this.module === 'lesson') {
             this.normalizePage(id);
-        } else if (this.module === 'oublog') {
-            this.normalizePage(id);
         }
     }
 
@@ -63,8 +61,6 @@ export default class DocumentView {
             this.fullPageModule(this.editor?.id);
         } else if (this.module === 'lesson') {
             this.moduleIcon = Icons.lesson;
-            this.fullPageModule(this.editor?.id);
-        } else if (this.module === 'oublog') {
             this.fullPageModule(this.editor?.id);
         }
     }
@@ -763,8 +759,6 @@ export default class DocumentView {
                 return { title: lesson, icon: Icons.forum };
             case 'quiz':
                 return { title: quiz, icon: Icons.quiz };
-            case 'oublog':
-                return { title: 'Blog', icon: Icons.quiz };
             default:
                 return { title: 'Page', icon: Icons.quiz };
         }
@@ -780,8 +774,6 @@ export default class DocumentView {
                 return document.querySelector('#lesson-timer');
             case 'quiz':
                 return document.querySelector('#quiz-time-left');
-            case 'oublog':
-                return document.querySelector('#mod_oublog_timelimit_block');
             default:
                 return null;
         }
