@@ -287,7 +287,10 @@ class constants {
      * @param \stdClass $context The course ID
      * @return array Array of rubric records containing id and name
      */
-    public static function get_rubrics($component, $context, $area) {
+    public static function get_rubrics($component, $context, $area): array {
+        if (!isset(self::RUBRIC_AREA[$area])) {
+            return [];
+        }
 
         $gradingmanager = get_grading_manager($context, $component, self::RUBRIC_AREA[$area]);
         $controller = $gradingmanager->get_active_controller();
