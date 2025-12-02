@@ -368,7 +368,7 @@ export default class CursiveAutosave {
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = html.trim();
             tempDiv.id = 'savedDropdown';
-            tempDiv.classList.add('saved-dropdown');
+            tempDiv.classList.add('tiny_cursive-saved-dropdown');
 
             if (!tempDiv) {
                 window.console.error("Saved content template rendered empty or invalid HTML.");
@@ -396,14 +396,14 @@ export default class CursiveAutosave {
 
     /**
      * Adds click event listeners to saved content items to insert them into the editor
-     * @description Finds all elements with class 'item-preview' and adds click handlers that will
+     * @description Finds all elements with class 'tiny_cursive-item-preview' and adds click handlers that will
      * insert the element's text content into the editor when clicked. The text is inserted with
      * a leading space.
      * @param {Object} editor - The TinyMCE editor instance
      * @returns {void}
      */
     insertSavedItems(editor) {
-        const items = document.querySelectorAll('.item-preview');
+        const items = document.querySelectorAll('.tiny_cursive-item-preview');
         items.forEach(element => {
             element.addEventListener('click', function () {
                 editor.insertContent(" " + this.textContent);
