@@ -21,7 +21,7 @@
  */
 
 define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./analytic_button", "./analytic_events",
-    "./replay_button", "./replay_modal",], function(
+    "./replay_button"], function(
     $,
     AJAX,
     str,
@@ -29,8 +29,7 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
     Replay,
     analyticButton,
     AnalyticEvents,
-    replayButton,
-    replayModal
+    replayButton
 ) {
     const replayInstances = {};
     // eslint-disable-next-line
@@ -113,31 +112,10 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
 
                         if (!hasApiKey) {
                             $(analyticButtonDiv).html(replayButton(userid + questionid));
-                            content.parent().parent().parent().find('.qtext').append(analyticButtonDiv);
-
-                            $(document).off('click', '#replay' + userid + questionid).
-                            on('click', '#replay' + userid + questionid, function(e) {
-                                e.preventDefault();
-
-                                const context = {
-                                    mid: userid,
-                                    quizid: questionid
-                                };
-
-                                replayModal.create({templateContext: context}).then(modal => {
-                                    modal.show();
-                                    window.video_playback(userid, filepath, questionid);
-
-                                    return modal;
-                                }).catch(error => {
-                                    window.console.error('Failed to create replay modal:', error);
-                                });
-                            });
-
-                            return;
+                        } else {
+                            analyticButtonDiv.append(analyticButton(data.data.effort_ratio, userid, questionid));
                         }
 
-                        analyticButtonDiv.append(analyticButton(hasApiKey ? data.data.effort_ratio : "", userid, questionid));
                         content.parent().parent().parent().find('.qtext').append(analyticButtonDiv);
 
                         let myEvents = new AnalyticEvents();
@@ -155,7 +133,6 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
                         myEvents.analytics(userid, templates, context, questionid, replayInstances, authIcon);
                         myEvents.checkDiff(userid, data.data.file_id, questionid, replayInstances);
                         myEvents.replyWriting(userid, filepath, questionid, replayInstances);
-
 
                     }
                 });

@@ -26,11 +26,11 @@ define(["core/str"], function(Str) {
     const replayButton = (userid, questionid = "") => {
         const anchor = document.createElement("a");
         anchor.href = "#";
-        anchor.id = "replay" + userid + questionid;
+        anchor.id = "analytics" + userid + questionid;
         anchor.classList.add(
-            "d-inline-flex",
-            "justify-content-center",
-            'text-decoration-none'
+          "d-inline-flex",
+          "justify-content-center",
+          'text-decoration-none'
         );
 
         const button = document.createElement('div');
