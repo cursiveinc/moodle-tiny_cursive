@@ -131,7 +131,7 @@ class constants {
 
         if ($syncinterval <= $now) {
             $response = cursive_approve_token();
-            $data      = json_decode($key);
+            $data      = json_decode($response);
             $newkey = (!empty($data->status) && $data->status) ? $data->status : false;
 
             if ($newkey != boolval($apikey)) {
