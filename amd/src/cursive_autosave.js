@@ -24,6 +24,7 @@
 import templates from 'core/templates';
 import {call} from 'core/ajax';
 import Icons from 'tiny_cursive/svg_repo';
+import {get_string as getString} from 'core/str';
 
 export default class CursiveAutosave {
 
@@ -45,6 +46,7 @@ export default class CursiveAutosave {
         this.handleEscapeKey = this.handleEscapeKey.bind(this);
         this._savingTimer = null;
         CursiveAutosave.instance = this;
+        this.fetchStrings();
     }
 
     static getInstance(editor, rightWrapper, modules, isFullScreen) {
@@ -100,7 +102,6 @@ export default class CursiveAutosave {
         let iconSpan = document.createElement('span');
 
         button.style.padding = '.3rem';
-
         textSpan.style.fontSize = '0.75rem';
         textSpan.style.color = 'gray';
 
@@ -181,14 +182,14 @@ export default class CursiveAutosave {
      * @description Returns appropriate text label based on the current saving state
      */
     getStateText(state) {
+        const [saving, saved, offline] = this.getText('state');
         switch (state) {
-            case 'saving': return 'saving';
-            case 'saved': return 'saved';
-            case 'offline': return 'offline';
+            case 'saving': return saving;
+            case 'saved': return saved;
+            case 'offline': return offline;
             default: return '';
         }
     }
-
     /**
      * Gets the icon URL for a given saving state
      * @param {string} state - The state to get icon for ('saving', 'saved', or 'offline')
@@ -250,8 +251,9 @@ export default class CursiveAutosave {
             this.renderCommentList(context, editorWrapper);
 
         }).fail((error) => {
-            this.editor.windowManager.alert(`You are currently offline. Saved content
-                                    cannot be retrieved until you are back online.`);
+            getString('fullmodeerrorr', 'tiny_cursive').then(str => {
+                this.editor.windowManager.alert(str);
+            });
             window.console.error('Error fetching saved content:', error);
         });
     }
@@ -392,6 +394,23 @@ export default class CursiveAutosave {
             return true;
 
         }).catch(error => window.console.error(error));
+    }
+
+    fetchStrings() {
+        if (!localStorage.getItem('state')) {
+
+            Promise.all([
+                getString('saving', 'tiny_cursive'),
+                getString('saved', 'tiny_cursive'),
+                getString('offline', 'tiny_cursive')
+            ]).then(function (strings) {
+                localStorage.setItem('state', JSON.stringify(strings));
+            });
+        }
+    }
+
+    getText(key) {
+        return JSON.parse(localStorage.getItem(key));
     }
 
     /**

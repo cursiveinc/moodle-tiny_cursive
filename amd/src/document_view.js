@@ -32,6 +32,7 @@ export default class DocumentView {
         this.editor = editor;
         this.moduleIcon = Icons.assignment;
         this.quizInfo = quizInfo;
+        this.initStrings();
     }
 
     normalMode() {
@@ -70,23 +71,36 @@ export default class DocumentView {
 
     docSideBar(status) {
 
-        let url = new URL(window.location.href);
-        let replyId = url.searchParams.get("reply");
-        let toggle = document.querySelector('#cursive-fullpagemode-sidebar-toggle');
-        let timelimitBlock = this.getTimerBlock(this.module);
-        let headerInfo = this.getSidebarTitle();
-        let progressBar = document.querySelector('.box.progress_bar');
+        const url = new URL(window.location.href);
+        const replyId = url.searchParams.get("reply");
+        const toggle = document.querySelector('#cursive-fullpagemode-sidebar-toggle');
+        const timelimitBlock = this.getTimerBlock(this.module);
+        const headerInfo = this.getSidebarTitle();
+        const progressBar = document.querySelector('.box.progress_bar');
+
+        const courseName = document.querySelector('#page-navbar > nav > ol > li:nth-child(1) > a');
+        const courseDes = document.querySelector('#intro');
+        const Dates = document.querySelector('.activity-dates');
+
+        let openDate = Dates?.querySelector('div:nth-child(1)');
+        let dueDate = Dates?.querySelector('div:nth-child(2)');
 
         const container = this.create('div');
-        container.id = 'cursive-fullpagemode-sidebar';
-        container.className = 'bg-white h-100 shadow';
-        container.style.width = '300px';
-        container.style.overflow = 'auto';
+        Object.assign(container, {
+            id: 'cursive-fullpagemode-sidebar',
+            className: 'bg-white h-100 shadow'
+        });
+        Object.assign(container.style, {
+            width: '300px',
+            overflow: 'auto'
+        });
 
-        let crossBtn = this.create('span');
-        crossBtn.className = 'btn p-2';
-        crossBtn.innerHTML = Icons.close;
-        crossBtn.id = 'cursive-collapse-sidebar';
+        const crossBtn = this.create('span');
+        Object.assign(crossBtn, {
+            id: 'cursive-collapse-sidebar',
+            className: 'btn p-2',
+            innerHTML: Icons.close
+        });
 
         crossBtn.addEventListener('click', () => {
             container.style.transition = 'width 0.3s ease';
@@ -98,57 +112,49 @@ export default class DocumentView {
             container.style.width = '300px';
         });
 
-        let btnWrapper = this.create('div');
-        btnWrapper.style.padding = '0 1rem';
-        btnWrapper.style.position = 'sticky';
-        btnWrapper.style.top = '0';
-        btnWrapper.style.backgroundColor = 'white';
+        const btnWrapper = this.create('div');
+        Object.assign(btnWrapper, {
+            padding: '0 1rem',
+            position: 'sticky',
+            top: '0',
+            backgroundColor: 'white'
+        });
         btnWrapper.append(crossBtn);
 
 
         const header = this.create('div');
         header.className = 'border-bottom p-3 bg-light';
-        header.style.position = 'sticky';
-        header.style.top = '0';
+        Object.assign(header.style, {
+            position: 'sticky',
+            top: '0'
+        });
 
         const headerTitle = this.create('h3');
         headerTitle.className = 'mb-3 d-flex align-items-center';
-        headerTitle.textContent = `${headerInfo.title} details`;
+        headerTitle.textContent = `${headerInfo.title} ${this.details}`;
         headerTitle.style.fontWeight = '600';
 
-        headerTitle.prepend(document.querySelector('.page-header-image > div').cloneNode(true));
+        const headerIcon = document.querySelector('.page-header-image > div');
+        if (headerIcon) {
+            headerTitle.prepend(headerIcon.cloneNode(true));
+        }
 
         let wordCount = this.wordCounter(status);
-
-        if (timelimitBlock && timelimitBlock?.textContent) {
-            let timer = this.timerCountDown(timelimitBlock);
-            header.append(headerTitle, wordCount, timer);
+        if (timelimitBlock?.textContent) {
+            header.append(headerTitle, wordCount, this.timerCountDown(timelimitBlock));
         } else {
             header.append(headerTitle, wordCount);
         }
 
-
         const content = this.create('div');
         content.className = 'p-3';
 
-        let courseName = document.querySelector('#page-navbar > nav > ol > li:nth-child(1) > a');
-        let courseDes = document.querySelector('#intro');
-        let Dates = document.querySelector('.activity-dates');
-        let openDate, dueDate = null;
-
-        if (Dates) {
-            openDate = Dates.querySelector('div:nth-child(1)');
-            dueDate = Dates.querySelector('div:nth-child(2)');
-        }
-        if (this.module === 'forum') {
-            this.checkForumSubject();
-        }
         content.append(
             this.createBox({
                 bg: 'bg-info',
                 titleColor: 'text-info',
                 icon: Icons.people,
-                title: 'Student Information',
+                title: this.studentInfo,
                 bodyHTML: this.generateStudentInfo(this.User, courseName)
             })
         );
@@ -159,7 +165,7 @@ export default class DocumentView {
                     bg: 'bg-gray',
                     titleColor: 'text-dark',
                     icon: this.moduleIcon,
-                    title: 'Progress',
+                    title: this.progress,
                     bodyHTML: progressBar.innerHTML
                 })
             );
@@ -171,13 +177,14 @@ export default class DocumentView {
                     bg: 'bg-gray',
                     titleColor: 'text-dark',
                     icon: this.moduleIcon,
-                    title: `${this.getSidebarTitle().title} Description`,
+                    title: `${this.getSidebarTitle().title} ${this.description}`,
                     bodyHTML: courseDes.innerHTML
                 })
             );
         }
 
         if (this.module === 'forum' && replyId) {
+            this.checkForumSubject();
             let replyPost = document.querySelector(`#post-content-${replyId}`);
             if (replyPost?.textContent.trim()) {
                 content.append(
@@ -185,7 +192,7 @@ export default class DocumentView {
                         bg: 'bg-gray',
                         titleColor: 'text-dark',
                         icon: this.moduleIcon,
-                        title: 'Replying to Post',
+                        title: this.replyingto,
                         bodyHTML: replyPost.textContent.trim()
                     })
                 );
@@ -193,16 +200,18 @@ export default class DocumentView {
         }
 
         if (this.module === 'quiz' && this.editor?.id) {
+
             let questionId = this.getQuestionId(this.editor?.id);
             let question = document.querySelector(`#question-${questionId} .qtext`);
             let intro = atob(this.quizInfo.intro);
+
             if (question?.textContent.trim()) {
                 content.append(
                     this.createBox({
                         bg: 'bg-amber',
                         titleColor: 'text-dark',
                         icon: this.moduleIcon,
-                        title: 'Answering to question',
+                        title: this.answeringto,
                         bodyHTML: question.textContent
                     })
                 );
@@ -214,7 +223,7 @@ export default class DocumentView {
                         bg: 'bg-gray',
                         titleColor: 'text-dark',
                         icon: this.moduleIcon,
-                        title: 'Quiz Description',
+                        title: `${this.quiz} ${this.description}`,
                         bodyHTML: intro
                     })
                 );
@@ -226,7 +235,7 @@ export default class DocumentView {
                         bg: 'bg-amber',
                         titleColor: 'text-dark',
                         icon: Icons.time,
-                        title: 'Important Dates',
+                        title: this.importantdates,
                         bodyHTML: this.generateImportantDates(Number(this.quizInfo.open), Number(this.quizInfo.close))
                     })
                 );
@@ -239,7 +248,7 @@ export default class DocumentView {
                     bg: 'bg-gray',
                     titleColor: 'text-dark',
                     icon: this.moduleIcon,
-                    title: 'Assessment Rubrics',
+                    title: this.rubrics,
                     bodyHTML: this.generateRubrics(this.Rubrics)
                 })
             );
@@ -251,7 +260,7 @@ export default class DocumentView {
                     bg: 'bg-amber',
                     titleColor: 'text-dark',
                     icon: Icons.time,
-                    title: 'Important Dates',
+                    title: this.importantdates,
                     bodyHTML: this.generateImportantDates(openDate, dueDate)
                 })
             );
@@ -262,7 +271,7 @@ export default class DocumentView {
                     bg: 'bg-green',
                     titleColor: 'text-success',
                     icon: this.moduleIcon,
-                    title: 'Submission Status',
+                    title: this.submission_status,
                     bodyHTML: this.submissionStatus(this.submission)
                 })
             );
@@ -331,11 +340,11 @@ export default class DocumentView {
         statusWrapper.className = 'tiny_cursive-status-row';
 
         const statusName = this.create('span');
-        statusName.textContent = 'Status: ';
+        statusName.textContent = `${this.status}:`;
 
         const statusValue = this.create('span');
         const isNew = submission?.current?.status === 'new';
-        statusValue.textContent = isNew ? 'Draft (Not submitted)' : 'Draft (Submitted)';
+        statusValue.textContent = isNew ? this.draftnot : this.draft;
         statusValue.className = `tiny_cursive-status-value ${isNew ? 'tiny_cursive-status-red' : 'tiny_cursive-status-green'}`;
 
         statusWrapper.append(statusName, statusValue);
@@ -344,7 +353,8 @@ export default class DocumentView {
         modifiedWrapper.className = 'tiny_cursive-status-row';
 
         const modifiedName = this.create('span');
-        modifiedName.textContent = 'Last Modified: ';
+        modifiedName.textContent = `${this.last_modified}: `;
+
         const modifiedValue = this.create('span');
         if (submission?.current?.timemodified) {
             const date = new Date(submission.current.timemodified * 1000);
@@ -358,44 +368,43 @@ export default class DocumentView {
         gradeWrapper.className = 'tiny_cursive-status-row';
 
         const gradeName = this.create('span');
-        gradeName.textContent = 'Grading Status: ';
+        gradeName.textContent = `${this.gradings}: `;
 
         const gradeValue = this.create('span');
 
         if (submission?.grade) {
             gradeValue.textContent = Number(submission.grade.grade) > 0
                 ? submission.grade.grade
-                : 'Not graded';
+                : this.gradenot;
         } else {
-            gradeValue.textContent = 'Not graded';
+            gradeValue.textContent = this.gradenot;
         }
 
         gradeWrapper.append(gradeName, gradeValue);
-
         wrapper.append(statusWrapper, gradeWrapper, modifiedWrapper);
         return wrapper.innerHTML;
     }
 
     wordCounter(status) {
         const wordCount = this.create('div');
-        wordCount.className = 'bg-white rounded shadow-sm p-2 d-flex justify-content-between my-2';
-
         const labelDiv = this.create('div');
         const label = this.create('span');
         const value = this.create('span');
         const icon = this.create('span');
+
         icon.className = 'me-2';
         icon.innerHTML = Icons.assignment;
 
         labelDiv.appendChild(icon);
         labelDiv.append(label);
 
-        label.textContent = 'Word Count: ';
+        label.textContent = `${this.word_count}:`;
         value.textContent = '0';
         value.className = 'text-primary';
         value.style.fontWeight = '600';
         value.style.fontSize = '14px';
 
+        wordCount.className = 'bg-white rounded shadow-sm p-2 d-flex justify-content-between my-2';
         wordCount.append(labelDiv, value);
         wordCount.style.fontSize = '12px';
 
@@ -439,11 +448,14 @@ export default class DocumentView {
         labelDiv.appendChild(icon);
         labelDiv.append(label);
 
-        label.textContent = 'Time Left: ';
+        label.textContent = `${this.timeleft}: }`;
         value.textContent = '00:00:00';
         value.className = warningDiv ? 'text-danger' : 'text-primary';
-        value.style.fontWeight = '600';
-        value.style.fontSize = '14px';
+        Object.assign(value.style, {
+            fontWeight: '600',
+            fontSize: '14px'
+        });
+
 
         timerCount.append(labelDiv, value);
         timerCount.style.fontSize = '12px';
@@ -458,7 +470,7 @@ export default class DocumentView {
                 childList: true
             });
         } else {
-            value.textContent = `No limit`;
+            value.textContent = this.nolimit;
         }
 
 
@@ -481,13 +493,13 @@ export default class DocumentView {
         const courseLabel = this.create('span');
         const courseValue = this.create('span');
 
-        nameLabel.textContent = 'Name: ';
+        nameLabel.textContent = `${this.name}`;
         nameValue.textContent = user.fullname;
 
-        usernameLabel.textContent = 'Username: ';
+        usernameLabel.textContent = `${this.userename}: `;
         usernameValue.textContent = user.username;
 
-        courseLabel.textContent = 'Course: ';
+        courseLabel.textContent = `${this.course}: `;
         courseValue.textContent = course.title;
 
         nameWrapper.className = 'd-flex justify-content-between';
@@ -528,15 +540,15 @@ export default class DocumentView {
             dueDate = this.extractDate(due?.textContent);
         }
 
-        openedLabel.textContent = 'Opened: ';
+        openedLabel.textContent = `${this.opened}: `;
         openedValue.textContent = this.formatDate(openDate ? new Date(openDate) : null);
         openedValue.className = 'text-dark';
 
-        dueLabel.textContent = 'Due: ';
+        dueLabel.textContent = `${this.due}: `;
         dueValue.textContent = this.formatDate(dueDate ? new Date(dueDate) : null);
         dueValue.className = 'text-danger';
 
-        remainingLabel.textContent = 'Remaining: ';
+        remainingLabel.textContent = `${this.remaining}: `;
         remainingValue.textContent = this.calculateDate(dueDate);
         remainingValue.className = 'text-danger';
 
@@ -609,14 +621,16 @@ export default class DocumentView {
 
         let statusBar = document.querySelector('.tox-statusbar__right-container > button');
         let assignName = document.querySelector('.page-context-header');
-        assignName.classList.remove('mb-2');
-
         let header = this.create('div');
-        header.id = 'tiny_cursive-fullpage-custom-header';
-        header.style.backgroundColor = 'white';
-        header.style.display = 'flex';
-        header.style.justifyContent = 'space-between';
         let btn = null;
+
+        assignName.classList.remove('mb-2');
+        header.id = 'tiny_cursive-fullpage-custom-header';
+        Object.assign(header.style, {
+            backgroundColor: 'white',
+            display: 'flex',
+            justifyContent: 'space-between'
+        });
 
         if (this.module === 'quiz') {
             btn = document.querySelector('#mod_quiz-next-nav').cloneNode(true);
@@ -625,35 +639,38 @@ export default class DocumentView {
         } else {
             btn = this.create('input');
             btn.className = 'tiny_cursive-fullpage-submit-btn';
-            btn.value = 'Save changes';
+            btn.value = this.savechanges;
             btn.type = 'submit';
             btn.style.margin = '.5rem';
         }
 
 
         const leftSide = this.create('div');
-        leftSide.style.display = 'flex';
-        leftSide.style.alignItems = 'center';
-        leftSide.style.margin = '0 1rem';
-
         const rightSide = this.create('div');
-        rightSide.style.display = 'flex';
-        rightSide.style.alignItems = 'center';
-        rightSide.style.margin = '0 1rem';
+        let commonStyle = {
+            display: 'flex',
+            alignItems: 'center',
+            margin: '0 1rem'
+        };
+
+        Object.assign(leftSide.style, commonStyle);
         rightSide.id = 'tiny_cursive-fullpage-right-wrapper';
+        Object.assign(rightSide.style, commonStyle);
 
         rightSide.appendChild(btn);
         leftSide.appendChild(assignName.cloneNode(true));
-
 
         header.appendChild(leftSide);
         header.appendChild(rightSide);
 
         p4.insertBefore(header, p4.firstChild);
         p2.style.backgroundColor = '#efefef';
-        current.style.width = '750px';
-        current.style.minWidth = '750px';
-        current.style.boxShadow = '0 10px 15px -3px rgb(0 0 0/0.1),0 4px 6px -4px rgb(0 0 0/0.1)';
+        Object.assign(current.style, {
+            width : '750px',
+            minWidth : '750px',
+            boxShadow : '0 10px 15px -3px rgb(0 0 0/0.1),0 4px 6px -4px rgb(0 0 0/0.1)'
+        });
+
         Object.assign(p1.style, {
             display: 'flex',
             justifyContent: 'center',
@@ -665,8 +682,7 @@ export default class DocumentView {
         style.textContent = `
             .tox.tox-edit-focus .tox-edit-area::before {
                 opacity: 0;
-            }
-            `;
+            }`;
         document.head.appendChild(style);
 
         let iframeBody = current.contentDocument?.body || current.contentWindow?.document?.body;
@@ -692,18 +708,26 @@ export default class DocumentView {
         let p1 = current.parentElement;
         let p2 = p1.parentElement;
 
-        p2.style.backgroundColor = '';
-        current.style.width = '';
-        current.style.minWidth = '';
-        current.style.boxShadow = '';
+        Object.assign(p2.style, {
+            backgroundColor: "",
+            position: ""
+        });
+
+        Object.assign(current.style, {
+            width: '',
+            minWidth: '',
+            boxShadow: '',
+        });
+
         Object.assign(p1.style, {
             display: '',
             justifyContent: '',
             outline: '',
             margin: ''
         });
+
         p1.classList.remove('tiny-cursive-editor-container');
-        p2.style.position = '';
+
         let iframeBody = current.contentDocument?.body || current.contentWindow?.document?.body;
         if (iframeBody) {
             iframeBody.style.padding = '0';
@@ -713,7 +737,7 @@ export default class DocumentView {
 
     checkForumSubject() {
         const form = document.querySelector('#tiny_cursive-fullpage-right-wrapper > input');
-        const msg = 'Subject or message cannot be empty.';
+        const msg = this.subjectnot;
 
         if (form) {
             form.addEventListener('click', (e) => {
@@ -729,15 +753,16 @@ export default class DocumentView {
     }
 
     getSidebarTitle() {
+        const [assign, discus, quiz, lesson] = this.getText('sbTitle');
         switch (this.module) {
             case 'assign':
-                return { title: 'Assignment', icon: Icons.assignment };
+                return { title: assign, icon: Icons.assignment };
             case 'forum':
-                return { title: 'Discussion', icon: Icons.forum };
+                return { title: discus, icon: Icons.forum };
             case 'lesson':
-                return { title: 'Lesson', icon: Icons.forum };
+                return { title: lesson, icon: Icons.forum };
             case 'quiz':
-                return { title: 'Quiz', icon: Icons.quiz };
+                return { title: quiz, icon: Icons.quiz };
             case 'oublog':
                 return { title: 'Blog', icon: Icons.quiz };
             default:
@@ -774,6 +799,41 @@ export default class DocumentView {
         }
     }
 
+    initStrings() {
+        [
+            this.details,
+            this.studentInfo,
+            this.progress,
+            this.description,
+            this.replyingto,
+            this.answeringto,
+            this.importantdates,
+            this.rubrics,
+            this.submission_status,
+            this.status,
+            this.draft,
+            this.draftnot,
+            this.last_modified,
+            this.gradings,
+            this.gradenot,
+            this.word_count,
+            this.timeleft,
+            this.nolimit,
+            this.name,
+            this.userename,
+            this.course,
+            this.opened,
+            this.due,
+            this.overdue,
+            this.remaining,
+            this.savechanges,
+            this.subjectnot
+        ] = this.getText('docSideBar');
+    }
+
+    getText(key) {
+        return JSON.parse(localStorage.getItem(key)) || [];
+    }
 
     create(tag) {
         return document.createElement(tag);
