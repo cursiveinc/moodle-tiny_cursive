@@ -70,6 +70,23 @@ class constants {
         $value = get_config('tiny_cursive', 'confidence_threshold');
         return !empty($value) ? floatval($value) : 0.65;
     }
+
+    public static function get_paste_setting($courseid = null, $cmid = null) {
+        global $COURSE;
+        
+        if ($courseid === null) {
+            $courseid = $COURSE->id;
+        }
+        
+        if ($cmid === null) {
+            $cmid = tiny_cursive_get_cmid($courseid) ?? 0;
+        }
+        
+        $pastekey     = "PASTE{$courseid}_{$cmid}";
+        $pastesetting = get_config('tiny_cursive', $pastekey);
+        
+        return !empty($pastesetting) ? $pastesetting : 'allow';
+    }
     /**
      * Flag indicating whether to display cursive validation comments.
      * Controlled via plugin configuration setting.

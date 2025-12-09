@@ -42,10 +42,23 @@ export default class AnalyticEvents {
         $('#analytics' + userid + questionid).on('click', function(e) {
             e.preventDefault();
 
+            const isReplayButton = $(this).find('.tiny_cursive-replay-button').length > 0;
             // Create Moodle modal
             myModal.create({templateContext: context}).then(modal => {
                 $('#content' + userid + ' .tiny_cursive_table  tbody tr:first-child td:nth-child(2)').html(authIcon);
                 modal.show();
+
+                if (isReplayButton) {
+                    setTimeout(() => {
+                        $('.tiny_cursive-nav-tab').find('.active').removeClass('active');
+
+                        const replayTab = $('#rep' + userid + questionid);
+                        if (replayTab.length) {
+                            replayTab.trigger('click');
+                            replayTab.addClass('active');
+                        }
+                    }, 50);
+                }
 
                 let moreBtn = $('body #more' + userid + questionid);
                 if (moreBtn.length > 0) {

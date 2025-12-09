@@ -1809,6 +1809,7 @@ class cursive_json_func_data extends external_api {
             $quizdata->open = $quiz->timeopen;
             $quizdata->close = $quiz->timeclose;
         }
+        $pastesetting = constants::get_paste_setting($params['courseid'], $params['cmid']);
 
         $data    = [
             'status'        => $config,
@@ -1820,6 +1821,7 @@ class cursive_json_func_data extends external_api {
             'rubrics'       => json_encode($rubrics),
             'submission'    => json_encode($submissiondata),
             'quizinfo'      => json_encode($quizdata),
+            'pastesetting'  => $pastesetting
         ];
         return $data;
     }
@@ -1840,6 +1842,7 @@ class cursive_json_func_data extends external_api {
             'rubrics' => new external_value(PARAM_TEXT, "Assignment or forums rubrics"),
             'submission' => new external_value(PARAM_TEXT, "Submission status"),
             'quizinfo' => new external_value(PARAM_TEXT, 'quiz info'),
+            'pastesetting'  => new external_value(PARAM_TEXT, 'Paste setting'),
         ]);
     }
 

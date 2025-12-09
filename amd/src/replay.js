@@ -52,6 +52,8 @@ export default class Replay {
         this.aiEvents = [];
         this.currentAiIndex = 0;
         this.aiChars = [];
+        this.undoTimestamps = [];
+        this.undoChars = [];
 
         const element = document.getElementById(elementId);
         if (!element) {
@@ -65,6 +67,7 @@ export default class Replay {
                 this.processData(data);
                 this.totalEvents = this.logData.length;
                 this.identifyPasteEvents();
+                this.identifyUndoEvents();
                 if (this.controllerId && this.logData) {
                     this.constructController(this.controllerId);
                 }
@@ -371,6 +374,38 @@ export default class Replay {
 
         if (this.pasteEventsPanel) {
             this.populatePasteEventsPanel(this.pasteEventsPanel);
+        }
+    }
+
+    identifyUndoEvents() {
+        this.undoTimestamps = [];
+        let controlPressed = false;
+        let metaPressed = false;
+        let undoCount = 0;
+
+        for (let i = 0; i < this.logData.length; i++) {
+            const event = this.logData[i];
+            if (event.event?.toLowerCase() === 'keydown') {
+                if (event.key === 'Control') {
+                    controlPressed = true;
+                } else if (event.key === 'Meta') {
+                    metaPressed = true;
+                } else if ((event.key === 'z' || event.key === 'Z') && (controlPressed || metaPressed)) {
+                    const timestamp = event.normalizedTime || 0;
+                    this.undoTimestamps.push({
+                        index: undoCount,
+                        time: timestamp,
+                        formattedTime: this.formatTime(timestamp),
+                        timestamp
+                    });
+                    undoCount++;
+                    controlPressed = false;
+                    metaPressed = false;
+                } else {
+                    controlPressed = false;
+                    metaPressed = false;
+                }
+            }
         }
     }
 
@@ -981,26 +1016,63 @@ export default class Replay {
     processKeydownEvent(event, text, cursor, highlights, deletions) {
         const key = event.key;
         const charToInsert = this.applyKey(key);
-        this.updateModifierStates(key);
 
-        // Check for selection before processing delete/backspace
+        if ((key === 'c' || key === 'C') && (this.isControlKeyPressed || this.isMetaKeyPressed)) {
+            return {
+                text,
+                cursor,
+                updatedHighlights: highlights,
+                updatedDeleted: deletions
+            };
+        }
+
+        if ((key === 'z' || key === 'Z') && (this.isControlKeyPressed || this.isMetaKeyPressed)) {
+            const nextEventIndex = this.currentEventIndex + 1;
+            if (nextEventIndex < this.logData.length) {
+                const nextEvent = this.logData[nextEventIndex];
+
+                if (nextEvent.event === 'keyUp' && (nextEvent.key === 'z' || nextEvent.key === 'Z')) {
+                    const newPosition = nextEvent.rePosition;
+                    if (newPosition < cursor && text.length > 0) {
+                        const textBeforeUndo = text;
+                        text = text.substring(0, newPosition) + text.substring(cursor);
+                        cursor = newPosition;
+
+                        // Still mark as deleted for visual effect
+                        for (let i = 0; i < textBeforeUndo.length && i < cursor; i++) {
+                            deletions.push({
+                                index: newPosition,
+                                chars: textBeforeUndo[i],
+                                time: this.currentTime,
+                                expiresAt: this.currentTime + 2000
+                            });
+                        }
+                    }
+                }
+            }
+
+            this.isControlKeyPressed = false;
+            this.isMetaKeyPressed = false;
+
+            return {
+                text,
+                cursor,
+                updatedHighlights: highlights,
+                updatedDeleted: deletions
+            };
+        }
         const currentEventIndex = this.currentEventIndex;
         const selection = this.detectSelection(currentEventIndex);
 
+        // Handle Ctrl+V paste events
         if ((key === 'v' || key === 'V') && (this.isControlKeyPressed || this.isMetaKeyPressed)) {
-            if (this.pastedEvents && this.currentPasteIndex < this.pastedEvents.length) {
-                const pastedContent = this.pastedEvents[this.currentPasteIndex];
+            const hasPasteContent = (event.pastedContent && event.pastedContent.trim() !== '') ||
+                                   (this.pastedEvents && this.currentPasteIndex < this.pastedEvents.length);
 
-                if (selection) {
-                    ({text, cursor} = this.handleSelectionDeletion(selection, text, cursor, deletions));
-                }
-
-                ({text, cursor} = this.handlePasteInsert(pastedContent, text, cursor));
-                this.currentPasteIndex++;
+            if (!hasPasteContent) {
                 this.isControlKeyPressed = false;
                 this.isShiftKeyPressed = false;
                 this.isMetaKeyPressed = false;
-                this.isPasteEvent = false;
                 return {
                     text,
                     cursor,
@@ -1008,7 +1080,27 @@ export default class Replay {
                     updatedDeleted: deletions
                 };
             }
+
+            const pastedContent = event.pastedContent || this.pastedEvents[this.currentPasteIndex];
+
+            if (selection) {
+                ({text, cursor} = this.handleSelectionDeletion(selection, text, cursor, deletions));
+            }
+
+            ({text, cursor} = this.handlePasteInsert(pastedContent, text, cursor));
+            this.currentPasteIndex++;
+            this.isControlKeyPressed = false;
+            this.isShiftKeyPressed = false;
+            this.isMetaKeyPressed = false;
+            this.isPasteEvent = false;
+            return {
+                text,
+                cursor,
+                updatedHighlights: highlights,
+                updatedDeleted: deletions
+            };
         }
+        this.updateModifierStates(key);
 
         // Handle Backspace and Delete
         if ((key === 'Backspace' || key === 'Delete') && selection && selection.length > 1) {

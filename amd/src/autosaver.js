@@ -30,7 +30,7 @@ import Autosave from 'tiny_cursive/cursive_autosave';
 import DocumentView from 'tiny_cursive/document_view';
 import {call as getUser} from "core/ajax";
 
-export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, submission, quizInfo) => {
+export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, submission, quizInfo, pasteSetting) => {
 
     var isStudent = !($('#body').hasClass('teacher_admin'));
     var intervention = $('#body').hasClass('intervention');
@@ -56,7 +56,12 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
     var resourceId = modulesInfo.resourceId;
     var modulename = modulesInfo.name;
     var errorAlert = true;
+    let PASTE_SETTING = pasteSetting || 'allow';
+    let shouldBlockPaste = false;
 
+    if (modulename !== 'assign') {
+        PASTE_SETTING = 'cite_source';
+    }
     const postOne = async(methodname, args) => {
         try {
             const response = await call([{
@@ -232,9 +237,28 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
         if (!pastedContent) {
             return;
         }
+        const isFromOwnEditor = pastedContent === localStorage.getItem('lastCopyCutContent');
+
         if (isStudent && intervention) {
-            if (pastedContent !== localStorage.getItem('lastCopyCutContent')) {
-                getModal(e);
+
+            if (PASTE_SETTING === 'block') {
+                if (!isFromOwnEditor) {
+                    e.preventDefault();
+                    shouldBlockPaste = true;
+                    getString('paste_blocked', 'tiny_cursive').then(str => {
+                        alert(str);
+                    });
+                    return;
+                }
+                return;
+            }
+
+            if (PASTE_SETTING === 'cite_source') {
+                if (!isFromOwnEditor) {
+                    e.preventDefault();
+                    getModal(e);
+                }
+                return;
             }
         }
     });
@@ -266,8 +290,10 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
         }, 0);
     });
     editor.on('mouseUp', async(editor) => {
-        constructMouseEvent(editor);
-        sendKeyEvent("mouseUp", editor);
+        setTimeout(() => {
+            constructMouseEvent(editor);
+            sendKeyEvent("mouseUp", editor);
+        }, 10);
     });
     editor.on('init', () => {
         customTooltip();
@@ -313,6 +339,11 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
             editor.rePosition = position.rePosition;
 
             if (isPaste) {
+                if (shouldBlockPaste) {
+                    shouldBlockPaste = false;
+                    editor.undoManager.undo();
+                    return;
+                }
                 sendKeyEvent("Paste", {
                     key: "v",
                     keyCode: 86,
@@ -364,7 +395,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
      * @description Sets caret position, reposition, key and keyCode properties on the editor object based on current mouse state
      */
     function constructMouseEvent(editor) {
-        let position = getCaretPosition();
+        let position = getCaretPosition(false);
         editor.caretPosition = position.caretPosition;
         editor.rePosition = position.rePosition;
         editor.key = getMouseButton(editor);
@@ -392,26 +423,35 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
     /**
      * Gets the current caret position in the editor
      * @param {boolean} skip - If true, returns the last known caret position instead of calculating a new one
+     * @param {boolean} getEnd - If true, gets the end position of selection; if false, gets the start position
      * @returns {Object} Object containing:
      *   - caretPosition: Sequential position number stored in session
      *   - rePosition: Absolute character offset from start of content
      * @throws {Error} Logs warning to console if error occurs during calculation
      */
-    function getCaretPosition(skip = false) {
+    function getCaretPosition(skip = false, getEnd = true) {
         try {
             if (!editor || !editor.selection) {
                 return {caretPosition: 0, rePosition: 0};
             }
 
             const body = editor.getBody();
-
-            // Get the selection
             const range = editor.selection.getRng();
+            const sel = editor.selection.getSel();
 
             // Calculate position by creating a range from start of body to cursor
             const preCaretRange = range.cloneRange();
             preCaretRange.selectNodeContents(body);
-            preCaretRange.setEnd(range.endContainer, range.endOffset);
+
+            if (sel && sel.rangeCount > 0 && !range.collapsed) {
+                if (getEnd) {
+                    preCaretRange.setEnd(sel.focusNode, sel.focusOffset);
+                } else {
+                    preCaretRange.setEnd(sel.anchorNode, sel.anchorOffset);
+                }
+            } else {
+                preCaretRange.setEnd(range.endContainer, range.endOffset);
+            }
 
             // Get text content - this gives us the actual character position
             const textBeforeCursor = preCaretRange.toString();
