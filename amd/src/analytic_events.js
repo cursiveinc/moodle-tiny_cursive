@@ -28,6 +28,7 @@ import {call as getContent} from "core/ajax";
 import $ from 'jquery';
 import {get_string as getString} from 'core/str';
 import {get_strings as getStrings} from 'core/str';
+import template from 'core/templates';
 
 export default class AnalyticEvents {
 
@@ -39,6 +40,7 @@ export default class AnalyticEvents {
     }
 
     createModal(userid, context, questionid = '', replayInstances = null, authIcon) {
+        const self = this;
         $('#analytics' + userid + questionid).on('click', function(e) {
             e.preventDefault();
 
@@ -60,13 +62,9 @@ export default class AnalyticEvents {
                             'background-color': 'rgba(168, 168, 168, 0.133)',
                             'cursor': 'not-allowed'
                     });
-                    moreBtn.on('click', function() {
-                        $('.tiny_cursive-nav-tab').find('.active').removeClass('active');
-                        $(this).addClass('active');
-                        $('#rep' + userid + questionid).prop('disabled', false);
-                        if (replayInstances && replayInstances[userid]) {
-                            replayInstances[userid].stopReplay();
-                        }
+                    moreBtn.on('click', function(e) {
+                        e.preventDefault();
+                        self.learnMore($(this), context, userid, questionid, replayInstances);
                     });
                 }
 
@@ -240,6 +238,23 @@ export default class AnalyticEvents {
                 // eslint-disable-next-line
                 video_playback(userid, filepath);
             }
+        });
+    }
+
+    learnMore(moreBtn, context, userid, questionid, replayInstances) {
+        $('.tiny_cursive-nav-tab').find('.active').removeClass('active');
+        moreBtn.addClass('active');
+        $('#rep' + userid + questionid).prop('disabled', false);
+        if (replayInstances && replayInstances[userid]) {
+            replayInstances[userid].stopReplay();
+        }
+        $('#content' + userid + questionid).removeClass('tiny_cursive_outputElement');
+        $('#replayControls_' + userid + questionid).addClass('d-none');
+        template.render('tiny_cursive/learn_more', context).then(function(html) {
+            $('#content' + userid + questionid).html(html);
+            return true;
+        }).fail(function(error) {
+            window.console.error("Failed to render template:", error);
         });
     }
 
