@@ -58,6 +58,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
     var errorAlert = true;
     let PASTE_SETTING = pasteSetting || 'allow';
     let shouldBlockPaste = false;
+    let isPasteAllowed = false;
 
     if (modulename !== 'assign') {
         PASTE_SETTING = 'cite_source';
@@ -226,7 +227,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
 
     editor.on('keyUp', (editor) => {
         customTooltip();
-        let position = getCaretPosition(true);
+        let position = getCaretPosition(false);
         editor.caretPosition = position.caretPosition;
         editor.rePosition = position.rePosition;
         sendKeyEvent("keyUp", editor);
@@ -237,7 +238,10 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
         if (!pastedContent) {
             return;
         }
-        const isFromOwnEditor = pastedContent === localStorage.getItem('lastCopyCutContent');
+        // Trim both values for consistent comparison
+        const trimmedPastedContent = pastedContent.trim();
+        const lastCopyCutContent = localStorage.getItem('lastCopyCutContent');
+        const isFromOwnEditor = lastCopyCutContent && trimmedPastedContent === lastCopyCutContent;
 
         if (isStudent && intervention) {
 
@@ -245,22 +249,34 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
                 if (!isFromOwnEditor) {
                     e.preventDefault();
                     shouldBlockPaste = true;
+                    isPasteAllowed = false;
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
                     getString('paste_blocked', 'tiny_cursive').then(str => {
                         alert(str);
                     });
+                    setTimeout(() => {
+                        isPasteAllowed = true;
+                        shouldBlockPaste = false;
+                    }, 100);
                     return;
                 }
+                shouldBlockPaste = false;
+                isPasteAllowed = true;
                 return;
             }
-
             if (PASTE_SETTING === 'cite_source') {
                 if (!isFromOwnEditor) {
                     e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
                     getModal(e);
                 }
+                isPasteAllowed = true;
                 return;
             }
         }
+        isPasteAllowed = true;
     });
     editor.on('Redo', async(e) => {
         customTooltip();
@@ -270,6 +286,14 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
     });
     editor.on('keyDown', (editor) => {
         customTooltip();
+        const isPasteAttempt = (editor.key === 'v' || editor.key === 'V') &&
+        (editor.ctrlKey || editor.metaKey);
+        if (isPasteAttempt && isStudent && intervention && PASTE_SETTING === 'block' && !isPasteAllowed) {
+            setTimeout(() => {
+                isPasteAllowed = true;
+            }, 100);
+            return;
+        }
         let position = getCaretPosition();
         editor.caretPosition = position.caretPosition;
         editor.rePosition = position.rePosition;
@@ -344,6 +368,15 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
                     editor.undoManager.undo();
                     return;
                 }
+                const lastCopyCutContent = localStorage.getItem('lastCopyCutContent');
+                const isFromOwnEditor = lastCopyCutContent && pastedText.trim() === lastCopyCutContent;
+
+                if (isStudent && intervention && PASTE_SETTING === 'block' && !isFromOwnEditor) {
+                    isPasteAllowed = false;
+                    editor.undoManager.undo();
+                    return;
+                }
+
                 sendKeyEvent("Paste", {
                     key: "v",
                     keyCode: 86,
@@ -423,65 +456,68 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
     /**
      * Gets the current caret position in the editor
      * @param {boolean} skip - If true, returns the last known caret position instead of calculating a new one
-     * @param {boolean} getEnd - If true, gets the end position of selection; if false, gets the start position
      * @returns {Object} Object containing:
      *   - caretPosition: Sequential position number stored in session
      *   - rePosition: Absolute character offset from start of content
      * @throws {Error} Logs warning to console if error occurs during calculation
      */
-    function getCaretPosition(skip = false, getEnd = true) {
+    function getCaretPosition(skip = false) {
         try {
-            if (!editor || !editor.selection) {
-                return {caretPosition: 0, rePosition: 0};
-            }
+          if (!editor || !editor.selection) {
+            return { caretPosition: 0, rePosition: 0 };
+          }
 
-            const body = editor.getBody();
-            const range = editor.selection.getRng();
-            const sel = editor.selection.getSel();
+          const range = editor.selection.getRng();
+          const body = editor.getBody();
 
-            // Calculate position by creating a range from start of body to cursor
-            const preCaretRange = range.cloneRange();
-            preCaretRange.selectNodeContents(body);
+          // Create a range from start of document to current caret
+          const preCaretRange = range.cloneRange();
+          preCaretRange.selectNodeContents(body);
+          preCaretRange.setEnd(range.endContainer, range.endOffset);
 
-            if (sel && sel.rangeCount > 0 && !range.collapsed) {
-                if (getEnd) {
-                    preCaretRange.setEnd(sel.focusNode, sel.focusOffset);
-                } else {
-                    preCaretRange.setEnd(sel.anchorNode, sel.anchorOffset);
-                }
-            } else {
-                preCaretRange.setEnd(range.endContainer, range.endOffset);
-            }
+          const fragment = preCaretRange.cloneContents();
+          const tempDiv = document.createElement('div');
+          tempDiv.appendChild(fragment);
+          let textBeforeCursor = tempDiv.innerText || '';
 
-            // Get text content - this gives us the actual character position
-            const textBeforeCursor = preCaretRange.toString();
-            const absolutePosition = textBeforeCursor.length;
+          const endContainer = range.endContainer;
+          const endOffset = range.endOffset;
 
-            if (skip) {
-                return {
-                    caretPosition: lastCaretPos,
-                    rePosition: absolutePosition
-                };
-            }
+          if (endOffset === 0 &&
+              endContainer.nodeType === Node.ELEMENT_NODE &&
+              editor.dom.isBlock(endContainer) &&
+              endContainer.previousSibling) {
+              textBeforeCursor += '\n';
+          }
 
-            const storageKey = `${userid}_${resourceId}_${cmid}_position`;
-            let storedPos = parseInt(sessionStorage.getItem(storageKey), 10);
-            if (isNaN(storedPos)) {
-                storedPos = 0;
-            }
-            storedPos++;
-            lastCaretPos = storedPos;
-            sessionStorage.setItem(storageKey, storedPos);
+          const absolutePosition = textBeforeCursor.length;
 
+          if (skip) {
             return {
-                caretPosition: storedPos,
-                rePosition: absolutePosition
+              caretPosition: lastCaretPos,
+              rePosition: absolutePosition
             };
+          }
+          // Increment sequential caretPosition
+          const storageKey = `${userid}_${resourceId}_${cmid}_position`;
+          let storedPos = parseInt(sessionStorage.getItem(storageKey), 10);
+          if (isNaN(storedPos)) {
+            storedPos = 0;
+          }
+          storedPos++;
+          lastCaretPos = storedPos;
+          sessionStorage.setItem(storageKey, storedPos);
+
+          return {
+            caretPosition: storedPos,
+            rePosition: absolutePosition
+          };
+
         } catch (e) {
             window.console.warn('Error getting caret position:', e);
-            return {caretPosition: 0, rePosition: 0};
+            return { caretPosition: lastCaretPos || 1, rePosition: 0 };
         }
-    }
+      }
 
 
     /**
