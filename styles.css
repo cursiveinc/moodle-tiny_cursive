@@ -86,7 +86,7 @@
 
 .tiny_cursive-analytics-header .tiny_cursive-close-btn span {
     font-size: 1.5rem;
-    padding: .25rem .7rem;
+    padding: 0 .7rem;
     transition: .3s ease-in-out;
     background-color: #ff3737;
     color: white;
@@ -453,25 +453,13 @@
     overflow-y: auto !important;
 }
 
-.tiny_cursive_nosub {
-    vertical-align: middle;
-    text-transform: uppercase;
-    text-align: center;
-    font-weight: 500;
-    padding: 3rem;
-    margin: 2rem;
-    color: #306ab3;
-    font-size: 1.2rem;
-    border-radius: .5rem;
-}
-
-.tiny_cursive_nopayload {
+.tiny_cursive_nosub, .tiny_cursive_nopayload {
     vertical-align: middle;
     text-align: center;
     text-transform: uppercase;
-    font-weight: 500;
-    padding: 3rem;
-    margin: 2rem;
+    font-weight: 600;
+    padding: 2rem;
+    margin: 2rem 0;
     color: #306ab3;
     font-size: 1.2rem;
     border-radius: .5rem;
@@ -1859,4 +1847,73 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
 
 #cursive-fullpagemode-sidebar::-webkit-scrollbar-thumb:hover {
     background: #9a9a9a;
+}
+
+/* Learn More */
+
+.tiny_cursive-modal-container {
+    margin: -1.2rem -1rem -1rem -2rem;
+}
+.tiny_cursive-modal-container p {
+    font-size: 12px;
+    line-height: 1.6;
+}
+.tiny_cursive-modal-header-custom {
+    background: linear-gradient(135deg, #4facfe 0%, #00c3fe 100%);
+    padding: 30px;
+    text-align: center;
+    color: white;
+}
+
+.tiny_cursive-modal-header-custom h1 {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.tiny_cursive-modal-header-custom p {
+    font-size: 14px;
+    opacity: 0.95;
+    margin-bottom: 0;
+}
+
+.tiny_cursive-pricing-card {
+    transition: all 0.3s ease;
+}
+
+.tiny_cursive-pricing-card:hover {
+    border-color: #4facfe !important;
+    box-shadow: 0 8px 24px rgba(79, 172, 254, 0.15);
+    transform: translateY(-2px);
+}
+
+.tiny_cursive-pricing-card.premium {
+    border-color: #4facfe !important;
+    background: linear-gradient(135deg, #f8fcff 0%, #f0f9ff 100%);
+    position: relative;
+}
+
+.tiny_cursive-pricing-card.premium::before {
+    content: "MOST POPULAR";
+    position: absolute;
+    top: -12px;
+    right: 20px;
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.tiny_cursive-card-price {
+    color: #4facfe;
+    font-weight: 600;
+    font-size: 13px;
+}
+
+.tiny_cursive-card-price span {
+    font-size: 16px;
+    font-weight: 600;
 }
