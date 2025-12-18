@@ -365,6 +365,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
             if (isPaste) {
                 if (shouldBlockPaste) {
                     shouldBlockPaste = false;
+                    e.preventDefault();
                     editor.undoManager.undo();
                     return;
                 }
@@ -488,6 +489,20 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
               editor.dom.isBlock(endContainer) &&
               endContainer.previousSibling) {
               textBeforeCursor += '\n';
+          }
+          const blockElements = tempDiv.querySelectorAll('p, div, h1, h2, h3, h4, h5, h6, li');
+          let emptyBlockCount = 0;
+          blockElements.forEach(block => {
+            const text = block.innerText || block.textContent || '';
+            if (text.trim() === '' && block.childNodes.length === 1 &&
+                block.childNodes[0].nodeName === 'BR') {
+              emptyBlockCount++;
+            }
+          });
+
+          // Add newlines for empty blocks (these represent Enter presses that created empty lines)
+          if (emptyBlockCount > 0) {
+            textBeforeCursor += '\n'.repeat(emptyBlockCount);
           }
 
           const absolutePosition = textBeforeCursor.length;
