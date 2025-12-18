@@ -20,8 +20,8 @@
  * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
  */
 
-define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", './analytic_button', "./analytic_events",
-    "core/modal_events", 'core/modal_save_cancel', 'core/modal_factory', 'core/modal'],
+define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", './analytic_button', './replay_button',
+"./analytic_events", "core/modal_events", 'core/modal_save_cancel', 'core/modal_factory', 'core/modal'],
     function(
     $,
     AJAX,
@@ -29,6 +29,7 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", './anal
     templates,
     Replay,
     analyticButton,
+    replayButton,
     AnalyticEvents,
     Events,
     Modal,
@@ -97,7 +98,6 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", './anal
                     context.userid = mid;
                     let cmid = $(this).data("cmid");
 
-
                     AJAX.call([{
                         methodname: 'cursive_get_writing_statistics',
                         args: {
@@ -107,7 +107,12 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", './anal
                     }])[0].done(response => {
                         let data = JSON.parse(response.data);
 
-                        $(this).html(analyticButton(hasApiKey ? data.effort_ratio : "", $(this).data('id')));
+                        // Show replay button if no API key, otherwise show analytics button
+                        if (!hasApiKey) {
+                            $(this).html(replayButton(mid));
+                        } else {
+                            $(this).html(analyticButton(data.effort_ratio, $(this).data('id')));
+                        }
 
                         context.formattime = myEvents.formatedTime(data);
                         context.tabledata = data;

@@ -28,6 +28,7 @@ import {call as getContent} from "core/ajax";
 import $ from 'jquery';
 import {get_string as getString} from 'core/str';
 import {get_strings as getStrings} from 'core/str';
+import template from 'core/templates';
 
 export default class AnalyticEvents {
 
@@ -39,13 +40,27 @@ export default class AnalyticEvents {
     }
 
     createModal(userid, context, questionid = '', replayInstances = null, authIcon) {
+        const self = this;
         $('#analytics' + userid + questionid).on('click', function(e) {
             e.preventDefault();
 
+            const isReplayButton = $(this).find('.tiny_cursive-replay-button').length > 0;
             // Create Moodle modal
             myModal.create({templateContext: context}).then(modal => {
                 $('#content' + userid + ' .tiny_cursive_table  tbody tr:first-child td:nth-child(2)').html(authIcon);
                 modal.show();
+
+                if (isReplayButton) {
+                    setTimeout(() => {
+                        $('.tiny_cursive-nav-tab').find('.active').removeClass('active');
+
+                        const replayTab = $('#rep' + userid + questionid);
+                        if (replayTab.length) {
+                            replayTab.trigger('click');
+                            replayTab.addClass('active');
+                        }
+                    }, 50);
+                }
 
                 let moreBtn = $('body #more' + userid + questionid);
                 if (moreBtn.length > 0) {
@@ -60,13 +75,9 @@ export default class AnalyticEvents {
                             'background-color': 'rgba(168, 168, 168, 0.133)',
                             'cursor': 'not-allowed'
                     });
-                    moreBtn.on('click', function() {
-                        $('.tiny_cursive-nav-tab').find('.active').removeClass('active');
-                        $(this).addClass('active');
-                        $('#rep' + userid + questionid).prop('disabled', false);
-                        if (replayInstances && replayInstances[userid]) {
-                            replayInstances[userid].stopReplay();
-                        }
+                    moreBtn.on('click', function(e) {
+                        e.preventDefault();
+                        self.learnMore($(this), context, userid, questionid, replayInstances);
                     });
                 }
 
@@ -240,6 +251,23 @@ export default class AnalyticEvents {
                 // eslint-disable-next-line
                 video_playback(userid, filepath);
             }
+        });
+    }
+
+    learnMore(moreBtn, context, userid, questionid, replayInstances) {
+        $('.tiny_cursive-nav-tab').find('.active').removeClass('active');
+        moreBtn.addClass('active');
+        $('#rep' + userid + questionid).prop('disabled', false);
+        if (replayInstances && replayInstances[userid]) {
+            replayInstances[userid].stopReplay();
+        }
+        $('#content' + userid + questionid).removeClass('tiny_cursive_outputElement');
+        $('#replayControls_' + userid + questionid).addClass('d-none');
+        template.render('tiny_cursive/learn_more', context).then(function(html) {
+            $('#content' + userid + questionid).html(html);
+            return true;
+        }).fail(function(error) {
+            window.console.error("Failed to render template:", error);
         });
     }
 

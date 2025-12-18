@@ -1,0 +1,94 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle. If not, see
+    <http: //www.gnu.org/licenses />.
+}}
+{{!
+    @template tiny_cursive/learn_more
+
+    Template for displaying the learn more page for the Cursive plugin in TinyMCE editor.
+    This template provides information about uses of Cursive.
+
+    Example context (json):
+    {
+    }
+}}
+
+<div class="tiny_cursive-modal-container">
+    <div class="tiny_cursive-modal-header-custom">
+        <h1>Choose Your Cursive Experience</h1>
+        <p>Enhance your Moodle writing environment with powerful analytics</p>
+    </div>
+
+    <div class="p-4 p-md-5">
+
+        <div class="row g-4">
+            <!-- Premium Card -->
+            <div class="col-12 mb-3">
+                <div class="card tiny_cursive-pricing-card premium border-2 h-100">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap">
+                            <h3 class="card-title h5 fw-bold mb-0">Supporter Premium</h3>
+                            <span class="tiny_cursive-card-price">Starting at $<span>199</span>/year</span>
+                        </div>
+                        <p class="card-text text-muted">
+                            Support Cursive plugin development, get premium support and training, and add exclusive
+                            features including advanced analytics, text analysis, and authorship verification.
+                        </p>
+                        <div>
+                            <a href="https://cursivetechnology.com/premium-supported-community-and-limited/"
+                                target="_blank" class="text-decoration-none">learn more and request a free trial for
+                                your site</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Community Card -->
+            <div class="col-12 mb-3">
+                <div class="card tiny_cursive-pricing-card border-2 h-100">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap">
+                            <h3 class="card-title h5 fw-bold mb-0">Community</h3>
+                            <span class="tiny_cursive-card-price">Free</span>
+                        </div>
+                        <p class="card-text text-muted">
+                            Get news & updates, request & vote on features, and connect with our community of users.
+                        </p>
+                        <div class="">
+                            <a href="https://cursivetechnology.com/premium-supported-community-and-limited/"
+                                target="_blank" class="btn btn-outline-primary btn-sm">Sign Up for Free</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Limited Free Card -->
+            <div class="col-12">
+                <div class="card tiny_cursive-pricing-card border-2 h-100">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap">
+                            <h3 class="card-title h5 fw-bold mb-0">Limited Free</h3>
+                            <span class="tiny_cursive-card-price">No Cost</span>
+                        </div>
+                        <p class="card-text text-muted">
+                            Enhance the standard Moodle writing environment and capture student revision history.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

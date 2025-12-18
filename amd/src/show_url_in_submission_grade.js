@@ -20,14 +20,16 @@
  * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
  */
 
-define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./analytic_button", "./analytic_events"], function(
+define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./analytic_button", "./analytic_events",
+    "./replay_button"], function(
     $,
     AJAX,
     str,
     templates,
     Replay,
     analyticButton,
-    AnalyticEvents
+    AnalyticEvents,
+    replayButton,
 ) {
     const replayInstances = {};
     // eslint-disable-next-line
@@ -102,7 +104,6 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
                     }
 
                     let analyticButtonDiv = document.createElement('div');
-                    analyticButtonDiv.append(analyticButton(hasApiKey ? data.data.effort_ratio : "", userid));
                     analyticButtonDiv.classList.add('text-center', 'mt-2');
 
                     $('div[data-region="grade-actions"]').before(analyticButtonDiv);
@@ -115,6 +116,11 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
 
                     $('div[data-region="grade-actions-panel"]').addClass('cursive_grade-actions-panel_path_mod_assign');
 
+                    if (!hasApiKey) {
+                        $(analyticButtonDiv).html(replayButton(userid));
+                    } else {
+                        analyticButtonDiv.append(analyticButton(data.data.effort_ratio, userid));
+                    }
 
                     let myEvents = new AnalyticEvents();
                     var context = {

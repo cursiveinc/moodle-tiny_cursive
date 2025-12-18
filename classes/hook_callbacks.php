@@ -32,7 +32,7 @@ use core_component;
 use core_course\hook\after_form_definition;
 use core_course\hook\after_form_submission;
 use tiny_cursive\constants;
-
+use function array_key_exists;
 
 /**
  * Tiny cursive plugin hook callback class.

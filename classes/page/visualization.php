@@ -197,6 +197,7 @@ class visualization {
                 isset($analytic->word_count) &&
                 isset($analytic->words_per_minute)
             ) {
+                $point->x      = $analytic->total_time_seconds;
                 $point->y      = $analytic->effort;
                 $point->label  = $analytic->username;
                 $point->effort = $analytic->effort;

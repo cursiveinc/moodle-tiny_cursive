@@ -46,6 +46,10 @@ class tiny_cursive_renderer extends plugin_renderer_base {
 
         $totalcount = $users['count'];
         $data       = $users['data'];
+        $configs = get_config('tiny_cursive');
+        $configs = array_filter((array)$configs, fn($key) => str_starts_with($key, 'CUR'), ARRAY_FILTER_USE_KEY);
+        $modinfo  = get_fast_modinfo($courseid);
+        $cms = $modinfo->get_cms(); // Course modules.
 
         $dwnldicon = $this->output->pix_icon(
             'download',
@@ -55,11 +59,26 @@ class tiny_cursive_renderer extends plugin_renderer_base {
         );
 
         $userdata      = [];
+
         foreach ($data as $user) {
-            $modinfo  = get_fast_modinfo($courseid);
-            $cm       = $modinfo->get_cm($user->cmid);
-            $module   = get_coursemodule_from_id($cm?->modname, $user->cmid, 0, false, MUST_EXIST);
+            $cm = $cms[$user->cmid] ?? null;
+
+            if (!$cm) {
+                continue;
+            }
+
             $filepath = $user->filename;
+            $key = "CUR{$courseid}{$cm->id}";
+
+            if (!in_array($cm->modname, constants::NAMES, true)) {
+                continue;
+            }
+            // Excluding cursive disabled modules.
+            if (isset($configs[$key]) && !(int)$configs[$key]) {
+                continue;
+            }
+
+            $module   = get_coursemodule_from_id($cm?->modname, $user->cmid, 0, false, MUST_EXIST);
 
             $this->generate_custom_title($cm, $user, $DB, $module);
 

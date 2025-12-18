@@ -32,8 +32,7 @@ export default new Promise((resolve, reject) => {
         'page-mod-quiz-attempt',
         'page-mod-forum-view',
         'page-mod-forum-post',
-        'page-mod-lesson-view',
-        'page-mod-oublog-editpost'];
+        'page-mod-lesson-view']; // 'page-mod-oublog-editpost' excluded
 
     Promise.all([
         getTinyMCE(),
@@ -48,8 +47,18 @@ export default new Promise((resolve, reject) => {
                 }])[0].done((data) => {
                     if (data.status && page.includes(document.body.id) && data.mod_state) {
 
-                        Autosaver.register(editor, data.sync_interval, data.userid, data.apikey_status, JSON.parse(data.plugins));
-                    }
+                        Autosaver.register(
+                            editor,
+                            data.sync_interval,
+                            data.userid,
+                            data.apikey_status,
+                            JSON.parse(data.plugins),
+                            JSON.parse(data.rubrics),
+                            JSON.parse(data.submission),
+                            JSON.parse(data.quizinfo),
+                            data.pastesetting
+                        );
+                }
                 }).fail((error) => {
                     window.console.error('Error getting cursive config:', error);
                 });

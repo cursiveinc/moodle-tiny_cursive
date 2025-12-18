@@ -14,15 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Tiny cursive plugin observer.
- *
- * @package tiny_cursive
- * @copyright  CTI <info@cursivetechnology.com>
- * @author eLearningstack
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
 namespace tiny_cursive;
 
 /**
@@ -68,6 +59,9 @@ class observers {
                 $DB->update_record($table, $dataobj, true);
             }
         }
+        // Update autosave content as well.
+        $conditions['modulename'] = $modulename . "_autosave";
+        self::update_autosaved_content($conditions, $table, $eventdata, $eventdata['objectid']);
     }
 
     /**
@@ -181,7 +175,9 @@ class observers {
                 $DB->update_record($table, $dataobj, true);
             }
         }
+        $conditions['modulename'] = 'forum_autosave';
 
+        self::update_autosaved_content($conditions, $table, $eventdata, $discussionsrec->firstpost);
         self::update_cursive_files($event);
     }
 
@@ -224,5 +220,32 @@ class observers {
         // Use array destructuring to get module name directly from component.
         [, $modulename] = explode('_', $eventdata['component'], 2);
         return $modulename;
+    }
+
+    /**
+     * Update autosaved content records.
+     *
+     * @param array $conditions The conditions to find records to update
+     * @param string $table The database table name
+     * @param array $eventdata The event data containing user, course and context info
+     * @param int $postid The post ID to update the records with
+     * @return void
+     * @throws \dml_exception
+     */
+    public static function update_autosaved_content($conditions, $table, $eventdata, $postid) {
+        global $DB;
+        $recs = $DB->get_records($table, $conditions);
+        if ($recs) {
+            foreach ($recs as $rec) {
+                $dataobj             = new \stdClass();
+                $dataobj->userid     = $eventdata['userid'];
+                $dataobj->id         = $rec->id;
+                $dataobj->cmid       = $eventdata['contextinstanceid'];
+                $dataobj->courseid   = $eventdata['courseid'];
+                $dataobj->resourceid = $postid;
+
+                $DB->update_record($table, $dataobj, true);
+            }
+        }
     }
 }
