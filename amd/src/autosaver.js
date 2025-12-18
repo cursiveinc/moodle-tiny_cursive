@@ -321,6 +321,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
     });
     editor.on('init', () => {
         customTooltip();
+        localStorage.removeItem('lastCopyCutContent');
     });
     editor.on('SetContent', () => {
         customTooltip();
