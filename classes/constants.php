@@ -71,20 +71,27 @@ class constants {
         return !empty($value) ? floatval($value) : 0.65;
     }
 
+    /**
+     * Get the paste setting for a specific course and course module
+     *
+     * @param int|null $courseid The course ID, defaults to current course if null
+     * @param int|null $cmid The course module ID, defaults to current module if null
+     * @return string The paste setting value - either 'allow' or the configured setting
+     */
     public static function get_paste_setting($courseid = null, $cmid = null) {
         global $COURSE;
-        
+
         if ($courseid === null) {
             $courseid = $COURSE->id;
         }
-        
+
         if ($cmid === null) {
             $cmid = tiny_cursive_get_cmid($courseid) ?? 0;
         }
-        
+
         $pastekey     = "PASTE{$courseid}_{$cmid}";
         $pastesetting = get_config('tiny_cursive', $pastekey);
-        
+
         return !empty($pastesetting) ? $pastesetting : 'allow';
     }
     /**
@@ -302,6 +309,7 @@ class constants {
      *
      * @param string $component The course module ID
      * @param \stdClass $context The course ID
+     * @param string $area The area to retrieve rubrics for
      * @return array Array of rubric records containing id and name
      */
     public static function get_rubrics($component, $context, $area): array {

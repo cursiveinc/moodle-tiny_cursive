@@ -203,7 +203,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
                 position: ed.caretPosition,
                 rePosition: ed.rePosition,
                 pastedContent: editor.pastedContent,
-                aiContent : editor.aiContent
+                aiContent: editor.aiContent
             });
             localStorage.setItem(filename, JSON.stringify(data));
         } else {
@@ -219,7 +219,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
                 position: ed.caretPosition,
                 rePosition: ed.rePosition,
                 pastedContent: editor.pastedContent,
-                aiContent : editor.aiContent
+                aiContent: editor.aiContent
             }];
             localStorage.setItem(filename, JSON.stringify(data));
         }
@@ -253,8 +253,8 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
                     e.stopPropagation();
                     e.stopImmediatePropagation();
                     getString('paste_blocked', 'tiny_cursive').then(str => {
-                        alert(str);
-                    });
+                       return editor.windowManager.alert(str);
+                    }).catch(error => window.console.error(error));
                     setTimeout(() => {
                         isPasteAllowed = true;
                         shouldBlockPaste = false;
@@ -339,15 +339,15 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
             if (errorAlert) {
                 errorAlert = false;
                 getString('fullmodeerror', 'tiny_cursive').then(str => {
-                    editor.windowManager.alert(str);
-                });
+                    return editor.windowManager.alert(str);
+                }).catch(error => window.console.error(error));
             }
             view.normalMode();
             window.console.error('Error ResizeEditor event:', error);
         }
     });
 
-    editor.on('execcommand', function (e) {
+    editor.on('execcommand', function(e) {
         if (e.command === "mceInsertContent") {
             const contentObj = e.value;
 
@@ -385,7 +385,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
                     caretPosition: editor.caretPosition,
                     rePosition: editor.rePosition,
                     pastedContent: pastedText,
-                    srcElement: { baseURI: window.location.href }
+                    srcElement: {baseURI: window.location.href}
                 });
             } else {
                 aiContents.push(text);
@@ -396,13 +396,13 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
                     caretPosition: editor.caretPosition,
                     rePosition: editor.rePosition,
                     aiContent: text,
-                    srcElement: { baseURI: window.location.href }
+                    srcElement: {baseURI: window.location.href}
                 });
             }
         }
     });
 
-    editor.on('input', function (e) {
+    editor.on('input', function(e) {
         let position = getCaretPosition(true);
         editor.caretPosition = position.caretPosition;
         editor.rePosition = position.rePosition;
@@ -466,7 +466,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
     function getCaretPosition(skip = false) {
         try {
           if (!editor || !editor.selection) {
-            return { caretPosition: 0, rePosition: 0 };
+            return {caretPosition: 0, rePosition: 0};
           }
 
           const range = editor.selection.getRng();
@@ -531,7 +531,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
 
         } catch (e) {
             window.console.warn('Error getting caret position:', e);
-            return { caretPosition: lastCaretPos || 1, rePosition: 0 };
+            return {caretPosition: lastCaretPos || 1, rePosition: 0};
         }
       }
 
@@ -815,9 +815,9 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
                 getString('pluginname', 'mod_quiz'),
                 getString('pluginname', 'mod_lesson'),
                 getString('description', 'tiny_cursive'),
-            ]).then(function (strings) {
-                localStorage.setItem('sbTitle', JSON.stringify(strings));
-            });
+            ]).then(function(strings) {
+                return localStorage.setItem('sbTitle', JSON.stringify(strings));
+            }).catch(error => window.console.error(error));
         }
         if (!localStorage.getItem('docSideBar')) {
             Promise.all([
@@ -849,10 +849,11 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
                 getString('savechanges', 'tiny_cursive'),
                 getString('subjectnot', 'tiny_cursive'),
                 getString('remaining', 'tiny_cursive'),
-            ]).then(function (strings) {
-                localStorage.setItem('docSideBar', JSON.stringify(strings));
-            });
+            ]).then(function(strings) {
+                return localStorage.setItem('docSideBar', JSON.stringify(strings));
+            }).catch(error => window.console.error(error));
         }
+
     }
 
     window.addEventListener('unload', () => {

@@ -785,7 +785,7 @@ export default class Replay {
     }
 
     findMultiWordMatch(words, aiWords, targetPosition) {
-        let bestMatch = { start: -1, end: -1, score: -1, wordCount: 0, similarityScore: 0 };
+        let bestMatch = {start: -1, end: -1, score: -1, wordCount: 0, similarityScore: 0};
 
         for (let i = 0; i < words.length; i++) {
             const matchResult = this.evaluateMultiWordSequence(words, aiWords, i, targetPosition);
@@ -812,7 +812,7 @@ export default class Replay {
         }
 
         if (seqWords.length === 0) {
-            return { start: -1, end: -1, score: -1, wordCount: 0, similarityScore: 0 };
+            return {start: -1, end: -1, score: -1, wordCount: 0, similarityScore: 0};
         }
 
         const similarityScore = this.calculateSequenceSimilarity(aiWords, seqWords);
@@ -882,7 +882,7 @@ export default class Replay {
     }
 
     findBestSimilarityMatch(words, aiWordLower) {
-        let bestMatch = { word: null, score: 0 };
+        let bestMatch = {word: null, score: 0};
 
         for (const word of words) {
             let similarity = this.calculateSimilarity(aiWordLower, word.text.toLowerCase());
@@ -894,7 +894,7 @@ export default class Replay {
             }
 
             if (similarity > bestMatch.score) {
-                bestMatch = { word, score: similarity };
+                bestMatch = {word, score: similarity};
             }
         }
 
@@ -902,13 +902,13 @@ export default class Replay {
     }
 
     findBestPositionMatch(words, aiWordLower, targetPosition) {
-        let bestMatch = { word: null, score: -1 };
+        let bestMatch = {word: null, score: -1};
 
         for (const word of words) {
             let score = this.calculateWordScore(word, aiWordLower, targetPosition);
 
             if (score > bestMatch.score) {
-                bestMatch = { word, score };
+                bestMatch = {word, score};
             }
         }
 
@@ -1000,7 +1000,7 @@ export default class Replay {
         if (this.pastedChars) {
             this.pastedChars = this.pastedChars.map(p => {
                 if (p.index >= wordEnd) {
-                    return { ...p, index: p.index + positionDiff };
+                    return {...p, index: p.index + positionDiff};
                 } else if (p.index >= wordStart && p.index < wordEnd) {
                     return null;
                 }
@@ -1033,7 +1033,7 @@ export default class Replay {
         this.aiChars = this.aiChars.map(p => {
             if (!justAddedIndices.has(p.index)) {
                 if (p.index >= wordEnd) {
-                    return { ...p, index: p.index + positionDiff };
+                    return {...p, index: p.index + positionDiff};
                 } else if (p.index >= wordStart && p.index < wordEnd) {
                     return null;
                 }
@@ -1086,7 +1086,7 @@ export default class Replay {
     // Find the word closest to a target position
     findClosestWord(words, targetPosition) {
         if (words.length === 0) {
-            return { start: targetPosition, end: targetPosition };
+            return {start: targetPosition, end: targetPosition};
         }
 
         let closest = words[0];
@@ -1121,7 +1121,7 @@ export default class Replay {
 
         // Handle copy operation (Ctrl+C)
         if (this.isCopyOperation(key)) {
-            return { text, cursor, updatedHighlights: highlights, updatedDeleted: deletions };
+            return {text, cursor, updatedHighlights: highlights, updatedDeleted: deletions};
         }
 
         // Handle undo operation (Ctrl+Z)
@@ -1144,7 +1144,7 @@ export default class Replay {
         // Handle selection deletion with Backspace/Delete
         if (this.isSelectionDeletion(key, selection)) {
             ({text, cursor} = this.handleSelectionDeletion(selection, text, cursor, deletions));
-            return { text, cursor, updatedHighlights: highlights, updatedDeleted: deletions };
+            return {text, cursor, updatedHighlights: highlights, updatedDeleted: deletions};
         }
 
         // Process various key operations
@@ -1187,7 +1187,7 @@ export default class Replay {
         this.isControlKeyPressed = false;
         this.isMetaKeyPressed = false;
 
-        return { text, cursor, updatedHighlights: highlights, updatedDeleted: deletions };
+        return {text, cursor, updatedHighlights: highlights, updatedDeleted: deletions};
     }
 
     isPasteOperation(key, event) {
@@ -1210,7 +1210,7 @@ export default class Replay {
         this.resetModifierStates();
         this.isPasteEvent = false;
 
-        return { text, cursor, updatedHighlights: highlights, updatedDeleted: deletions };
+        return {text, cursor, updatedHighlights: highlights, updatedDeleted: deletions};
     }
 
     resetModifierStates() {
@@ -1247,7 +1247,7 @@ export default class Replay {
             ({text, cursor} = this.handleCharacterInsert(charToInsert, text, cursor, highlights));
         }
 
-        return { text, cursor, updatedHighlights: highlights, updatedDeleted: deletions };
+        return {text, cursor, updatedHighlights: highlights, updatedDeleted: deletions};
     }
 
     detectSelection(eventIndex) {
@@ -1257,41 +1257,45 @@ export default class Replay {
             (currentEvent.key === 'Backspace' || currentEvent.key === 'Delete')) {
 
             const currentPos = currentEvent.rePosition;
+            return this.processDetection(currentPos, currentEvent, eventIndex);
+        }
+        return null;
+    }
 
-            for (let i = eventIndex + 1; i < this.logData.length; i++) {
-                const nextEvent = this.logData[i];
+    processDetection(currentPos, currentEvent, eventIndex) {
+        for (let i = eventIndex + 1; i < this.logData.length; i++) {
+            const nextEvent = this.logData[i];
 
-                if (nextEvent.event?.toLowerCase() === 'keyup' &&
-                    nextEvent.key === currentEvent.key) {
+            if (nextEvent.event?.toLowerCase() === 'keyup' &&
+                nextEvent.key === currentEvent.key) {
 
-                    const nextPos = nextEvent.rePosition;
+                const nextPos = nextEvent.rePosition;
 
-                    // Calculate the difference in positions
-                    const positionDiff = Math.abs(currentPos - nextPos);
+                // Calculate the difference in positions
+                const positionDiff = Math.abs(currentPos - nextPos);
 
-                    if (positionDiff > 1) {
+                if (positionDiff > 1) {
+                    return {
+                        start: Math.min(currentPos, nextPos),
+                        end: Math.max(currentPos, nextPos),
+                        length: positionDiff
+                    };
+                } else if (positionDiff === 1) {
+                    if (currentEvent.key === 'Backspace') {
                         return {
-                            start: Math.min(currentPos, nextPos),
-                            end: Math.max(currentPos, nextPos),
-                            length: positionDiff
+                            start: nextPos,
+                            end: currentPos,
+                            length: 1
                         };
-                    } else if (positionDiff === 1) {
-                        if (currentEvent.key === 'Backspace') {
-                            return {
-                                start: nextPos,
-                                end: currentPos,
-                                length: 1
-                            };
-                        } else {
-                            return {
-                                start: currentPos,
-                                end: nextPos,
-                                length: 1
-                            };
-                        }
+                    } else {
+                        return {
+                            start: currentPos,
+                            end: nextPos,
+                            length: 1
+                        };
                     }
-                    break;
                 }
+                break;
             }
         }
         return null;

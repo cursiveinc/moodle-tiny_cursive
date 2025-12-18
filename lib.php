@@ -181,21 +181,21 @@ function tiny_cursive_coursemodule_standard_elements($formwrapper, $mform) {
             'block'       => get_string('paste_block', 'tiny_cursive'),
             'cite_source' => get_string('paste_cite_source', 'tiny_cursive'),
         ];
-    
+
         $pastekey     = "PASTE{$courseid}_{$instance}";
         $pastesetting = get_config('tiny_cursive', $pastekey);
-    
+
         if (!$pastesetting) {
             $pastesetting = 'allow';
         }
-        
+
         $mform->addElement(
             'select',
             'paste_setting',
             get_string('paste_setting', 'tiny_cursive'),
             $pasteoptions
         );
-        
+
         $mform->setType('paste_setting', PARAM_TEXT);
         $mform->setDefault('paste_setting', $pastesetting);
         $mform->addHelpButton('paste_setting', 'paste_setting', 'tiny_cursive');

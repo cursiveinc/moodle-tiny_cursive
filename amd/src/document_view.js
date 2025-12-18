@@ -103,7 +103,7 @@ export default class DocumentView {
             container.style.width = '0';
             toggle.style.display = 'flex';
         });
-        toggle?.addEventListener('click', function () {
+        toggle?.addEventListener('click', function() {
             toggle.style.display = 'none';
             container.style.width = '300px';
         });
@@ -267,7 +267,7 @@ export default class DocumentView {
                     bg: 'bg-green',
                     titleColor: 'text-success',
                     icon: this.moduleIcon,
-                    title: this.submission_status,
+                    title: this.subStatus,
                     bodyHTML: this.submissionStatus(this.submission)
                 })
             );
@@ -278,7 +278,7 @@ export default class DocumentView {
 
     }
     // Helper to create info boxes
-    createBox({ bg, titleColor, icon, title, bodyHTML }) {
+    createBox({bg, titleColor, icon, title, bodyHTML}) {
         const box = this.create('div');
         box.className = `tiny_cursive-fullpage-card ${bg}`;
 
@@ -349,7 +349,7 @@ export default class DocumentView {
         modifiedWrapper.className = 'tiny_cursive-status-row';
 
         const modifiedName = this.create('span');
-        modifiedName.textContent = `${this.last_modified}: `;
+        modifiedName.textContent = `${this.lastModified}: `;
 
         const modifiedValue = this.create('span');
         if (submission?.current?.timemodified) {
@@ -394,7 +394,7 @@ export default class DocumentView {
         labelDiv.appendChild(icon);
         labelDiv.append(label);
 
-        label.textContent = `${this.word_count}:`;
+        label.textContent = `${this.wordCount}:`;
         value.textContent = '0';
         value.className = 'text-primary';
         value.style.fontWeight = '600';
@@ -566,7 +566,7 @@ export default class DocumentView {
             return '-';
         }
 
-        let options = { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true };
+        let options = {year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true};
         return date.toLocaleString('en-US', options);
     }
 
@@ -580,7 +580,7 @@ export default class DocumentView {
             return parts.slice(1).join(':').trim();
         }
 
-        return text.trim(); // fallback
+        return text.trim();
     }
 
 
@@ -662,9 +662,9 @@ export default class DocumentView {
         p4.insertBefore(header, p4.firstChild);
         p2.style.backgroundColor = '#efefef';
         Object.assign(current.style, {
-            width : '750px',
-            minWidth : '750px',
-            boxShadow : '0 10px 15px -3px rgb(0 0 0/0.1),0 4px 6px -4px rgb(0 0 0/0.1)'
+            width: '750px',
+            minWidth: '750px',
+            boxShadow: '0 10px 15px -3px rgb(0 0 0/0.1),0 4px 6px -4px rgb(0 0 0/0.1)'
         });
 
         Object.assign(p1.style, {
@@ -752,15 +752,15 @@ export default class DocumentView {
         const [assign, discus, quiz, lesson] = this.getText('sbTitle');
         switch (this.module) {
             case 'assign':
-                return { title: assign, icon: Icons.assignment };
+                return {title: assign, icon: Icons.assignment};
             case 'forum':
-                return { title: discus, icon: Icons.forum };
+                return {title: discus, icon: Icons.forum};
             case 'lesson':
-                return { title: lesson, icon: Icons.forum };
+                return {title: lesson, icon: Icons.forum};
             case 'quiz':
-                return { title: quiz, icon: Icons.quiz };
+                return {title: quiz, icon: Icons.quiz};
             default:
-                return { title: 'Page', icon: Icons.quiz };
+                return {title: 'Page', icon: Icons.quiz};
         }
     }
 
@@ -801,14 +801,14 @@ export default class DocumentView {
             this.answeringto,
             this.importantdates,
             this.rubrics,
-            this.submission_status,
+            this.subStatus,
             this.status,
             this.draft,
             this.draftnot,
-            this.last_modified,
+            this.lastModified,
             this.gradings,
             this.gradenot,
-            this.word_count,
+            this.wordCount,
             this.timeleft,
             this.nolimit,
             this.name,

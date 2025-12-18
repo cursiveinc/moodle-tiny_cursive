@@ -1821,7 +1821,7 @@ class cursive_json_func_data extends external_api {
             'rubrics'       => json_encode($rubrics),
             'submission'    => json_encode($submissiondata),
             'quizinfo'      => json_encode($quizdata),
-            'pastesetting'  => $pastesetting
+            'pastesetting'  => $pastesetting,
         ];
         return $data;
     }
@@ -2087,10 +2087,15 @@ class cursive_json_func_data extends external_api {
      * @param int $id The resource ID
      * @param string $modulename The name of the module (e.g. 'quiz', 'assign')
      * @param int $cmid The course module ID
-     * @param int $questionid Optional question ID, defaults to 0
-     * @param int $userid Optional user ID, defaults to 0 (current user)
-     * @param int $courseid Optional course ID, defaults to 0
-     * @return string JSON encoded array of autosaved comments
+     * @param string $editorid The editor ID
+     * @param int $userid The user ID (defaults to current user)
+     * @param int $courseid The course ID
+     * @return string JSON encoded array containing usercomment and timemodified fields from tiny_cursive_comments records
+     * @throws coding_exception
+     * @throws dml_exception
+     * @throws invalid_parameter_exception
+     * @throws moodle_exception
+     * @throws required_capability_exception
      */
     public static function get_autosave_content($id, $modulename, $cmid, $editorid = "", $userid = 0, $courseid = 0) {
         global $DB, $USER;

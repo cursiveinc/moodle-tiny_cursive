@@ -89,12 +89,12 @@ export default class CursiveAutosave {
     }
 
     /**
- * Creates a wrapper div containing an icon and text to display the saving state
- * @param {string} state - The current saving state ('saving', 'saved', or 'offline')
- * @returns {HTMLElement} A div element containing the state icon and text
- * @description Creates and returns a div element with an icon and text span to show the current saving state.
- * The icon and text are updated based on the provided state parameter.
- */
+     * Creates a wrapper div containing an icon and text to display the saving state
+     * @param {string} state - The current saving state ('saving', 'saved', or 'offline')
+     * @returns {HTMLElement} A div element containing the state icon and text
+     * @description Creates and returns a div element with an icon and text span to show the current saving state.
+     * The icon and text are updated based on the provided state parameter.
+     */
     cursiveSavingState(state) {
         let wrapperDiv = document.createElement('div');
         let textSpan = document.createElement('span');
@@ -155,8 +155,6 @@ export default class CursiveAutosave {
             iconSpan = stateWrapper.querySelector('#CursiveCloudIcon');
             stateTextEl = stateWrapper.querySelector('#CursiveStateText');
         }
-
-
 
         if (stateTextEl && iconSpan) {
             stateTextEl.textContent = instance.getStateText(state);
@@ -244,16 +242,14 @@ export default class CursiveAutosave {
             methodname: "cursive_get_autosave_content",
             args: args
         }])[0].done((data) => {
-            let context = { comments: JSON.parse(data) };
+            let context = {comments: JSON.parse(data)};
             Object.values(context.comments).forEach(content => {
                 content.time = this.timeAgo(content.timemodified);
             });
             this.renderCommentList(context, editorWrapper);
 
         }).fail((error) => {
-            getString('fullmodeerrorr', 'tiny_cursive').then(str => {
-                this.editor.windowManager.alert(str);
-            });
+            this.throwWarning('fullmodeerrorr', this.editor);
             window.console.error('Error fetching saved content:', error);
         });
     }
@@ -403,10 +399,16 @@ export default class CursiveAutosave {
                 getString('saving', 'tiny_cursive'),
                 getString('saved', 'tiny_cursive'),
                 getString('offline', 'tiny_cursive')
-            ]).then(function (strings) {
-                localStorage.setItem('state', JSON.stringify(strings));
-            });
+            ]).then(function(strings) {
+               return localStorage.setItem('state', JSON.stringify(strings));
+            }).catch(error => window.console.error(error));
         }
+    }
+
+    throwWarning(str, editor) {
+        getString(str, 'tiny_cursive').then(str => {
+            return editor.windowManager.alert(str);
+        }).catch(error => window.console.error(error));
     }
 
     getText(key) {
@@ -424,7 +426,7 @@ export default class CursiveAutosave {
     insertSavedItems(editor) {
         const items = document.querySelectorAll('.tiny_cursive-item-preview');
         items.forEach(element => {
-            element.addEventListener('click', function () {
+            element.addEventListener('click', function() {
                 editor.insertContent(" " + this.textContent);
             });
         });
