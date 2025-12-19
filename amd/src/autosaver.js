@@ -84,7 +84,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
 
     getUser([{
             methodname: 'core_user_get_users_by_field',
-            args: {field: 'id', values: [M.cfg.userId]},
+            args: {field: 'id', values: [userid]},
         }])[0].done(response => {
             user = response[0];
         }).fail((ex) => {
