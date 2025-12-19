@@ -14,16 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Tiny cursive plugin.
- *
- * @package tiny_cursive
- * @copyright  CTI <info@cursivetechnology.com>
- * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
-
 namespace tiny_cursive;
 
 use context_course;
@@ -45,7 +35,6 @@ use stdClass;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class tiny_cursive_data {
-
     /**
      * Get list of users enrolled in a course.
      *
@@ -61,7 +50,7 @@ class tiny_cursive_data {
         $udetail2             = [];
         $courseid             = (int)$params['courseid'];
         $admin                = get_admin();
-        $users                = get_enrolled_users(context_course::instance($courseid), '', 0, );
+        $users                = get_enrolled_users(context_course::instance($courseid), '', 0);
 
         $udetail2['id']       = 0;
         $udetail2['name']     = get_string('alluser', 'tiny_cursive');
@@ -74,7 +63,6 @@ class tiny_cursive_data {
             $udetail['id']        = $user->id;
             $udetail['name']      = fullname($user);
             $allusers->userlist[] = $udetail;
-
         }
         return $allusers;
     }

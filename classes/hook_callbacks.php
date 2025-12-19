@@ -32,7 +32,7 @@ use core_component;
 use core_course\hook\after_form_definition;
 use core_course\hook\after_form_submission;
 use tiny_cursive\constants;
-
+use function array_key_exists;
 
 /**
  * Tiny cursive plugin hook callback class.
@@ -43,7 +43,6 @@ use tiny_cursive\constants;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class hook_callbacks {
-
     /**
      * Hook to modify the output before footer HTML is generated.
      *
@@ -81,21 +80,18 @@ class hook_callbacks {
         $PAGE->requires->js_call_amd('tiny_cursive/settings', 'init', [constants::show_comments(), $userrole]);
 
         if (array_key_exists($PAGE->bodyid, constants::BODY_IDS)) {
-
             if (constants::BODY_IDS[$PAGE->bodyid][1] === "oublog" && !isset($plugins['cursive_oublog'])) {
                 return;
             }
 
             if (constants::is_active()) {
-
                 $PAGE->requires->js_call_amd(
-                        "tiny_cursive/".constants::BODY_IDS[$PAGE->bodyid][0],
-                        'init',
-                        [constants::confidence_threshold(), constants::show_comments(), constants::has_api_key()],
-                    );
+                    "tiny_cursive/" . constants::BODY_IDS[$PAGE->bodyid][0],
+                    'init',
+                    [constants::confidence_threshold(), constants::show_comments(), constants::has_api_key()],
+                );
             }
         }
-
     }
 
     /**
@@ -144,6 +140,4 @@ class hook_callbacks {
         $name     = "cursive-$courseid";
         set_config($name, $status, 'tiny_cursive');
     }
-
-
 }

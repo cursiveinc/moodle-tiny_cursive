@@ -20,13 +20,15 @@
  * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
  */
 
-define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./analytic_button", "./analytic_events"], function(
+define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./analytic_button",
+    "./replay_button", "./analytic_events"], function(
     $,
     AJAX,
     str,
     templates,
     Replay,
     analyticButton,
+    replayButton,
     AnalyticEvents
 ) {
     const replayInstances = {};
@@ -88,7 +90,13 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
                     if (filepath) {
 
                         let analyticButtonDiv = document.createElement('div');
-                        analyticButtonDiv.append(analyticButton(hasApiKey ? data.data.effort_ratio : "", ids));
+
+                        if (!hasApiKey) {
+                            $(analyticButtonDiv).html(replayButton(ids));
+                        } else {
+                            analyticButtonDiv.append(analyticButton(data.data.effort_ratio, ids));
+                        }
+
                         analyticButtonDiv.classList.add('text-center', 'my-2');
                         analyticButtonDiv.dataset.region = "analytic-div" + ids;
 

@@ -51,7 +51,7 @@ if (!$fname || !$filerow || !$filerow->content) {
 }
 
 
-$filename = $filerow->modulename." ".get_string('student_writing_statics', 'tiny_cursive')."_".uniqid().".json";
+$filename = $filerow->modulename . " " . get_string('student_writing_statics', 'tiny_cursive') . "_" . uniqid() . ".json";
 
 // Set headers for CSV download.
 header('X-Content-Type-Options: nosniff');

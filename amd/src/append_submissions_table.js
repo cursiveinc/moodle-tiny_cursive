@@ -27,6 +27,7 @@ define([
     "core/templates",
     "./replay",
     './analytic_button',
+    './replay_button',
     './analytic_events',
     'core/str'], function(
     $,
@@ -35,6 +36,7 @@ define([
     templates,
     Replay,
     analyticButton,
+    replayButton,
     AnalyticEvents,
     Str
 ) {
@@ -98,7 +100,12 @@ define([
                                 }
 
                                 const tableCell = document.createElement('td');
-                                tableCell.appendChild(analyticButton(hasApiKey ? data.res.effort_ratio : "", userid));
+
+                                if (!hasApiKey) {
+                                    $(tableCell).html(replayButton(userid));
+                                } else {
+                                    tableCell.appendChild(analyticButton(data.res.effort_ratio, userid));
+                                }
                                 $(tr).find('td').eq(3).after(tableCell);
 
                                 // Get Module Name from element.

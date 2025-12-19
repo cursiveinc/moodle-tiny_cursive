@@ -62,10 +62,12 @@ class upload_student_json_cron extends scheduled_task {
 
         if (!$cursivetoken) {
             // Use get_record() instead of get_record_sql() for simpler queries.
-            $token = $DB->get_record('external_tokens',
-                        ['userid' => $adminuser->id, 'externalserviceid' => $service->id],
-                        '*',
-                        IGNORE_MULTIPLE);
+            $token = $DB->get_record(
+                'external_tokens',
+                ['userid' => $adminuser->id, 'externalserviceid' => $service->id],
+                '*',
+                IGNORE_MULTIPLE
+            );
         }
 
         $wstoken = $cursivetoken ?? $token->token;
@@ -77,7 +79,6 @@ class upload_student_json_cron extends scheduled_task {
 
         $table = 'tiny_cursive_files';
         foreach ($filerecords as $filerecord) {
-
             $answer = $filerecord->original_content ?? "";
 
             $uploaded = tiny_cursive_upload_multipart_record($filerecord, $filerecord->filename, $wstoken, $answer);

@@ -16,7 +16,12 @@
 
 namespace tiny_cursive;
 
-use context_course;
+use question_engine;
+defined('MOODLE_INTERNAL') || die();
+require_once($CFG->libdir . '/externallib.php');
+require_once($CFG->dirroot . '/grade/grading/lib.php');
+require_once($CFG->dirroot . '/grade/grading/form/rubric/lib.php');
+
 /**
  * Class constants
  *
@@ -29,8 +34,14 @@ class constants {
      * Array of supported activity module names.
      * const array NAMES List of module names where cursive can be used
      */
-    public const NAMES = ["assign", "forum", "quiz", "lesson", "oublog"];
-
+    public const NAMES = ["assign", "forum", "quiz", "lesson"]; // Excluded oublog.
+    /**
+     * Array mapping module names to their corresponding rubric areas.
+     * Used to identify the correct rubric area for different module types.
+     * const array RUBRIC_AREA Mapping of module names to rubric areas
+     */
+    public const RUBRIC_AREA = ['assign' => 'submissions', 'forum' => 'forum', 'quiz' => 'quiz', 'lesson' =>
+                               'lesson'];
 
     /**
      * Array mapping page body IDs to their corresponding handler functions and module types.
@@ -47,7 +58,6 @@ class constants {
             'page-mod-quiz-review'          => ['show_url_in_quiz_detail', 'quiz'],
             'page-course-view-participants' => ['append_participants_table', 'course'],
             'page-mod-lesson-essay'         => ['append_lesson_grade_table', 'lesson'],
-            'page-mod-oublog-viewpost'      => ['append_oublogs_post', 'oublog'],
         ];
 
 
@@ -59,6 +69,30 @@ class constants {
     public static function confidence_threshold() {
         $value = get_config('tiny_cursive', 'confidence_threshold');
         return !empty($value) ? floatval($value) : 0.65;
+    }
+
+    /**
+     * Get the paste setting for a specific course and course module
+     *
+     * @param int|null $courseid The course ID, defaults to current course if null
+     * @param int|null $cmid The course module ID, defaults to current module if null
+     * @return string The paste setting value - either 'allow' or the configured setting
+     */
+    public static function get_paste_setting($courseid = null, $cmid = null) {
+        global $COURSE;
+
+        if ($courseid === null) {
+            $courseid = $COURSE->id;
+        }
+
+        if ($cmid === null) {
+            $cmid = tiny_cursive_get_cmid($courseid) ?? 0;
+        }
+
+        $pastekey     = "PASTE{$courseid}_{$cmid}";
+        $pastesetting = get_config('tiny_cursive', $pastekey);
+
+        return !empty($pastesetting) ? $pastesetting : 'allow';
     }
     /**
      * Flag indicating whether to display cursive validation comments.
@@ -102,16 +136,32 @@ class constants {
         global $CFG;
         require_once($CFG->dirroot . '/lib/editor/tiny/plugins/cursive/lib.php');
 
-        $secret   = get_config('tiny_cursive', 'secretkey');
-        $interval = get_config('tiny_cursive', 'ApiSyncInterval') > time();
-        $apikey   = get_config('tiny_cursive', 'apiKey');
+        $secret       = get_config('tiny_cursive', 'secretkey');
+        $apikey       = get_config('tiny_cursive', 'apiKey');
+        $syncinterval = get_config('tiny_cursive', 'ApiSyncInterval') ?: 0;
+        $now          = time();
+        $nextsync     = strtotime('+5 minutes');
 
-        if (!$interval && !empty($secret) ) {
-            $key = cursive_approve_token();
-            $key = json_decode($key);
-            $apikey = $key->status ?? false;
-            set_config('apiKey', $apikey, 'tiny_cursive');
-            set_config('ApiSyncInterval', strtotime('+5 minutes'), 'tiny_cursive');
+        if (empty($secret)) {
+            if ($apikey !== false || $apikey !== "0") {
+                set_config('apiKey', false, 'tiny_cursive');
+            }
+            if ($syncinterval < $now) {
+                set_config('ApiSyncInterval', $nextsync, 'tiny_cursive');
+            }
+            return false;
+        }
+
+        if ($syncinterval <= $now) {
+            $response = cursive_approve_token();
+            $data      = json_decode($response);
+            $newkey = (!empty($data->status) && $data->status) ? $data->status : false;
+
+            if ($newkey != boolval($apikey)) {
+                set_config('apiKey', $newkey, 'tiny_cursive');
+            }
+            set_config('ApiSyncInterval', $nextsync, 'tiny_cursive');
+            $apikey = $newkey;
         }
 
         return boolval($apikey);
@@ -134,14 +184,13 @@ class constants {
 
         $data = (object) $data;
 
-        $upload = $DB->get_record('tiny_cursive_files', ['id' => $fileid], 'uploaded',  IGNORE_MISSING);
+        $upload = $DB->get_record('tiny_cursive_files', ['id' => $fileid], 'uploaded', IGNORE_MISSING);
         $upload = $upload ? intval($upload->uploaded) : 0;
 
         $effort = intval($data->effort_ratio ?? 9999999); // Default to high value if not set, it is possible to get effort 0.
         $analytics = intval($data->total_time_seconds ?? 0);
 
         return ($upload > 0 && ($effort === 9999999 || $analytics === 0));
-
     }
 
     /**
@@ -163,5 +212,137 @@ class constants {
         }
 
         return false;
+    }
+
+    /**
+     * Saves an auto-save record for cursive content
+     *
+     * @param array $params Parameters containing:
+     *                      - cmid: Course module ID
+     *                      - resourceid: Resource identifier
+     *                      - courseid: Course ID
+     *                      - original_content: Content to save
+     *                      - questionid: Optional question ID
+     * @return int|bool The new record ID or false on failure
+     */
+    public static function cursive_auto_save($params) {
+        global $DB, $USER;
+        if (self::no_difference($params) || empty(self::normalize_string($params['originalText']))) {
+            return false;
+        }
+        try {
+            $autosave = new \stdClass();
+            $autosave->userid = $USER->id;
+            $autosave->cmid = $params['cmid'];
+            $autosave->modulename = $params['modulename'] . "_autosave";
+            $autosave->resourceid = $params['resourceId'];
+            $autosave->courseid = $params['courseId'];
+            $autosave->usercomment = trim($params['originalText']);
+            $autosave->questionid = $params['questionid'];
+            $autosave->timemodified = time();
+            return $DB->insert_record('tiny_cursive_comments', $autosave);
+        } catch (\dml_exception $e) {
+            return false;
+        }
+    }
+
+    /**
+     * Checks if there is a difference between the current content and previously saved content
+     *
+     * @param array $params Parameters containing:
+     *                      - originalText: Current content to compare
+     *                      - cmid: Course module ID
+     *                      - resourceId: Resource identifier
+     *                      - modulename: Module name
+     *                      - questionid: Optional question ID
+     * @return bool True if content has changed, false if same
+     */
+    public static function no_difference($params) {
+        global $DB, $USER;
+        $record = null;
+        if ($params['questionid']) {
+            $record = $DB->get_records('tiny_cursive_comments', [
+                'cmid' => $params['cmid'],
+                'modulename' => $params['modulename'] . "_autosave",
+                'resourceid' => $params['resourceId'],
+                'userid' => $USER->id,
+                'questionid' => $params['questionid'],
+                'courseid' => $params['courseId'],
+            ], 'timemodified DESC', 'usercomment', 0, 1);
+            $record = reset($record);
+        } else {
+            $record = $DB->get_records('tiny_cursive_comments', [
+                'cmid' => $params['cmid'],
+                'modulename' => $params['modulename'] . "_autosave",
+                'resourceid' => $params['resourceId'],
+                'userid' => $USER->id,
+                'courseid' => $params['courseId'],
+            ], 'timemodified DESC', 'usercomment', 0, 1);
+            $record = reset($record);
+        }
+
+        if ($record) {
+            $a = self::normalize_string($record->usercomment);
+            $b = self::normalize_string($params['originalText']);
+            return strcasecmp($a, $b) === 0;
+        }
+
+        return false;
+    }
+
+    /**
+     * Normalizes a string by converting HTML entities, removing non-breaking spaces,
+     * and standardizing whitespace
+     *
+     * @param string $str The string to normalize
+     * @return string The normalized string
+     */
+    public static function normalize_string($str) {
+        $str = html_entity_decode($str, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $str = preg_replace('/[\xC2\xA0]/', ' ', $str); // Replace NBSP with normal space.
+        $str = preg_replace('/\s+/', ' ', $str); // Normalize multiple spaces.
+        return trim($str);
+    }
+
+    /**
+     * Get rubrics associated with a course module and course
+     *
+     * @param string $component The course module ID
+     * @param \stdClass $context The course ID
+     * @param string $area The area to retrieve rubrics for
+     * @return array Array of rubric records containing id and name
+     */
+    public static function get_rubrics($component, $context, $area): array {
+        if (!isset(self::RUBRIC_AREA[$area])) {
+            return [];
+        }
+
+        $gradingmanager = get_grading_manager($context, $component, self::RUBRIC_AREA[$area]);
+        $controller = $gradingmanager->get_active_controller();
+
+        if (!$controller) {
+            return [];
+        }
+        $definition = $controller->get_definition();
+
+        return array_values($definition->rubric_criteria ?? []);
+    }
+
+    /**
+     * Extracts the question ID from an editor ID string
+     *
+     * @param string $editorid The editor ID containing question information
+     * @return int|null The question ID if found, null otherwise
+     */
+    public static function get_question_id($editorid) {
+        $editoridarr = explode(':', $editorid);
+        if (count($editoridarr) > 1) {
+            $uniqueid = substr($editoridarr[0] . "\n", 1);
+            $slot = substr($editoridarr[1] . "\n", 0, -11);
+            $quba = question_engine::load_questions_usage_by_activity($uniqueid);
+            $question = $quba->get_question($slot, false);
+            return $question->id;
+        }
+        return 0;
     }
 }

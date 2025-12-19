@@ -101,7 +101,7 @@ class visualization {
      * @param int $cmid The course module ID
      * @param int $userid The user id
      */
-    public function __construct(int $courseid, string $type,  $cmid, $userid) {
+    public function __construct(int $courseid, string $type, $cmid, $userid) {
         $this->type     = $type;
         $this->courseid = $courseid;
         $this->course   = get_course($courseid);
@@ -122,7 +122,6 @@ class visualization {
     public function render() {
 
         $this->page_setup($this->get_course_analytics($this->courseid, $this->cmid), constants::has_api_key(), true);
-
     }
 
     /**
@@ -179,12 +178,11 @@ class visualization {
         $writing   = [];
 
         foreach ($analytics as $analytic) {
-
             $effortlabel = $this->get_effort_level($analytic->effort);
             $key = $effortlabel['label']; // Group by this.
 
             if (!isset($writing[$key])) {
-                $writing[$key]        = new stdClass;
+                $writing[$key]        = new stdClass();
                 $writing[$key]->label = $effortlabel['label'];
                 $writing[$key]->backgroundColor = $effortlabel['color'];
                 $writing[$key]->pointRadius = 8;
@@ -192,9 +190,13 @@ class visualization {
                 $writing[$key]->data   = [];
             }
 
-            $point         = new stdClass;
-            if (isset($analytic->total_time_seconds) && isset($analytic->effort) &&
-                isset($analytic->word_count) && isset($analytic->words_per_minute)) {
+            $point         = new stdClass();
+            if (
+                isset($analytic->total_time_seconds) &&
+                isset($analytic->effort) &&
+                isset($analytic->word_count) &&
+                isset($analytic->words_per_minute)
+            ) {
                 $point->x      = $analytic->total_time_seconds;
                 $point->y      = $analytic->effort;
                 $point->label  = $analytic->username;
@@ -202,7 +204,6 @@ class visualization {
                 $point->time   = $analytic->total_time_seconds;
                 $point->words  = $analytic->word_count;
                 $point->wpm    = $analytic->words_per_minute;
-
             }
             $writing[$key]->data[] = $point;
         }
@@ -210,14 +211,13 @@ class visualization {
         // Re-index to get plain array (Chart.js needs numerically indexed array).
         $writing = array_values($writing);
 
-        if (count($analytics) > 0 && $cmid ) {
+        if (count($analytics) > 0 && $cmid) {
             return $writing;
         } else if (count($analytics) == 0 && $cmid == 0) {
             return ['state' => 'apply_filter'];
         } else if (count($analytics) == 0 && $cmid) {
             return ["state" => "no_submission"];
         }
-
     }
 
     /**
@@ -232,7 +232,7 @@ class visualization {
     private function get_active_analytics_type($type) {
 
         $modules = array_values(array_unique(array_map(
-            function($cm) use ($type) {
+            function ($cm) use ($type) {
                 if (!in_array($cm->modname, constants::NAMES)) {
                     return;
                 }
@@ -244,7 +244,7 @@ class visualization {
                 }
                 return $filters;
             },
-            array_filter($this->modinfo->get_cms(), function($cm) {
+            array_filter($this->modinfo->get_cms(), function ($cm) {
                 return $cm->uservisible;
             })
         ), SORT_REGULAR));

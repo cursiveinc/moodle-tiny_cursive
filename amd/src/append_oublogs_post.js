@@ -27,6 +27,7 @@ import {call as getData} from 'core/ajax';
 import templates from 'core/templates';
 import AnalyticEvents from './analytic_events';
 import analyticButton from './analytic_button';
+import replayButton from './replay_button';
 import Replay from './replay';
 
 export const init = (scoreSetting, comments, hasApiKey) => {
@@ -74,7 +75,11 @@ export const init = (scoreSetting, comments, hasApiKey) => {
                     filepath = data.res.filename;
                 }
 
-                Element.find('.oublog-post-links').append(analyticButton(hasApiKey ? data.res.effort_ratio : "", userid));
+                if (!hasApiKey) {
+                    Element.find('.oublog-post-links').append(replayButton(userid));
+                } else {
+                    Element.find('.oublog-post-links').append(analyticButton(data.res.effort_ratio, userid));
+                }
 
                 let myEvents = new AnalyticEvents();
                 var context = {
