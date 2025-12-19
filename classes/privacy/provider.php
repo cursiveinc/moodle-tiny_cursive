@@ -29,6 +29,9 @@ use core_privacy\local\request\writer;
 use core_privacy\local\metadata\collection;
 use core_privacy\local\request\userlist;
 use core_privacy\local\request\approved_userlist;
+use core_privacy\local\metadata\provider as meta_provider;
+use core_privacy\local\request\core_userlist_provider;
+use core_privacy\local\request\plugin\provider as plugin_provider;
 use stdClass;
 use core_privacy\local\request\transform;
 use context;
@@ -41,15 +44,7 @@ use context;
  * @author     Brain Station 23 <sales@brainstation-23.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class provider implements
-    // The tiny editor stores user provided data.
-    \core_privacy\local\metadata\provider,
-
-    // The tiny editor is capable of determining which users have data within it.
-    \core_privacy\local\request\core_userlist_provider,
-
-    // The tiny editor provides data directly to core.
-    \core_privacy\local\request\plugin\provider {
+class provider implements core_userlist_provider, meta_provider, plugin_provider {
     /**
      * Returns information about how tiny_cursive stores its data.
      *
