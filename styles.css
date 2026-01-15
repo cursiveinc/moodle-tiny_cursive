@@ -1919,3 +1919,9 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     font-size: 16px;
     font-weight: 600;
 }
+.cfw-bold {
+    font-weight: 600 !important;
+}
+.cursiveFw-wrap {
+    word-wrap: break-word;
+}

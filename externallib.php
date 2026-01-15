@@ -30,6 +30,7 @@ use core_external\external_function_parameters;
 use core_external\external_single_structure;
 use core_external\external_value;
 use tiny_cursive\constants;
+use tiny_cursive\helper;
 
 defined('MOODLE_INTERNAL') || die;
 
@@ -1658,7 +1659,7 @@ class cursive_json_func_data extends external_api {
             ],
         );
 
-        if ($params['resourceId'] == 0 && $params['modulename'] !== 'forum' && $params['modulename'] !== 'oublog') {
+        if ($params['resourceId'] == 0 && $params['modulename'] !== 'forum' && $params['modulename'] !== 'oublog' && $params['modulename'] !== 'pdfannotator') {
             // For Quiz and Assignment there is no resourceid that's why cmid is resourceid.
             $params['resourceId'] = $params['cmid'];
         }
@@ -2158,5 +2159,70 @@ class cursive_json_func_data extends external_api {
      */
     public static function get_autosave_content_returns() {
         return new external_value(PARAM_TEXT, 'autosave content');
+    }
+
+
+    /**
+     * Returns the parameters definition for update_pdf_annote_id external function.
+     *
+     * @return external_function_parameters Parameters definition containing:
+     *         - resourceid (int): Optional ID parameter
+     *         - modulename (string): Optional module name parameter
+     *         - cmid (int): Optional course module ID parameter
+     *         - userid (int): Optional user ID parameter
+     *         - courseid (int): Optional course ID parameter
+     */
+    public static function update_pdf_annote_id_parameters() {
+        return new external_function_parameters([
+                'cmid' => new external_value(PARAM_INT, 'cmid', VALUE_DEFAULT, 0),
+                'userid' => new external_value(PARAM_INT, 'userid', VALUE_DEFAULT, 0),
+                'courseid' => new external_value(PARAM_INT, 'courseid', VALUE_DEFAULT, 0),
+                'modulename' => new external_value(PARAM_TEXT, 'modulename', VALUE_DEFAULT, ''),
+                'resourceid' => new external_value(PARAM_INT, 'pdf annote comment id', VALUE_DEFAULT, 0),
+            ]);
+    }
+
+    /**
+     * Updates the PDF annotation ID for a comment record
+     *
+     * @param int $resourceid The PDF annotation comment ID
+     * @param string $modulename The name of the module
+     * @param int $cmid The course module ID
+     * @param int $userid The user ID (defaults to current user)
+     * @param int $courseid The course ID
+     * @return bool
+     * @throws coding_exception
+     * @throws dml_exception
+     * @throws invalid_parameter_exception
+     * @throws moodle_exception
+     * @throws required_capability_exception
+     */
+    public static function update_pdf_annote_id($cmid, $userid, $courseid, $modulename, $resourceid) {
+        $params = self::validate_parameters(
+            self::update_pdf_annote_id_parameters(),
+            [
+                'cmid'       => $cmid,
+                'userid'     => $userid,
+                'courseid'   => $courseid,
+                'modulename' => $modulename,
+                'resourceid' => $resourceid,
+            ],
+        );
+
+        $context = context_module::instance($params['cmid']);
+        self::validate_context($context);
+        require_capability("tiny/cursive:writingreport", $context);
+
+        helper::update_resource_id($params);
+        return true;
+    }
+
+    /**
+     * Returns description of update_pdf_annote_id return value
+     *
+     * @return external_value Returns a boolean parameter indicating if the update was successful
+     */
+    public static function update_pdf_annote_id_returns() {
+        return new external_value(PARAM_BOOL, 'update pdf annote id');
     }
 }

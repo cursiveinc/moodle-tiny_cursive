@@ -88,7 +88,7 @@ class hook_callbacks {
                 $PAGE->requires->js_call_amd(
                     "tiny_cursive/" . constants::BODY_IDS[$PAGE->bodyid][0],
                     'init',
-                    [constants::confidence_threshold(), constants::show_comments(), constants::has_api_key()],
+                    [constants::confidence_threshold(), constants::show_comments(), constants::has_api_key(), $USER->id],
                 );
             }
         }

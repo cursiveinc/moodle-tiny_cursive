@@ -230,6 +230,15 @@ $functions = [
         'ajax' => true,
         'capabilities' => 'tiny/cursive:view',
     ],
+    'cursive_update_pdf_annote_id' => [
+        'classname' => 'cursive_json_func_data',
+        'methodname' => 'update_pdf_annote_id',
+        'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
+        'description' => 'update resourceid for pdf annote analytics file',
+        'type' => 'write',
+        'ajax' => true,
+        'capabilities' => 'tiny/cursive:view',
+    ],
 ];
 
 // We define the services to install as pre-build services.

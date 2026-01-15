@@ -45,6 +45,8 @@ export default class DocumentView {
             this.normalizePage(id);
         } else if (this.module === 'lesson') {
             this.normalizePage(id);
+        } else if(this.module === 'pdfannotator') {
+            this.normalizePage(id);
         }
     }
 
@@ -61,6 +63,9 @@ export default class DocumentView {
             this.fullPageModule(this.editor?.id);
         } else if (this.module === 'lesson') {
             this.moduleIcon = Icons.lesson;
+            this.fullPageModule(this.editor?.id);
+        } else if (this.module === 'pdfannotator') {
+            this.moduleIcon = Icons.pdfannotator;
             this.fullPageModule(this.editor?.id);
         }
     }
@@ -444,7 +449,7 @@ export default class DocumentView {
         labelDiv.appendChild(icon);
         labelDiv.append(label);
 
-        label.textContent = `${this.timeleft}: }`;
+        label.textContent = `${this.timeleft}:`;
         value.textContent = '00:00:00';
         value.className = warningDiv ? 'text-danger' : 'text-primary';
         Object.assign(value.style, {
@@ -482,11 +487,11 @@ export default class DocumentView {
         const usernameWrapper = this.create('div');
         const courseWrapper = this.create('div');
 
-        const nameLabel = this.create('span');
+        const nameLabel = this.create('strong');
         const nameValue = this.create('span');
-        const usernameLabel = this.create('span');
+        const usernameLabel = this.create('strong');
         const usernameValue = this.create('span');
-        const courseLabel = this.create('span');
+        const courseLabel = this.create('strong');
         const courseValue = this.create('span');
 
         nameLabel.textContent = `${this.name}`;
@@ -498,9 +503,12 @@ export default class DocumentView {
         courseLabel.textContent = `${this.course}: `;
         courseValue.textContent = course.title;
 
-        nameWrapper.className = 'd-flex justify-content-between';
-        usernameWrapper.className = 'd-flex justify-content-between';
-        courseWrapper.className = 'd-flex justify-content-between';
+        usernameLabel.className = 'cfw-bold me-2';
+        usernameValue.className = 'cursiveFw-wrap';
+        courseLabel.className = 'cfw-bold me-2';
+        courseValue.className = 'cursiveFw-wrap';
+        nameLabel.className = 'cfw-bold me-2';
+        nameValue.className = 'cursiveFw-wrap';
 
         nameWrapper.append(nameLabel, nameValue);
         usernameWrapper.append(usernameLabel, usernameValue);
@@ -640,6 +648,17 @@ export default class DocumentView {
             btn.style.margin = '.5rem';
         }
 
+        if (this.module === 'pdfannotator') {
+            const style = document.createElement('style');
+            style.id = 'cursiveForceStyle';
+            style.textContent = `
+                .path-mod-pdfannotator #comment-wrapper h4,
+                .path-mod-pdfannotator #comment-nav {
+                    margin: 0 !important;
+                }
+            `;
+            document.head.appendChild(style);
+        }
 
         const leftSide = this.create('div');
         const rightSide = this.create('div');
@@ -729,6 +748,7 @@ export default class DocumentView {
             iframeBody.style.padding = '0';
         }
         document.head.querySelector('#tiny_cursive-fullpage-mode-style')?.remove();
+        document.head.querySelector('#cursiveForceStyle')?.remove();
     }
 
     checkForumSubject() {
@@ -759,6 +779,8 @@ export default class DocumentView {
                 return {title: lesson, icon: Icons.forum};
             case 'quiz':
                 return {title: quiz, icon: Icons.quiz};
+            case 'pdfannotator':
+                return {title: 'PDF Annotation', icon: Icons.pdfannotator};
             default:
                 return {title: 'Page', icon: Icons.quiz};
         }
