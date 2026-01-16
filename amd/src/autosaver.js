@@ -60,9 +60,6 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
     let shouldBlockPaste = false;
     let isPasteAllowed = false;
 
-    if (modulename !== 'assign') {
-        PASTE_SETTING = 'cite_source';
-    }
     const postOne = async(methodname, args) => {
         try {
             const response = await call([{

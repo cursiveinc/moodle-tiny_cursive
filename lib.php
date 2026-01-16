@@ -175,7 +175,7 @@ function tiny_cursive_coursemodule_standard_elements($formwrapper, $mform) {
         $mform->setdefault('cursive', $state);
     }
 
-    if ($state && $module == 'assign') {
+    if ($state) {
         $pasteoptions = [
             'allow'       => get_string('paste_allow', 'tiny_cursive'),
             'block'       => get_string('paste_block', 'tiny_cursive'),
