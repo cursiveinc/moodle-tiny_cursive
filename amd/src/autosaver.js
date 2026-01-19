@@ -60,10 +60,6 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
     let shouldBlockPaste = false;
     let isPasteAllowed = false;
 
-    if (modulename !== 'assign') {
-        PASTE_SETTING = 'cite_source';
-    }
-
     if (ur.includes('pdfannotator')) {
         document.addEventListener('click', e => {
             if (e.target.className === "dropdown-item comment-edit-a") {
