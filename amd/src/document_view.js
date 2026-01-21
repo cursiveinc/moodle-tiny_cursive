@@ -173,6 +173,12 @@ export default class DocumentView {
         }
 
         if (courseDes && courseDes?.textContent.trim() !== '') {
+            let fileSubDiv = document.querySelectorAll('.fileuploadsubmission');
+            if (fileSubDiv) {
+                fileSubDiv.forEach(Element => {
+                    Element.style.verticalAlign = 'middle';
+                });
+            }
             content.append(
                 this.createBox({
                     bg: 'bg-gray',
