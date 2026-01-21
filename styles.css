@@ -1925,3 +1925,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
 .cursiveFw-wrap {
     word-wrap: break-word;
 }
+
+#cursive-fullpagemode-sidebar .fileuploadsubmissiontime {
+    display: none !important;
+}
