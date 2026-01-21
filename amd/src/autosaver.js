@@ -568,6 +568,9 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
             localStorage.removeItem(filename);
             editor.fire('change');
             let originalText = editor.getContent({format: 'text'});
+            if (!originalText) {
+                originalText = getRawText(editor);
+            }
             try {
                 Autosave.updateSavingState('saving');
                 // eslint-disable-next-line
@@ -587,6 +590,28 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
             }
         }
     }
+
+    /**
+     * Gets the raw text content from a TinyMCE editor iframe
+     * @param {Object} editor - The TinyMCE editor instance
+     * @returns {string} The raw text content of the editor body, or empty string if not found
+     * @description Attempts to get the raw text content from the editor's iframe body by:
+     * 1. Getting the editor ID
+     * 2. Finding the associated iframe element
+     * 3. Accessing the iframe's document body
+     * 4. Returning the text content
+     * Returns empty string if any step fails
+     */
+    function getRawText(editor) {
+        let editorId = editor?.id;
+        if (editorId) {
+            let iframe = document.querySelector(`#${editorId}_ifr`);
+            let iframeBody = iframe.contentDocument?.body || iframe.contentWindow?.document?.body;
+            return iframeBody?.textContent;
+        }
+        return "";
+    }
+
     /**
      * Sets up custom tooltip functionality for the Cursive icon
      * Initializes tooltip text, positions the icon in the menubar,
