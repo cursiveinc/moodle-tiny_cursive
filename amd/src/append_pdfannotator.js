@@ -108,7 +108,8 @@ export const init = (scoreSetting, comments, hasApiKey, userid) => {
             // Extract comment ID safely
             const commentId = links.link1?.href ?
                 new URL(links.link1.href).searchParams.get('commid') : null;
-
+            const cmid = links.link1?.href ?
+                new URL(links.link1.href).searchParams.get('id') : M.cfg.contextInstanceId;
             // Extract user ID based on action
             let userId = null;
             let userLink = null;
@@ -132,7 +133,7 @@ export const init = (scoreSetting, comments, hasApiKey, userid) => {
                 }
             }
 
-            getCursiveAnalytics(userId, commentId, M.cfg.contextInstanceId, cols.col1);
+            getCursiveAnalytics(userId, commentId, cmid, cols.col1);
         });
     }
 
