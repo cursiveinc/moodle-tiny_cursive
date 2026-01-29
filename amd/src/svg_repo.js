@@ -22,7 +22,7 @@
  */
 
 export default {
-  people: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+    people: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
                     viewBox="0 0 24 24" fill="none" stroke="currentColor"
                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                     class="me-2 small">
@@ -31,7 +31,7 @@ export default {
                     <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
                     <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                 </svg>`,
-  assignment: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+    assignment: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
                     viewBox="0 0 24 24" fill="none" stroke="currentColor"
                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                     class="me-2 small">
@@ -39,20 +39,20 @@ export default {
                     <path d="M14 2v4a2 2 0 0 0 2 2h4"></path>
                     <path d="M10 9H8"></path><path d="M16 13H8"></path><path d="M16 17H8"></path>
                 </svg>`,
-  time: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+    time: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
                     viewBox="0 0 24 24" fill="none" stroke="currentColor"
                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                     class="me-2 small">
                     <circle cx="12" cy="12" r="10"></circle>
                     <polyline points="12 6 12 12 16 14"></polyline>
                 </svg>`,
-  offline: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+    offline: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" 
                 stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-cloud-off
                 w-5 h-5 text-gray-600"><path d="m2 2 20 20"></path><path d="M5.782 5.782A7 7 
                 0 0 0 9 19h8.5a4.5 4.5 0 0 0 1.307-.193"></path><path d="M21.532 16.5A4.5 4.5 0
                 0 0 17.5 10h-1.79A7.008 7.008 0 0 0 10 5.07"></path></svg>`,
-  forum: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" 
+    forum: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" 
                 preserveAspectRatio="xMinYMid meet"><path fill-rule="evenodd" clip-rule="evenodd" d="M6.49609 2.98999C4.5631
                 2.98999 2.99609 4.55699 2.99609 6.48999V14.5561C2.99609 14.5635 2.99626 14.571 2.99658 14.5784V20.0092C2.99658
                 20.841 3.95298 21.3092 4.60994 20.799L8.21061 18.0027H17.5034C19.4364 18.0027 21.0034 16.4357 21.0034
@@ -130,5 +130,53 @@ export default {
         4.99438C18.1072 4.99438 19.0015 5.88867 19.0015 6.99182C19.0015 8.09497 18.1072 8.98926 17.004 8.98926C15.9009 8.98926 
         15.0066 8.09497 15.0066 6.99182ZM6.99646 15.0007C8.09961 15.0007 8.9939 15.895 8.9939 16.9982C8.9939 18.1013 8.09961 
         18.9956 6.99646 18.9956C5.89331 18.9956 4.99902 18.1013 4.99902 16.9982C4.99902 15.895 5.89331 15.0007 6.99646 
-        15.0007Z" fill="#212529"/></svg>`
+        15.0007Z" fill="#212529"/></svg>`,
+    pdfannotator: `<svg width="24" height="24" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" 
+        xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg" 
+        xmlns:svg="http://www.w3.org/2000/svg" id="Ebene_1" data-name="Ebene 1" viewBox="0 0 24 24" version="1.1" 
+        sodipodi:docname="pdfannotator_1_24x24.svg" inkscape:version="1.4 (86a8ad7, 2024-10-11)">
+        <sodipodi:namedview id="namedview6" pagecolor="#ffffff" bordercolor="#666666" borderopacity="1.0" 
+        inkscape:showpageshadow="2" inkscape:pageopacity="0.0" inkscape:pagecheckerboard="0" inkscape:deskcolor="#d1d1d1" 
+        inkscape:zoom="32.625" inkscape:cx="12" inkscape:cy="12" inkscape:window-width="1920" inkscape:window-height="1001" 
+        inkscape:window-x="-9" inkscape:window-y="-9" inkscape:window-maximized="1" inkscape:current-layer="Ebene_1"/>
+        <defs id="defs1">
+            <style id="style1">
+            .cls-1 {
+                stroke-miterlimit: 10;
+            }
+            .cls-1, .cls-2 {
+                fill: none;
+                stroke: #000;
+                stroke-linecap: round;
+            }
+            .cls-2 {
+                stroke-linejoin: round;
+            }
+            </style>
+        </defs>
+        <g id="g7" transform="translate(-3.95,-3.995)">
+            <path class="cls-2" d="m 16.95,8.85 v -0.4 c 0,-0.8 -0.7,-1.5 -1.5,-1.5 h -7 c -0.8,0 -1.5,0.7 -1.5,1.5 v 4.3 c 
+            0,0.8 0.7,1.5 1.5,1.5 h 4.4 l 2.2,2.2 v -2.3 h 0.4 c 0.8,0 1.5,-0.7 1.5,-1.5 z" id="path1"/>
+            <g id="g3">
+            <path class="cls-1" d="m 11.23,21.78 v 0.9 c 0,1.3 1.07,2.37 2.37,2.37 h 9.03 c 1.28,0 2.31,-1.04 2.31,-2.31 v 
+            -9.87 c 0,-0.62 -0.23,-1.24 -0.68,-1.69 L 20.76,7.62 C 20.31,7.17 19.74,6.94 19.07,6.94" id="path2"/>
+            <path class="cls-1" d="m 18.2,6.95 h 1.22 c 0.56,0 1.02,0.45 1.02,1.02 v 2.99 c 0,0.4 0.33,0.73 0.73,0.73 h 2.82 
+            c 0.56,0 0.96,0.46 0.96,1.02 0,0 0,4.7 0,9.97 0,1.3 -1,2.36 -2.31,2.36 h -9.05 c -1.3,0 -2.36,-1.06 -2.36,-2.36 v 
+            -6.25" id="path3"/>
+            </g>
+            <g id="g6">
+            <path d="m 12.75,18.99 h 1.79 c 0.29,0 0.52,0.04 0.7,0.13 0.18,0.08 0.32,0.19 0.42,0.31 0.1,0.12 0.17,0.26 0.2,0.41 
+            0.04,0.15 0.05,0.28 0.05,0.41 0,0.13 -0.02,0.26 -0.05,0.41 -0.04,0.15 -0.1,0.28 -0.2,0.41 -0.1,0.13 -0.24,0.23 -0.42,
+            0.31 -0.18,0.08 -0.42,0.12 -0.7,0.12 h -1.08 v 1.56 H 12.75 V 19 Z m 0.71,1.92 h 1.04 c 0.08,0 0.16,-0.01 0.24,-0.03 
+            0.08,-0.02 0.16,-0.06 0.23,-0.11 0.07,-0.05 0.13,-0.12 0.17,-0.2 0.04,-0.08 0.07,-0.19 0.07,-0.32 0,-0.13 -0.02,-0.24 
+            -0.06,-0.33 C 15.11,19.83 15.06,19.76 15,19.71 14.94,19.66 14.86,19.62 14.78,19.6 14.7,19.58 14.61,19.57 14.51,19.57 
+            h -1.05 z" id="path4"/>
+            <path d="m 16.54,18.99 h 1.68 c 0.31,0 0.58,0.05 0.81,0.16 0.23,0.11 0.41,0.25 0.56,0.43 0.14,0.18 0.25,0.4 0.32,0.64 
+            0.07,0.25 0.1,0.51 0.1,0.79 0,0.28 -0.04,0.54 -0.1,0.79 -0.07,0.25 -0.18,0.46 -0.32,0.64 -0.14,0.18 -0.33,0.33 
+            -0.56,0.43 -0.23,0.11 -0.5,0.16 -0.81,0.16 h -1.68 v -4.06 z m 0.71,3.47 h 0.7 c 0.28,0 0.5,-0.04 0.68,-0.11 0.18,
+            -0.07 0.31,-0.18 0.41,-0.31 0.1,-0.13 0.17,-0.28 0.2,-0.46 0.03,-0.18 0.05,-0.37 0.05,-0.57 0,-0.2 -0.02,-0.39 -0.05,
+            -0.57 -0.03,-0.18 -0.1,-0.33 -0.2,-0.46 -0.1,-0.13 -0.24,-0.23 -0.41,-0.31 -0.18,-0.07 -0.4,-0.11 -0.68,-0.11 h -0.7 
+            z" id="path5"/><path d="m 20.64,18.99 h 2.8 v 0.61 h -2.09 v 1.06 h 1.84 v 0.58 h -1.84 v 1.8 h -0.71 v -4.06 z" 
+            id="path6"/></g></g>
+        </svg>`
 };
