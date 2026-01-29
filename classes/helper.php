@@ -37,9 +37,9 @@ class helper {
     }
 
     /**
-     * Tiny cursive plugin update comment observer.
+     * Updates comments in the tiny_cursive_comments table.
      *
-     * @param \core\event\base $event The event object
+     * @param array $data Array containing userid, modulename, courseid, cmid and resourceid
      * @throws \dml_exception
      */
     public static function update_comment($data) {
@@ -64,10 +64,9 @@ class helper {
     }
 
     /**
-     * Tiny cursive plugin update cursive files observer.
+     * Updates cursive file in the tiny_cursive_files table.
      *
-     * @param \core\event\base $event The event object
-     * @return void
+     * @param array $data Array containing userid, modulename, courseid, cmid and resourceid
      * @throws \dml_exception
      */
     public static function update_cursive_files($data) {
@@ -93,7 +92,6 @@ class helper {
      *
      * @param array $conditions The conditions to find records to update
      * @param string $table The database table name
-     * @param array $data The event data containing user, course and context info
      * @param int $postid The post ID to update the records with
      * @return void
      * @throws \dml_exception

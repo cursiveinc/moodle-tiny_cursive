@@ -903,7 +903,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
      *   Sets resourceId to the annotation ID extracted from editor.id
      * - Otherwise: Sets resourceId to 0
      */
-    function  checkIsPdfAnnotator() {
+    function checkIsPdfAnnotator() {
         if (ur.includes('pdfannotator')) {
             if (editor.id !== 'id_pdfannotator_content' && parseInt(localStorage.getItem('isEditing'))) {
                 resourceId = parseInt(editor?.id.replace('editarea', ''));

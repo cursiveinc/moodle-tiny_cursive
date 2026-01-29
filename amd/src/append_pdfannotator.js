@@ -114,7 +114,7 @@ export const init = (scoreSetting, comments, hasApiKey, userid) => {
             let userId = null;
             let userLink = null;
 
-            switch(action) {
+            switch (action) {
                 case 'overviewquestions':
                     userLink = links.link2;
                     break;
@@ -156,7 +156,7 @@ export const init = (scoreSetting, comments, hasApiKey, userid) => {
         }
     }
 
-    const updateEntries = async (methodname, args) => {
+    const updateEntries = async(methodname, args) => {
         try {
             const response = await call([{
                 methodname,
@@ -181,7 +181,7 @@ export const init = (scoreSetting, comments, hasApiKey, userid) => {
      */
     function extractResourceId(id) {
 
-        // prevent updating ID while editing a existing entry.
+        // Prevent updating ID while editing a existing entry.
         if (buttonElement === 'Save') {
 
             pendingSubmit = false;

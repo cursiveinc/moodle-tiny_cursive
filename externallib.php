@@ -1659,9 +1659,12 @@ class cursive_json_func_data extends external_api {
             ],
         );
 
-        if ($params['resourceId'] == 0 && $params['modulename'] !== 'forum' && $params['modulename'] !== 'oublog' && $params['modulename'] !== 'pdfannotator') {
-            // For Quiz and Assignment there is no resourceid that's why cmid is resourceid.
+        if (
+            $params['resourceId'] == 0 && $params['modulename'] !== 'forum' && $params['modulename'] !== 'oublog' &&
+            $params['modulename'] !== 'pdfannotator'
+        ) {
             $params['resourceId'] = $params['cmid'];
+            // For Quiz and Assignment there is no resourceid that's why cmid is resourceid.
         }
 
         $courseid = 0;
@@ -2185,11 +2188,11 @@ class cursive_json_func_data extends external_api {
     /**
      * Updates the PDF annotation ID for a comment record
      *
-     * @param int $resourceid The PDF annotation comment ID
-     * @param string $modulename The name of the module
      * @param int $cmid The course module ID
      * @param int $userid The user ID (defaults to current user)
      * @param int $courseid The course ID
+     * @param string $modulename The name of the module
+     * @param int $resourceid The PDF annotation comment ID
      * @return bool
      * @throws coding_exception
      * @throws dml_exception
