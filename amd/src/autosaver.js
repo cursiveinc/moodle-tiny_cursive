@@ -60,9 +60,19 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
     let shouldBlockPaste = false;
     let isPasteAllowed = false;
 
-    if (modulename !== 'assign') {
-        PASTE_SETTING = 'cite_source';
+    if (ur.includes('pdfannotator')) {
+        document.addEventListener('click', e => {
+            if (e.target.className === "dropdown-item comment-edit-a") {
+                let id = e.target.id;
+                resourceId = id.replace('editButton', '');
+                localStorage.setItem('isEditing', '1');
+            }
+            if (e.target.id === 'commentSubmit') {
+                syncData();
+            }
+        });
     }
+
     const postOne = async(methodname, args) => {
         try {
             const response = await call([{
@@ -299,7 +309,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
         editor.rePosition = position.rePosition;
         sendKeyEvent("keyDown", editor);
     });
-     editor.on('Cut', () => {
+    editor.on('Cut', () => {
         const selectedContent = editor.selection.getContent({format: 'text'});
         localStorage.setItem('lastCopyCutContent', selectedContent.trim());
     });
@@ -465,75 +475,75 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
      */
     function getCaretPosition(skip = false) {
         try {
-          if (!editor || !editor.selection) {
+            if (!editor || !editor.selection) {
             return {caretPosition: 0, rePosition: 0};
-          }
+            }
 
-          const range = editor.selection.getRng();
-          const body = editor.getBody();
+            const range = editor.selection.getRng();
+            const body = editor.getBody();
 
-          // Create a range from start of document to current caret
-          const preCaretRange = range.cloneRange();
-          preCaretRange.selectNodeContents(body);
-          preCaretRange.setEnd(range.endContainer, range.endOffset);
+            // Create a range from start of document to current caret
+            const preCaretRange = range.cloneRange();
+            preCaretRange.selectNodeContents(body);
+            preCaretRange.setEnd(range.endContainer, range.endOffset);
 
-          const fragment = preCaretRange.cloneContents();
-          const tempDiv = document.createElement('div');
-          tempDiv.appendChild(fragment);
-          let textBeforeCursor = tempDiv.innerText || '';
+            const fragment = preCaretRange.cloneContents();
+            const tempDiv = document.createElement('div');
+            tempDiv.appendChild(fragment);
+            let textBeforeCursor = tempDiv.innerText || '';
 
-          const endContainer = range.endContainer;
-          const endOffset = range.endOffset;
+            const endContainer = range.endContainer;
+            const endOffset = range.endOffset;
 
-          if (endOffset === 0 &&
-              endContainer.nodeType === Node.ELEMENT_NODE &&
-              editor.dom.isBlock(endContainer) &&
-              endContainer.previousSibling) {
-              textBeforeCursor += '\n';
-          }
-          const blockElements = tempDiv.querySelectorAll('p, div, h1, h2, h3, h4, h5, h6, li');
-          let emptyBlockCount = 0;
-          blockElements.forEach(block => {
+            if (endOffset === 0 &&
+                endContainer.nodeType === Node.ELEMENT_NODE &&
+                editor.dom.isBlock(endContainer) &&
+                endContainer.previousSibling) {
+                textBeforeCursor += '\n';
+            }
+            const blockElements = tempDiv.querySelectorAll('p, div, h1, h2, h3, h4, h5, h6, li');
+            let emptyBlockCount = 0;
+            blockElements.forEach(block => {
             const text = block.innerText || block.textContent || '';
             if (text.trim() === '' && block.childNodes.length === 1 &&
                 block.childNodes[0].nodeName === 'BR') {
-              emptyBlockCount++;
+                emptyBlockCount++;
             }
-          });
+            });
 
-          // Add newlines for empty blocks (these represent Enter presses that created empty lines)
-          if (emptyBlockCount > 0) {
+            // Add newlines for empty blocks (these represent Enter presses that created empty lines)
+            if (emptyBlockCount > 0) {
             textBeforeCursor += '\n'.repeat(emptyBlockCount);
-          }
+            }
 
-          const absolutePosition = textBeforeCursor.length;
+            const absolutePosition = textBeforeCursor.length;
 
-          if (skip) {
+            if (skip) {
             return {
-              caretPosition: lastCaretPos,
-              rePosition: absolutePosition
+                caretPosition: lastCaretPos,
+                rePosition: absolutePosition
             };
-          }
-          // Increment sequential caretPosition
-          const storageKey = `${userid}_${resourceId}_${cmid}_position`;
-          let storedPos = parseInt(sessionStorage.getItem(storageKey), 10);
-          if (isNaN(storedPos)) {
+            }
+            // Increment sequential caretPosition
+            const storageKey = `${userid}_${resourceId}_${cmid}_position`;
+            let storedPos = parseInt(sessionStorage.getItem(storageKey), 10);
+            if (isNaN(storedPos)) {
             storedPos = 0;
-          }
-          storedPos++;
-          lastCaretPos = storedPos;
-          sessionStorage.setItem(storageKey, storedPos);
+            }
+            storedPos++;
+            lastCaretPos = storedPos;
+            sessionStorage.setItem(storageKey, storedPos);
 
-          return {
+            return {
             caretPosition: storedPos,
             rePosition: absolutePosition
-          };
+            };
 
         } catch (e) {
             window.console.warn('Error getting caret position:', e);
             return {caretPosition: lastCaretPos || 1, rePosition: 0};
         }
-      }
+    }
 
 
     /**
@@ -545,14 +555,18 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
      * @throws {Error} Logs error to console if data submission fails
      */
     async function syncData() {
-
+        checkIsPdfAnnotator();
         let data = localStorage.getItem(filename);
 
         if (!data || data.length === 0) {
             return;
         } else {
             localStorage.removeItem(filename);
+            editor.fire('change');
             let originalText = editor.getContent({format: 'text'});
+            if (!originalText) {
+                originalText = getRawText(editor);
+            }
             try {
                 Autosave.updateSavingState('saving');
                 // eslint-disable-next-line
@@ -572,6 +586,28 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
             }
         }
     }
+
+    /**
+     * Gets the raw text content from a TinyMCE editor iframe
+     * @param {Object} editor - The TinyMCE editor instance
+     * @returns {string} The raw text content of the editor body, or empty string if not found
+     * @description Attempts to get the raw text content from the editor's iframe body by:
+     * 1. Getting the editor ID
+     * 2. Finding the associated iframe element
+     * 3. Accessing the iframe's document body
+     * 4. Returning the text content
+     * Returns empty string if any step fails
+     */
+    function getRawText(editor) {
+        let editorId = editor?.id;
+        if (editorId) {
+            let iframe = document.querySelector(`#${editorId}_ifr`);
+            let iframeBody = iframe.contentDocument?.body || iframe.contentWindow?.document?.body;
+            return iframeBody?.textContent;
+        }
+        return "";
+    }
+
     /**
      * Sets up custom tooltip functionality for the Cursive icon
      * Initializes tooltip text, positions the icon in the menubar,
@@ -771,6 +807,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
      */
     function getModulesInfo(ur, parm, MODULES) {
         fetchStrings();
+
         if (!MODULES.some(module => ur.includes(module))) {
             return false;
         }
@@ -796,6 +833,8 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
                 break;
             }
         }
+
+        checkIsPdfAnnotator();
 
         return {resourceId: resourceId, name: modulename};
     }
@@ -854,6 +893,24 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
             }).catch(error => window.console.error(error));
         }
 
+    }
+
+    /**
+     * Checks if the current page is a PDF annotator and updates the resourceId accordingly
+     * @function checkIsPdfAnnotator
+     * @description Checks if URL contains 'pdfannotator' and sets resourceId based on editor ID and editing state:
+     * - If editing an existing annotation (editor.id !== 'id_pdfannotator_content' and isEditing is true):
+     *   Sets resourceId to the annotation ID extracted from editor.id
+     * - Otherwise: Sets resourceId to 0
+     */
+    function checkIsPdfAnnotator() {
+        if (ur.includes('pdfannotator')) {
+            if (editor.id !== 'id_pdfannotator_content' && parseInt(localStorage.getItem('isEditing'))) {
+                resourceId = parseInt(editor?.id.replace('editarea', ''));
+            } else {
+                resourceId = 0;
+            }
+        }
     }
 
     window.addEventListener('unload', () => {

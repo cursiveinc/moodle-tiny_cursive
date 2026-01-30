@@ -166,8 +166,8 @@ function tiny_cursive_coursemodule_standard_elements($formwrapper, $mform) {
     if (in_array($module, constants::NAMES)) {
         $mform->addElement('header', 'cursiveheader', 'Cursive', 'local_callbacks');
         $options = [
-           0 => get_string('disabled', 'tiny_cursive'),
-           1 => get_string('enabled', 'tiny_cursive'),
+            0 => get_string('disabled', 'tiny_cursive'),
+            1 => get_string('enabled', 'tiny_cursive'),
         ];
         $mform->addElement('select', 'cursive', get_string('cursive_status', 'tiny_cursive'), $options);
         $mform->setType('cursive', PARAM_INT);
@@ -175,7 +175,7 @@ function tiny_cursive_coursemodule_standard_elements($formwrapper, $mform) {
         $mform->setdefault('cursive', $state);
     }
 
-    if ($state && $module == 'assign') {
+    if ($state) {
         $pasteoptions = [
             'allow'       => get_string('paste_allow', 'tiny_cursive'),
             'block'       => get_string('paste_block', 'tiny_cursive'),
