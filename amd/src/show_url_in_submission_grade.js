@@ -20,14 +20,16 @@
  * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
  */
 
-define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./analytic_button", "./analytic_events"], function(
+define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./analytic_button", "./analytic_events",
+    "./replay_button"], function(
     $,
     AJAX,
     str,
     templates,
     Replay,
     analyticButton,
-    AnalyticEvents
+    AnalyticEvents,
+    replayButton,
 ) {
     const replayInstances = {};
     // eslint-disable-next-line
@@ -53,7 +55,7 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
     };
 
     var usersTable = {
-        init: function(scoreSetting, showcomment) {
+        init: function(scoreSetting, showcomment, hasApiKey) {
             $(document).ready(function() {
                 $('#page-mod-assign-grader').addClass('tiny_cursive_mod_assign_grader');
             });
@@ -62,11 +64,11 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
                     {key: "field_require", component: "tiny_cursive"},
                 ])
                 .done(function() {
-                    usersTable.appendSubmissionDetail(scoreSetting, showcomment);
+                    usersTable.appendSubmissionDetail(scoreSetting, showcomment, hasApiKey);
                 });
         },
-        // eslint-disable-next-line
-        appendSubmissionDetail: function(scoreSetting, showcomment) {
+
+        appendSubmissionDetail: function(scoreSetting, showcomment, hasApiKey) {
             $(document).ready(function($) {
 
                 var divElement = $('.path-mod-assign [data-region="grade-panel"]')[0];
@@ -102,7 +104,6 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
                     }
 
                     let analyticButtonDiv = document.createElement('div');
-                    analyticButtonDiv.append(analyticButton(userid));
                     analyticButtonDiv.classList.add('text-center', 'mt-2');
 
                     $('div[data-region="grade-actions"]').before(analyticButtonDiv);
@@ -115,6 +116,11 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
 
                     $('div[data-region="grade-actions-panel"]').addClass('cursive_grade-actions-panel_path_mod_assign');
 
+                    if (!hasApiKey) {
+                        $(analyticButtonDiv).html(replayButton(userid));
+                    } else {
+                        analyticButtonDiv.append(analyticButton(data.data.effort_ratio, userid));
+                    }
 
                     let myEvents = new AnalyticEvents();
                     var context = {
@@ -122,15 +128,16 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
                         formattime: myEvents.formatedTime(data.data),
                         page: scoreSetting,
                         userid: userid,
+                        apikey: hasApiKey
                     };
 
                     let authIcon = myEvents.authorshipStatus(data.data.first_file, data.data.score, scoreSetting);
 
-                    myEvents.createModal(userid, context, '', authIcon);
+                    myEvents.createModal(userid, context, '', replayInstances, authIcon);
                     myEvents.analytics(userid, templates, context, '', replayInstances, authIcon);
                     myEvents.checkDiff(userid, data.data.file_id, '', replayInstances);
                     myEvents.replyWriting(userid, filepath, '', replayInstances);
-                    myEvents.quality(userid, templates, context, '', replayInstances, M.cfg.contextInstanceId);
+
 
                 });
                 return com.usercomment;

@@ -20,14 +20,16 @@
  * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
  */
 
-define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./analytic_button", "./analytic_events"], function(
+define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./analytic_button", "./analytic_events",
+    "./replay_button"], function(
     $,
     AJAX,
     str,
     templates,
     Replay,
     analyticButton,
-    AnalyticEvents
+    AnalyticEvents,
+    replayButton
 ) {
     const replayInstances = {};
     // eslint-disable-next-line
@@ -51,16 +53,17 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
     };
 
     var usersTable = {
-        init: function(scoreSetting, showcomment) {
+
+        init: function(scoreSetting, showcomment, hasApiKey) {
             str
                 .get_strings([
                     {key: "field_require", component: "tiny_cursive"},
                 ])
                 .done(function() {
-                    usersTable.appendSubmissionDetail(scoreSetting, showcomment);
+                    usersTable.appendSubmissionDetail(scoreSetting, hasApiKey);
                 });
         },
-        appendSubmissionDetail: function(scoreSetting, showcomment) {
+        appendSubmissionDetail: function(scoreSetting, hasApiKey) {
             let subUrl = window.location.href;
             let parm = new URL(subUrl);
             let attemptId = parm.searchParams.get('attempt');
@@ -96,19 +99,9 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
 
                         var content = $('.que.essay .editquestion a[href*="question/bank/editquestion/question.php"][href*="&id='
                             + data.data.questionid + '"]');
-                        if (data.usercomment != 'comments' && parseInt(showcomment)) {
-                            content.parent().parent().parent().find('.qtext').append('<div class="mb-2">');
-                            var tt = "";
-                            // eslint-disable-next-line
-                            str.get_string('refer', 'tiny_cursive').then(str => {
-                                tt += '<h4>' + str + '</h4><div class = "tiny_cursive-quiz-references rounded" >';
-
-                                data.usercomment.forEach(element => {
-                                    tt += '<div class = " p-3" style="border-bottom:1px solid rgba(0, 0, 0, 0.1); color: #0f6cbf">'
-                                        + element.usercomment + '</div>';
-                                });
-                                content.parent().parent().parent().find('.qtext').append(tt + '</div></div>');
-                            }).catch(error => window.console.error(error));
+                        if (content.length == 0) {
+                            content = $('.que.aitext .editquestion a[href*="question/bank/editquestion/question.php"][href*="&id='
+                            + data.data.questionid + '"]');
                         }
                         var filepath = '';
                         if (data.data.filename) {
@@ -116,7 +109,13 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
                         }
                         let analyticButtonDiv = document.createElement('div');
                         analyticButtonDiv.classList.add('text-center', 'mt-2');
-                        analyticButtonDiv.append(analyticButton(userid, questionid));
+
+                        if (!hasApiKey) {
+                            $(analyticButtonDiv).html(replayButton(userid + questionid));
+                        } else {
+                            analyticButtonDiv.append(analyticButton(data.data.effort_ratio, userid, questionid));
+                        }
+
                         content.parent().parent().parent().find('.qtext').append(analyticButtonDiv);
 
                         let myEvents = new AnalyticEvents();
@@ -126,14 +125,14 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
                             page: scoreSetting,
                             userid: userid,
                             quizid: questionid,
+                            apikey: hasApiKey
                         };
 
                         let authIcon = myEvents.authorshipStatus(data.data.first_file, data.data.score, scoreSetting);
-                        myEvents.createModal(userid, context, questionid, authIcon);
+                        myEvents.createModal(userid, context, questionid, replayInstances, authIcon);
                         myEvents.analytics(userid, templates, context, questionid, replayInstances, authIcon);
                         myEvents.checkDiff(userid, data.data.file_id, questionid, replayInstances);
                         myEvents.replyWriting(userid, filepath, questionid, replayInstances);
-                        myEvents.quality(userid, templates, context, questionid, replayInstances, cmid);
 
                     }
                 });

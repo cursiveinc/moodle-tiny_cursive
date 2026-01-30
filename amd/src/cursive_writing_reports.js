@@ -20,14 +20,21 @@
  * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
  */
 
-define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", './analytic_button', "./analytic_events"], function(
+define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", './analytic_button', './replay_button',
+"./analytic_events", "core/modal_events", 'core/modal_save_cancel', 'core/modal_factory', 'core/modal'],
+    function(
     $,
     AJAX,
     str,
     templates,
     Replay,
     analyticButton,
-    AnalyticEvents
+    replayButton,
+    AnalyticEvents,
+    Events,
+    Modal,
+    Factory,
+    Alert
 ) {
     const replayInstances = {};
     // eslint-disable-next-line
@@ -51,7 +58,7 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", './anal
 
     };
     var usersTable = {
-        init: function(page) {
+        init: function(page, hasApiKey, csvOption) {
             str
                 .get_strings([
                     {key: "field_require", component: "tiny_cursive"},
@@ -64,7 +71,7 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", './anal
             (async function() {
                 try {
                     let scoreSetting = await str.get_string('confidence_threshold', 'tiny_cursive');
-                    analyticsEvents(scoreSetting);
+                    analyticsEvents(scoreSetting, hasApiKey, parseInt(csvOption));
                 } catch (error) {
                     window.console.error('Error fetching string:', error);
                 }
@@ -79,8 +86,10 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", './anal
              * the modal.
              *
              * @param {Object} scoreSetting - Configuration settings related to scoring.
+             * @param {boolean} hasApiKey - api key status
+             * @param {boolean} csvOption - csv option status
              */
-            function analyticsEvents(scoreSetting) {
+            function analyticsEvents(scoreSetting, hasApiKey, csvOption) {
 
                 $(".analytic-modal").each(function() {
                     var mid = $(this).data("id");
@@ -88,7 +97,6 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", './anal
                     let context = {};
                     context.userid = mid;
                     let cmid = $(this).data("cmid");
-                    $(this).html(analyticButton($(this).data('id')));
 
                     AJAX.call([{
                         methodname: 'cursive_get_writing_statistics',
@@ -99,20 +107,115 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", './anal
                     }])[0].done(response => {
                         let data = JSON.parse(response.data);
 
+                        // Show replay button if no API key, otherwise show analytics button
+                        if (!hasApiKey) {
+                            $(this).html(replayButton(mid));
+                        } else {
+                            $(this).html(analyticButton(data.effort_ratio, $(this).data('id')));
+                        }
+
                         context.formattime = myEvents.formatedTime(data);
                         context.tabledata = data;
+                        context.apikey = hasApiKey;
                         // Perform actions that require context.tabledata
                         let authIcon = myEvents.authorshipStatus(data.first_file, data.score, scoreSetting);
-                        myEvents.createModal(mid, context, '', authIcon);
+                        myEvents.createModal(mid, context, '', replayInstances, authIcon);
                         myEvents.analytics(mid, templates, context, '', replayInstances, authIcon);
                         myEvents.checkDiff(mid, mid, '', replayInstances);
                         myEvents.replyWriting(mid, filepath, '', replayInstances);
-                        myEvents.quality(mid, templates, context, '', replayInstances, cmid);
+
                     }).fail(error => {
                         throw new Error('Error: ' + error.message);
                     });
 
                 });
+
+                $('.download-btn').on('click', async function(e) {
+                    e.preventDefault();
+
+                    const link1 = $(this).attr('href');
+                    const link2 = $(this).data('link');
+
+                    let type = Factory.types.SAVE_CANCEL;
+                    let optionModal = Modal;
+                    let select = document.createElement('select');
+                    select.id = "download-type";
+                    select.classList.add('form-control', 'inputUrl');
+
+                    let title = await str.get_string('download', 'tiny_cursive');
+
+                    // Add CSV option
+                    if (csvOption) {
+                        try {
+                            const text = await str.get_string('payloadjson', 'tiny_cursive');
+                            let option = document.createElement('option');
+                            option.text = text;
+                            option.value = 0;
+                            select.appendChild(option);
+                        } catch (error) {
+                            window.console.error(error);
+                        }
+                    }
+
+                    // Add API key option
+                    if (hasApiKey) {
+                        try {
+                            const text = await str.get_string('analyticspdf', 'tiny_cursive');
+                            let option2 = document.createElement('option');
+                            option2.text = text;
+                            option2.value = 1;
+                            select.appendChild(option2);
+                        } catch (error) {
+                            window.console.error(error);
+                        }
+                    }
+
+                    // If no options available
+                    if (!hasApiKey && !csvOption) {
+                        try {
+                            const noOptionText = await str.get_string('no_option', 'tiny_cursive');
+                            const messageText = await str.get_string('message', 'tool_dataprivacy');
+                            title = messageText;
+                            type = Factory.types.ALERT;
+                            optionModal = Alert;
+                            select = noOptionText;
+                        } catch (error) {
+                            window.console.error(error);
+                        }
+                    }
+
+                    optionModal.create({
+                        type: type,
+                        title: title,
+                        body: select,
+                        removeOnClose: true,
+                        buttons: type === Factory.types.SAVE_CANCEL ? [{
+                            text: 'OK',
+                            type: 'submit',
+                            primary: true
+                        }] : []
+                    }).then(modal => {
+                        modal.show();
+
+                        if (type === Factory.types.SAVE_CANCEL) {
+                            modal.getRoot().on(Events.save, function() {
+                                const data = document.getElementById('download-type');
+                                if (!data) {
+                                    return;
+                                }
+                                if (parseInt(data.value)) {
+                                    window.location.href = link2;
+                                } else {
+                                    window.location.href = link1;
+                                }
+                            });
+                        }
+                        return modal;
+                    }).catch(error => {
+                        window.console.error('failed to open modal', error);
+                    });
+                });
+
             }
         },
         getusers: function(page) {

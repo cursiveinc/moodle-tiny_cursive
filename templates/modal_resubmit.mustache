@@ -15,27 +15,18 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template tiny_cursive/quality_chart
+    @template tiny_cursive/modal_resubmit
 
-    This template displays a quality chart for cursive handwriting features.
-    The chart shows different handwriting features and their corresponding scores.
+    Modal template for the resubmit dialog in the Cursive TinyMCE plugin.
+    This template displays a toast notification with a resubmit button an
 
     Example context (json):
     {
-        "userid": "123",
-        "features": [
-            {
-                "name": "Letter Formation",
-                "score": 85
-            },
-            {
-                "name": "Spacing",
-                "score": 75
-            }
-        ]
     }
 }}
-<div class="position-relative">
-    <span class="tiny_cursive_quality"><strong>{{#str}}feature, tiny_cursive {{/str}}</strong></span>
-    <canvas id="chart{{userid}}" width="541" height="460"></canvas>
+<div class="tiny_cursive-toast-body" id="cursive-toast-body">
+    <span id="ToastTextContent">{{#str}}resubmit, tiny_cursive {{/str}} </span>
+    <a href="#" id="cursive-resubmit" class="d-block btn btn-sm mt-2 border rounded">
+        <span id="toastOverlay" class="d-none">{{#pix}}i/loading, core{{/pix}}</span>{{#str}}resubmitbtn, tiny_cursive{{/str}}
+    </a>
 </div>

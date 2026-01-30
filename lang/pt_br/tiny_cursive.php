@@ -1,0 +1,276 @@
+<?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * Strings for component 'tiny_cursive', language 'pt_br'
+ *
+ * @package    tiny_cursive
+ * @category   string
+ * @copyright  2025 Cursive Technology, Inc. <info@cursivetechnology.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+defined('MOODLE_INTERNAL') || die();
+
+$string['allcourses'] = 'Todos os cursos';
+$string['allmodule'] = 'Todos os módulos';
+$string['alluser'] = 'Todos os usuários';
+$string['analytics'] = 'Analítica';
+$string['analyticspdf'] = 'PDF de Analítica';
+$string['answeringto'] = 'Respondendo à questão';
+$string['api_addr_url'] = 'URL do endereço da API';
+$string['api_url'] = 'URL da API';
+$string['apply_filter'] = 'Por favor, aplique um filtro!';
+$string['assignment'] = 'Tarefa';
+$string['attemptid'] = 'ID da tentativa';
+$string['authorship'] = 'Confiança de Autoria ';
+$string['authorship_desc'] = 'Status de verificação do TypeID';
+$string['average'] = 'Média';
+$string['average_min'] = 'Média de palavras por minuto:';
+$string['backspace'] = 'Revisão %';
+$string['backspace_desc'] = 'Porcentagem de uso de backspace e delete';
+$string['backspace_percent'] = 'Porcentagem de backspace';
+$string['character_count'] = 'Contagem de caracteres';
+$string['character_verify'] = 'Verificação de caracteres';
+$string['characters_per_minute'] = 'Caracteres por minuto';
+$string['chart_result'] = 'Exibindo resultados com base no Curso e Módulo';
+$string['chart_result_user'] = 'Exibindo resultados com base no Curso, Módulo e Usuário';
+$string['cite_src'] = 'Habilitar citar-fonte';
+$string['cite_src_des'] = 'Exibir comentários de citar-fonte abaixo da publicação quando habilitado';
+$string['close'] = 'Fechar';
+$string['comments'] = 'Comentários';
+$string['confidence_threshold'] = '0.65';
+$string['confidence_thresholds'] = 'Limite de Confiança';
+$string['copy_behave'] = 'Comportamento de cópia:';
+$string['copybehavior'] = 'Comportamento de cópia';
+$string['course'] = 'Curso';
+$string['courseid'] = 'ID do curso';
+$string['coursename'] = 'Nome do curso';
+$string['curlerror'] = 'Erro Curl';
+$string['cursive:dis:fail'] = 'Falha ao desabilitar o Cursive.';
+$string['cursive:dis:succ'] = 'Cursive desabilitado com sucesso.';
+$string['cursive:editsettings'] = 'Acessar configurações do plugin';
+$string['cursive:ena:fail'] = 'Falha ao habilitar o Cursive.';
+$string['cursive:ena:succ'] = 'Cursive habilitado com sucesso.';
+$string['cursive:state:active'] = 'O Cursive está ativo:';
+$string['cursive:state:active:des'] = 'Seu rascunho e edição agora estão sendo capturados como parte de sua submissão.';
+$string['cursive:status'] = 'Ocorreu um erro ao desabilitar o Cursive.';
+$string['cursive:use'] = 'Usar TinyMCE Cursive';
+$string['cursive:view'] = 'Ver relatórios de escrita';
+$string['cursive:write'] = 'Gravar arquivo JSON ou inserir registros';
+$string['cursive:writingreport'] = 'Acesso à analítica';
+$string['cursive_enable_notice'] = 'Habilitar este recurso ativará o plugin Cursive para este curso. Certifique-se de que todos os participantes sejam informados sobre seu uso.';
+$string['cursive_more_info'] = 'Por favor, visite o Cursive para mais informações.';
+$string['cursive_status'] = 'Status do Cursive';
+$string['cursivedisable'] = 'Configurações Globais do Cursive';
+$string['cursivedisable_des'] = 'Esta configuração desabilitará ou habilitará o Cursive para todos os cursos. Você também pode reabilitar ou desabilitá-lo individualmente através das configurações do curso.';
+$string['data_save'] = 'Dados salvos com sucesso';
+$string['data_visualization'] = 'Visualização';
+$string['date'] = 'Data';
+$string['description'] = 'descrição';
+$string['details'] = 'detalhes';
+$string['difference'] = 'Diferença';
+$string['disable'] = 'Desabilitar';
+$string['disabled'] = 'Desabilitado';
+$string['discussion'] = 'Discussão';
+$string['download'] = 'Baixar';
+$string['download_attempt_json'] = 'Baixar JSON da tentativa';
+$string['download_csv'] = 'Baixar relatório cumulativo';
+$string['download_pdf_message'] = 'O download foi iniciado. Você será redirecionado em breve.';
+$string['draft'] = 'Rascunho (Enviado)';
+$string['draftnot'] = 'Rascunho (Não enviado)';
+$string['due'] = 'Prazo';
+$string['edits'] = 'Edições';
+$string['edits_des'] = 'As edições são exatamente o que você pensa que são, movimento de palavras, alterações em caracteres e texto, e atualizações que você faz como parte do processo de edição. Isso é simplesmente a contagem de uso de teclas como Ctrl, Delete e Backspace. Maior edição pode levar a uma escrita mais concisa, clara e refinada.';
+$string['editspastesai'] = 'Edições/Colagens/IA';
+$string['effort_ratio'] = 'Esforço';
+$string['effort_ratio_desc'] = 'Total de caracteres de esforço verificado / total de caracteres na submissão';
+$string['email'] = 'Email';
+$string['enable'] = 'Habilitar';
+$string['enabled'] = 'Habilitado';
+$string['enter_nonzerovalue'] = 'Por favor, selecione pelo menos 5 segundos';
+$string['enter_numericvalue'] = 'Por favor, insira um valor numérico';
+$string['enter_time'] = 'Inserir horário';
+$string['errorverifyingtoken'] = 'Erro ao verificar o token';
+$string['failed'] = 'Falhou';
+$string['feature'] = 'Recurso';
+$string['field_require'] = 'Este campo é obrigatório';
+$string['filenotfound'] = 'Arquivo não encontrado!';
+$string['filenotfoundor'] = 'Arquivo não encontrado! ou Falha ao ler o arquivo';
+$string['filesizelimit'] = 'O arquivo excede o limite de tamanho de 16MB.';
+$string['freemium'] = 'VOCÊ ESTÁ USANDO A VERSÃO LIMITADA';
+$string['freemium_desc'] = 'Saiba mais sobre nossos recursos premium';
+$string['fullmodeerror'] = 'Não foi possível inicializar a visualização do documento em modo de tela cheia. Abrindo visualização padrão.';
+$string['fullmodeerrorr'] = 'Você está offline no momento. O conteúdo salvo não pode ser recuperado até você estar online novamente.';
+$string['fullname'] = 'Nome completo';
+$string['fullsubmission'] = 'Texto Completo da Submissão';
+$string['generate'] = 'Gerar';
+$string['gradenot'] = 'Não avaliado';
+$string['gradings'] = 'Status da Avaliação';
+$string['host_domain'] = 'Seu domínio de hospedagem.';
+$string['importantdates'] = 'Datas Importantes';
+$string['invalidjson'] = 'Conteúdo JSON inválido no arquivo.';
+$string['invalidparameters'] = 'Parâmetros inválidos foram fornecidos.';
+$string['json_des'] = 'Exibir opção de download de payload quando habilitado';
+$string['json_title'] = 'Habilitar download de payload';
+$string['key_count'] = 'Contagem de teclas';
+$string['keys_per_minute'] = 'Teclas por minuto';
+$string['last_modified'] = 'Última modificação';
+$string['learn_more'] = 'Saiba Mais';
+$string['legend'] = 'Legenda';
+$string['module_name'] = 'Nome do módulo';
+$string['moodle_host'] = 'Hospedagem Moodle';
+$string['name'] = 'Nome';
+$string['new_admin_desc'] = 'Personalizar o texto de notificação e o link exibidos ao habilitar o Cursive na página de configurações do curso.';
+$string['new_admin_heading'] = 'Mais Informações sobre o Cursive';
+$string['no_option'] = 'Nenhuma opção disponível!';
+$string['no_submission'] = 'Sem submissão';
+$string['nolimit'] = 'Sem limite';
+$string['nopasteevent'] = 'Nenhum evento de colagem detectado para esta submissão.';
+$string['nopaylod'] = 'Sem dados de payload!';
+$string['note_text_title'] = 'Texto de notificação';
+$string['note_url_text'] = 'Título do URL';
+$string['note_url_title'] = 'URL';
+$string['notenoughtinfo'] = 'Informação insuficiente para verificar a autoria';
+$string['offline'] = 'offline';
+$string['opened'] = 'Aberto';
+$string['orderby'] = 'Ordenar Por';
+$string['original_text'] = 'Texto original';
+$string['overdue'] = 'Atrasado';
+$string['p_burst_cnt'] = 'Contagem de P-burst';
+$string['p_burst_cnt_des'] = 'Um p-burst é uma característica comum da analítica de escrita. Resumindo, é uma sequência de escrita até o ponto em que o escritor faz uma pausa de 2 segundos ou mais. Uma sessão de escrita é invariavelmente composta por muitos p-bursts que podem ser quantificados. Especificamente, este recurso reflete o número total de sequências na sessão ou sessões de escrita deste documento. Este número pode ser comparado com a média, mas números mais baixos ou mais altos não necessariamente se traduzem em bom ou ruim.';
+$string['p_burst_mean'] = 'Média de P-Burst';
+$string['p_burst_mean_des'] = 'A média de p-burst é o número médio de pressionamentos sequenciais entre pausas. Este é um cálculo rápido da sua capacidade de encadear palavras e pensamentos durante o processo de escrita. Você pode descobrir que sua média de p-burst é maior para certos tipos de escrita ou quando está escrevendo sobre determinados temas. Números mais altos aqui podem refletir uma compreensão mais profunda do tema, pensamento mais organizado e menos distrações durante a escrita.';
+$string['pasteEvent'] = 'Eventos de Colagem';
+$string['paste_allow'] = 'Permitir';
+$string['paste_analysis'] = 'Análise de Colagem';
+$string['paste_block'] = 'Bloquear';
+$string['paste_blocked'] = 'Não é permitido colar de fontes externas para esta tarefa.';
+$string['paste_cite_source'] = 'Citar Fonte';
+$string['paste_setting'] = 'Configurações de Colagem';
+$string['paste_setting_help'] = 'Isso permite que você controle se os alunos podem colar texto no editor Tiny ativo. As configurações são Permitir, Bloquear ou usar Citar-fonte. Citar-fonte coleta um comentário do aluno que será visível na aba Diferença e destaca o texto colado na analítica/reprodução do Cursive.';
+$string['pastecount'] = 'Contagem de colagens';
+$string['pastewarning'] = 'Você não pode colar texto sem fornecer a fonte';
+$string['payloadjson'] = 'JSON de Payload';
+$string['pleasewait'] = 'Por favor, aguarde!';
+$string['pluginname'] = 'Cursive';
+$string['pluginname_desc'] = 'Esta configuração do plugin fornece interrupção de copiar-colar por padrão. Para se conectar ao Servidor de Aprendizado de Máquina do Cursive para autoria e analítica de escrita, por favor insira seu token e detalhes do servidor abaixo. Se você não os tiver, por favor entre em contato com info@cursivetechnology.com.';
+$string['pluginname_desc_new'] = 'Obrigado por instalar o Cursive. Para atualizações sobre o roteiro de desenvolvimento do Plugin Moodle do Cursive e para solicitar novos recursos';
+$string['pluginname_desc_new_2'] = 'Este plugin adiciona vários novos recursos ao Moodle para apoiar a integridade acadêmica e o desenvolvimento de habilidades de escrita sem exigir qualquer conexão com a API do Cursive. Estes incluem reprodução de escrita e monitoramento de copiar+colar com citar-fonte.';
+$string['pluginname_desc_new_3'] = 'Conectar seu site à API do Cursive fornece aos seus professores e alunos acesso aos nossos recursos de aprendizado de máquina e IA, incluindo verificação de autoria, similaridade e comparação de texto, analítica de escrita e muito mais. Para solicitar uma Chave Secreta do Cursive e o URL da API, por favor entre em contato com';
+$string['pluginname_desc_new_link'] = 'inscreva-se em nossa newsletter';
+$string['privacy:metadata:database:tiny_cursive'] = 'Informação sobre os dados do tiny cursive.';
+$string['privacy:metadata:database:tiny_cursive:content'] = 'Dados de teclas do usuário para gerar relatório de analítica';
+$string['privacy:metadata:database:tiny_cursive:original_content'] = 'Dados do conteúdo original da submissão do usuário';
+$string['privacy:metadata:database:tiny_cursive:timemodified'] = 'O horário em que os dados foram modificados pela última vez.';
+$string['privacy:metadata:database:tiny_cursive:userid'] = 'O ID do usuário que forneceu os dados.';
+$string['privacy:metadata:database:tiny_cursive_comments'] = 'Informação sobre os dados de comentários do tiny cursive.';
+$string['privacy:metadata:database:tiny_cursive_comments:commenttext'] = 'O texto do comentário.';
+$string['privacy:metadata:database:tiny_cursive_comments:timemodified'] = 'O horário em que o comentário foi modificado pela última vez.';
+$string['privacy:metadata:database:tiny_cursive_comments:userid'] = 'O ID do usuário que forneceu o comentário.';
+$string['privacy:metadata:tiny_cursive'] = 'Dados do usuário do plugin Tiny cursive.';
+$string['progress'] = 'Progresso';
+$string['q_count'] = 'Contagem Q';
+$string['q_count_des'] = 'Q é nosso substituto para caractere. É qualquer tecla alfanumérica em seu teclado (espaços não incluídos). Estas são todas teclas aditivas. Isso difere da Verbosidade na sua exclusão de edições e espaço.';
+$string['quality'] = 'Qualidade';
+$string['quality_access'] = 'Configuração personalizada';
+$string['quality_access_des'] = 'Ativar ou desativar estes recursos de configuração avançada.';
+$string['queswise'] = 'Por questão';
+$string['quizname'] = 'Nome da atividade';
+$string['random_reflex'] = 'Sua reflexão aleatória';
+$string['refer'] = 'Referências';
+$string['remaining'] = 'Restante';
+$string['replay'] = 'Reproduzir';
+$string['replyingto'] = 'Respondendo à Publicação';
+$string['report_date'] = 'Data do Relatório';
+$string['report_gen'] = 'Relatório gerado em';
+$string['report_sub_title'] = 'Análise Abrangente de Analítica de Escrita e Atribuição';
+$string['report_title'] = 'Relatório de Análise de Submissão do Aluno';
+$string['resubmit'] = 'Não foi possível recuperar dados de payload. Por favor, verifique sua conexão e tente reenviar a solicitação.';
+$string['resubmitbtn'] = 'Reenviar';
+$string['retrivedta'] = 'Recuperar Dados';
+$string['rubrics'] = 'Rubricas de Avaliação';
+$string['savechanges'] = 'Salvar alterações';
+$string['saved'] = 'salvo';
+$string['savedcontent'] = 'Conteúdo Salvo';
+$string['saving'] = 'salvando';
+$string['score'] = 'Pontuação';
+$string['secretkey'] = 'Chave Secreta do Cursive';
+$string['secretkey_desc'] = 'A Chave Secreta da API da conta Cursive. Por favor, gere um novo token de webservice se você atualizou/adicionou esta chave.';
+$string['sectionadvance'] = 'Avançado';
+$string['sectionadvance_desc'] = 'Configurações personalizadas para Métricas de Qualidade';
+$string['select_time'] = 'Selecionar opção de horário';
+$string['selectcrs'] = 'Selecionar Curso';
+$string['selectmodule'] = 'Selecionar módulo';
+$string['selectquiz'] = 'Selecionar um questionário';
+$string['selectuser'] = 'Selecionar um usuário';
+$string['sent_word_count_mean'] = 'Média de palavras por frase';
+$string['sent_word_count_mean_des'] = 'Este cálculo simples é o total estimado de palavras dividido pelo número de frases, fornecendo uma média de palavras por frase. O comprimento das frases aumenta à medida que as habilidades de escrita se desenvolvem e os escritores progridem de configurações simples de sujeito mais verbo para frases compostas e complexas com pontuação avançada.';
+$string['sentence_count'] = 'Contagem de frases';
+$string['sentence_count_des'] = 'O número total de frases em sua escrita é um produto do seu uso de pontuação, que reflete o valor calculado aqui.';
+$string['stats'] = 'Estatísticas';
+$string['status'] = 'Status';
+$string['stndtime'] = 'Horário padrão';
+$string['student_info'] = 'Informação do Aluno';
+$string['student_name'] = 'Nome do Aluno';
+$string['student_writing_statics'] = 'Estatísticas de escrita';
+$string['subjectnot'] = 'O assunto ou mensagem não pode estar vazio.';
+$string['submission_content'] = 'Análise do Conteúdo da Submissão';
+$string['submission_date'] = 'Data da Submissão';
+$string['submission_status'] = 'Status da Submissão';
+$string['submissionqueued'] = 'Submissão colocada novamente na fila: a submissão será sincronizada na próxima tarefa agendada. Por favor, verifique novamente em alguns minutos.';
+$string['success'] = 'Sucesso';
+$string['syncinterval'] = 'Intervalo de sincronização';
+$string['syncinterval_des'] = 'Especificar com que frequência (em segundos) as teclas de escrita do usuário devem ser sincronizadas com o servidor. Um valor mais baixo fornece rastreamento mais em tempo real, mas pode aumentar a carga do servidor. O intervalo recomendado é 10-30 segundos.';
+$string['test_token'] = 'Testar token';
+$string['thresold_description'] = 'Cada site pode definir seu limite para fornecer a "marca verde" de correspondência bem-sucedida na coluna TypeID para submissões de alunos. Recomendamos 0,65. No entanto, pode haver argumentos para limites mais baixos ou mais altos dependendo da sua experiência ou política de honestidade acadêmica.';
+$string['time_writing'] = 'Tempo de escrita ';
+$string['time_writing_desc'] = 'Duração total menos períodos inativos';
+$string['timeleft'] = 'Tempo Restante';
+$string['timesave_success'] = 'Horário salvo com sucesso';
+$string['tiny_cursive'] = 'Autoria e Analítica';
+$string['tiny_cursive_placeholder'] = 'Escreva seu comentário ou cole seu link aqui…';
+$string['tiny_cursive_srcurl'] = 'Por favor, forneça um comentário';
+$string['tiny_cursive_srcurl_des'] = 'Insira um comentário, link ou informação para fornecer contexto para o texto colado. Isso será exibido como parte da submissão.';
+$string['total_active_time'] = 'Tempo ativo total';
+$string['total_active_time_des'] = 'O tempo ativo total é a duração do seu tempo de escrita ativa (pressionando teclas, manipulando texto) menos períodos de inatividade superiores a 30 segundos.';
+$string['total_time'] = 'Tempo total';
+$string['total_time_seconds'] = 'Tempo total';
+$string['total_words'] = 'Total de palavras';
+$string['total_words_desc'] = 'Total estimado de palavras de esforço verificado';
+$string['typeid'] = 'TypeID';
+$string['uid'] = 'ID';
+$string['userename'] = 'Nome de usuário';
+$string['verbosity'] = 'Verbosidade';
+$string['verbosity_des'] = 'Esta é uma contagem de atividade total na forma de pressionamentos de teclas. Isso inclui tanto adições quanto exclusões ao seu texto geral. Cada parte do processo de escrita através de um teclado contribui para este número.';
+$string['verified'] = 'verificado';
+$string['verified!'] = 'não verificado';
+$string['warning'] = 'Você não tem permissões para acessar a página.';
+$string['warningpayload'] = 'Algo deu errado! ou Arquivo não encontrado!';
+$string['warningpayloadre'] = 'Algo deu errado! Por favor, tente novamente mais tarde.';
+$string['webservicetoken'] = 'Token do webservice';
+$string['webservicetoken_des'] = 'Token do webservice';
+$string['webservtokenerror'] = 'Ocorreu um erro ao gerar o token.';
+$string['webservtokengenfail'] = 'Falha na geração do token do webservice.';
+$string['webservtokengensucc'] = 'Token do webservice gerado com sucesso.';
+$string['word_count'] = 'Contagem de palavras';
+$string['word_count_des'] = 'O número de palavras que você digitou é estimado com base no seu uso da barra de espaço.';
+$string['word_len_mean'] = 'Comprimento médio de palavra';
+$string['word_len_mean_des'] = 'O comprimento médio de palavra é calculado dividindo a contagem estimada de palavras pelo número total de caracteres. O comprimento das palavras varia com base no seu vocabulário, no público para quem você está escrevendo e no assunto. Comprimentos de palavra mais longos têm um impacto na legibilidade e nas estimativas de legibilidade por nível escolar.';
+$string['words_per_minute'] = 'Velocidade de escrita';
+$string['words_per_minute_desc'] = 'Palavras por minuto';
+$string['wractivityreport'] = 'Relatório de atividade de escrita';
+$string['writing_analytics'] = 'Analítica de Escrita';

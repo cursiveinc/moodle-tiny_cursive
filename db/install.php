@@ -29,10 +29,9 @@
  * @package tiny_cursive
  */
 function xmldb_tiny_cursive_install() {
-    global $DB;
 
     enable_webservice();
-    enable_webservice_protocol('rest');
+    enable_webservice_protocol();
 }
 /**
  * Enable web services in Moodle
@@ -47,9 +46,7 @@ function enable_webservice() {
  * Enable a specific web service protocol
  *
  * @package tiny_cursive
- * @param string $protocol The protocol to enable ('rest', 'soap', etc.)
  */
-function enable_webservice_protocol($protocol) {
-    global $DB;
+function enable_webservice_protocol() {
     set_config('webserviceprotocols', 'rest');
 }

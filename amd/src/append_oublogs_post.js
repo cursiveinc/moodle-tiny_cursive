@@ -27,9 +27,10 @@ import {call as getData} from 'core/ajax';
 import templates from 'core/templates';
 import AnalyticEvents from './analytic_events';
 import analyticButton from './analytic_button';
+import replayButton from './replay_button';
 import Replay from './replay';
 
-export const init = (scoreSetting) => {
+export const init = (scoreSetting, comments, hasApiKey) => {
     const replayInstances = {};
     // eslint-disable-next-line camelcase
     window.video_playback = function(mid, filepath) {
@@ -74,7 +75,11 @@ export const init = (scoreSetting) => {
                     filepath = data.res.filename;
                 }
 
-                Element.find('.oublog-post-links').append(analyticButton(userid));
+                if (!hasApiKey) {
+                    Element.find('.oublog-post-links').append(replayButton(userid));
+                } else {
+                    Element.find('.oublog-post-links').append(analyticButton(data.res.effort_ratio, userid));
+                }
 
                 let myEvents = new AnalyticEvents();
                 var context = {
@@ -82,14 +87,14 @@ export const init = (scoreSetting) => {
                     formattime: myEvents.formatedTime(data.res),
                     page: scoreSetting,
                     userid: userid,
+                    apikey: hasApiKey
                 };
 
                 let authIcon = myEvents.authorshipStatus(data.res.first_file, data.res.score, scoreSetting);
-                myEvents.createModal(userid, context, '', authIcon);
+                myEvents.createModal(userid, context, '', replayInstances, authIcon);
                 myEvents.analytics(userid, templates, context, '', replayInstances, authIcon);
                 myEvents.checkDiff(userid, data.res.file_id, '', replayInstances);
                 myEvents.replyWriting(userid, filepath, '', replayInstances);
-                myEvents.quality(userid, templates, context, '', replayInstances, cmid);
 
             });
             com[0].fail((error) => {

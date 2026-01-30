@@ -27,6 +27,7 @@ define([
     "core/templates",
     "./replay",
     './analytic_button',
+    './replay_button',
     './analytic_events',
     'core/str'], function(
     $,
@@ -35,6 +36,7 @@ define([
     templates,
     Replay,
     analyticButton,
+    replayButton,
     AnalyticEvents,
     Str
 ) {
@@ -62,15 +64,15 @@ define([
     };
 
     var usersTable = {
-        init: function(scoreSetting, showcomment) {
+        init: function(scoreSetting, showcomment, hasApiKey) {
             str
                 .get_strings([
                     {key: "confidence_threshold", component: "tiny_cursive"},
                 ]).done(function() {
-                usersTable.appendTable(scoreSetting, showcomment);
+                usersTable.appendTable(scoreSetting, hasApiKey);
             });
         },
-        appendTable: function(scoreSetting) {
+        appendTable: function(scoreSetting, hasApiKey) {
             let subUrl = window.location.href;
             let parm = new URL(subUrl);
             let hTr = $('thead').find('tr').get()[0];
@@ -85,9 +87,7 @@ define([
                         let userid = $(tdUser).find("input[type='checkbox']")?.get()[0]?.value;
                         let cmid = parm.searchParams.get('id');
                         // Create the table cell element and append the anchor.
-                        const tableCell = document.createElement('td');
-                        tableCell.appendChild(analyticButton(userid));
-                        $(tr).find('td').eq(3).after(tableCell);
+
                         let args = {id: userid, modulename: "assign", cmid: cmid};
                         let methodname = 'cursive_user_list_submission_stats';
                         let com = AJAX.call([{methodname, args}]);
@@ -98,6 +98,16 @@ define([
                                 if (data.res.filename) {
                                     filepath = data.res.filename;
                                 }
+
+                                const tableCell = document.createElement('td');
+
+                                if (!hasApiKey) {
+                                    $(tableCell).html(replayButton(userid));
+                                } else {
+                                    tableCell.appendChild(analyticButton(data.res.effort_ratio, userid));
+                                }
+                                $(tr).find('td').eq(3).after(tableCell);
+
                                 // Get Module Name from element.
                                 let element = document.querySelector('.page-header-headings h1');
                                 // Selects the h1 element within the .page-header-headings class
@@ -110,14 +120,15 @@ define([
                                     moduletitle: textContent,
                                     page: scoreSetting,
                                     userid: userid,
+                                    apikey: hasApiKey
                                 };
 
                                 let authIcon = myEvents.authorshipStatus(data.res.first_file, data.res.score, scoreSetting);
-                                myEvents.createModal(userid, context, '', authIcon);
+                                myEvents.createModal(userid, context, '', replayInstances, authIcon);
                                 myEvents.analytics(userid, templates, context, '', replayInstances, authIcon);
                                 myEvents.checkDiff(userid, data.res.file_id, '', replayInstances);
                                 myEvents.replyWriting(userid, filepath, '', replayInstances);
-                                myEvents.quality(userid, templates, context, '', replayInstances, cmid);
+
                             }).fail(function(error) {
                                 window.console.error('AJAX request failed:', error);
                             });
