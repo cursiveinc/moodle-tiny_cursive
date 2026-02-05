@@ -101,5 +101,97 @@ function xmldb_tiny_cursive_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2024060315, 'tiny', 'cursive');
     }
 
+    if ($oldversion < 2025101001) {
+
+        $table = new xmldb_table('tiny_cursive_files');
+
+        // Composite index for the most common query pattern (non-quiz modules).
+        $index = new xmldb_index('idx_files_lookup', XMLDB_INDEX_NOTUNIQUE,
+            ['cmid', 'modulename', 'resourceid', 'userid']);
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        // Composite index for quiz queries that include questionid.
+        $index = new xmldb_index('idx_files_quiz_lookup', XMLDB_INDEX_NOTUNIQUE,
+            ['cmid', 'modulename', 'resourceid', 'userid', 'questionid']);
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        // Supporting index for user-level queries.
+        $index = new xmldb_index('idx_files_userid', XMLDB_INDEX_NOTUNIQUE, ['userid']);
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        // Supporting index for course-level queries.
+        $index = new xmldb_index('idx_files_courseid', XMLDB_INDEX_NOTUNIQUE, ['courseid']);
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        // Index for upload status queries.
+        $index = new xmldb_index('idx_files_uploaded', XMLDB_INDEX_NOTUNIQUE, ['uploaded']);
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        $table = new xmldb_table('tiny_cursive_comments');
+
+        // Composite index for the most common query pattern (non-quiz modules).
+        $index = new xmldb_index('idx_comments_lookup', XMLDB_INDEX_NOTUNIQUE,
+            ['cmid', 'modulename', 'resourceid', 'userid']);
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        // Composite index for quiz queries that include questionid.
+        $index = new xmldb_index('idx_comments_quiz_lookup', XMLDB_INDEX_NOTUNIQUE,
+            ['cmid', 'modulename', 'resourceid', 'userid', 'questionid']);
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        // Supporting index for user-level queries.
+        $index = new xmldb_index('idx_comments_userid', XMLDB_INDEX_NOTUNIQUE, ['userid']);
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        // Supporting index for course-level queries.
+        $index = new xmldb_index('idx_comments_courseid', XMLDB_INDEX_NOTUNIQUE, ['courseid']);
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        $table = new xmldb_table('tiny_cursive_user_writing');
+
+        // Index for efficient joins with tiny_cursive_files.
+        $index = new xmldb_index('idx_user_writing_fileid', XMLDB_INDEX_NOTUNIQUE, ['file_id']);
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        $table = new xmldb_table('tiny_cursive_writing_diff');
+
+        // Index for efficient joins with tiny_cursive_files.
+        $index = new xmldb_index('idx_writing_diff_fileid', XMLDB_INDEX_NOTUNIQUE, ['file_id']);
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        $table = new xmldb_table('tiny_cursive_quality_metrics');
+
+        // Index for efficient joins with tiny_cursive_files.
+        $index = new xmldb_index('idx_quality_metrics_fileid', XMLDB_INDEX_NOTUNIQUE, ['file_id']);
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        // Savepoint reached.
+        upgrade_plugin_savepoint(true, 2025101001, 'tiny', 'cursive');
+    }
+
     return true;
 }
