@@ -20,6 +20,13 @@
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
+      <INDEXES>
+        <INDEX NAME="idx_files_lookup" UNIQUE="false" FIELDS="cmid,modulename,resourceid,userid"/>
+        <INDEX NAME="idx_files_quiz_lookup" UNIQUE="false" FIELDS="cmid,modulename,resourceid,userid,questionid"/>
+        <INDEX NAME="idx_files_userid" UNIQUE="false" FIELDS="userid"/>
+        <INDEX NAME="idx_files_courseid" UNIQUE="false" FIELDS="courseid"/>
+        <INDEX NAME="idx_files_uploaded" UNIQUE="false" FIELDS="uploaded"/>
+      </INDEXES>
     </TABLE>
     <TABLE NAME="tiny_cursive_comments" COMMENT="Stores user comments .">
       <FIELDS>
@@ -36,6 +43,12 @@
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
+        <INDEXES>
+        <INDEX NAME="idx_comments_lookup" UNIQUE="false" FIELDS="cmid,modulename,resourceid,userid"/>
+        <INDEX NAME="idx_comments_quiz_lookup" UNIQUE="false" FIELDS="cmid,modulename,resourceid,userid,questionid"/>
+        <INDEX NAME="idx_comments_userid" UNIQUE="false" FIELDS="userid"/>
+        <INDEX NAME="idx_comments_courseid" UNIQUE="false" FIELDS="courseid"/>
+      </INDEXES>
     </TABLE>
     <TABLE NAME="tiny_cursive_user_writing" COMMENT="tiny_user_writing_statics.">
       <FIELDS>
@@ -56,6 +69,9 @@
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
+         <INDEXES>
+        <INDEX NAME="idx_user_writing_fileid" UNIQUE="false" FIELDS="file_id"/>
+      </INDEXES>
     </TABLE>
 
     <TABLE NAME="tiny_cursive_writing_diff" COMMENT="Writing Difference data">
@@ -69,6 +85,9 @@
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
+            <INDEXES>
+        <INDEX NAME="idx_writing_diff_fileid" UNIQUE="false" FIELDS="file_id"/>
+      </INDEXES>
     </TABLE>
 
   </TABLES>
