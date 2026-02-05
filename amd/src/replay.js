@@ -357,7 +357,8 @@ export default class Replay {
                             time: timestamp,
                             formattedTime: this.formatTime(timestamp),
                             pastedText: this.pastedEvents[pasteCount],
-                            timestamp
+                            timestamp,
+                            comment: ''
                         });
                     }
                     pasteCount++;
@@ -372,9 +373,21 @@ export default class Replay {
             }
         }
 
+        this.matchPasteEventsWithComments();
+
         if (this.pasteEventsPanel) {
             this.populatePasteEventsPanel(this.pasteEventsPanel);
         }
+    }
+
+    matchPasteEventsWithComments() {
+        this.pasteTimestamps.forEach((pasteEvent, index) => {
+            if (this.usercomments && this.usercomments[index]) {
+                pasteEvent.comment = this.usercomments[index].comment ||
+                                     this.usercomments[index].text ||
+                                     this.usercomments[index] || '';
+            }
+        });
     }
 
     identifyUndoEvents() {
@@ -485,23 +498,108 @@ export default class Replay {
     createPasteEventDisplay(pasteEvent) {
         const eventRow = document.createElement('div');
         eventRow.className = 'tiny_cursive_event_row';
+        eventRow.style.display = 'flex';
+        eventRow.style.flexDirection = 'column';
+        eventRow.style.gap = '8px';
 
-        const headerRow = document.createElement('div');
-        headerRow.className = 'tiny_cursive_header_row';
-
-        const textContainer = document.createElement('div');
-        textContainer.className = 'tiny_cursive_text_container';
+        // Top row: timestamp and comment icon
+        const topRow = document.createElement('div');
+        topRow.style.display = 'flex';
+        topRow.style.justifyContent = 'space-between';
+        topRow.style.alignItems = 'center';
 
         const timestampContainer = document.createElement('div');
         timestampContainer.className = 'paste-event-timestamp tiny_cursive_paste_event_timestamp';
         timestampContainer.textContent = pasteEvent.formattedTime;
 
+        topRow.appendChild(timestampContainer);
+
+        if (pasteEvent.comment && pasteEvent.comment.trim() !== '') {
+            const commentIcon = document.createElement('button');
+            commentIcon.className = 'tiny_cursive_comment_toggle_btn';
+            commentIcon.innerHTML = '<i class="fa fa-comment"></i>';
+            commentIcon.title = 'View comment';
+            commentIcon.style.background = '#ffc107';
+            commentIcon.style.border = 'none';
+            commentIcon.style.borderRadius = '50%';
+            commentIcon.style.width = '28px';
+            commentIcon.style.height = '28px';
+            commentIcon.style.display = 'flex';
+            commentIcon.style.alignItems = 'center';
+            commentIcon.style.justifyContent = 'center';
+            commentIcon.style.cursor = 'pointer';
+            commentIcon.style.transition = 'all 0.2s ease';
+            commentIcon.style.flexShrink = '0';
+            commentIcon.style.position = 'relative';
+
+            const iconElement = commentIcon.querySelector('i');
+            iconElement.style.color = 'white';
+            iconElement.style.fontSize = '13px';
+
+            topRow.appendChild(commentIcon);
+        }
+
+        // Bottom row: content and play button aligned
+        const bottomRow = document.createElement('div');
+        bottomRow.className = 'tiny_cursive_header_row';
+        bottomRow.style.display = 'flex';
+        bottomRow.style.gap = '12px';
+        bottomRow.style.alignItems = 'center';
+
+        const contentContainer = document.createElement('div');
+        contentContainer.style.flex = '1';
+        contentContainer.style.minWidth = '0';
+
         const pastedTextContainer = document.createElement('div');
         pastedTextContainer.className = 'paste-event-text tiny_cursive_pasted_text_container';
         pastedTextContainer.textContent = pasteEvent.pastedText;
 
-        textContainer.appendChild(timestampContainer);
-        textContainer.appendChild(pastedTextContainer);
+        contentContainer.appendChild(pastedTextContainer);
+
+        let commentContainer = null;
+        if (pasteEvent.comment && pasteEvent.comment.trim() !== '') {
+            commentContainer = document.createElement('div');
+            commentContainer.className = 'paste-event-comment tiny_cursive_comment_container';
+            commentContainer.textContent = pasteEvent.comment;
+            commentContainer.style.display = 'none';
+            contentContainer.appendChild(commentContainer);
+
+            const commentIcon = topRow.querySelector('.tiny_cursive_comment_toggle_btn');
+            let isShowingComment = false;
+
+            commentIcon.addEventListener('click', (e) => {
+                e.stopPropagation();
+                isShowingComment = !isShowingComment;
+
+                if (isShowingComment) {
+                    pastedTextContainer.style.display = 'none';
+                    commentContainer.style.display = 'block';
+                    commentIcon.innerHTML = '<i class="fa fa-file-text"></i>';
+                    commentIcon.title = 'View pasted content';
+                    commentIcon.style.background = '#007bff';
+                } else {
+                    pastedTextContainer.style.display = 'block';
+                    commentContainer.style.display = 'none';
+                    commentIcon.innerHTML = '<i class="fa fa-comment"></i>';
+                    commentIcon.title = 'View comment';
+                    commentIcon.style.background = '#ffc107';
+                }
+
+                const iconElement = commentIcon.querySelector('i');
+                iconElement.style.color = 'white';
+                iconElement.style.fontSize = '13px';
+            });
+
+            commentIcon.addEventListener('mouseenter', () => {
+                commentIcon.style.transform = 'scale(1.1)';
+                commentIcon.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)';
+            });
+
+            commentIcon.addEventListener('mouseleave', () => {
+                commentIcon.style.transform = 'scale(1)';
+                commentIcon.style.boxShadow = 'none';
+            });
+        }
 
         const playButton = document.createElement('button');
         playButton.className = 'paste-event-play-btn tiny_cursive_seekplay_button';
@@ -510,9 +608,11 @@ export default class Replay {
         playButton.innerHTML = playIcon.outerHTML;
         playButton.addEventListener('click', () => this.jumpToTimestamp(pasteEvent.timestamp));
 
-        headerRow.appendChild(textContainer);
-        headerRow.appendChild(playButton);
-        eventRow.appendChild(headerRow);
+        bottomRow.appendChild(contentContainer);
+        bottomRow.appendChild(playButton);
+
+        eventRow.appendChild(topRow);
+        eventRow.appendChild(bottomRow);
 
         return eventRow;
     }

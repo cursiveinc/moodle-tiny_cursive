@@ -1252,18 +1252,15 @@ class cursive_json_func_data extends external_api {
         $data = new stdClass();
         try {
             $filedata        = $DB->get_record('tiny_cursive_files', ['filename' => $params['filepath']]);
-            $comments        = $DB->get_records('tiny_cursive_comments', $conditions, '', 'usercomment');
             $content         = $filedata->content ? $filedata->content : $content = false;
             $originalcontent = $filedata->original_content ? $filedata->original_content : $originalcontent = false;
             $data->status    = true;
-            $commentslist    = [];
+            $query = $conditions;
+            $query['modulename'] = '%_autosave';
 
-            foreach ($comments as $comment) {
-                $commentslist[] = $comment->usercomment;
-            }
-
-            $commentslist = array_values($commentslist);
-            $data->comments = json_encode($commentslist);
+            $where = "userid = :userid AND resourceid = :resourceid AND cmid = :cmid AND modulename NOT LIKE :modulename";
+            $records = $DB->get_records_select('tiny_cursive_comments', $where, $query);
+            $data->comments = json_encode(array_column($records, 'usercomment'));
 
             if ($content === false) {
                 $data->status = false;
