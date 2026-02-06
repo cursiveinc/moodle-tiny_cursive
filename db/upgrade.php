@@ -224,20 +224,26 @@ function xmldb_tiny_cursive_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2024062004, 'tiny', 'cursive');
     }
 
+    // Added Indexing into existing tables.
     if ($oldversion < 2026013002) {
-
         $table = new xmldb_table('tiny_cursive_files');
 
         // Composite index for the most common query pattern (non-quiz modules).
-        $index = new xmldb_index('idx_files_lookup', XMLDB_INDEX_NOTUNIQUE,
-            ['cmid', 'modulename', 'resourceid', 'userid']);
+        $index = new xmldb_index(
+            'idx_files_lookup',
+            XMLDB_INDEX_NOTUNIQUE,
+            ['cmid', 'modulename', 'resourceid', 'userid']
+        );
         if (!$dbman->index_exists($table, $index)) {
             $dbman->add_index($table, $index);
         }
 
         // Composite index for quiz queries that include questionid.
-        $index = new xmldb_index('idx_files_quiz_lookup', XMLDB_INDEX_NOTUNIQUE,
-            ['cmid', 'modulename', 'resourceid', 'userid', 'questionid']);
+        $index = new xmldb_index(
+            'idx_files_quiz_lookup',
+            XMLDB_INDEX_NOTUNIQUE,
+            ['cmid', 'modulename', 'resourceid', 'userid', 'questionid']
+        );
         if (!$dbman->index_exists($table, $index)) {
             $dbman->add_index($table, $index);
         }
@@ -263,15 +269,21 @@ function xmldb_tiny_cursive_upgrade($oldversion) {
         $table = new xmldb_table('tiny_cursive_comments');
 
         // Composite index for the most common query pattern (non-quiz modules).
-        $index = new xmldb_index('idx_comments_lookup', XMLDB_INDEX_NOTUNIQUE,
-            ['cmid', 'modulename', 'resourceid', 'userid']);
+        $index = new xmldb_index(
+            'idx_comments_lookup',
+            XMLDB_INDEX_NOTUNIQUE,
+            ['cmid', 'modulename', 'resourceid', 'userid']
+        );
         if (!$dbman->index_exists($table, $index)) {
             $dbman->add_index($table, $index);
         }
 
         // Composite index for quiz queries that include questionid.
-        $index = new xmldb_index('idx_comments_quiz_lookup', XMLDB_INDEX_NOTUNIQUE,
-            ['cmid', 'modulename', 'resourceid', 'userid', 'questionid']);
+        $index = new xmldb_index(
+            'idx_comments_quiz_lookup',
+            XMLDB_INDEX_NOTUNIQUE,
+            ['cmid', 'modulename', 'resourceid', 'userid', 'questionid']
+        );
         if (!$dbman->index_exists($table, $index)) {
             $dbman->add_index($table, $index);
         }
@@ -300,14 +312,6 @@ function xmldb_tiny_cursive_upgrade($oldversion) {
 
         // Index for efficient joins with tiny_cursive_files.
         $index = new xmldb_index('idx_writing_diff_fileid', XMLDB_INDEX_NOTUNIQUE, ['file_id']);
-        if (!$dbman->index_exists($table, $index)) {
-            $dbman->add_index($table, $index);
-        }
-
-        $table = new xmldb_table('tiny_cursive_quality_metrics');
-
-        // Index for efficient joins with tiny_cursive_files.
-        $index = new xmldb_index('idx_quality_metrics_fileid', XMLDB_INDEX_NOTUNIQUE, ['file_id']);
         if (!$dbman->index_exists($table, $index)) {
             $dbman->add_index($table, $index);
         }
