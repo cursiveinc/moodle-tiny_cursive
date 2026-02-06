@@ -157,7 +157,9 @@ function tiny_cursive_coursemodule_standard_elements($formwrapper, $mform) {
     $courseid  = $formwrapper->get_current()->course;
     $instance  = $formwrapper->get_current()->coursemodule;
     $key       = "CUR$courseid$instance";
+    $stdkey    = "STD$courseid$instance";
     $state     = get_config('tiny_cursive', $key);
+    $stdstate  = get_config('tiny_cursive', $stdkey);
 
     if ($state === "1" || $state === false) {
         $state = true;
@@ -171,8 +173,12 @@ function tiny_cursive_coursemodule_standard_elements($formwrapper, $mform) {
         ];
         $mform->addElement('select', 'cursive', get_string('cursive_status', 'tiny_cursive'), $options);
         $mform->setType('cursive', PARAM_INT);
-
         $mform->setdefault('cursive', $state);
+
+        $mform->addElement('select', 'student_view', get_string('std_view', 'tiny_cursive'), $options);
+        $mform->setType('student_view', PARAM_INT);
+        var_dump($stdkey);
+        $mform->setdefault('student_view', $stdstate);
     }
 
     if ($state) {
@@ -234,6 +240,10 @@ function tiny_cursive_coursemodule_edit_post_actions($formdata, $course) {
     if (!empty($formdata->paste_setting) && $state == 1) {
         $pastekey = "PASTE{$courseid}_{$instance}";
         set_config($pastekey, $formdata->paste_setting, 'tiny_cursive');
+    }
+    if ($state == 1) {
+        $stdkey = "STD{$courseid}{$instance}";
+        set_config($stdkey, $formdata->student_view, 'tiny_cursive');
     }
     return $formdata;
 }

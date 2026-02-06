@@ -243,29 +243,27 @@ function tiny_cursive_get_user_submissions_data($userid, $modulename, $cmid, $co
     global $CFG, $DB;
     require_once($CFG->dirroot . "/lib/editor/tiny/plugins/cursive/lib.php");
 
+    $cm = get_coursemodule_from_id($modulename, $cmid);
     $sql = "SELECT uw.total_time_seconds, uw.word_count, uw.words_per_minute,
                    uw.backspace_percent, uw.score, uw.copy_behavior, uf.resourceid,
-                   uf.modulename, uf.userid, uw.file_id, uf.filename, uf.uploaded,
+                   uf.modulename, uf.userid, uw.file_id, uf.filename, uf.uploaded, uf.courseid,
                    diff.meta AS effort_ratio
               FROM {tiny_cursive_user_writing} uw
               JOIN {tiny_cursive_files} uf ON uw.file_id = uf.id
          LEFT JOIN {tiny_cursive_writing_diff} diff ON uw.file_id = diff.file_id
              WHERE uf.userid = :userid
                    AND uf.cmid = :cmid
-                   AND uf.modulename = :modulename";
+                   AND uf.modulename = :modulename
+                   AND uf.courseid = :courseid";
 
     // Array to hold SQL parameters.
     $params = [
         'userid' => $userid,
         'cmid' => $cmid,
         'modulename' => $modulename,
+        'courseid' => $cm->course,
     ];
 
-    // Add optional condition based on $courseid.
-    if ($courseid != 0) {
-        $sql .= " AND uf.courseid = :courseid";
-        $params['courseid'] = $courseid;
-    }
     if ($oublogpostid != 0) {
         $sql .= " AND uf.resourceid = :oublogid";
         $params['oublogid'] = $oublogpostid;
@@ -273,6 +271,7 @@ function tiny_cursive_get_user_submissions_data($userid, $modulename, $cmid, $co
 
     // Execute the SQL query using Moodle's database abstraction layer.
     $data = $DB->get_record_sql($sql, $params);
+
     if (isset($data->effort_ratio)) {
         $data->effort_ratio = intval(floatval($data->effort_ratio) * 100);
     }
@@ -283,12 +282,14 @@ function tiny_cursive_get_user_submissions_data($userid, $modulename, $cmid, $co
             'userid' => $userid,
             'cmid' => $cmid,
             'modulename' => $modulename,
+            'courseid' => $cm->course,
         ];
         $sql = 'SELECT id as fileid, userid, filename, content
                   FROM {tiny_cursive_files}
                  WHERE userid = :userid
                        AND cmid = :cmid
-                       AND modulename = :modulename';
+                       AND modulename = :modulename
+                       AND courseid = :courseid';
 
         if ($oublogpostid != 0) {
             $sql .= " AND resourceid = :oublogid";

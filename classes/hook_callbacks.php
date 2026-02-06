@@ -78,7 +78,9 @@ class hook_callbacks {
 
         $plugins             = core_component::get_plugin_list('local');
         $PAGE->requires->js_call_amd('tiny_cursive/settings', 'init', [constants::show_comments(), $userrole]);
-
+        if ($PAGE->bodyid === 'page-mod-assign-removesubmissionconfirm') {
+            $PAGE->requires->js_call_amd('tiny_cursive/remove_submission', 'init', []);
+        }
         if (array_key_exists($PAGE->bodyid, constants::BODY_IDS)) {
             if (constants::BODY_IDS[$PAGE->bodyid][1] === "oublog" && !isset($plugins['cursive_oublog'])) {
                 return;
