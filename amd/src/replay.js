@@ -517,9 +517,9 @@ export default class Replay {
         if (pasteEvent.comment && pasteEvent.comment.trim() !== '') {
             const commentIcon = document.createElement('button');
             commentIcon.className = 'tiny_cursive_comment_toggle_btn';
-            commentIcon.innerHTML = '<i class="fa fa-comment"></i>';
-            commentIcon.title = 'View comment';
-            commentIcon.style.background = '#ffc107';
+            commentIcon.innerHTML = '<i class="fa fa-file-text"></i>';
+            commentIcon.title = 'Pasted content';
+            commentIcon.style.background = '#007bff';
             commentIcon.style.border = 'none';
             commentIcon.style.borderRadius = '50%';
             commentIcon.style.width = '28px';
@@ -554,18 +554,21 @@ export default class Replay {
         pastedTextContainer.className = 'paste-event-text tiny_cursive_pasted_text_container';
         pastedTextContainer.textContent = pasteEvent.pastedText;
 
-        contentContainer.appendChild(pastedTextContainer);
-
         let commentContainer = null;
+        let isShowingComment = true;
+
         if (pasteEvent.comment && pasteEvent.comment.trim() !== '') {
+            pastedTextContainer.style.display = 'none';
+
             commentContainer = document.createElement('div');
             commentContainer.className = 'paste-event-comment tiny_cursive_comment_container';
             commentContainer.textContent = pasteEvent.comment;
-            commentContainer.style.display = 'none';
+            commentContainer.style.display = 'block';
+
+            contentContainer.appendChild(pastedTextContainer);
             contentContainer.appendChild(commentContainer);
 
             const commentIcon = topRow.querySelector('.tiny_cursive_comment_toggle_btn');
-            let isShowingComment = false;
 
             commentIcon.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -575,13 +578,13 @@ export default class Replay {
                     pastedTextContainer.style.display = 'none';
                     commentContainer.style.display = 'block';
                     commentIcon.innerHTML = '<i class="fa fa-file-text"></i>';
-                    commentIcon.title = 'View pasted content';
+                    commentIcon.title = 'Pasted content';
                     commentIcon.style.background = '#007bff';
                 } else {
                     pastedTextContainer.style.display = 'block';
                     commentContainer.style.display = 'none';
                     commentIcon.innerHTML = '<i class="fa fa-comment"></i>';
-                    commentIcon.title = 'View comment';
+                    commentIcon.title = 'Student comment';
                     commentIcon.style.background = '#ffc107';
                 }
 
@@ -599,6 +602,8 @@ export default class Replay {
                 commentIcon.style.transform = 'scale(1)';
                 commentIcon.style.boxShadow = 'none';
             });
+        } else {
+            contentContainer.appendChild(pastedTextContainer);
         }
 
         const playButton = document.createElement('button');
