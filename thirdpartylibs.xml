@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <libraries>
     <library>
-        <location>amd/src/html2pdf.js</location>
+        <location>amd/js/html2pdf.js</location>
         <name>html2pdf</name>
         <version>0.10.1</version>
         <license>MIT</license>
