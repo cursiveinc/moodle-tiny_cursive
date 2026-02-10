@@ -144,7 +144,6 @@ class constants {
         $nextsync     = strtotime('+5 minutes');
 
         if (empty($secret)) {
-            return true;
             if ($apikey !== false || $apikey !== "0") {
                 set_config('apiKey', false, 'tiny_cursive');
             }
