@@ -20,6 +20,13 @@
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
+      <INDEXES>
+        <INDEX NAME="idx_files_lookup" UNIQUE="false" FIELDS="cmid,modulename,resourceid,userid"/>
+        <INDEX NAME="idx_files_quiz_lookup" UNIQUE="false" FIELDS="cmid,modulename,resourceid,userid,questionid"/>
+        <INDEX NAME="idx_files_userid" UNIQUE="false" FIELDS="userid"/>
+        <INDEX NAME="idx_files_courseid" UNIQUE="false" FIELDS="courseid"/>
+        <INDEX NAME="idx_files_uploaded" UNIQUE="false" FIELDS="uploaded"/>
+      </INDEXES>
     </TABLE>
     <TABLE NAME="tiny_cursive_comments" COMMENT="Stores user comments .">
       <FIELDS>
@@ -36,6 +43,12 @@
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
+        <INDEXES>
+        <INDEX NAME="idx_comments_lookup" UNIQUE="false" FIELDS="cmid,modulename,resourceid,userid"/>
+        <INDEX NAME="idx_comments_quiz_lookup" UNIQUE="false" FIELDS="cmid,modulename,resourceid,userid,questionid"/>
+        <INDEX NAME="idx_comments_userid" UNIQUE="false" FIELDS="userid"/>
+        <INDEX NAME="idx_comments_courseid" UNIQUE="false" FIELDS="courseid"/>
+      </INDEXES>
     </TABLE>
     <TABLE NAME="tiny_cursive_user_writing" COMMENT="tiny_user_writing_statics.">
       <FIELDS>
@@ -56,6 +69,9 @@
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
+        <INDEXES>
+        <INDEX NAME="idx_user_writing_fileid" UNIQUE="false" FIELDS="file_id"/>
+      </INDEXES>
     </TABLE>
 
     <TABLE NAME="tiny_cursive_writing_diff" COMMENT="Writing Difference data">
@@ -69,38 +85,9 @@
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
+            <INDEXES>
+        <INDEX NAME="idx_writing_diff_fileid" UNIQUE="false" FIELDS="file_id"/>
+      </INDEXES>
     </TABLE>
-
-    <TABLE NAME="tiny_cursive_quality_metrics" COMMENT="Store Quality Metrics data">
-      <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" COMMENT="Primary key"/>
-        <FIELD NAME="file_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Foreign key reference to tiny_cursive_files.id"/>
-        <FIELD NAME="total_active_time" TYPE="float" NOTNULL="true" SEQUENCE="false" COMMENT="Total active time spent writing in seconds"/>
-        <FIELD NAME="total_active_time_static" TYPE="float" NOTNULL="true" SEQUENCE="false" COMMENT="Total active time spent writing in seconds"/>
-        <FIELD NAME="edits" TYPE="float" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Number of edits made to the text"/>
-        <FIELD NAME="edits_static" TYPE="float" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Number of edits made to the text"/>
-        <FIELD NAME="verbosity" TYPE="float" NOTNULL="true" SEQUENCE="false" COMMENT="Measure of text verbosity"/>
-        <FIELD NAME="verbosity_static" TYPE="float" NOTNULL="true" SEQUENCE="false" COMMENT="Measure of text verbosity"/>
-        <FIELD NAME="word_count" TYPE="float" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Total number of words in the text"/>
-        <FIELD NAME="word_count_static" TYPE="float" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Total number of words in the text"/>
-        <FIELD NAME="sentence_count" TYPE="float" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Total number of sentences in the text"/>
-        <FIELD NAME="sentence_count_static" TYPE="float" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Total number of sentences in the text"/>
-        <FIELD NAME="q_count" TYPE="float" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Number of questions in the text"/>
-        <FIELD NAME="q_count_static" TYPE="float" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Number of questions in the text"/>
-        <FIELD NAME="word_len_mean" TYPE="float" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Average word length"/>
-        <FIELD NAME="word_len_mean_static" TYPE="float" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Average word length"/>
-        <FIELD NAME="sent_word_count_mean" TYPE="float" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Average number of words per sentence"/>
-        <FIELD NAME="sent_word_count_mean_static" TYPE="float" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Average number of words per sentence"/>
-        <FIELD NAME="p_burst_mean" TYPE="float" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Mean production burst length"/>
-        <FIELD NAME="p_burst_mean_static" TYPE="float" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Mean production burst length"/>
-        <FIELD NAME="p_burst_cnt" TYPE="float" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Count of production bursts"/>
-        <FIELD NAME="p_burst_cnt_static" TYPE="float" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Count of production bursts"/>
-      </FIELDS>
-      <KEYS>
-        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
-        <KEY NAME="file_id_fk" TYPE="foreign" FIELDS="file_id" REFTABLE="tiny_cursive_files" REFFIELDS="id"/>
-      </KEYS>
-    </TABLE>
-
   </TABLES>
 </XMLDB>
