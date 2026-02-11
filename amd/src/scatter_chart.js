@@ -40,12 +40,23 @@ export const init = async(data, apiKey, caption) => {
         noSubmission,
         noPayload,
         freemium,
+        time,
+        words,
+        effortratio,
+        wpm,
+        effortscore,
+        timespent,
     ] = await getStrings([
         {key: 'apply_filter', component: 'tiny_cursive'},
         {key: 'no_submission', component: 'tiny_cursive'},
         {key: 'nopaylod', component: 'tiny_cursive'},
         {key: 'freemium', component: 'tiny_cursive'},
-        {key: 'chart_result', component: 'tiny_cursive'}
+        {key: 'time', component: 'tiny_cursive'},
+        {key: 'words', component: 'tiny_cursive'},
+        {key: 'effort_ratio', component: 'tiny_cursive'},
+        {key: 'wpm', component: 'tiny_cursive'},
+        {key: 'effort_score', component: 'tiny_cursive'},
+        {key: 'timespent', component: 'tiny_cursive'},
     ]);
 
     if (Array.isArray(data) && !data.state && apiKey) {
@@ -132,10 +143,10 @@ export const init = async(data, apiKey, caption) => {
                         label: function(context) {
                             const d = context.raw;
                             return [
-                                `Time: ${formatTime(d.x)}`,
-                                `Effort: ${Math.round(d.effort * 100 * 100) / 100}%`,
-                                `Words: ${d.words}`,
-                                `WPM: ${d.wpm}`
+                                `${time}: ${formatTime(d.x)}`,
+                                `${effortratio}: ${Math.round(d.effort * 100 * 100) / 100}%`,
+                                `${words}: ${d.words}`,
+                                `${wpm}: ${d.wpm}`
                             ];
                         }
                     }
@@ -145,7 +156,7 @@ export const init = async(data, apiKey, caption) => {
                 x: {
                     title: {
                         display: true,
-                        text: 'Time Spent (mm:ss)'
+                        text: timespent
                     },
                     min: 0,
                     ticks: {
@@ -157,7 +168,7 @@ export const init = async(data, apiKey, caption) => {
                 y: {
                     title: {
                         display: true,
-                        text: 'Effort Score'
+                        text: effortscore
                     },
                     min: 0,
                     ticks: {

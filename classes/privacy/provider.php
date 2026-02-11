@@ -66,7 +66,7 @@ class provider implements core_userlist_provider, meta_provider, plugin_provider
             'timemodified' => 'privacy:metadata:database:tiny_cursive_comments:timemodified',
         ], 'privacy:metadata:database:tiny_cursive_comments');
 
-        $collection->add_external_location_link('tiny_cursive_files', [
+        $collection->add_external_location_link('api.cursivetechnology.net', [
             'userid' => 'privacy:metadata:database:tiny_cursive:userid',
             'content' => 'privacy:metadata:database:tiny_cursive:content',
             'original_content' => 'privacy:metadata:database:tiny_cursive:original_content',
