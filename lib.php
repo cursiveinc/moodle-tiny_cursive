@@ -177,7 +177,6 @@ function tiny_cursive_coursemodule_standard_elements($formwrapper, $mform) {
 
         $mform->addElement('select', 'student_view', get_string('std_view', 'tiny_cursive'), $options);
         $mform->setType('student_view', PARAM_INT);
-        var_dump($stdkey);
         $mform->setdefault('student_view', $stdstate);
     }
 

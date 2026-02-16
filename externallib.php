@@ -367,7 +367,7 @@ class cursive_json_func_data extends external_api {
 
         $context = context_module::instance($params['cmid']);
         self::validate_context($context);
-        require_capability("tiny/cursive:view", $context);
+        require_capability("tiny/cursive:writingreport", $context);
 
         if ($params['modulename'] == 'quiz') {
             $data['filename'] = '';
@@ -543,7 +543,7 @@ class cursive_json_func_data extends external_api {
 
         $context = context_module::instance($params['cmid']);
         self::validate_context($context);
-        require_capability('tiny/cursive:view', $context);
+        require_capability('tiny/cursive:writingreport', $context);
 
         $conditions = ["resourceid" => $params['id'], 'modulename' => "forum"];
         $recs = $DB->get_records('tiny_cursive_comments', $conditions);
@@ -989,7 +989,7 @@ class cursive_json_func_data extends external_api {
         );
         $context = context_module::instance($params['cmid']);
         self::validate_context($context);
-        require_capability("tiny/cursive:view", $context);
+        require_capability("tiny/cursive:writingreport", $context);
 
         $rec = tiny_cursive_get_user_submissions_data($params['id'], $params['modulename'], $params['cmid']);
 
@@ -1888,7 +1888,7 @@ class cursive_json_func_data extends external_api {
 
         $context = context_module::instance($params['cmid']);
         self::validate_context($context);
-        require_capability("tiny/cursive:view", $context);
+        require_capability("tiny/cursive:writingreport", $context);
 
         $rec = tiny_cursive_get_user_submissions_data($params['id'], $params['modulename'], $params['cmid']);
 

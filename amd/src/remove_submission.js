@@ -14,8 +14,8 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * TODO describe module remove_submission
- *
+ * Module for handling submission removal in Cursive integration with Moodle
+ * This module intercepts form submissions to remove Cursive data before proceeding with the original form submission
  * @module     tiny_cursive/remove_submission
  * @copyright  2026 Cursive Technology, Inc. <info@cursivetechnology.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -39,7 +39,6 @@ export const init = () => {
                     cmid: cmid,
                 }
             }])[0].done((response) => {
-                console.log(response);
                 if (response) {
                     form.submit();
                 }

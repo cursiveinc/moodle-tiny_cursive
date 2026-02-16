@@ -1455,7 +1455,6 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     transition: background 0.3s ease, transform 0.2s ease;
 }
-
 .tiny_cursive-analytics-left {
     background-color: #306ab3;
     color: white;
@@ -1463,6 +1462,10 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     align-items: center;
     gap: 6px;
     padding: 6px 14px;
+}
+
+#page-mod-lesson-view .tiny_cursive-analytics-left {
+    padding: 4px 14px !important;
 }
 
 .tiny_cursive-replay-left {
