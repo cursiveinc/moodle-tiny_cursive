@@ -198,7 +198,7 @@ export default class CursiveAutosave {
         switch (state) {
             case 'saving': return Icons.cloudSave;
             case 'saved': return Icons.cloudSave;
-            case 'offline': return 'data:image/svg+xml;base64,' + btoa(Icons.offline);
+            case 'offline': return Icons.offline;
             default: return '';
         }
     }
