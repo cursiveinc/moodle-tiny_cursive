@@ -20,7 +20,9 @@
     color: #212529;
     border-collapse: collapse;
 }
-.tiny_cursive_table.table{
+.tiny_cursive_table.table,
+.tiny_cursive_table.table th,
+.tiny_cursive_table.table td {
     border-top: none;
 }
 .tiny_cursive_table th,
