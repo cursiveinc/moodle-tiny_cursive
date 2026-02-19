@@ -20,7 +20,9 @@
     color: #212529;
     border-collapse: collapse;
 }
-
+.tiny_cursive_table.table{
+    border-top: none;
+}
 .tiny_cursive_table th,
 .tiny_cursive_table td {
     padding: 0.75rem;
