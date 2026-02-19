@@ -29,6 +29,7 @@ import $ from 'jquery';
 import {get_string as getString} from 'core/str';
 import {get_strings as getStrings} from 'core/str';
 import template from 'core/templates';
+import {call as fetchJson} from 'core/ajax';
 
 export default class AnalyticEvents {
 
@@ -117,7 +118,7 @@ export default class AnalyticEvents {
         });
     }
 
-    checkDiff(userid, fileid, questionid = '', replayInstances = null) {
+    checkDiff(userid, fileid, questionid = '', replayInstances = null, filepath = null) {
         const nodata = document.createElement('p');
         nodata.classList.add('tiny_cursive_nopayload', 'bg-light');
         getString('nopaylod', 'tiny_cursive').then(str => {
@@ -152,36 +153,82 @@ export default class AnalyticEvents {
                 if (responsedata) {
                     let submittedText = atob(responsedata.submitted_text);
 
-                    // Fetch the dynamic strings.
+                    const getPasteCount = () => {
+                        if (filepath) {
+                            return fetchJson([{
+                                methodname: 'cursive_get_reply_json',
+                                args: {filepath: filepath}
+                            }])[0].then(replayResponse => {
+
+                                let pasteCount = 0;
+
+                                if (replayResponse && replayResponse.status && replayResponse.data) {
+
+                                    let logData = JSON.parse(replayResponse.data);
+
+                                    if ('data' in logData) {
+                                        logData = logData.data;
+                                    }
+                                    if ('payload' in logData) {
+                                        logData = logData.payload;
+                                    }
+
+                                    if (Array.isArray(logData)) {
+                                        for (let i = 0; i < logData.length; i++) {
+                                            const event = logData[i];
+                                            if (event.event === 'Paste' &&
+                                                typeof event.pastedContent === 'string' &&
+                                                event.pastedContent.trim() !== '') {
+                                                pasteCount++;
+                                            }
+                                        }
+                                    }
+                                }
+
+                                return pasteCount;
+
+                            }).catch(() => responsedata.commentscount || 0);
+                        }
+
+                        return Promise.resolve(responsedata.commentscount || 0);
+                    };
+
+                    getPasteCount().then(pasteCount => {
+
                     getStrings([
                         {key: 'original_text', component: 'tiny_cursive'},
-                        {key: 'editspastesai', component: 'tiny_cursive'}
+                        {key: 'editspastesai', component: 'tiny_cursive'},
+                        {key: 'pastecount', component: 'tiny_cursive'},
+                        {key: 'comments', component: 'tiny_cursive'}
                     ]).done(strings => {
                         const originalTextString = strings[0];
                         const editsPastesAIString = strings[1];
+                        const pasteCountString = strings[2];
+                        const commentsString = strings[3];
 
                         const commentBox = $('<div class="p-2 border rounded mb-2">');
                         var pasteCountDiv = $('<div></div>');
-                        getString('pastecount', 'tiny_cursive').then(str => {
-                            pasteCountDiv.append('<div><strong>' + str + ' :</strong> ' + responsedata.commentscount + '</div>');
-                            return true;
-                        }).catch(error => window.console.log(error));
+                        pasteCountDiv.append('<div><strong>' + pasteCountString + ' :</strong> ' + pasteCount + '</div>');
+
+                        commentBox.append(pasteCountDiv);
+
+                        let comments = Object.values(responsedata.comments || {});
+
+                      if (comments.length > 0) {
 
                         var commentsDiv = $('<div class="border-bottom"></div>');
-                        getString('comments', 'tiny_cursive').then(str => {
-                            commentsDiv.append('<strong>' + str + '</strong>');
-                            return true;
-                        }).catch(error => window.console.error(error));
+                        commentsDiv.append('<strong>' + commentsString + '</strong>');
 
                         var commentsList = $('<div></div>');
 
-                        let comments = responsedata.comments;
-                        for (let index in comments) {
-                            var commentDiv = $(`<div style="word-wrap: break-word; word-break: break-word"
-                                class="shadow-sm p-1 my-1"></div>`).text(comments[index].usercomment);
-                            commentsList.append(commentDiv);
+                         for (let i = 0; i < comments.length; i++) {
+                                    var commentDiv = $(`<div style="word-wrap: break-word; word-break: break-word"
+                                        class="shadow-sm p-1 my-1"></div>`).text(comments[i].usercomment);
+                                    commentsList.append(commentDiv);
+                                }
+
+                            commentBox.append(commentsDiv).append(commentsList);
                         }
-                        commentBox.append(pasteCountDiv).append(commentsDiv).append(commentsList);
 
                         const $legend = $('<div class="d-flex p-2 border rounded mb-2">');
 
@@ -210,6 +257,7 @@ export default class AnalyticEvents {
                     }).fail(error => {
                         window.console.error("Failed to load language strings:", error);
                         $('#content' + userid).html(nodata);
+                    });
                     });
                 } else {
                     $('#content' + userid).html(nodata);
