@@ -225,7 +225,7 @@ class tiny_cursive_renderer extends plugin_renderer_base {
             $cm = null;
             if ($courseid) {
                 $modinfo = get_fast_modinfo($courseid);
-                if ($modinfo) {
+                if ($modinfo && isset($modinfo->cms[$user->cmid])) {
                     $cm = $modinfo->get_cm($user->cmid);
                 }
             }
