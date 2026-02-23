@@ -69,26 +69,26 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
                 if (replyButton.length > 0) {
                     replyButton.on('click', function(event) {
                         var isTeacher = $('#body').hasClass('teacher_admin');
-                        if (isTeacher) {
-                            return true;
+                        if (!isTeacher) {
+                            event.preventDefault();
+                            var url = $(this).attr('href');
+
+                            var urlParts = url.split('#');
+                            var baseUrl = urlParts[0];
+                            var hash = urlParts.length > 1 ? '#' + urlParts[1] : '';
+
+                            if (baseUrl.indexOf('setformat=') > -1) {
+                                baseUrl = baseUrl.replace(/setformat=\d/, 'setformat=1');
+                            } else if (baseUrl.indexOf('?') > -1) {
+                                baseUrl += '&setformat=1';
+                            } else {
+                                baseUrl += '?setformat=1';
+                            }
+                            var finalUrl = baseUrl + hash;
+
+                            window.location.href = finalUrl;
                         }
-                        event.preventDefault();
-                        var url = $(this).attr('href');
 
-                        var urlParts = url.split('#');
-                        var baseUrl = urlParts[0];
-                        var hash = urlParts.length > 1 ? '#' + urlParts[1] : '';
-
-                        if (baseUrl.indexOf('setformat=') > -1) {
-                            baseUrl = baseUrl.replace(/setformat=\d/, 'setformat=1');
-                        } else if (baseUrl.indexOf('?') > -1) {
-                            baseUrl += '&setformat=1';
-                        } else {
-                            baseUrl += '?setformat=1';
-                        }
-                        var finalUrl = baseUrl + hash;
-
-                        window.location.href = finalUrl;
                     });
                 }
 
