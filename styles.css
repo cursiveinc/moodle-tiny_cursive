@@ -20,7 +20,11 @@
     color: #212529;
     border-collapse: collapse;
 }
-
+.tiny_cursive_table.table,
+.tiny_cursive_table.table th,
+.tiny_cursive_table.table td {
+    border-top: none;
+}
 .tiny_cursive_table th,
 .tiny_cursive_table td {
     padding: 0.75rem;
@@ -397,13 +401,27 @@
     transform: translateY(-5px);
 }
 
-.tiny_cursive_added {
-    background-color: #fff2cc;
+.tiny_cursive_added,
+.tiny_cursive-inserted,
+.tiny_cursive-pasted_content,
+.tiny_cursive-ai_inserted {
     color: rgb(0, 41, 0);
     font-weight: bold;
     padding: 2px 4px;
     border-radius: 4px;
     word-wrap: break-word;
+}
+.tiny_cursive_added {
+    background-color: #fff2cc;
+}
+.tiny_cursive-inserted {
+    background-color: #fff2cc;
+}
+.tiny_cursive-pasted_content {
+    background-color: #fff2cc;
+}
+.tiny_cursive-ai_inserted {
+    background-color: #fff2cc;
 }
 
 .tiny_cursive-legend-item {

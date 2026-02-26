@@ -89,7 +89,7 @@ if ($courseid) {
 
 $PAGE->requires->js_call_amd('tiny_cursive/key_logger', 'init', [1]);
 $PAGE->requires->js_call_amd('tiny_cursive/cursive_writing_reports', 'init', ["", constants::has_api_key(),
-                 get_config('tiny_cursive', 'json_download')]);
+                get_config('tiny_cursive', 'json_download')]);
 
 $PAGE->set_context(context_system::instance());
 $PAGE->set_url($url);
