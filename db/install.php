@@ -30,15 +30,15 @@
  */
 function xmldb_tiny_cursive_install() {
 
-    enable_webservice();
-    enable_webservice_protocol();
+    tiny_cursive_enable_webservice();
+    tiny_cursive_enable_webservice_protocol();
 }
 /**
  * Enable web services in Moodle
  *
  * @package tiny_cursive
  */
-function enable_webservice() {
+function tiny_cursive_enable_webservice() {
     set_config('enablewebservices', 1);
 }
 
@@ -47,6 +47,6 @@ function enable_webservice() {
  *
  * @package tiny_cursive
  */
-function enable_webservice_protocol() {
+function tiny_cursive_enable_webservice_protocol() {
     set_config('webserviceprotocols', 'rest');
 }

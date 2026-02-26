@@ -21,7 +21,7 @@
  * @copyright  2025 Cursive Technology, Inc. <info@cursivetechnology.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-namespace tiny_cursive\page;
+namespace tiny_cursive\local\page;
 
 use html_writer;
 use moodle_url;

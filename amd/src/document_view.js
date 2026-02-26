@@ -45,7 +45,7 @@ export default class DocumentView {
             this.normalizePage(id);
         } else if (this.module === 'lesson') {
             this.normalizePage(id);
-        } else if(this.module === 'pdfannotator') {
+        } else if (this.module === 'pdfannotator') {
             this.normalizePage(id);
         }
     }

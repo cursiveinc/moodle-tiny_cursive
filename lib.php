@@ -302,7 +302,7 @@ function tiny_cursive_upload_multipart_record($filerecord, $filenamewithfullpath
         $remoteurl  = get_config('tiny_cursive', 'python_server') . "/upload_file";
         $filetosend = '';
 
-        $tempfilepath = tempnam(sys_get_temp_dir(), 'upload');
+        $tempfilepath = make_temp_directory('tiny_cursive') . '/' . uniqid('upload_', true);
 
         $jsoncontent  = json_decode($filerecord->content, true);
 

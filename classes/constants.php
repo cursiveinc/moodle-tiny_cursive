@@ -41,7 +41,7 @@ class constants {
      * const array RUBRIC_AREA Mapping of module names to rubric areas
      */
     public const RUBRIC_AREA = ['assign' => 'submissions', 'forum' => 'forum', 'quiz' => 'quiz', 'lesson' =>
-                               'lesson'];
+                            'lesson'];
 
     /**
      * Array mapping page body IDs to their corresponding handler functions and module types.
