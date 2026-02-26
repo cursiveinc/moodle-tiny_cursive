@@ -261,7 +261,7 @@ export default class DocumentView {
             );
         }
 
-        if (Dates) {
+        if (Dates && openDate) {
             content.append(
                 this.createBox({
                     bg: 'bg-amber',
@@ -532,45 +532,72 @@ export default class DocumentView {
         let openDate = null;
         let dueDate = null;
 
-        const openedWrapper = this.create('div');
-        const dueWrapper = this.create('div');
-        const remainingWrapper = this.create('div');
-
-        const openedLabel = this.create('span');
-        const openedValue = this.create('span');
-        const dueLabel = this.create('span');
-        const dueValue = this.create('span');
-        const remainingLabel = this.create('span');
-        const remainingValue = this.create('span');
         if (this.module === 'quiz') {
-            openDate = open * 1000;
-            dueDate = due * 1000;
+            // For quiz, open/due are timestamps - only set if non-zero
+            openDate = open ? open * 1000 : null;
+            dueDate = due ? due * 1000 : null;
         } else {
-            openDate = this.extractDate(open?.textContent);
-            dueDate = this.extractDate(due?.textContent);
+            // For other modules, check the text content to determine which is which
+            // Moodle only renders divs for dates that are set, so we need to check labels
+            const openText = open?.textContent?.toLowerCase() || '';
+            const dueText = due?.textContent?.toLowerCase() || '';
+
+            // Check if 'open' div actually contains an open date or a due date
+            if (openText.includes('opened') || openText.includes('open')) {
+                openDate = this.extractDate(open?.textContent);
+            } else if (openText.includes('due') || openText.includes('close')) {
+                // First div is actually the due date (no open date was set)
+                dueDate = this.extractDate(open?.textContent);
+            }
+
+            // Check 'due' div if it exists
+            if (due && (dueText.includes('due') || dueText.includes('close'))) {
+                dueDate = this.extractDate(due?.textContent);
+            }
         }
 
-        openedLabel.textContent = `${this.opened}: `;
-        openedValue.textContent = this.formatDate(openDate ? new Date(openDate) : null);
-        openedValue.className = 'text-dark';
+        // Only show open date if it exists
+        if (openDate) {
+            const openedWrapper = this.create('div');
+            const openedLabel = this.create('span');
+            const openedValue = this.create('span');
 
-        dueLabel.textContent = `${this.due}: `;
-        dueValue.textContent = this.formatDate(dueDate ? new Date(dueDate) : null);
-        dueValue.className = 'text-danger';
+            openedLabel.textContent = `${this.opened}: `;
+            openedValue.textContent = this.formatDate(new Date(openDate));
+            openedValue.className = 'text-dark';
 
-        remainingLabel.textContent = `${this.remaining}: `;
-        remainingValue.textContent = this.calculateDate(dueDate);
-        remainingValue.className = 'text-danger';
+            openedWrapper.className = 'd-flex justify-content-between';
+            openedWrapper.append(openedLabel, openedValue);
+            wrapper.append(openedWrapper);
+        }
 
-        openedWrapper.className = 'd-flex justify-content-between';
-        dueWrapper.className = 'd-flex justify-content-between';
-        remainingWrapper.className = 'd-flex align-items-center justify-content-between mt-2 pt-2 border-top';
+        // Only show due date and remaining time if due date exists
+        if (dueDate) {
+            const dueWrapper = this.create('div');
+            const dueLabel = this.create('span');
+            const dueValue = this.create('span');
 
-        openedWrapper.append(openedLabel, openedValue);
-        dueWrapper.append(dueLabel, dueValue);
-        remainingWrapper.append(remainingLabel, remainingValue);
+            dueLabel.textContent = `${this.due}: `;
+            dueValue.textContent = this.formatDate(new Date(dueDate));
+            dueValue.className = 'text-danger';
 
-        wrapper.append(openedWrapper, dueWrapper, remainingWrapper);
+            dueWrapper.className = 'd-flex justify-content-between';
+            dueWrapper.append(dueLabel, dueValue);
+            wrapper.append(dueWrapper);
+
+            // Remaining time - only show if due date exists
+            const remainingWrapper = this.create('div');
+            const remainingLabel = this.create('span');
+            const remainingValue = this.create('span');
+
+            remainingLabel.textContent = `${this.remaining}: `;
+            remainingValue.textContent = this.calculateDate(dueDate);
+            remainingValue.className = 'text-danger';
+
+            remainingWrapper.className = 'd-flex align-items-center justify-content-between mt-2 pt-2 border-top';
+            remainingWrapper.append(remainingLabel, remainingValue);
+            wrapper.append(remainingWrapper);
+        }
 
         return wrapper.innerHTML;
     }
@@ -586,15 +613,17 @@ export default class DocumentView {
 
     extractDate(text) {
         if (!text) {
-            return '-';
+            return null;
         }
         // Split on first colon and return the right part
         const parts = text?.split(':');
         if (parts.length > 1) {
-            return parts.slice(1).join(':').trim();
+            const dateStr = parts.slice(1).join(':').trim();
+            // Return null if empty or invalid
+            return dateStr || null;
         }
 
-        return text.trim();
+        return text.trim() || null;
     }
 
 
