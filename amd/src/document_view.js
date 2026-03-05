@@ -179,6 +179,7 @@ export default class DocumentView {
                     Element.style.verticalAlign = 'middle';
                 });
             }
+
             content.append(
                 this.createBox({
                     bg: 'bg-gray',
@@ -230,7 +231,7 @@ export default class DocumentView {
                         bg: 'bg-gray',
                         titleColor: 'text-dark',
                         icon: this.moduleIcon,
-                        title: `${this.quiz} ${this.description}`,
+                        title: `${this.getSidebarTitle().title} ${this.description}`,
                         bodyHTML: intro
                     })
                 );

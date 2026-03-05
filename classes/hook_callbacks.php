@@ -65,7 +65,7 @@ class hook_callbacks {
             return;
         }
 
-        $cmid = tiny_cursive_get_cmid($COURSE->id) ?? 0;
+        $cmid = $PAGE?->cm?->id ?? 0;
         if ($cmid) {
             $context = context_module::instance($cmid);
         }
@@ -76,10 +76,23 @@ class hook_callbacks {
         $context  = context_course::instance($COURSE->id);
         $userrole = constants::is_teacher_admin($context) ? 'teacher_admin' : '';
 
-        $plugins             = core_component::get_plugin_list('local');
+        $plugins  = core_component::get_plugin_list('local');
         $PAGE->requires->js_call_amd('tiny_cursive/settings', 'init', [constants::show_comments(), $userrole]);
+        if ($PAGE->bodyid === 'page-mod-assign-removesubmissionconfirm') {
+            $PAGE->requires->js_call_amd('tiny_cursive/remove_submission', 'init', []);
+        }
+        // For Student Analytics view.
+        if (array_key_exists($PAGE->bodyid, constants::STUDENT_VIEW)) {
+            if (intval(get_config('tiny_cursive', "STD$COURSE->id$cmid"))) {
+                $PAGE->requires->js_call_amd(
+                    "tiny_cursive/" . constants::STUDENT_VIEW[$PAGE->bodyid][0],
+                    constants::STUDENT_VIEW[$PAGE->bodyid][1],
+                    [constants::confidence_threshold(), constants::has_api_key(), $USER->id],
+                );
+            }
+        }
 
-        if (array_key_exists($PAGE->bodyid, constants::BODY_IDS)) {
+        if (array_key_exists($PAGE->bodyid, constants::BODY_IDS) && $userrole === 'teacher_admin') {
             if (constants::BODY_IDS[$PAGE->bodyid][1] === "oublog" && !isset($plugins['cursive_oublog'])) {
                 return;
             }

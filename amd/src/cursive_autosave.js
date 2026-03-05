@@ -14,7 +14,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * TODO describe module cursive_autosave
+ * Cursive autosave module for TinyMCE editor integration
  *
  * @module     tiny_cursive/cursive_autosave
  * @copyright  2025 Cursive Technology, Inc. <info@cursivetechnology.com>
