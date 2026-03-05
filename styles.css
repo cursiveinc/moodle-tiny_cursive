@@ -909,15 +909,147 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     align-items: center;
 }
 
+/* Toggle-based Paste Events Panel */
 .tiny_cursive_paste_events_panel {
-    display: none;
-    margin-top: 10px;
+    background: #ffffff;
     border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.paste-events-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.tiny_cursive_header_row {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.tiny_cursive_left_container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.paste-event-timestamp {
+    font-size: 13px;
+    color: #6c757d;
+    font-weight: 500;
+    display: inline-block;
+    background: #e9ecef;
+    padding: 6px 10px;
     border-radius: 4px;
-    background-color: #fff;
-    max-height: 300px;
+}
+
+.tiny_cursive_comment_toggle_btn {
+    background: #ffc107;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+    position: relative;
+}
+
+.tiny_cursive_comment_toggle_btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.tiny_cursive_comment_toggle_btn i {
+    color: white;
+    font-size: 12px;
+}
+
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 0.8;
+    }
+}
+
+.tiny_cursive_content_container {
+    flex: 1;
+    min-width: 0;
+}
+
+.paste-event-text {
+    background: #f8f9fa;
+    padding: 12px;
+    border-radius: 6px;
+    border-left: 3px solid #007bff;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #212529;
+    max-height: 150px;
     overflow-y: auto;
-    width: 100%;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    transition: all 0.3s ease;
+}
+
+.paste-event-comment {
+    background: #fffbea;
+    padding: 12px;
+    border-radius: 6px;
+    border-left: 3px solid #ffc107;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #333;
+    max-height: 150px;
+    overflow-y: auto;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    font-style: italic;
+    transition: all 0.3s ease;
+}
+
+.tiny_cursive_seekplay_button {
+    background: #007bff;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+    box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
+}
+
+@media (max-width: 768px) {
+    .tiny_cursive_header_row {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .tiny_cursive_left_container {
+        justify-content: space-between;
+        width: 100%;
+    }
 }
 
 .tiny_cursive-ai-char {
@@ -1148,10 +1280,6 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     justify-content: center;
     flex-shrink: 0;
     transition: transform 0.1s ease;
-}
-
-.tiny_cursive_seekplay_button:hover {
-    transform: scale(1.05);
 }
 
 .tiny_cursive_eventplay_button:disabled {
