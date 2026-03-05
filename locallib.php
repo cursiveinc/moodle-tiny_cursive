@@ -52,7 +52,7 @@ function tiny_cursive_get_user_attempts_data(
 
     $params = [];
 
-    $sql = "SELECT uf.id AS fileid, uf.uploaded, u.id AS usrid, uw.id AS uniqueid,
+    $sql = "SELECT uf.id AS fileid, uf.uploaded, u.id AS usrid, uw.id AS uniqueid, uf.questionid,
                    u.firstname, u.lastname, u.email, uf.courseid,
                    u.firstnamephonetic, u.lastnamephonetic, u.middlename, u.alternatename,
                    uf.id AS attemptid, uf.timemodified, uf.cmid AS cmid,

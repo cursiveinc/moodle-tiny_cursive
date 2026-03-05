@@ -82,6 +82,11 @@ class tiny_cursive_renderer extends plugin_renderer_base {
 
             $this->generate_custom_title($cm, $user, $DB, $module);
 
+            if ($cm->modname === 'quiz' && $user) {
+                $question = question_bank::load_question($user->questionid);
+                $module->name = $module->name . " / " . strip_tags($question->questiontext);
+            }
+
             $row               = [];
             $row['fileid']     = $user->fileid;
             $row['username']   = fullname($user);
