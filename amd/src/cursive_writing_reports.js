@@ -15,21 +15,23 @@
 
 /**
  * @module     tiny_cursive/cursive_writing_reports
- * @category TinyMCE Editor
+ * @category   TinyMCE Editor
  * @copyright  CTI <info@cursivetechnology.com>
- * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
+ * @author     Brain Station 23 <sales@brainstation-23.com>
  */
 import $ from "jquery";
 import AJAX from "core/ajax";
 import * as str from "core/str";
 import templates from "core/templates";
-import Replay from "./replay";
-import analyticButton from "./analytic_button";
-import AnalyticEvents from "./analytic_events";
+import Replay from "tiny_cursive/replay";
+import analyticButton from "tiny_cursive/analytic_button";
+import AnalyticEvents from "tiny_cursive/analytic_events";
 import Events from "core/modal_events";
 import Alert from "core/modal";
 import Modal from "core/modal_save_cancel";
+import Factory from "core/modal_factory";
 import dashboardChart from "tiny_cursive/dashboard_chart";
+import replayButton from 'tiny_cursive/replay_button';
 
 export const init = (page, hasApiKey, csvOption) => {
     const replayInstances = {};
@@ -102,7 +104,12 @@ export const init = (page, hasApiKey, csvOption) => {
             }])[0].done(response => {
                 let data = JSON.parse(response.data);
 
-                $(this).html(analyticButton(hasApiKey ? data.effort_ratio : "", $(this).data('id')));
+                // Show replay button if no API key, otherwise show analytics button
+                if (!hasApiKey) {
+                    $(this).html(replayButton(mid));
+                } else {
+                    $(this).html(analyticButton(data.effort_ratio, $(this).data('id')));
+                }
 
                 context.formattime = myEvents.formatedTime(data);
                 context.tabledata = data;
@@ -127,6 +134,7 @@ export const init = (page, hasApiKey, csvOption) => {
             const link1 = $(this).attr('href');
             const link2 = $(this).data('link');
 
+            let type = Factory.types.SAVE_CANCEL;
             let optionModal = Modal;
             let select = document.createElement('select');
             select.id = "download-type";
@@ -174,30 +182,36 @@ export const init = (page, hasApiKey, csvOption) => {
             }
 
             optionModal.create({
+                type: type,
                 title: title,
                 body: select,
                 removeOnClose: true,
-                buttons: [{
+                buttons: type === Factory.types.SAVE_CANCEL ? [{
                     text: 'OK',
                     type: 'submit',
                     primary: true
-                }]
+                }] : []
             }).then(modal => {
                 modal.show();
-                modal.getRoot().on(Events.save, function () {
-                    const data = document.getElementById('download-type');
-                    if (!data) {
-                        return;
-                    }
-                    if (parseInt(data.value)) {
-                        window.location.href = link2;
-                    } else {
-                        window.location.href = link1;
-                    }
-                });
+
+                if (type === Factory.types.SAVE_CANCEL) {
+                    modal.getRoot().on(Events.save, function() {
+                        const data = document.getElementById('download-type');
+                        if (!data) {
+                            return;
+                        }
+                        if (parseInt(data.value)) {
+                            window.location.href = link2;
+                        } else {
+                            window.location.href = link1;
+                        }
+                    });
+                }
+                return modal;
+            }).catch(error => {
+                window.console.error('failed to open modal', error);
             });
         });
-
 
         const chartTitle = document.getElementById('CursiveChartTitle');
         const chartDesc = document.getElementById('CursiveChartDescription');
@@ -207,36 +221,47 @@ export const init = (page, hasApiKey, csvOption) => {
         var subType = $('#CursiveMetricSelect').val() ?? "";
         var dataset = $('#CursiveChartTypeSelect').data('chart');
 
-        generateProgressChart(dataType, chartType, subType, dataset, false);
+        if (hasApiKey) {
+            generateProgressChart(dataType, chartType, subType, dataset, false);
+            $('#CursiveChartTypeSelect').on('change', function() {
+                chartTitle.textContent = $(this).find(':selected').text();
+                document.getElementById('CursiveMetricSelect').dispatchEvent(new Event('change'));
+                if (this.dataType !== 'progress') {
+                    chartDesc.textContent = $(this).find(':selected').data('track');
+                }
 
-        $('#CursiveChartTypeSelect').on('change', function (e) {
-            chartTitle.textContent = $(this).find(':selected').text();
+                dataType = $(this).val();
+                chartType = dataType === 'effort' ? 'bar' : 'line';
+                generateProgressChart(dataType, chartType, subType, dataset, false);
+
+            });
+            $('#CursiveMetricSelect').on('change', function () {
+                subType = $(this).val();
+                let description = $(this).find(':selected').data('track');
+                chartDesc.textContent = description;
+                generateProgressChart(dataType, chartType, subType, dataset, false);
+            });
+
+            $('#expandChart').on('click', function () {
+                $('#CursiveChartContainer').toggleClass('cursive-expand-height');
+                generateProgressChart(dataType, chartType, subType, dataset);
+            });
+            document.getElementById('CursiveChartTypeSelect').dispatchEvent(new Event('change'));
             document.getElementById('CursiveMetricSelect').dispatchEvent(new Event('change'));
-            if (this.dataType !== 'progress') {
-                chartDesc.textContent = $(this).find(':selected').data('track');
-            }
-
-            dataType = $(this).val();
-            chartType = dataType === 'effort' ? 'bar' : 'line';
-            generateProgressChart(dataType, chartType, subType, dataset, false);
-
-        });
-        $('#CursiveMetricSelect').on('change', function () {
-            subType = $(this).val();
-            let description = $(this).find(':selected').data('track');
-            chartDesc.textContent = description;
-            generateProgressChart(dataType, chartType, subType, dataset, false);
-        });
-
-        $('#expandChart').on('click', function () {
-            $('#CursiveChartContainer').toggleClass('cursive-expand-height');
-            generateProgressChart(dataType, chartType, subType, dataset);
-        });
-        document.getElementById('CursiveChartTypeSelect').dispatchEvent(new Event('change'));
-        document.getElementById('CursiveMetricSelect').dispatchEvent(new Event('change'));
-
+        } else {
+            generateProgressChart("draw", chartType, subType, [], false);
+        }
     }
 
+    /**
+     * Handles user selection and populates user and module lists based on course selection.
+     *
+     * This function sets up an event listener for course name changes and makes AJAX calls
+     * to retrieve and populate the user list and module list dropdowns with data specific
+     * to the selected course.
+     *
+     * @param {string} page - The current page identifier used for context in templates
+     */
     function getusers(page) {
         $("#id_coursename").change(function () {
             var courseid = $(this).val();
@@ -290,10 +315,21 @@ export const init = (page, hasApiKey, csvOption) => {
                     });
             });
         });
-
-
     }
 
+    /**
+     * Generates a progress chart based on the specified parameters.
+     *
+     * This function creates a dashboard chart with different configurations depending on the data type.
+     * For 'progress' data type, it shows metric controls and passes the subType parameter.
+     * For other data types, it hides metric controls and passes null for subType.
+     *
+     * @param {string} dataType - The type of data to display in the chart (e.g., 'progress', 'effort')
+     * @param {string} chartType - The type of chart to render (e.g., 'line', 'bar')
+     * @param {string|null} subType - The metric subtype for progress charts, null for other types
+     * @param {Array} dataset - The data to be displayed in the chart
+     * @param {boolean} toggle - Whether the chart is being toggled/expanded
+     */
     function generateProgressChart(dataType, chartType, subType, dataset, toggle) {
 
         if (dataType === 'progress') {
@@ -304,4 +340,4 @@ export const init = (page, hasApiKey, csvOption) => {
             new dashboardChart(dataType, chartType, null, dataset, toggle);
         }
     }
-}
+};

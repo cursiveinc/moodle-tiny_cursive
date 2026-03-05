@@ -68,7 +68,6 @@ function xmldb_tiny_cursive_upgrade($oldversion) {
 
         // Save upgrade path.
         upgrade_plugin_savepoint(true, 2024060227, 'tiny', 'cursive');
-
     }
 
     if ($oldversion < 2024060228) {
@@ -82,7 +81,6 @@ function xmldb_tiny_cursive_upgrade($oldversion) {
     }
 
     if ($oldversion < 2024060282) {
-
         $table = new xmldb_table('tiny_cursive_quality_metrics');
 
         $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
@@ -119,7 +117,6 @@ function xmldb_tiny_cursive_upgrade($oldversion) {
     }
 
     if ($oldversion < 2024060285) {
-
         $table = new xmldb_table('tiny_cursive_quality_metrics');
 
         // Add each new field if it doesn't already exist.
@@ -219,12 +216,108 @@ function xmldb_tiny_cursive_upgrade($oldversion) {
 
     if ($oldversion < 2024062004) {
         $table = new xmldb_table('tiny_cursive_files');
-        $field = new xmldb_field('original_content', XMLDB_TYPE_TEXT,  null, null, false, null, null, 'content');
+        $field = new xmldb_field('original_content', XMLDB_TYPE_TEXT, null, null, false, null, null, 'content');
 
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
         upgrade_plugin_savepoint(true, 2024062004, 'tiny', 'cursive');
+    }
+
+    // Added Indexing into existing tables.
+    if ($oldversion < 2026013002) {
+        $table = new xmldb_table('tiny_cursive_files');
+
+        // Composite index for the most common query pattern (non-quiz modules).
+        $index = new xmldb_index(
+            'idx_files_lookup',
+            XMLDB_INDEX_NOTUNIQUE,
+            ['cmid', 'modulename', 'resourceid', 'userid']
+        );
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        // Composite index for quiz queries that include questionid.
+        $index = new xmldb_index(
+            'idx_files_quiz_lookup',
+            XMLDB_INDEX_NOTUNIQUE,
+            ['cmid', 'modulename', 'resourceid', 'userid', 'questionid']
+        );
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        // Supporting index for user-level queries.
+        $index = new xmldb_index('idx_files_userid', XMLDB_INDEX_NOTUNIQUE, ['userid']);
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        // Supporting index for course-level queries.
+        $index = new xmldb_index('idx_files_courseid', XMLDB_INDEX_NOTUNIQUE, ['courseid']);
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        // Index for upload status queries.
+        $index = new xmldb_index('idx_files_uploaded', XMLDB_INDEX_NOTUNIQUE, ['uploaded']);
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        $table = new xmldb_table('tiny_cursive_comments');
+
+        // Composite index for the most common query pattern (non-quiz modules).
+        $index = new xmldb_index(
+            'idx_comments_lookup',
+            XMLDB_INDEX_NOTUNIQUE,
+            ['cmid', 'modulename', 'resourceid', 'userid']
+        );
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        // Composite index for quiz queries that include questionid.
+        $index = new xmldb_index(
+            'idx_comments_quiz_lookup',
+            XMLDB_INDEX_NOTUNIQUE,
+            ['cmid', 'modulename', 'resourceid', 'userid', 'questionid']
+        );
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        // Supporting index for user-level queries.
+        $index = new xmldb_index('idx_comments_userid', XMLDB_INDEX_NOTUNIQUE, ['userid']);
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        // Supporting index for course-level queries.
+        $index = new xmldb_index('idx_comments_courseid', XMLDB_INDEX_NOTUNIQUE, ['courseid']);
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        $table = new xmldb_table('tiny_cursive_user_writing');
+
+        // Index for efficient joins with tiny_cursive_files.
+        $index = new xmldb_index('idx_user_writing_fileid', XMLDB_INDEX_NOTUNIQUE, ['file_id']);
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        $table = new xmldb_table('tiny_cursive_writing_diff');
+
+        // Index for efficient joins with tiny_cursive_files.
+        $index = new xmldb_index('idx_writing_diff_fileid', XMLDB_INDEX_NOTUNIQUE, ['file_id']);
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        // Savepoint reached.
+        upgrade_plugin_savepoint(true, 2026013002, 'tiny', 'cursive');
     }
 
     return true;

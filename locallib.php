@@ -22,6 +22,7 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 use core_external\util;
+use tiny_cursive\constants;
 /**
  * Get user attempts data from the database
  *
@@ -51,7 +52,7 @@ function tiny_cursive_get_user_attempts_data(
 
     $params = [];
 
-    $sql = "SELECT uf.id AS fileid, u.id AS usrid, uw.id AS uniqueid,
+    $sql = "SELECT uf.id AS fileid, uf.uploaded, u.id AS usrid, uw.id AS uniqueid,
                    u.firstname, u.lastname, u.email, uf.courseid,
                    u.firstnamephonetic, u.lastnamephonetic, u.middlename, u.alternatename,
                    uf.id AS attemptid, uf.timemodified, uf.cmid AS cmid,
@@ -245,7 +246,7 @@ function tiny_cursive_get_user_submissions_data($userid, $modulename, $cmid, $co
 
     $sql = "SELECT uw.total_time_seconds, uw.word_count, uw.words_per_minute,
                    uw.backspace_percent, uw.score, uw.copy_behavior, uf.resourceid,
-                   uf.modulename, uf.userid, uw.file_id, uf.filename,
+                   uf.modulename, uf.userid, uw.file_id, uf.filename, uf.uploaded,
                    diff.meta AS effort_ratio
               FROM {tiny_cursive_user_writing} uw
               JOIN {tiny_cursive_files} uf ON uw.file_id = uf.id
@@ -300,10 +301,12 @@ function tiny_cursive_get_user_submissions_data($userid, $modulename, $cmid, $co
         if ($filename) {
             $data['filename'] = $filename->filename;
             $data['file_id'] = $filename->fileid ?? '';
+            $data['resubmit'] = constants::is_resubmitable($data, $data['file_id']);
+            $data['cmid'] = $params['cmid'];
         }
     }
 
-    if ($data['filename']) {
+    if (isset($data['filename']) && $data['filename']) {
         $sql = 'SELECT id as fileid
                   FROM {tiny_cursive_files}
                  WHERE userid = :userid ORDER BY id ASC LIMIT 1';
@@ -335,8 +338,12 @@ function tiny_cursive_get_user_submissions_data($userid, $modulename, $cmid, $co
 function tiny_cursive_get_cmid($courseid) {
     global $DB;
 
-    $cm = $DB->get_record('course_modules', ['course' => $courseid, 'deletioninprogress' => 0],
-         'id', IGNORE_MULTIPLE);
+    $cm = $DB->get_record(
+        'course_modules',
+        ['course' => $courseid, 'deletioninprogress' => 0],
+        'id',
+        IGNORE_MULTIPLE
+    );
     $cmid = isset($cm->id) ? $cm->id : 0;
 
     return $cmid;
@@ -384,8 +391,12 @@ function tiny_cursive_render_user_table($users, $renderer, $courseid, $page, $li
     ]);
     // Prepare the link text.
     $linktext  = get_string('download_csv', 'tiny_cursive');
-    $dwnldicon = $OUTPUT->pix_icon('download', get_string('download', 'tiny_cursive'),
-      'tiny_cursive', ['class' => 'tiny_cursive-analytics-bar-icon']);    // Prepare the attributes for the link.
+    $dwnldicon = $OUTPUT->pix_icon(
+        'download',
+        get_string('download', 'tiny_cursive'),
+        'tiny_cursive',
+        ['class' => 'tiny_cursive-analytics-bar-icon']
+    );    // Prepare the attributes for the link.
 
     $attributes = [
         'target' => '_blank',
@@ -395,7 +406,7 @@ function tiny_cursive_render_user_table($users, $renderer, $courseid, $page, $li
         'style' => 'margin-right:50px; padding: 9px 18px',
     ];
     // Generate the link using html_writer::link.
-    echo html_writer::link($url, $dwnldicon.$linktext, $attributes);
+    echo html_writer::link($url, $dwnldicon . $linktext, $attributes);
     echo $renderer->timer_report($users, $courseid, $page, $limit, $linkurl);
 }
 

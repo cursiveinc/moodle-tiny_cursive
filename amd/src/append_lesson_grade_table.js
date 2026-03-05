@@ -29,6 +29,7 @@ import {call as getData} from 'core/ajax';
 import templates from 'core/templates';
 import AnalyticEvents from './analytic_events';
 import analyticButton from './analytic_button';
+import replayButton from './replay_button';
 import * as Str from 'core/str';
 
 export const init = (scoreSetting, showcomment, hasApiKey) => {
@@ -117,7 +118,13 @@ export const init = (scoreSetting, showcomment, hasApiKey) => {
 
             let analyticButtonDiv = document.createElement('div');
             let analyticsColumn = document.createElement('td');
-            analyticButtonDiv.append(analyticButton(hasApiKey ? data.res.effort_ratio : "", userid));
+
+            if (!hasApiKey) {
+                $(analyticButtonDiv).html(replayButton(userid));
+            } else {
+                analyticButtonDiv.append(analyticButton(data.res.effort_ratio, userid));
+            }
+
             analyticButtonDiv.dataset.region = "analytic-div" + userid;
             analyticsColumn.append(analyticButtonDiv);
             if (grade) {

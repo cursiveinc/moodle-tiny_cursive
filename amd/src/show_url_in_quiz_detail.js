@@ -20,14 +20,16 @@
  * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
  */
 
-define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./analytic_button", "./analytic_events"], function(
+define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./analytic_button", "./analytic_events",
+    "./replay_button"], function(
     $,
     AJAX,
     str,
     templates,
     Replay,
     analyticButton,
-    AnalyticEvents
+    AnalyticEvents,
+    replayButton
 ) {
     const replayInstances = {};
     // eslint-disable-next-line
@@ -97,14 +99,23 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
 
                         var content = $('.que.essay .editquestion a[href*="question/bank/editquestion/question.php"][href*="&id='
                             + data.data.questionid + '"]');
-
+                        if (content.length == 0) {
+                            content = $('.que.aitext .editquestion a[href*="question/bank/editquestion/question.php"][href*="&id='
+                            + data.data.questionid + '"]');
+                        }
                         var filepath = '';
                         if (data.data.filename) {
                             filepath = data.data.filename;
                         }
                         let analyticButtonDiv = document.createElement('div');
                         analyticButtonDiv.classList.add('text-center', 'mt-2');
-                        analyticButtonDiv.append(analyticButton(hasApiKey ? data.data.effort_ratio : "", userid, questionid));
+
+                        if (!hasApiKey) {
+                            $(analyticButtonDiv).html(replayButton(userid + questionid));
+                        } else {
+                            analyticButtonDiv.append(analyticButton(data.data.effort_ratio, userid, questionid));
+                        }
+
                         content.parent().parent().parent().find('.qtext').append(analyticButtonDiv);
 
                         let myEvents = new AnalyticEvents();
@@ -122,7 +133,6 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
                         myEvents.analytics(userid, templates, context, questionid, replayInstances, authIcon);
                         myEvents.checkDiff(userid, data.data.file_id, questionid, replayInstances);
                         myEvents.replyWriting(userid, filepath, questionid, replayInstances);
-
 
                     }
                 });

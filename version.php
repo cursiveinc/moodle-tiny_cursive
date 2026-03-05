@@ -28,7 +28,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'tiny_cursive';
-$plugin->release = '2.0.0';
-$plugin->version = 2025080200;
+$plugin->release = '2.1.4';
+$plugin->version = 2026022006;
 $plugin->requires = 2022041912;
 $plugin->maturity = MATURITY_STABLE;

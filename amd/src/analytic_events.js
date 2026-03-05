@@ -28,17 +28,39 @@ import {call as getContent} from "core/ajax";
 import $ from 'jquery';
 import {get_string as getString} from 'core/str';
 import {get_strings as getStrings} from 'core/str';
+import template from 'core/templates';
 
 export default class AnalyticEvents {
 
+    constructor() {
+        getString('notenoughtinfo', 'tiny_cursive').then(str => {
+            localStorage.setItem('notenoughtinfo', str);
+            return str;
+        }).catch(error => window.console.log(error));
+    }
+
     createModal(userid, context, questionid = '', replayInstances = null, authIcon) {
+        const self = this;
         $('#analytics' + userid + questionid).on('click', function(e) {
             e.preventDefault();
 
+            const isReplayButton = $(this).find('.tiny_cursive-replay-button').length > 0;
             // Create Moodle modal
             myModal.create({templateContext: context}).then(modal => {
                 $('#content' + userid + ' .tiny_cursive_table  tbody tr:first-child td:nth-child(2)').html(authIcon);
                 modal.show();
+
+                if (isReplayButton) {
+                    setTimeout(() => {
+                        $('.tiny_cursive-nav-tab').find('.active').removeClass('active');
+
+                        const replayTab = $('#rep' + userid + questionid);
+                        if (replayTab.length) {
+                            replayTab.trigger('click');
+                            replayTab.addClass('active');
+                        }
+                    }, 50);
+                }
 
                 let moreBtn = $('body #more' + userid + questionid);
                 if (moreBtn.length > 0) {
@@ -53,13 +75,9 @@ export default class AnalyticEvents {
                             'background-color': 'rgba(168, 168, 168, 0.133)',
                             'cursor': 'not-allowed'
                     });
-                    moreBtn.on('click', function() {
-                        $('.tiny_cursive-nav-tab').find('.active').removeClass('active');
-                        $(this).addClass('active');
-                        $('#rep' + userid + questionid).prop('disabled', false);
-                        if (replayInstances && replayInstances[userid]) {
-                            replayInstances[userid].stopReplay();
-                        }
+                    moreBtn.on('click', function(e) {
+                        e.preventDefault();
+                        self.learnMore($(this), context, userid, questionid, replayInstances);
                     });
                 }
 
@@ -236,6 +254,23 @@ export default class AnalyticEvents {
         });
     }
 
+    learnMore(moreBtn, context, userid, questionid, replayInstances) {
+        $('.tiny_cursive-nav-tab').find('.active').removeClass('active');
+        moreBtn.addClass('active');
+        $('#rep' + userid + questionid).prop('disabled', false);
+        if (replayInstances && replayInstances[userid]) {
+            replayInstances[userid].stopReplay();
+        }
+        $('#content' + userid + questionid).removeClass('tiny_cursive_outputElement');
+        $('#replayControls_' + userid + questionid).addClass('d-none');
+        template.render('tiny_cursive/learn_more', context).then(function(html) {
+            $('#content' + userid + questionid).html(html);
+            return true;
+        }).fail(function(error) {
+            window.console.error("Failed to render template:", error);
+        });
+    }
+
     formatedTime(data) {
         if (data.total_time_seconds) {
             let totalTimeSeconds = data.total_time_seconds;
@@ -259,11 +294,14 @@ export default class AnalyticEvents {
         } else if (score >= scoreSetting) {
             icon = 'fa fa-check-circle';
             color = 'font-size:32px;color:green';
-        } else if (score < scoreSetting) {
+        }
+        if (score < scoreSetting) {
             icon = 'fa fa-question-circle';
             color = 'font-size:32px;color:#A9A9A9';
+            return $('<i>').addClass(icon).attr('style', color).attr('title', localStorage.getItem('notenoughtinfo'));
+        } else {
+            return $('<i>').addClass(icon).attr('style', color);
         }
 
-        return $('<i>').addClass(icon).attr('style', color);
     }
 }

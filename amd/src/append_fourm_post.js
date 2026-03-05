@@ -20,13 +20,15 @@
  * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
  */
 
-define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./analytic_button", "./analytic_events"], function(
+define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./analytic_button",
+    "./replay_button", "./analytic_events"], function(
     $,
     AJAX,
     str,
     templates,
     Replay,
     analyticButton,
+    replayButton,
     AnalyticEvents
 ) {
     const replayInstances = {};
@@ -66,9 +68,27 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
                 var replyButton = $('a[data-region="post-action"][title="Reply"]');
                 if (replyButton.length > 0) {
                     replyButton.on('click', function(event) {
-                        event.preventDefault();
-                        var url = $(this).attr('href');
-                        window.location.href = url;
+                        var isTeacher = $('#body').hasClass('teacher_admin');
+                        if (!isTeacher) {
+                            event.preventDefault();
+                            var url = $(this).attr('href');
+
+                            var urlParts = url.split('#');
+                            var baseUrl = urlParts[0];
+                            var hash = urlParts.length > 1 ? '#' + urlParts[1] : '';
+
+                            if (baseUrl.indexOf('setformat=') > -1) {
+                                baseUrl = baseUrl.replace(/setformat=\d/, 'setformat=1');
+                            } else if (baseUrl.indexOf('?') > -1) {
+                                baseUrl += '&setformat=1';
+                            } else {
+                                baseUrl += '?setformat=1';
+                            }
+                            var finalUrl = baseUrl + hash;
+
+                            window.location.href = finalUrl;
+                        }
+
                     });
                 }
 
@@ -88,7 +108,13 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
                     if (filepath) {
 
                         let analyticButtonDiv = document.createElement('div');
-                        analyticButtonDiv.append(analyticButton(hasApiKey ? data.data.effort_ratio : "", ids));
+
+                        if (!hasApiKey) {
+                            $(analyticButtonDiv).html(replayButton(ids));
+                        } else {
+                            analyticButtonDiv.append(analyticButton(data.data.effort_ratio, ids));
+                        }
+
                         analyticButtonDiv.classList.add('text-center', 'my-2');
                         analyticButtonDiv.dataset.region = "analytic-div" + ids;
 

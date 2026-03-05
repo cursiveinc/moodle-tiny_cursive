@@ -59,7 +59,9 @@ export default class dhasboardChart {
                     const { ctx, chartArea, scales } = chart;
                     const active = chart.getActiveElements();
 
-                    if (!active.length) return;
+                    if (!active.length) {
+                        return;
+                    }
 
                     const xScale = scales.x;
                     const index = active[0].index;
@@ -75,11 +77,14 @@ export default class dhasboardChart {
                     ctx.restore();
                 }
             },
-            afterEvent(chart, args) {
+            afterEvent(chart) {
                 // Force redraw on any chart movement to update hover effect
                 chart.draw();
+            },
+            afterDraw: (chart) => {
+                this.drawMessage(this.getText(6), chart);
             }
-        }
+        };
 
         // Create new chart.
         new Chart(this.ctx.getContext('2d'), {
@@ -261,6 +266,7 @@ export default class dhasboardChart {
             { key: 'keys_per_minute', component: component },
             { key: 'words_per_minute_desc', component: component },
             { key: 'rr', component: component },
+            { key: 'freemium', component: component },
         ]).done((strings) => {
             localStorage.setItem('langString', strings);
         });
@@ -269,8 +275,11 @@ export default class dhasboardChart {
     getText(text) {
         if (typeof text === 'number') {
             let strings = localStorage.getItem('langString');
-            strings = strings.split(',');
-            return strings[text];
+            if (strings) {
+                strings = strings.split(',');
+                return strings[text];
+            }
+
         } else {
             text = text === 'backspace_percent' ? this.getText(5) : String(text).charAt(0).toUpperCase() + String(text).slice(1);
             text = text === 'Effort' ? this.getText(2) : String(text).charAt(0).toUpperCase() + String(text).slice(1);
@@ -310,4 +319,97 @@ export default class dhasboardChart {
 
         return canvas;
     }
+
+        /**
+     * Draws a message on the chart canvas
+     * @param {string} text - The message to be displayed
+     * @param {Chart} chart - The Chart.js chart object
+     */
+drawMessage(text, chart) {
+    if (this.dataType !== 'draw') {
+        return;
+    }
+
+    const {ctx, chartArea: {left, right, top, bottom}} = chart;
+    ctx.save();
+
+    const centerX = (left + right) / 2;
+    const centerY = (top + bottom) / 2;
+
+    if (text === undefined) {
+        // Draw loading spinner animation
+        const now = Date.now();
+        const spinnerRadius = 20;
+        const lineWidth = 4;
+        const spinnerSpeed = 0.002; // Radians per millisecond
+
+        // Calculate rotation based on time
+        const rotation = (now * spinnerSpeed) % (Math.PI * 2);
+
+        // Draw background circle
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, spinnerRadius, 0, Math.PI * 2);
+        ctx.strokeStyle = '#e0e0e0';
+        ctx.lineWidth = lineWidth;
+        ctx.stroke();
+
+        // Draw spinning arc
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, spinnerRadius, rotation, rotation + Math.PI * 1.5);
+        ctx.strokeStyle = '#666';
+        ctx.lineWidth = lineWidth;
+        ctx.stroke();
+
+        // Add loading text
+        ctx.font = '14px "Segoe UI", Arial';
+        ctx.fillStyle = '#666';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        // ctx.fillText('Loading...', centerX, centerY + spinnerRadius + 20);
+
+        // Request animation frame to continue animation
+        if (!this._animationFrame) {
+            const animate = () => {
+                if (this.dataType === 'draw' && text === undefined) {
+                    chart.update();
+                    this._animationFrame = requestAnimationFrame(animate);
+                } else {
+                    this._animationFrame = null;
+                }
+            };
+            this._animationFrame = requestAnimationFrame(animate);
+        }
+    } else {
+        // Draw regular text.
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.font = 'bold 16px "Segoe UI", Arial';
+        ctx.fillStyle = '#666';
+        // Fill background with white
+        const textMetrics = ctx.measureText(text);
+        const textWidth = textMetrics.width;
+        const textHeight = 16; // Approximate height based on font size
+        const padding = 8;
+
+        ctx.fillStyle = 'white';
+        ctx.fillRect(
+            centerX - textWidth/2 - padding,
+            centerY - textHeight/2 - padding,
+            textWidth + padding * 2,
+            textHeight + padding * 2
+        );
+
+        // Reset fill style for text
+        ctx.fillStyle = '#666';
+        ctx.fillText(text, centerX, centerY);
+
+        // Stop animation if it was running
+        if (this._animationFrame) {
+            cancelAnimationFrame(this._animationFrame);
+            this._animationFrame = null;
+        }
+    }
+
+    ctx.restore();
+}
 }
