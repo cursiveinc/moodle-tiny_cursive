@@ -45,7 +45,7 @@ window.video_playback = function(mid, filepath) {
 };
 
 export const assignView = (scoreSetting, hasApiKey, userid) => {
-    let child = document.querySelectorAll('.generaltable > tbody:nth-child(1) > tr');
+    let child = document.querySelectorAll('.generaltable tr');
     let childNo = child.length > 6 ? 6 : 5;
     let target = document.querySelector(`.generaltable tr:nth-child(${childNo}) > th:nth-child(1)`);
     let cmid = M.cfg.contextInstanceId;
