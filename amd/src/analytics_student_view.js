@@ -47,7 +47,7 @@ window.video_playback = function(mid, filepath) {
 export const assignView = (scoreSetting, hasApiKey, userid) => {
     let child = document.querySelectorAll('.generaltable > tbody:nth-child(1) > tr');
     let childNo = child.length > 6 ? 6 : 5;
-    let target = document.querySelector(`.generaltable > tbody:nth-child(1) > tr:nth-child(${childNo}) > th:nth-child(1)`);
+    let target = document.querySelector(`.generaltable tr:nth-child(${childNo}) > th:nth-child(1)`);
     let cmid = M.cfg.contextInstanceId;
     let args = {id: userid, modulename: 'assign', cmid: cmid};
     let studentData = getStudentData('cursive_user_list_submission_stats', args);

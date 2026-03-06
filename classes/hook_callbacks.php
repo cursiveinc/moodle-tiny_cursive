@@ -82,7 +82,7 @@ class hook_callbacks {
             $PAGE->requires->js_call_amd('tiny_cursive/remove_submission', 'init', []);
         }
         // For Student Analytics view.
-        if (array_key_exists($PAGE->bodyid, constants::STUDENT_VIEW)) {
+        if (array_key_exists($PAGE->bodyid, constants::STUDENT_VIEW) && $userrole === '') {
             if (intval(get_config('tiny_cursive', "STD$COURSE->id$cmid"))) {
                 $PAGE->requires->js_call_amd(
                     "tiny_cursive/" . constants::STUDENT_VIEW[$PAGE->bodyid][0],
