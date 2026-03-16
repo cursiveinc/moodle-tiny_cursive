@@ -275,7 +275,6 @@ function tiny_cursive_get_user_submissions_data($userid, $modulename, $cmid, $co
     if (isset($data->effort_ratio)) {
         $data->effort_ratio = intval(floatval($data->effort_ratio) * 100);
     }
-    $data = (array)$data;
 
     if (!isset($data['filename'])) {
         $params = [
@@ -320,10 +319,8 @@ function tiny_cursive_get_user_submissions_data($userid, $modulename, $cmid, $co
         }
     }
 
-    $res = $data;
-
     $response = [
-        'res' => $res,
+        'res' => $data,
     ];
     return $response;
 }

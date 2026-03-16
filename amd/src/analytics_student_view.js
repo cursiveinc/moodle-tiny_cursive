@@ -96,7 +96,6 @@ export const forumView = (scoreSetting, hasApiKey, userid) => {
 
 export const lessonView = (scoreSetting, hasApiKey, userid) => {
     const lessonForm = document.querySelector('form:has(.reviewessay) #fitem_id_submitbutton .felement');
-    console.log(lessonForm);
     if (lessonForm) {
             let cmid = M.cfg.contextInstanceId;
             let args = {id: userid, modulename: "lesson", cmid: cmid};
@@ -135,6 +134,11 @@ function setStudentView(data, hasApiKey, userid, scoreSetting, target, questioni
     data.done(function(studentData) {
         let data = JSON.parse(studentData);
         let analytics = data?.res ?? data.data ;
+
+        if (!analytics) {
+            return;
+        }
+
         let container = document.createElement('div');
         if (module === "assign") {
             container.className = 'mt-2';
