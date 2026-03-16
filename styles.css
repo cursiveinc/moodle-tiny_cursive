@@ -1,3 +1,6 @@
+#page-mod-lesson-view .tiny_cursive-replay-button .tiny_cursive-replay-left {
+    padding: 4px 14px;
+}
 .tiny_cursive-analytics-bar-icon {
     filter: brightness(0) invert(1);
     padding: 2px 5px;

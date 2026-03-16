@@ -95,7 +95,8 @@ export const forumView = (scoreSetting, hasApiKey, userid) => {
 };
 
 export const lessonView = (scoreSetting, hasApiKey, userid) => {
-    let lessonForm = document.querySelector('#fitem_id_submitbutton .felement');
+    const lessonForm = document.querySelector('form:has(.reviewessay) #fitem_id_submitbutton .felement');
+    console.log(lessonForm);
     if (lessonForm) {
             let cmid = M.cfg.contextInstanceId;
             let args = {id: userid, modulename: "lesson", cmid: cmid};
