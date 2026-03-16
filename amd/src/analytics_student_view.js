@@ -30,15 +30,20 @@ import $ from 'jquery';
 
 const replayInstances = {};
 // eslint-disable-next-line camelcase
-window.video_playback = function(mid, filepath) {
-
+window.video_playback = function (mid, filepath, questionid = "") {
     if (filepath !== '') {
-        const replay = new Replay('content' + mid, filepath, 10, false, 'player_' + mid);
+        const replay = new Replay(
+            'content' + mid,
+            filepath,
+            10,
+            false,
+            'player_' + mid + questionid
+        );
         replayInstances[mid] = replay;
     } else {
+        // eslint-disable-next-line
         templates.render('tiny_cursive/no_submission').then(html => {
             $('#content' + mid).html(html);
-            return true;
         }).catch(e => window.console.error(e));
     }
     return false;

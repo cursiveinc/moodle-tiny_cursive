@@ -84,7 +84,7 @@ class tiny_cursive_renderer extends plugin_renderer_base {
 
             if ($cm->modname === 'quiz' && $user) {
                 $question = question_bank::load_question($user->questionid);
-                $module->name = $module->name . " / " . strip_tags($question->questiontext);
+                $module->name = $module->name . " / " . $question->name;
             }
 
             $row               = [];
