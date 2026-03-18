@@ -16,17 +16,17 @@
 /**
  * Module for handling PDF annotator functionality,
  *
- * @module     tiny_cursive/append_pdfannotator
- * @copyright  2025 Cursive Technology, Inc. <info@cursivetechnology.com>
+ * @module     tiny_authory_tech/append_pdfannotator
+ * @copyright  2025 Authory Technology S.L. <info@authory.tech>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 import {call} from 'core/ajax';
-import analyticButton from 'tiny_cursive/analytic_button';
-import replayButton from 'tiny_cursive/replay_button';
-import AnalyticEvents from 'tiny_cursive/analytic_events';
+import analyticButton from 'tiny_authory_tech/analytic_button';
+import replayButton from 'tiny_authory_tech/replay_button';
+import AnalyticEvents from 'tiny_authory_tech/analytic_events';
 import templates from 'core/templates';
-import Replay from 'tiny_cursive/replay';
+import Replay from 'tiny_authory_tech/replay';
 export const init = (scoreSetting, comments, hasApiKey, userid) => {
     const replayInstances = {};
     // eslint-disable-next-line camelcase
@@ -41,7 +41,7 @@ export const init = (scoreSetting, comments, hasApiKey, userid) => {
             );
             replayInstances[mid] = replay;
         } else {
-            templates.render('tiny_cursive/no_submission').then(html => {
+            templates.render('tiny_authory_tech/no_submission').then(html => {
                 document.getElementById('content' + mid).innerHTML = html;
                 return true;
             }).catch(e => window.console.error(e));
@@ -86,7 +86,7 @@ export const init = (scoreSetting, comments, hasApiKey, userid) => {
      * 2. For each row:
      *    - Extracts comment ID and user ID from relevant links
      *    - Adds analytics column with replay/analytics buttons
-     *    - Sets up cursive analytics functionality
+     *    - Sets up authory_tech analytics functionality
      */
     function setReplayButton(overviewTable) {
         const rows = overviewTable.querySelectorAll('tbody > tr');
@@ -133,7 +133,7 @@ export const init = (scoreSetting, comments, hasApiKey, userid) => {
                 }
             }
 
-            getCursiveAnalytics(userId, commentId, cmid, cols.col1);
+            getAuthoryTechAnalytics(userId, commentId, cmid, cols.col1);
         });
     }
 
@@ -198,12 +198,12 @@ export const init = (scoreSetting, comments, hasApiKey, userid) => {
                 modulename: moduleName,
                 resourceid: resourceId
             };
-            updateEntries('cursive_update_pdf_annote_id', args);
+            updateEntries('authory_tech_update_pdf_annote_id', args);
         }
     }
 
     /**
-     * Retrieves and displays cursive analytics for a given resource
+     * Retrieves and displays authory_tech analytics for a given resource
      * @param {number} userid - The ID of the user
      * @param {number} resourceid - The ID of the resource to get analytics for
      * @param {number} cmid - The course module ID
@@ -214,9 +214,9 @@ export const init = (scoreSetting, comments, hasApiKey, userid) => {
      * 3. Sets up analytics events and modal functionality
      * 4. Handles both API key and non-API key scenarios
      */
-    function getCursiveAnalytics(userid, resourceid, cmid, place) {
+    function getAuthoryTechAnalytics(userid, resourceid, cmid, place) {
         let args = {id: resourceid, modulename: "pdfannotator", cmid: cmid};
-        let methodname = 'cursive_get_forum_comment_link';
+        let methodname = 'authory_tech_get_forum_comment_link';
         let com = call([{methodname, args}]);
         com[0].done(function(json) {
             var data = JSON.parse(json);
@@ -256,7 +256,7 @@ export const init = (scoreSetting, comments, hasApiKey, userid) => {
 
         });
         com[0].fail((error) => {
-            window.console.error('Error getting cursive config:', error);
+            window.console.error('Error getting authory_tech config:', error);
         });
     }
 };

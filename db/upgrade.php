@@ -15,10 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Tiny cursive plugin upgrade script.
+ * Tiny authory_tech plugin upgrade script.
  *
- * @package tiny_cursive
- * @copyright  CTI <info@cursivetechnology.com>
+ * @package tiny_authory_tech
+ * @copyright  Authory Technology S.L. <info@authory.tech>
  * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -30,7 +30,7 @@
  * @param int $oldversion The old version of atto in the DB.
  * @return bool
  */
-function xmldb_tiny_cursive_upgrade($oldversion) {
+function xmldb_tiny_authory_tech_upgrade($oldversion) {
     global $DB;
 
     $dbman = $DB->get_manager();
@@ -42,7 +42,7 @@ function xmldb_tiny_cursive_upgrade($oldversion) {
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
-        upgrade_plugin_savepoint(true, 2023041937, 'tiny', 'cursive');
+        upgrade_plugin_savepoint(true, 2023041937, 'tiny', 'authory_tech');
     }
 
     if ($oldversion < 2024060227) {
@@ -67,7 +67,7 @@ function xmldb_tiny_cursive_upgrade($oldversion) {
         $dbman->create_table($table);
 
         // Save upgrade path.
-        upgrade_plugin_savepoint(true, 2024060227, 'tiny', 'cursive');
+        upgrade_plugin_savepoint(true, 2024060227, 'tiny', 'authory_tech');
     }
 
     if ($oldversion < 2024060228) {
@@ -77,7 +77,7 @@ function xmldb_tiny_cursive_upgrade($oldversion) {
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
-        upgrade_plugin_savepoint(true, 2024060228, 'tiny', 'cursive');
+        upgrade_plugin_savepoint(true, 2024060228, 'tiny', 'authory_tech');
     }
 
     if ($oldversion < 2024060282) {
@@ -103,7 +103,7 @@ function xmldb_tiny_cursive_upgrade($oldversion) {
             $dbman->create_table($table);
         }
 
-        upgrade_plugin_savepoint(true, 2024060282, 'tiny', 'cursive');
+        upgrade_plugin_savepoint(true, 2024060282, 'tiny', 'authory_tech');
     }
 
     if ($oldversion < 2024060283) {
@@ -113,7 +113,7 @@ function xmldb_tiny_cursive_upgrade($oldversion) {
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
-        upgrade_plugin_savepoint(true, 2024060283, 'tiny', 'cursive');
+        upgrade_plugin_savepoint(true, 2024060283, 'tiny', 'authory_tech');
     }
 
     if ($oldversion < 2024060285) {
@@ -211,7 +211,7 @@ function xmldb_tiny_cursive_upgrade($oldversion) {
         }
 
         // Save the upgrade step.
-        upgrade_plugin_savepoint(true, 2024060285, 'tiny', 'cursive');
+        upgrade_plugin_savepoint(true, 2024060285, 'tiny', 'authory_tech');
     }
 
     if ($oldversion < 2024062004) {
@@ -221,7 +221,7 @@ function xmldb_tiny_cursive_upgrade($oldversion) {
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
-        upgrade_plugin_savepoint(true, 2024062004, 'tiny', 'cursive');
+        upgrade_plugin_savepoint(true, 2024062004, 'tiny', 'authory_tech');
     }
 
     // Added Indexing into existing tables.
@@ -317,7 +317,7 @@ function xmldb_tiny_cursive_upgrade($oldversion) {
         }
 
         // Savepoint reached.
-        upgrade_plugin_savepoint(true, 2026013002, 'tiny', 'cursive');
+        upgrade_plugin_savepoint(true, 2026013002, 'tiny', 'authory_tech');
     }
 
     return true;

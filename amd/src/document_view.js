@@ -16,12 +16,12 @@
 /**
  * This module provides functionality for document view management in the Tiny editor,
  * including full page mode display and sidebar information
- * @module     tiny_cursive/document_view
- * @copyright  2025 Cursive Technology, Inc. <info@cursivetechnology.com>
+ * @module     tiny_authory_tech/document_view
+ * @copyright  2025 Authory Technology S.L. <info@authory.tech>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-import Icons from 'tiny_cursive/svg_repo';
+import Icons from 'tiny_authory_tech/svg_repo';
 export default class DocumentView {
 
     constructor(User, Rubrics, submission, modulename, editor, quizInfo) {
@@ -74,7 +74,7 @@ export default class DocumentView {
 
         const url = new URL(window.location.href);
         const replyId = url.searchParams.get("reply");
-        const toggle = document.querySelector('#cursive-fullpagemode-sidebar-toggle');
+        const toggle = document.querySelector('#authory_tech-fullpagemode-sidebar-toggle');
         const timelimitBlock = this.getTimerBlock(this.module);
         const headerInfo = this.getSidebarTitle();
         const progressBar = document.querySelector('.box.progress_bar');
@@ -88,7 +88,7 @@ export default class DocumentView {
 
         const container = this.create('div');
         Object.assign(container, {
-            id: 'cursive-fullpagemode-sidebar',
+            id: 'authory_tech-fullpagemode-sidebar',
             className: 'bg-white h-100 shadow'
         });
         Object.assign(container.style, {
@@ -98,7 +98,7 @@ export default class DocumentView {
 
         const crossBtn = this.create('span');
         Object.assign(crossBtn, {
-            id: 'cursive-collapse-sidebar',
+            id: 'authory_tech-collapse-sidebar',
             className: 'btn p-2',
             innerHTML: Icons.close
         });
@@ -291,14 +291,14 @@ export default class DocumentView {
     // Helper to create info boxes
     createBox({bg, titleColor, icon, title, bodyHTML}) {
         const box = this.create('div');
-        box.className = `tiny_cursive-fullpage-card ${bg}`;
+        box.className = `tiny_authory_tech-fullpage-card ${bg}`;
 
         const heading = this.create('h4');
-        heading.className = `tiny_cursive-fullpage-card-header ${titleColor} d-flex align-items-center`;
+        heading.className = `tiny_authory_tech-fullpage-card-header ${titleColor} d-flex align-items-center`;
         heading.innerHTML = `${icon} ${title}`;
 
         const body = this.create('div');
-        body.className = `tiny_cursive-fullpage-card-body`;
+        body.className = `tiny_authory_tech-fullpage-card-body`;
         body.innerHTML = bodyHTML;
 
         box.append(heading, body);
@@ -310,10 +310,10 @@ export default class DocumentView {
 
         Rubrics.forEach(rubric => {
             const rubricDiv = this.create('div');
-            rubricDiv.className = 'tiny_cursive-rubric-card';
+            rubricDiv.className = 'tiny_authory_tech-rubric-card';
 
             const title = this.create('h3');
-            title.className = 'tiny_cursive-rubric-title';
+            title.className = 'tiny_authory_tech-rubric-title';
             title.textContent = rubric.description;
             rubricDiv.appendChild(title);
 
@@ -323,11 +323,11 @@ export default class DocumentView {
 
                 // Assign background color class based on score
                 if (score === 0) {
-                    levelDiv.className = 'tiny_cursive-rubric-level tiny_cursive-rubric-low';
+                    levelDiv.className = 'tiny_authory_tech-rubric-level tiny_authory_tech-rubric-low';
                 } else if (score <= 2) {
-                    levelDiv.className = 'tiny_cursive-rubric-level tiny_cursive-rubric-mid';
+                    levelDiv.className = 'tiny_authory_tech-rubric-level tiny_authory_tech-rubric-mid';
                 } else {
-                    levelDiv.className = 'tiny_cursive-rubric-level tiny_cursive-rubric-high';
+                    levelDiv.className = 'tiny_authory_tech-rubric-level tiny_authory_tech-rubric-high';
                 }
 
                 levelDiv.textContent = `${level.definition} / ${level.score}`;
@@ -344,7 +344,7 @@ export default class DocumentView {
         const wrapper = this.create('div');
 
         const statusWrapper = this.create('div');
-        statusWrapper.className = 'tiny_cursive-status-row';
+        statusWrapper.className = 'tiny_authory_tech-status-row';
 
         const statusName = this.create('span');
         statusName.textContent = `${this.status}:`;
@@ -352,12 +352,12 @@ export default class DocumentView {
         const statusValue = this.create('span');
         const isNew = submission?.current?.status === 'new';
         statusValue.textContent = isNew ? this.draftnot : this.draft;
-        statusValue.className = `tiny_cursive-status-value ${isNew ? 'tiny_cursive-status-red' : 'tiny_cursive-status-green'}`;
+        statusValue.className = `tiny_authory_tech-status-value ${isNew ? 'tiny_authory_tech-status-red' : 'tiny_authory_tech-status-green'}`;
 
         statusWrapper.append(statusName, statusValue);
 
         const modifiedWrapper = this.create('div');
-        modifiedWrapper.className = 'tiny_cursive-status-row';
+        modifiedWrapper.className = 'tiny_authory_tech-status-row';
 
         const modifiedName = this.create('span');
         modifiedName.textContent = `${this.lastModified}: `;
@@ -372,7 +372,7 @@ export default class DocumentView {
         modifiedWrapper.append(modifiedName, modifiedValue);
 
         const gradeWrapper = this.create('div');
-        gradeWrapper.className = 'tiny_cursive-status-row';
+        gradeWrapper.className = 'tiny_authory_tech-status-row';
 
         const gradeName = this.create('span');
         gradeName.textContent = `${this.gradings}: `;
@@ -510,11 +510,11 @@ export default class DocumentView {
         courseValue.textContent = course.title;
 
         usernameLabel.className = 'cfw-bold me-2';
-        usernameValue.className = 'cursiveFw-wrap';
+        usernameValue.className = 'authory_tech_Fw-wrap';
         courseLabel.className = 'cfw-bold me-2';
-        courseValue.className = 'cursiveFw-wrap';
+        courseValue.className = 'authory_tech_Fw-wrap';
         nameLabel.className = 'cfw-bold me-2';
-        nameValue.className = 'cursiveFw-wrap';
+        nameValue.className = 'authory_tech_Fw-wrap';
 
         nameWrapper.append(nameLabel, nameValue);
         usernameWrapper.append(usernameLabel, usernameValue);
@@ -635,7 +635,7 @@ export default class DocumentView {
         let btn = null;
 
         assignName.classList.remove('mb-2');
-        header.id = 'tiny_cursive-fullpage-custom-header';
+        header.id = 'tiny_authory_tech-fullpage-custom-header';
         Object.assign(header.style, {
             backgroundColor: 'white',
             display: 'flex',
@@ -644,11 +644,11 @@ export default class DocumentView {
 
         if (this.module === 'quiz') {
             btn = document.querySelector('#mod_quiz-next-nav').cloneNode(true);
-            btn.className = 'tiny_cursive-fullpage-submit-btn';
+            btn.className = 'tiny_authory_tech-fullpage-submit-btn';
             btn.style.margin = '.5rem';
         } else {
             btn = this.create('input');
-            btn.className = 'tiny_cursive-fullpage-submit-btn';
+            btn.className = 'tiny_authory_tech-fullpage-submit-btn';
             btn.value = this.savechanges;
             btn.type = 'submit';
             btn.style.margin = '.5rem';
@@ -656,7 +656,7 @@ export default class DocumentView {
 
         if (this.module === 'pdfannotator') {
             const style = document.createElement('style');
-            style.id = 'cursiveForceStyle';
+            style.id = 'authoryTechForceStyle';
             style.textContent = `
                 .path-mod-pdfannotator #comment-wrapper h4,
                 .path-mod-pdfannotator #comment-nav {
@@ -675,7 +675,7 @@ export default class DocumentView {
         };
 
         Object.assign(leftSide.style, commonStyle);
-        rightSide.id = 'tiny_cursive-fullpage-right-wrapper';
+        rightSide.id = 'tiny_authory_tech-fullpage-right-wrapper';
         Object.assign(rightSide.style, commonStyle);
 
         rightSide.appendChild(btn);
@@ -699,7 +699,7 @@ export default class DocumentView {
             margin: '2rem 0 0'
         });
         const style = this.create('style');
-        style.id = 'tiny_cursive-fullpage-mode-style';
+        style.id = 'tiny_authory_tech-fullpage-mode-style';
         style.textContent = `
             .tox.tox-edit-focus .tox-edit-area::before {
                 opacity: 0;
@@ -712,18 +712,18 @@ export default class DocumentView {
             iframeBody.style.padding = '0.5in';
         }
         p2.style.position = 'relative';
-        document.getElementById('cursive-fullpagemode-sidebar')?.remove();
+        document.getElementById('authory_tech-fullpagemode-sidebar')?.remove();
 
         let toggle = this.create('div');
-        toggle.id = 'cursive-fullpagemode-sidebar-toggle';
+        toggle.id = 'authory_tech-fullpagemode-sidebar-toggle';
         toggle.innerHTML = Icons.hamburger;
         p2.appendChild(toggle);
         p2.appendChild(this.docSideBar(statusBar));
     }
 
     normalizePage(editorId) {
-        document.getElementById('tiny_cursive-fullpage-custom-header')?.remove();
-        document.getElementById('cursive-fullpagemode-sidebar')?.remove();
+        document.getElementById('tiny_authory_tech-fullpage-custom-header')?.remove();
+        document.getElementById('authory_tech-fullpagemode-sidebar')?.remove();
 
         let current = document.getElementById(editorId);
         let p1 = current.parentElement;
@@ -747,18 +747,18 @@ export default class DocumentView {
             margin: ''
         });
 
-        p1.classList.remove('tiny-cursive-editor-container');
+        p1.classList.remove('tiny-authory_tech-editor-container');
 
         let iframeBody = current.contentDocument?.body || current.contentWindow?.document?.body;
         if (iframeBody) {
             iframeBody.style.padding = '0';
         }
-        document.head.querySelector('#tiny_cursive-fullpage-mode-style')?.remove();
-        document.head.querySelector('#cursiveForceStyle')?.remove();
+        document.head.querySelector('#tiny_authory_tech-fullpage-mode-style')?.remove();
+        document.head.querySelector('#authoryTechForceStyle')?.remove();
     }
 
     checkForumSubject() {
-        const form = document.querySelector('#tiny_cursive-fullpage-right-wrapper > input');
+        const form = document.querySelector('#tiny_authory_tech-fullpage-right-wrapper > input');
         const msg = this.subjectnot;
 
         if (form) {

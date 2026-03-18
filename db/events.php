@@ -15,10 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Tiny cursive plugin event.
+ * Tiny authory_tech plugin event.
  *
- * @package tiny_cursive
- * @copyright  CTI <info@cursivetechnology.com>
+ * @package tiny_authory_tech
+ * @copyright  Authory Technology S.L. <info@authory.tech>
  * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -28,25 +28,25 @@ defined('MOODLE_INTERNAL') || die();
 $observers = [
     [
         'eventname' => '\mod_forum\event\post_created',
-        'callback' => '\tiny_cursive\observers::observer_login',
+        'callback' => '\tiny_authory_tech\observers::observer_login',
         'internal' => true,
         'priority' => 9999,
     ],
     [
         'eventname' => '\mod_forum\event\post_updated',
-        'callback' => '\tiny_cursive\observers::post_updated',
+        'callback' => '\tiny_authory_tech\observers::post_updated',
         'internal' => true,
         'priority' => 9999,
     ],
     [
         'eventname' => '\mod_forum\event\discussion_created',
-        'callback' => '\tiny_cursive\observers::discussion_created',
+        'callback' => '\tiny_authory_tech\observers::discussion_created',
         'internal' => true,
         'priority' => 9999,
     ],
     [
         'eventname' => '\core\event\course_reset_ended',
-        'callback' => '\tiny_cursive\observers::reset_tracking_data',
+        'callback' => '\tiny_authory_tech\observers::reset_tracking_data',
         'internal' => true,
         'priority' => 9999,
     ],

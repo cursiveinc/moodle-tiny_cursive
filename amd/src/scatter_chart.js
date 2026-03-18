@@ -17,8 +17,8 @@
  * A module that creates a scatter chart to visualize student effort data using Chart.js.
  * The chart displays effort scores against time spent, with tooltips showing additional metrics.
  *
- * @module     tiny_cursive/scatter_chart
- * @copyright  2025 Cursive Technology, Inc. <info@cursivetechnology.com>
+ * @module     tiny_authory_tech/scatter_chart
+ * @copyright  2025 Authory Technology S.L. <info@authory.tech>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -47,16 +47,16 @@ export const init = async(data, apiKey, caption) => {
         effortscore,
         timespent,
     ] = await getStrings([
-        {key: 'apply_filter', component: 'tiny_cursive'},
-        {key: 'no_submission', component: 'tiny_cursive'},
-        {key: 'nopaylod', component: 'tiny_cursive'},
-        {key: 'freemium', component: 'tiny_cursive'},
-        {key: 'time', component: 'tiny_cursive'},
-        {key: 'words', component: 'tiny_cursive'},
-        {key: 'effort_ratio', component: 'tiny_cursive'},
-        {key: 'wpm', component: 'tiny_cursive'},
-        {key: 'effort_score', component: 'tiny_cursive'},
-        {key: 'timespent', component: 'tiny_cursive'},
+        {key: 'apply_filter', component: 'tiny_authory_tech'},
+        {key: 'no_submission', component: 'tiny_authory_tech'},
+        {key: 'nopaylod', component: 'tiny_authory_tech'},
+        {key: 'freemium', component: 'tiny_authory_tech'},
+        {key: 'time', component: 'tiny_authory_tech'},
+        {key: 'words', component: 'tiny_authory_tech'},
+        {key: 'effort_ratio', component: 'tiny_authory_tech'},
+        {key: 'wpm', component: 'tiny_authory_tech'},
+        {key: 'effort_score', component: 'tiny_authory_tech'},
+        {key: 'timespent', component: 'tiny_authory_tech'},
     ]);
 
     if (Array.isArray(data) && !data.state && apiKey) {

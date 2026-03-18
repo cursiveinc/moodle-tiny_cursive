@@ -16,7 +16,7 @@ along with Moodle. If not, see
 <http: //www.gnu.org/licenses />.
 }}
 {{!
-@template tiny_cursive/writing_activity_report
+@template tiny_authory_tech/writing_activity_report
 
 Template to display a student's writing report and analytics.
 
@@ -36,24 +36,24 @@ Example context (json):
 }
 }}
 
-<div class="tiny_cursive-writing-report">
-    <div class="tiny_cursive-writing-activity-report-body">
+<div class="tiny_authory_tech-writing-report">
+    <div class="tiny_authory_tech-writing-activity-report-body">
         <div class="table-responsive">
-            <table class="tiny_cursive-writing-report-table table">
+            <table class="tiny_authory_tech-writing-report-table table">
                 <thead>
                     <tr>
-                        <th>{{#str}}attemptid, tiny_cursive{{/str}}</th>
-                        <th>{{#str}}fullname, tiny_cursive{{/str}}</th>
-                        <th>{{#str}}email, tiny_cursive{{/str}}</th>
-                        <th>{{#str}}module_name, tiny_cursive{{/str}}</th>
-                        <th>{{#str}}last_modified, tiny_cursive{{/str}}</th>
-                        <th>{{#str}}analytics, tiny_cursive{{/str}}</th>
-                        <th>{{#str}}download, tiny_cursive{{/str}}</th>
+                        <th>{{#str}}attemptid, tiny_authory_tech{{/str}}</th>
+                        <th>{{#str}}fullname, tiny_authory_tech{{/str}}</th>
+                        <th>{{#str}}email, tiny_authory_tech{{/str}}</th>
+                        <th>{{#str}}module_name, tiny_authory_tech{{/str}}</th>
+                        <th>{{#str}}last_modified, tiny_authory_tech{{/str}}</th>
+                        <th>{{#str}}analytics, tiny_authory_tech{{/str}}</th>
+                        <th>{{#str}}download, tiny_authory_tech{{/str}}</th>
                     </tr>
                 </thead>
                 <tbody>
                     {{#userdata}}
-                    <tr class="tiny_cursive-writing-report-table-row">
+                    <tr class="tiny_authory_tech-writing-report-table-row">
                         <td>{{fileid}}</td>
                         <td>{{username}}</td>
                         <td>{{email}}</td>
@@ -69,7 +69,7 @@ Example context (json):
                     {{/userdata}}
                     {{^userdata}}
                     <tr>
-                        <td colspan="7" class="text-center"> {{#str}}no_submission,tiny_cursive{{/str}}</td>
+                        <td colspan="7" class="text-center"> {{#str}}no_submission,tiny_authory_tech{{/str}}</td>
                     </tr>
                     {{/userdata}}
                 </tbody>

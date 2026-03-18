@@ -15,10 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Tiny cursive plugin csv export.
+ * Tiny authory_tech plugin csv export.
  *
- * @package tiny_cursive
- * @copyright  CTI <info@cursivetechnology.com>
+ * @package tiny_authory_tech
+ * @copyright  Authory Technology S.L. <info@authory.tech>
  * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -41,32 +41,32 @@ $moduleid = optional_param('moduleid', 0, PARAM_INT);
 if ($moduleid != 0) {
     $context = context_module::instance($moduleid);
 } else {
-    $cmid    = tiny_cursive_get_cmid($courseid);
+    $cmid    = tiny_authory_tech_get_cmid($courseid);
     $context = context_module::instance($cmid);
 }
 
-require_capability('tiny/cursive:view', $context);
+require_capability('tiny/authory_tech:view', $context);
 
 $report = [];
 $headers = [
-    get_string('fullname', 'tiny_cursive'),
-    get_string('email', 'tiny_cursive'),
-    get_string('courseid', 'tiny_cursive'),
-    get_string('total_time_seconds', 'tiny_cursive'),
-    get_string('key_count', 'tiny_cursive'),
-    get_string('keys_per_minute', 'tiny_cursive'),
-    get_string('character_count', 'tiny_cursive'),
-    get_string('characters_per_minute', 'tiny_cursive'),
-    get_string('word_count', 'tiny_cursive'),
-    get_string('words_per_minute', 'tiny_cursive'),
-    get_string('backspace_percent', 'tiny_cursive'),
-    get_string('score', 'tiny_cursive'),
-    get_string('copybehavior', 'tiny_cursive'),
-    get_string('effort_ratio', 'tiny_cursive'),
+    get_string('fullname', 'tiny_authory_tech'),
+    get_string('email', 'tiny_authory_tech'),
+    get_string('courseid', 'tiny_authory_tech'),
+    get_string('total_time_seconds', 'tiny_authory_tech'),
+    get_string('key_count', 'tiny_authory_tech'),
+    get_string('keys_per_minute', 'tiny_authory_tech'),
+    get_string('character_count', 'tiny_authory_tech'),
+    get_string('characters_per_minute', 'tiny_authory_tech'),
+    get_string('word_count', 'tiny_authory_tech'),
+    get_string('words_per_minute', 'tiny_authory_tech'),
+    get_string('backspace_percent', 'tiny_authory_tech'),
+    get_string('score', 'tiny_authory_tech'),
+    get_string('copybehavior', 'tiny_authory_tech'),
+    get_string('effort_ratio', 'tiny_authory_tech'),
 ];
 
 $exportcsv = new csv_export_writer('comma');
-$exportcsv->set_filename(get_string('wractivityreport', 'tiny_cursive'));
+$exportcsv->set_filename(get_string('wractivityreport', 'tiny_authory_tech'));
 $exportcsv->add_data($headers); // Add Header Row.
 $params = [];
 

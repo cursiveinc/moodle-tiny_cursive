@@ -14,9 +14,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * @module     tiny_cursive/replay
+ * @module     tiny_authory_tech/replay
  * @category TinyMCE Editor
- * @copyright  CTI <info@cursivetechnology.com>
+ * @copyright  Authory Technology S.L. <info@authory.tech>
  * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
  */
 
@@ -81,11 +81,11 @@ export default class Replay {
             window.console.error('Error loading JSON file:', error.message);
         });
         if (!localStorage.getItem('nopasteevent') || !localStorage.getItem('pasteEvent')) {
-            Str.get_string('nopasteevent', 'tiny_cursive').then(str => {
+            Str.get_string('nopasteevent', 'tiny_authory_tech').then(str => {
                 localStorage.setItem('nopasteevent', str);
                 return str;
             }).catch(error => window.console.log(error));
-            Str.get_string('pasteEvent', 'tiny_cursive').then(str => {
+            Str.get_string('pasteEvent', 'tiny_authory_tech').then(str => {
                 localStorage.setItem('pasteEvent', str);
                 return str;
             }).catch(error => window.console.log(error));
@@ -128,11 +128,11 @@ export default class Replay {
     async handleNoSubmission() {
         try {
             const [html, str] = await Promise.all([
-                templates.render('tiny_cursive/no_submission'),
-                Str.get_string('warningpayload', 'tiny_cursive')
+                templates.render('tiny_authory_tech/no_submission'),
+                Str.get_string('warningpayload', 'tiny_authory_tech')
             ]);
             const newElement = $(html).text(str);
-            return $('.tiny_cursive').html(newElement);
+            return $('.tiny_authory_tech').html(newElement);
         } catch (error) {
             window.console.error(error);
             return false;
@@ -146,7 +146,7 @@ export default class Replay {
             this.replayInProgress = false;
             if (this.playButton) {
                 const playSvg = document.createElement('img');
-                playSvg.src = M.util.image_url('playicon', 'tiny_cursive');
+                playSvg.src = M.util.image_url('playicon', 'tiny_authory_tech');
                 this.playButton.querySelector('.play-icon').innerHTML = playSvg.outerHTML;
             }
         }
@@ -168,20 +168,20 @@ export default class Replay {
             return;
         }
 
-        const controlContainer = container.querySelector('.tiny_cursive_replay_control');
+        const controlContainer = container.querySelector('.tiny_authory_tech_replay_control');
         if (!controlContainer) {
             window.console.error('Replay control container not found in:', controllerId);
             return;
         }
-        controlContainer.innerHTML = '<span class="tiny_cursive_loading_spinner"></span>';
+        controlContainer.innerHTML = '<span class="tiny_authory_tech_loading_spinner"></span>';
 
         this.buildControllerUI(controlContainer, container);
-        controlContainer.querySelector('.tiny_cursive_loading_spinner')?.remove();
+        controlContainer.querySelector('.tiny_authory_tech_loading_spinner')?.remove();
     }
 
     buildControllerUI(controlContainer, container) {
         const topRow = document.createElement('div');
-        topRow.classList.add('tiny_cursive_top_row');
+        topRow.classList.add('tiny_authory_tech_top_row');
 
         this.playButton = this.createPlayButton();
         topRow.appendChild(this.playButton);
@@ -193,7 +193,7 @@ export default class Replay {
         topRow.appendChild(this.timeDisplay);
 
         const bottomRow = document.createElement('div');
-        bottomRow.classList.add('tiny_cursive_bottom_row');
+        bottomRow.classList.add('tiny_authory_tech_bottom_row');
 
         const speedContainer = this.createSpeedControls();
         bottomRow.appendChild(speedContainer);
@@ -208,7 +208,7 @@ export default class Replay {
 
     createPlayButton() {
         const playButton = document.createElement('button');
-        playButton.classList.add('tiny_cursive_play_button');
+        playButton.classList.add('tiny_authory_tech_play_button');
         const playSvg = document.createElement('i');
         playButton.innerHTML = `<span class="play-icon">${playSvg.outerHTML}</span>`;
         playButton.addEventListener('click', () => {
@@ -217,7 +217,7 @@ export default class Replay {
             } else {
                 this.startReplay(false);
             }
-            $('.tiny_cursive-nav-tab').find('.active').removeClass('active');
+            $('.tiny_authory_tech-nav-tab').find('.active').removeClass('active');
             $('a[id^="rep"]').addClass('active');
         });
         return playButton;
@@ -225,9 +225,9 @@ export default class Replay {
 
     createScrubberContainer() {
         const scrubberContainer = document.createElement('div');
-        scrubberContainer.classList.add('tiny_cursive_scrubber_container');
+        scrubberContainer.classList.add('tiny_authory_tech_scrubber_container');
         this.scrubberElement = document.createElement('input');
-        this.scrubberElement.classList.add('tiny_cursive_timeline_scrubber', 'timeline-scrubber');
+        this.scrubberElement.classList.add('tiny_authory_tech_timeline_scrubber', 'timeline-scrubber');
         this.scrubberElement.type = 'range';
         this.scrubberElement.max = '100';
         this.scrubberElement.min = '0';
@@ -241,31 +241,31 @@ export default class Replay {
 
     createTimeDisplay() {
         const timeDisplay = document.createElement('div');
-        timeDisplay.classList.add('tiny_cursive_time_display');
+        timeDisplay.classList.add('tiny_authory_tech_time_display');
         timeDisplay.textContent = '00:00 / 00:00';
         return timeDisplay;
     }
 
     createSpeedControls() {
         const speedContainer = document.createElement('div');
-        speedContainer.classList.add('tiny_cursive_speed_controls', 'speed-controls');
+        speedContainer.classList.add('tiny_authory_tech_speed_controls', 'speed-controls');
         const speedLabel = document.createElement('span');
-        speedLabel.classList.add('tiny_cursive_speed_label');
+        speedLabel.classList.add('tiny_authory_tech_speed_label');
         speedLabel.textContent = 'Speed: ';
         speedContainer.appendChild(speedLabel);
 
         const speedGroup = document.createElement('div');
-        speedGroup.classList.add('tiny_cursive_speed_group');
+        speedGroup.classList.add('tiny_authory_tech_speed_group');
         [1, 1.5, 2, 5, 10].forEach(speed => {
             const speedBtn = document.createElement('button');
             speedBtn.textContent = `${speed}x`;
-            speedBtn.classList.add('tiny_cursive_speed_btn', 'speed-btn');
+            speedBtn.classList.add('tiny_authory_tech_speed_btn', 'speed-btn');
             if (parseFloat(speed) === this.speed) {
                 speedBtn.classList.add('active');
             }
             speedBtn.dataset.speed = speed;
             speedBtn.addEventListener('click', () => {
-                document.querySelectorAll('.tiny_cursive_speed_btn').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.tiny_authory_tech_speed_btn').forEach(btn => btn.classList.remove('active'));
                 speedBtn.classList.add('active');
                 this.speed = parseFloat(speedBtn.dataset.speed);
                 if (this.replayInProgress) {
@@ -281,13 +281,13 @@ export default class Replay {
 
     createPasteEventsToggle(container) {
         const pasteEventsToggle = document.createElement('div');
-        pasteEventsToggle.classList.add('tiny_cursive_paste_events_toggle', 'paste-events-toggle');
+        pasteEventsToggle.classList.add('tiny_authory_tech_paste_events_toggle', 'paste-events-toggle');
 
         const pasteEventsIcon = document.createElement('span');
         const pasteIcon = document.createElement('img');
-        pasteIcon.src = M.util.image_url('pasteicon', 'tiny_cursive');
+        pasteIcon.src = M.util.image_url('pasteicon', 'tiny_authory_tech');
         pasteEventsIcon.innerHTML = pasteIcon.outerHTML;
-        pasteEventsIcon.classList.add('tiny_cursive_paste_events_icon');
+        pasteEventsIcon.classList.add('tiny_authory_tech_paste_events_icon');
 
         const pasteEventsText = document.createElement('span');
         pasteEventsText.textContent = localStorage.getItem('pasteEvent');
@@ -325,7 +325,7 @@ export default class Replay {
             existingPanel.remove();
         }
         const pasteEventsPanel = document.createElement('div');
-        pasteEventsPanel.classList.add('tiny_cursive_paste_events_panel', 'paste-events-panel');
+        pasteEventsPanel.classList.add('tiny_authory_tech_paste_events_panel', 'paste-events-panel');
         pasteEventsPanel.style.display = 'none';
         this.populatePasteEventsPanel(pasteEventsPanel);
         return pasteEventsPanel;
@@ -412,7 +412,7 @@ export default class Replay {
     // Populate the paste events panel with navigation
     populatePasteEventsPanel(panel) {
         panel.innerHTML = '';
-        panel.classList.add('tiny_cursive_event_panel');
+        panel.classList.add('tiny_authory_tech_event_panel');
 
         if (!this.pasteTimestamps.length) {
             const noEventsMessage = document.createElement('div');
@@ -423,23 +423,23 @@ export default class Replay {
         }
 
         const carouselContainer = document.createElement('div');
-        carouselContainer.classList.add('tiny_cursive_paste_events_carousel', 'paste-events-carousel');
+        carouselContainer.classList.add('tiny_authory_tech_paste_events_carousel', 'paste-events-carousel');
 
         const navigationRow = document.createElement('div');
-        navigationRow.classList.add('paste-events-navigation', 'tiny_cursive_navigation_row');
+        navigationRow.classList.add('paste-events-navigation', 'tiny_authory_tech_navigation_row');
 
         const counterDisplay = document.createElement('div');
-        counterDisplay.classList.add('paste-events-counter', 'tiny_cursive_counter_display');
+        counterDisplay.classList.add('paste-events-counter', 'tiny_authory_tech_counter_display');
         counterDisplay.textContent = 'Paste Events';
 
         const navButtons = document.createElement('div');
-        navButtons.classList.add('tiny_cursive_nav_buttons');
+        navButtons.classList.add('tiny_authory_tech_nav_buttons');
         const prevButton = document.createElement('button');
-        prevButton.classList.add('paste-event-prev-btn', 'tiny_cursive_nav_button');
+        prevButton.classList.add('paste-event-prev-btn', 'tiny_authory_tech_nav_button');
         prevButton.innerHTML = '<i class="fa fa-chevron-left"></i>';
 
         const nextButton = document.createElement('button');
-        nextButton.classList.add('paste-event-next-btn', 'tiny_cursive_nav_button');
+        nextButton.classList.add('paste-event-next-btn', 'tiny_authory_tech_nav_button');
         nextButton.innerHTML = '<i class="fa fa-chevron-right"></i>';
         nextButton.disabled = this.pasteTimestamps.length <= 1;
 
@@ -449,7 +449,7 @@ export default class Replay {
         navigationRow.appendChild(navButtons);
 
         const contentContainer = document.createElement('div');
-        contentContainer.className = 'paste-events-content tiny_cursive_content_container';
+        contentContainer.className = 'paste-events-content tiny_authory_tech_content_container';
         contentContainer.appendChild(this.createPasteEventDisplay(this.pasteTimestamps[0]));
 
         carouselContainer.appendChild(navigationRow);
@@ -484,29 +484,29 @@ export default class Replay {
 
     createPasteEventDisplay(pasteEvent) {
         const eventRow = document.createElement('div');
-        eventRow.className = 'tiny_cursive_event_row';
+        eventRow.className = 'tiny_authory_tech_event_row';
 
         const headerRow = document.createElement('div');
-        headerRow.className = 'tiny_cursive_header_row';
+        headerRow.className = 'tiny_authory_tech_header_row';
 
         const textContainer = document.createElement('div');
-        textContainer.className = 'tiny_cursive_text_container';
+        textContainer.className = 'tiny_authory_tech_text_container';
 
         const timestampContainer = document.createElement('div');
-        timestampContainer.className = 'paste-event-timestamp tiny_cursive_paste_event_timestamp';
+        timestampContainer.className = 'paste-event-timestamp tiny_authory_tech_paste_event_timestamp';
         timestampContainer.textContent = pasteEvent.formattedTime;
 
         const pastedTextContainer = document.createElement('div');
-        pastedTextContainer.className = 'paste-event-text tiny_cursive_pasted_text_container';
+        pastedTextContainer.className = 'paste-event-text tiny_authory_tech_pasted_text_container';
         pastedTextContainer.textContent = pasteEvent.pastedText;
 
         textContainer.appendChild(timestampContainer);
         textContainer.appendChild(pastedTextContainer);
 
         const playButton = document.createElement('button');
-        playButton.className = 'paste-event-play-btn tiny_cursive_seekplay_button';
+        playButton.className = 'paste-event-play-btn tiny_authory_tech_seekplay_button';
         const playIcon = document.createElement('img');
-        playIcon.src = M.util.image_url('seekplayicon', 'tiny_cursive');
+        playIcon.src = M.util.image_url('seekplayicon', 'tiny_authory_tech');
         playButton.innerHTML = playIcon.outerHTML;
         playButton.addEventListener('click', () => this.jumpToTimestamp(pasteEvent.timestamp));
 
@@ -538,7 +538,7 @@ export default class Replay {
 
     loadJSON(filePath) {
         return fetchJson([{
-            methodname: 'cursive_get_reply_json',
+            methodname: 'authory_tech_get_reply_json',
             args: {filepath: filePath}
         }])[0].done(response => response).fail(error => {
             throw new Error(`Error loading JSON file: ${error.message}`);
@@ -1719,11 +1719,11 @@ export default class Replay {
             const line = textLines[lineIndex];
             for (let i = 0; i < line.length; i++) {
                 if (currentPosition === cursorPosition) {
-                    html += '<span class="tiny_cursive-cursor"></span>';
+                    html += '<span class="tiny_authory_tech-cursor"></span>';
                 }
                 const char = line[i];
                 if (deletionMap[currentPosition]) {
-                    html += `<span class="tiny_cursive-deleted-char" style="opacity:
+                    html += `<span class="tiny_authory_tech-deleted-char" style="opacity:
                         ${deletionMap[currentPosition].opacity};">${deletionMap[currentPosition].chars}</span>`;
                 }
                 const isPasted = pastedMap[currentPosition];
@@ -1731,17 +1731,17 @@ export default class Replay {
                 const isHighlighted = highlightMap[currentPosition] && char !== ' ';
 
                 if (isPasted && isHighlighted) {
-                    html += `<span class="tiny_cursive-pasted-char tiny_cursive-highlighted-char" style="opacity:
+                    html += `<span class="tiny_authory_tech-pasted-char tiny_authory_tech-highlighted-char" style="opacity:
                         ${highlightMap[currentPosition].opacity};">${char}</span>`;
                 } else if (isAi && isHighlighted) {
-                    html += `<span class="tiny_cursive-ai-char tiny_cursive-highlighted-char" style="opacity:
+                    html += `<span class="tiny_authory_tech-ai-char tiny_authory_tech-highlighted-char" style="opacity:
                         ${highlightMap[currentPosition].opacity};">${char}</span>`;
                 } else if (isPasted) {
-                    html += `<span class="tiny_cursive-pasted-char">${char === ' ' ? ' ' : this.escapeHtml(char)}</span>`;
+                    html += `<span class="tiny_authory_tech-pasted-char">${char === ' ' ? ' ' : this.escapeHtml(char)}</span>`;
                 } else if (isAi) {
-                    html += `<span class="tiny_cursive-ai-char">${char === ' ' ? ' ' : this.escapeHtml(char)}</span>`;
+                    html += `<span class="tiny_authory_tech-ai-char">${char === ' ' ? ' ' : this.escapeHtml(char)}</span>`;
                 } else if (isHighlighted) {
-                    html += `<span class="tiny_cursive-highlighted-char" style="opacity:
+                    html += `<span class="tiny_authory_tech-highlighted-char" style="opacity:
                         ${highlightMap[currentPosition].opacity};">${char}</span>`;
                 } else {
                     html += char === ' ' ? ' ' : this.escapeHtml(char);
@@ -1749,7 +1749,7 @@ export default class Replay {
                 currentPosition++;
             }
             if (currentPosition === cursorPosition) {
-                html += '<span class="tiny_cursive-cursor"></span>';
+                html += '<span class="tiny_authory_tech-cursor"></span>';
             }
             if (lineIndex < textLines.length - 1) {
                 html += '<br>';
@@ -1757,16 +1757,16 @@ export default class Replay {
             }
         }
 
-        if (cursorPosition === text.length && !html.endsWith('<span class="tiny_cursive-cursor"></span>')) {
-            html += '<span class="tiny_cursive-cursor"></span>';
+        if (cursorPosition === text.length && !html.endsWith('<span class="tiny_authory_tech-cursor"></span>')) {
+            html += '<span class="tiny_authory_tech-cursor"></span>';
         }
 
         if (outOfRangeDeletions.length > 0) {
             outOfRangeDeletions.sort((a, b) => a.index - b.index);
-            const cursorHTML = '<span class="tiny_cursive-cursor"></span>';
+            const cursorHTML = '<span class="tiny_authory_tech-cursor"></span>';
             const cursorPos = html.lastIndexOf(cursorHTML);
             if (cursorPos !== -1) {
-                let deletedWordHTML = '<span class="tiny_cursive-deleted-char" style="opacity: 0.5;">';
+                let deletedWordHTML = '<span class="tiny_authory_tech-deleted-char" style="opacity: 0.5;">';
                 outOfRangeDeletions.forEach(d => {
                     deletedWordHTML += d.chars;
                 });
@@ -1786,7 +1786,7 @@ export default class Replay {
 
     // Check if cursor is below visible viewport
     isCursorBelowViewport() {
-        const cursorElement = this.outputElement.querySelector('.tiny_cursive-cursor:last-of-type');
+        const cursorElement = this.outputElement.querySelector('.tiny_authory_tech-cursor:last-of-type');
         if (!cursorElement) {
             return false;
         }

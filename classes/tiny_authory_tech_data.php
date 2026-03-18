@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace tiny_cursive;
+namespace tiny_authory_tech;
 
 use context_course;
 
@@ -27,14 +27,14 @@ require_once($CFG->dirroot . '/mod/quiz/attemptlib.php');
 use stdClass;
 
 /**
- * Tiny cursive plugin.
+ * Tiny authory_tech plugin.
  *
- * @package tiny_cursive
- * @copyright  CTI <info@cursivetechnology.com>
+ * @package tiny_authory_tech
+ * @copyright  Authory Technology S.L. <info@authory.tech>
  * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class tiny_cursive_data {
+class tiny_authory_tech_data {
     /**
      * Get list of users enrolled in a course.
      *
@@ -53,7 +53,7 @@ class tiny_cursive_data {
         $users                = get_enrolled_users(context_course::instance($courseid), '', 0);
 
         $udetail2['id']       = 0;
-        $udetail2['name']     = get_string('alluser', 'tiny_cursive');
+        $udetail2['name']     = get_string('alluser', 'tiny_authory_tech');
         $allusers->userlist[] = $udetail2;
 
         foreach ($users as $user) {
@@ -87,7 +87,7 @@ class tiny_cursive_data {
         $courseid             = (int)$params['courseid'];
 
         $udetail2['id']       = 0;
-        $udetail2['name']     = get_string('allmodule', 'tiny_cursive');
+        $udetail2['name']     = get_string('allmodule', 'tiny_authory_tech');
         $allusers->userlist[] = $udetail2;
         $modules = $DB->get_records('course_modules', ['course' => $courseid], '', 'id, instance');
 

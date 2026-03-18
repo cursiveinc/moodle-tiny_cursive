@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace tiny_cursive;
+namespace tiny_authory_tech;
 
 use editor_tiny\plugin;
 
 /**
- * Tiny cursive plugin.
+ * Tiny authory_tech plugin.
  *
- * @package tiny_cursive
- * @copyright  CTI <info@cursivetechnology.com>
+ * @package tiny_authory_tech
+ * @copyright  Authory Technology S.L. <info@authory.tech>
  * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

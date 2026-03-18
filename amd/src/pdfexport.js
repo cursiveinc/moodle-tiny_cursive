@@ -15,11 +15,11 @@
 
 
 /**
- * Module for exporting PDF documents with cursive content. Handles PDF generation with custom formatting,
+ * Module for exporting PDF documents with authory_tech content. Handles PDF generation with custom formatting,
  * including margins, image quality settings and page orientation. Provides user feedback during export process.
  *
- * @module     tiny_cursive/pdfexport
- * @copyright  2025 Cursive Technology, Inc. <info@cursivetechnology.com>
+ * @module     tiny_authory_tech/pdfexport
+ * @copyright  2025 Authory Technology S.L. <info@authory.tech>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -33,14 +33,14 @@ import * as str from 'core/str';
 export const init = (data) => {
 
     if (data) {
-        data = JSON.parse(document.getElementById('CursiveStudentData')?.dataset.submission || '{}');
+        data = JSON.parse(document.getElementById('AuthoryTechStudentData')?.dataset.submission || '{}');
     }
 
     if (!Object.keys(data).length) {
         Alert.create({
             type: Factory.types.ALERT,
             title: str.get_string('message', 'tool_dataprivacy'),
-            body: str.get_string('nopaylod', 'tiny_cursive'),
+            body: str.get_string('nopaylod', 'tiny_authory_tech'),
             cssClass: 'modal-dialog modal-dialog-centered'
         }).then(modal => {
             modal.show();
@@ -62,11 +62,11 @@ export const init = (data) => {
                     html2canvas:  {scale: 2},
                     jsPDF:        {unit: 'mm', format: 'a4', orientation: 'portrait'}};
 
-        templates.render('tiny_cursive/export_pdf', data).then(html => {
+        templates.render('tiny_authory_tech/export_pdf', data).then(html => {
             // eslint-disable-next-line
             return html2pdf().set(option).from(html).save().then(() => {
                 // eslint-disable-next-line
-                str.get_string('download_pdf_message', 'tiny_cursive').then(str =>{
+                str.get_string('download_pdf_message', 'tiny_authory_tech').then(str =>{
                    document.getElementById('loadermessage').textContent = str;
                    return str;
                 });

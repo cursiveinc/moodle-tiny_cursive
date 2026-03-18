@@ -15,10 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * File for handling PDF export functionality in the Cursive plugin
+ * File for handling PDF export functionality in the Authory.tech plugin
  *
- * @package    tiny_cursive
- * @copyright  2025 Cursive Technology, Inc. <info@cursivetechnology.com>
+ * @package    tiny_authory_tech
+ * @copyright  2025 Authory Technology S.L. <info@authory.tech>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -32,5 +32,5 @@ $file   = required_param('file', PARAM_INT);
 $cmid   = required_param('cmid', PARAM_INT);
 $course = required_param('course', PARAM_INT);
 $qid    = optional_param('qid', 0, PARAM_INT);
-$page   = new \tiny_cursive\local\page\pdfexport($course, $cmid, $id, $qid, $file);
+$page   = new \tiny_authory_tech\local\page\pdfexport($course, $cmid, $id, $qid, $file);
 $page->download();

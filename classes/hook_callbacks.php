@@ -15,15 +15,15 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Tiny cursive plugin.
+ * Tiny authory_tech plugin.
  *
- * @package tiny_cursive
- * @copyright  CTI <info@cursivetechnology.com>
+ * @package tiny_authory_tech
+ * @copyright  Authory Technology S.L. <info@authory.tech>
  * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace tiny_cursive;
+namespace tiny_authory_tech;
 
 use context_course;
 use context_module;
@@ -31,14 +31,14 @@ use core\hook\output\before_footer_html_generation;
 use core_component;
 use core_course\hook\after_form_definition;
 use core_course\hook\after_form_submission;
-use tiny_cursive\constants;
+use tiny_authory_tech\constants;
 use function array_key_exists;
 
 /**
- * Tiny cursive plugin hook callback class.
+ * Tiny authory_tech plugin hook callback class.
  *
- * @package tiny_cursive
- * @copyright  CTI <info@cursivetechnology.com>
+ * @package tiny_authory_tech
+ * @copyright  Authory Technology S.L. <info@authory.tech>
  * @author Brain Station 23 <sales@brainstation-23.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -51,25 +51,25 @@ class hook_callbacks {
     public static function before_footer_html_generation(before_footer_html_generation $hook) {
         global $PAGE, $COURSE, $USER, $CFG;
 
-        require_once($CFG->dirroot . '/lib/editor/tiny/plugins/cursive/locallib.php');
-        require_once($CFG->dirroot . '/lib/editor/tiny/plugins/cursive/lib.php');
+        require_once($CFG->dirroot . '/lib/editor/tiny/plugins/authory_tech/locallib.php');
+        require_once($CFG->dirroot . '/lib/editor/tiny/plugins/authory_tech/lib.php');
 
         if (empty($COURSE) || during_initial_install()) {
             return;
         }
 
-        $cursivestatus = tiny_cursive_status($COURSE->id);
+        $authoryTechStatus = tiny_authory_tech_status($COURSE->id);
         $context       = "";
 
-        if (!$cursivestatus) {
+        if (!$authoryTechStatus) {
             return;
         }
 
-        $cmid = tiny_cursive_get_cmid($COURSE->id) ?? 0;
+        $cmid = tiny_authory_tech_get_cmid($COURSE->id) ?? 0;
         if ($cmid) {
             $context = context_module::instance($cmid);
         }
-        if ($context && !has_capability('tiny/cursive:writingreport', $context, $USER->id)) {
+        if ($context && !has_capability('tiny/authory_tech:writingreport', $context, $USER->id)) {
             return;
         }
 
@@ -77,7 +77,7 @@ class hook_callbacks {
         $userrole = constants::is_teacher_admin($context) ? 'teacher_admin' : '';
 
         $plugins             = core_component::get_plugin_list('local');
-        $PAGE->requires->js_call_amd('tiny_cursive/settings', 'init', [constants::show_comments(), $userrole]);
+        $PAGE->requires->js_call_amd('tiny_authory_tech/settings', 'init', [constants::show_comments(), $userrole]);
 
         if (array_key_exists($PAGE->bodyid, constants::BODY_IDS)) {
             if (constants::BODY_IDS[$PAGE->bodyid][1] === "oublog" && !isset($plugins['cursive_oublog'])) {
@@ -86,7 +86,7 @@ class hook_callbacks {
 
             if (constants::is_active()) {
                 $PAGE->requires->js_call_amd(
-                    "tiny_cursive/" . constants::BODY_IDS[$PAGE->bodyid][0],
+                    "tiny_authory_tech/" . constants::BODY_IDS[$PAGE->bodyid][0],
                     'init',
                     [constants::confidence_threshold(), constants::show_comments(), constants::has_api_key(), $USER->id],
                 );
@@ -102,30 +102,30 @@ class hook_callbacks {
     public static function after_form_definition(after_form_definition $hook) {
         global $COURSE;
 
-        if (get_config('tiny_cursive', 'disabled')) {
+        if (get_config('tiny_authory_tech', 'disabled')) {
             return;
         }
 
         $mform = $hook->mform;
-        $mform->addElement('header', 'Cursive', get_string('pluginname', 'tiny_cursive'), [], [
+        $mform->addElement('header', 'Authory.tech', get_string('pluginname', 'tiny_authory_tech'), [], [
             'collapsed' => false,
         ]);
         // Add a static element for the notice above the enable/disable dropdown.
-        $noticemsg = get_config('tiny_cursive', 'note_text') ?: get_string('cursive_enable_notice', 'tiny_cursive');
-        $noticeurl = get_config('tiny_cursive', 'note_url') ?: 'https://cursivetechnology.com/moodle-integration-how-it-works';
-        $urltext   = get_config('tiny_cursive', 'note_url_text') ?: get_string('cursive_more_info', 'tiny_cursive');
+        $noticemsg = get_config('tiny_authory_tech', 'note_text') ?: get_string('authory_tech_enable_notice', 'tiny_authory_tech');
+        $noticeurl = get_config('tiny_authory_tech', 'note_url') ?: 'https://authory.tech';
+        $urltext   = get_config('tiny_authory_tech', 'note_url_text') ?: get_string('authory_tech_more_info', 'tiny_authory_tech');
 
         $notice = "{$noticemsg} <a href='{$noticeurl}' target='_blank'>{$urltext}</a>";
 
-        $mform->addElement('static', 'cursive_notice', '', $notice);
+        $mform->addElement('static', 'authory_tech_notice', '', $notice);
 
-        $mform->addElement('select', 'cursive_status', get_string('cursive_status', 'tiny_cursive'), [
-            '0' => get_string('disabled', 'tiny_cursive'),
-            '1' => get_string('enabled', 'tiny_cursive'),
+        $mform->addElement('select', 'authory_tech_status', get_string('authory_tech_status', 'tiny_authory_tech'), [
+            '0' => get_string('disabled', 'tiny_authory_tech'),
+            '1' => get_string('enabled', 'tiny_authory_tech'),
         ]);
 
-        $default = get_config('tiny_cursive', "cursive-$COURSE->id");
-        $mform->setDefault('cursive_status', $default);
+        $default = get_config('tiny_authory_tech', "authory_tech-$COURSE->id");
+        $mform->setDefault('authory_tech_status', $default);
     }
 
     /**
@@ -136,8 +136,8 @@ class hook_callbacks {
     public static function after_form_submission(after_form_submission $hook) {
 
         $courseid = $hook->get_data()->id;
-        $status   = $hook->get_data()->cursive_status ?? false;
-        $name     = "cursive-$courseid";
-        set_config($name, $status, 'tiny_cursive');
+        $status   = $hook->get_data()->authory_tech_status ?? false;
+        $name     = "authory_tech-$courseid";
+        set_config($name, $status, 'tiny_authory_tech');
     }
 }

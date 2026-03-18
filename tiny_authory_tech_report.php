@@ -15,15 +15,15 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Tiny cursive plugin writing report.
+ * Tiny authory_tech plugin writing report.
  *
- * @package tiny_cursive
- * @copyright  CTI <info@cursivetechnology.com>
+ * @package tiny_authory_tech
+ * @copyright  Authory Technology S.L. <info@authory.tech>
  * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-use tiny_cursive\constants;
-use tiny_cursive\forms\user_report_form;
+use tiny_authory_tech\constants;
+use tiny_authory_tech\forms\user_report_form;
 require(__DIR__ . '/../../../../../config.php');
 
 require_once(__DIR__ . '/locallib.php');
@@ -50,13 +50,13 @@ $params   = [
     'orderby'             => $orderby,
     'submitbutton'        => 'Submit',
 ];
-$url     = new moodle_url('/lib/editor/tiny/plugins/cursive/tiny_cursive_report.php', $params);
+$url     = new moodle_url('/lib/editor/tiny/plugins/authory_tech/tiny_authory_tech_report.php', $params);
 
 if ($courseid && $courseid != 0) {
-    $cmid    = tiny_cursive_get_cmid($courseid);
+    $cmid    = tiny_authory_tech_get_cmid($courseid);
     $context = context_module::instance($cmid);
 
-    $struser = get_string('student_writing_statics', 'tiny_cursive');
+    $struser = get_string('student_writing_statics', 'tiny_authory_tech');
     $course  = get_course($courseid);
 
     $PAGE->navbar->add($course->shortname, new moodle_url('/course/view.php', ['id' => $courseid]));
@@ -65,19 +65,19 @@ if ($courseid && $courseid != 0) {
     $context = context_system::instance();
 }
 
-require_capability('tiny/cursive:view', $context);
+require_capability('tiny/authory_tech:view', $context);
 
-$PAGE->requires->js_call_amd('tiny_cursive/key_logger', 'init', [1]);
+$PAGE->requires->js_call_amd('tiny_authory_tech/key_logger', 'init', [1]);
 $PAGE->requires->js_call_amd(
-    'tiny_cursive/cursive_writing_reports',
+    'tiny_authory_tech/authory_tech_writing_reports',
     'init',
-    ["", constants::has_api_key(), get_config('tiny_cursive', 'json_download')]
+    ["", constants::has_api_key(), get_config('tiny_authory_tech', 'json_download')]
 );
 
 $PAGE->set_context(context_system::instance());
-$PAGE->set_title(get_string('tiny_cursive', 'tiny_cursive'));
+$PAGE->set_title(get_string('tiny_authory_tech', 'tiny_authory_tech'));
 $PAGE->set_url($url);
-$PAGE->set_heading(get_string('tiny_cursive', 'tiny_cursive'));
+$PAGE->set_heading(get_string('tiny_authory_tech', 'tiny_authory_tech'));
 
 
 echo $OUTPUT->header();
@@ -99,14 +99,14 @@ $filter = html_writer::div($mform->render(), 'col-xl-4');
 
 echo html_writer::div($filter . $canvasdiv, 'row g-3');
 
-$renderer     = $PAGE->get_renderer('tiny_cursive');
+$renderer     = $PAGE->get_renderer('tiny_authory_tech');
 
 if ($formdata = $mform->get_data()) {
     if ($formdata->courseid) {
         $context = context_course::instance($courseid);
         require_capability('mod/quiz:viewreports', $context);
     }
-    $users = tiny_cursive_get_user_attempts_data(
+    $users = tiny_authory_tech_get_user_attempts_data(
         $formdata->userid,
         $formdata->courseid,
         $formdata->moduleid,
@@ -115,7 +115,7 @@ if ($formdata = $mform->get_data()) {
         $limit
     );
 
-    tiny_cursive_render_user_table(
+    tiny_authory_tech_render_user_table(
         $users,
         $renderer,
         $courseid,
@@ -125,10 +125,10 @@ if ($formdata = $mform->get_data()) {
         $moduleid,
         $userid
     );
-    $chart   = new \tiny_cursive\local\page\visualization($courseid, "", $moduleid, $formdata->userid);
+    $chart   = new \tiny_authory_tech\local\page\visualization($courseid, "", $moduleid, $formdata->userid);
     $chart->render();
 } else {
-    $users = tiny_cursive_get_user_attempts_data(
+    $users = tiny_authory_tech_get_user_attempts_data(
         $userid,
         $courseid,
         $moduleid,
@@ -136,7 +136,7 @@ if ($formdata = $mform->get_data()) {
         $page,
         $limit
     );
-    tiny_cursive_render_user_table(
+    tiny_authory_tech_render_user_table(
         $users,
         $renderer,
         $courseid,
@@ -146,7 +146,7 @@ if ($formdata = $mform->get_data()) {
         $moduleid,
         $userid
     );
-    $chart   = new \tiny_cursive\local\page\visualization($courseid, "", $moduleid, $userid);
+    $chart   = new \tiny_authory_tech\local\page\visualization($courseid, "", $moduleid, $userid);
     $chart->render();
 }
 

@@ -14,20 +14,20 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace tiny_cursive\local\page;
+namespace tiny_authory_tech\local\page;
 use context_course;
 use context_module;
 use html_writer;
 use moodle_exception;
 use moodle_url;
 use context_system;
-use tiny_cursive\constants;
+use tiny_authory_tech\constants;
 
 /**
  * Class pdfexport
  *
- * @package    tiny_cursive
- * @copyright  2025 Cursive Technology, Inc. <info@cursivetechnology.com>
+ * @package    tiny_authory_tech
+ * @copyright  2025 Authory Technology S.L. <info@authory.tech>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class pdfexport {
@@ -63,7 +63,7 @@ class pdfexport {
     /**
      * @var int $id User ID
      */
-    protected $fileid; // Cursive fileid.
+    protected $fileid; // Authory.tech fileid.
 
     /**
      * Constructor for pdfexport class
@@ -72,7 +72,7 @@ class pdfexport {
      * @param int $cmid The course module ID
      * @param int $id The user ID
      * @param int $questionid The ID of the question
-     * @param int $file The ID of the cursive file
+     * @param int $file The ID of the authory_tech file
      * @throws moodle_exception If the user does not have permission to access the page
      */
     public function __construct(int $courseid, int $cmid, $id, $questionid, $file) {
@@ -81,7 +81,7 @@ class pdfexport {
         $this->fileid     = $file;
         $this->courseid   = $courseid;
         $this->questionid = $questionid;
-        $this->url        = new moodle_url('/lib/editor/tiny/plugins/cursive/pdfexport.php');
+        $this->url        = new moodle_url('/lib/editor/tiny/plugins/authory_tech/pdfexport.php');
     }
 
     /**
@@ -112,9 +112,9 @@ class pdfexport {
 
         $PAGE->set_url($this->url);
         $PAGE->set_context(context_system::instance());
-        $PAGE->set_title(get_string('analytics', 'tiny_cursive'));
-        $PAGE->requires->js("/lib/editor/tiny/plugins/cursive/amd/js/html2pdf.js", true);
-        $PAGE->requires->js_call_amd('tiny_cursive/pdfexport', 'init', [$data ? true : false]);
+        $PAGE->set_title(get_string('analytics', 'tiny_authory_tech'));
+        $PAGE->requires->js("/lib/editor/tiny/plugins/authory_tech/amd/js/html2pdf.js", true);
+        $PAGE->requires->js_call_amd('tiny_authory_tech/pdfexport', 'init', [$data ? true : false]);
     }
 
     /**
@@ -134,9 +134,9 @@ class pdfexport {
         global $OUTPUT;
 
         echo   $OUTPUT->header();
-        $content = html_writer::div(get_string('pleasewait', 'tiny_cursive'), '', ['id' => "loadermessage"]);
+        $content = html_writer::div(get_string('pleasewait', 'tiny_authory_tech'), '', ['id' => "loadermessage"]);
         $loader  = html_writer::div($OUTPUT->pix_icon('i/loading', 'core'), 'text-center');
-        $data    = html_writer::start_span('', ['id' => 'CursiveStudentData', 'data-submission' =>
+        $data    = html_writer::start_span('', ['id' => 'AuthoryTechStudentData', 'data-submission' =>
                    json_encode($this->templatecontent)]);
         $wrapper = html_writer::div($data . $loader . $content, 'text-center', ['id' => 'pdfexportLoader']);
         echo   $OUTPUT->box($wrapper);
@@ -246,15 +246,15 @@ class pdfexport {
         global $USER;
 
         if (!constants::has_api_key()) {
-            throw new moodle_exception(get_string('warning', 'tiny_cursive'));
+            throw new moodle_exception(get_string('warning', 'tiny_authory_tech'));
         }
 
         if (intval($USER->id) !== $this->id && !constants::is_teacher_admin(context_course::instance($this->courseid))) {
-            throw new moodle_exception(get_string('warning', 'tiny_cursive'));
+            throw new moodle_exception(get_string('warning', 'tiny_authory_tech'));
         }
 
         $context    = context_module::instance($this->cmid);
-        require_capability('tiny/cursive:writingreport', $context);
+        require_capability('tiny/authory_tech:writingreport', $context);
     }
 
     /**
@@ -285,7 +285,7 @@ class pdfexport {
      * @return bool True if score meets or exceeds threshold, false otherwise
      */
     private function get_auth_state($score) {
-        $threshould = floatval(get_config('tiny_cursive', 'confidence_threshold')) ?? 0.65;
+        $threshould = floatval(get_config('tiny_authory_tech', 'confidence_threshold')) ?? 0.65;
 
         if ($score >= $threshould) {
             return true;

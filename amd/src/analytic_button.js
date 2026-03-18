@@ -17,8 +17,8 @@
  * Module that creates an analytics button with an icon and text.
  * The button displays analytics information for a specific user and question.
  *
- * @module     tiny_cursive/analytic_button
- * @copyright  2024 CTI <info@cursivetechnology.com>
+ * @module     tiny_authory_tech/analytic_button
+ * @copyright  2024 Authory Technology S.L. <info@authory.tech>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -34,21 +34,21 @@ define(["core/str"], function(Str) {
     );
 
     const button = document.createElement('div');
-    button.className = 'tiny_cursive-analytics-button';
+    button.className = 'tiny_authory_tech-analytics-button';
 
     // Left side (icon + label)
     const left = document.createElement('div');
-    left.className = 'tiny_cursive-analytics-left';
+    left.className = 'tiny_authory_tech-analytics-left';
 
     const icon = document.createElement('img');
-    icon.src = M.util.image_url('chart-column', 'tiny_cursive');
+    icon.src = M.util.image_url('chart-column', 'tiny_authory_tech');
     icon.alt = 'Analytics Icon';
-    icon.className = 'tiny_cursive-analytics-bar-icon';
+    icon.className = 'tiny_authory_tech-analytics-bar-icon';
 
     const label = document.createElement('span');
-    label.className = 'tiny_cursive-analytics-label';
+    label.className = 'tiny_authory_tech-analytics-label';
     label.textContent = 'Analytics';
-    Str.get_string("analytics", "tiny_cursive")
+    Str.get_string("analytics", "tiny_authory_tech")
       .then((analyticsString) => {
         label.textContent = analyticsString;
         return analyticsString;
@@ -63,7 +63,7 @@ define(["core/str"], function(Str) {
 
     if (effort) {
       const right = document.createElement('div');
-      right.className = 'tiny_cursive-analytics-right';
+      right.className = 'tiny_authory_tech-analytics-right';
       right.textContent = effort + "%";
       right.title = "Effort";
 

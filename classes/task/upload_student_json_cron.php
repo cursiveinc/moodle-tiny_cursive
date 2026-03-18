@@ -15,21 +15,21 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Tiny cursive plugin upload file using cron to the api server.
+ * Tiny authory_tech plugin upload file using cron to the api server.
  *
- * @package tiny_cursive
- * @copyright  CTI <info@cursivetechnology.com>
+ * @package tiny_authory_tech
+ * @copyright  Authory Technology S.L. <info@authory.tech>
  * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace tiny_cursive\task;
+namespace tiny_authory_tech\task;
 use core\task\scheduled_task;
 /**
- * Tiny cursive plugin upload file using cron to the api server.
+ * Tiny authory_tech plugin upload file using cron to the api server.
  *
- * @package tiny_cursive
- * @copyright  CTI <info@cursivetechnology.com>
+ * @package tiny_authory_tech
+ * @copyright  Authory Technology S.L. <info@authory.tech>
  * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -40,7 +40,7 @@ class upload_student_json_cron extends scheduled_task {
      * @return string
      */
     public function get_name() {
-        return get_string('pluginname', 'tiny_cursive');
+        return get_string('pluginname', 'tiny_authory_tech');
     }
 
     /**
@@ -51,16 +51,16 @@ class upload_student_json_cron extends scheduled_task {
      */
     public function execute() {
         global $CFG, $DB;
-        require_once($CFG->dirroot . '/lib/editor/tiny/plugins/cursive/lib.php');
+        require_once($CFG->dirroot . '/lib/editor/tiny/plugins/authory_tech/lib.php');
 
-        $serviceshortname = 'cursive_json_service';
+        $serviceshortname = 'authory_tech_json_service';
         $service = $DB->get_record('external_services', ['shortname' => $serviceshortname]);
 
         $token = '';
         $adminuser = get_admin();
-        $cursivetoken = get_config('tiny_cursive', 'cursivetoken');
+        $authory_tech_token = get_config('tiny_authory_tech', 'authory_tech_token');
 
-        if (!$cursivetoken) {
+        if (!$authory_tech_token) {
             // Use get_record() instead of get_record_sql() for simpler queries.
             $token = $DB->get_record(
                 'external_tokens',
@@ -70,7 +70,7 @@ class upload_student_json_cron extends scheduled_task {
             );
         }
 
-        $wstoken = $cursivetoken ?? $token->token;
+        $wstoken = $authory_tech_token ?? $token->token;
 
         $sql = "SELECT tcf.*
                 FROM {tiny_cursive_files} tcf
@@ -81,7 +81,7 @@ class upload_student_json_cron extends scheduled_task {
         foreach ($filerecords as $filerecord) {
             $answer = $filerecord->original_content ?? "";
 
-            $uploaded = tiny_cursive_upload_multipart_record($filerecord, $filerecord->filename, $wstoken, $answer);
+            $uploaded = tiny_authory_tech_upload_multipart_record($filerecord, $filerecord->filename, $wstoken, $answer);
             if ($uploaded) {
                 $filerecord->uploaded = strtotime(date('Y-m-d H:i:s'));
                 $DB->update_record($table, $filerecord);

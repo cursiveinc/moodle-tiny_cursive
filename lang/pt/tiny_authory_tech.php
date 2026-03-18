@@ -15,11 +15,11 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Strings for component 'tiny_cursive', language 'pt'
+ * Strings for component 'tiny_authory_tech', language 'pt'
  *
- * @package    tiny_cursive
+ * @package    tiny_authory_tech
  * @category   string
- * @copyright  2025 Cursive Technology, Inc. <info@cursivetechnology.com>
+ * @copyright  2025 Authory Technology S.L. <info@authory.tech>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -60,23 +60,23 @@ $string['course'] = 'Disciplina';
 $string['courseid'] = 'ID da disciplina';
 $string['coursename'] = 'Nome da disciplina';
 $string['curlerror'] = 'Erro Curl';
-$string['cursive:dis:fail'] = 'Falha ao desativar o Cursive.';
-$string['cursive:dis:succ'] = 'Cursive desativado com sucesso.';
-$string['cursive:editsettings'] = 'Aceder às definições do plugin';
-$string['cursive:ena:fail'] = 'Falha ao ativar o Cursive.';
-$string['cursive:ena:succ'] = 'Cursive ativado com sucesso.';
-$string['cursive:state:active'] = 'O Cursive está ativo:';
-$string['cursive:state:active:des'] = 'O seu rascunho e edição estão agora a ser capturados como parte da sua submissão.';
-$string['cursive:status'] = 'Ocorreu um erro ao desativar o Cursive.';
-$string['cursive:use'] = 'Utilizar TinyMCE Cursive';
-$string['cursive:view'] = 'Ver relatórios de escrita';
-$string['cursive:write'] = 'Escrever ficheiro JSON ou inserir registos';
-$string['cursive:writingreport'] = 'Acesso à analítica';
-$string['cursive_enable_notice'] = 'Ativar esta funcionalidade irá ativar o plugin Cursive para esta disciplina. Certifique-se de que todos os participantes são informados sobre a sua utilização.';
-$string['cursive_more_info'] = 'Por favor, visite o Cursive para mais informações.';
-$string['cursive_status'] = 'Estado do Cursive';
-$string['cursivedisable'] = 'Definições Globais do Cursive';
-$string['cursivedisable_des'] = 'Esta definição irá desativar ou ativar o Cursive para todas as disciplinas. Também pode reativar ou desativá-lo individualmente através das definições da disciplina.';
+$string['authory_tech:dis:fail'] = 'Falha ao desativar o Authory.tech.';
+$string['authory_tech:dis:succ'] = 'Authory.tech desativado com sucesso.';
+$string['authory_tech:editsettings'] = 'Aceder às definições do plugin';
+$string['authory_tech:ena:fail'] = 'Falha ao ativar o Authory.tech.';
+$string['authory_tech:ena:succ'] = 'Authory.tech ativado com sucesso.';
+$string['authory_tech:state:active'] = 'O Authory.tech está ativo:';
+$string['authory_tech:state:active:des'] = 'O seu rascunho e edição estão agora a ser capturados como parte da sua submissão.';
+$string['authory_tech:status'] = 'Ocorreu um erro ao desativar o Authory.tech.';
+$string['authory_tech:use'] = 'Utilizar TinyMCE Authory.tech';
+$string['authory_tech:view'] = 'Ver relatórios de escrita';
+$string['authory_tech:write'] = 'Escrever ficheiro JSON ou inserir registos';
+$string['authory_tech:writingreport'] = 'Acesso à analítica';
+$string['authory_tech_enable_notice'] = 'Ativar esta funcionalidade irá ativar o plugin Authory.tech para esta disciplina. Certifique-se de que todos os participantes são informados sobre a sua utilização.';
+$string['authory_tech_more_info'] = 'Por favor, visite o Authory.tech para mais informações.';
+$string['authory_tech_status'] = 'Estado do Authory.tech';
+$string['authory_tech_disable'] = 'Definições Globais do Authory.tech';
+$string['authory_tech_disable_des'] = 'Esta definição irá desativar ou ativar o Authory.tech para todas as disciplinas. Também pode reativar ou desativá-lo individualmente através das definições da disciplina.';
 $string['data_save'] = 'Dados guardados com sucesso';
 $string['data_visualization'] = 'Visualização';
 $string['date'] = 'Data';
@@ -134,8 +134,8 @@ $string['legend'] = 'Legenda';
 $string['module_name'] = 'Nome do módulo';
 $string['moodle_host'] = 'Alojamento Moodle';
 $string['name'] = 'Nome';
-$string['new_admin_desc'] = 'Personalizar o texto de notificação e a ligação mostrados ao ativar o Cursive na página de definições da disciplina.';
-$string['new_admin_heading'] = 'Mais Informações sobre o Cursive';
+$string['new_admin_desc'] = 'Personalizar o texto de notificação e a ligação mostrados ao ativar o Authory.tech na página de definições da disciplina.';
+$string['new_admin_heading'] = 'Mais Informações sobre o Authory.tech';
 $string['no_option'] = 'Nenhuma opção disponível!';
 $string['no_submission'] = 'Sem submissão';
 $string['nolimit'] = 'Sem limite';
@@ -161,27 +161,27 @@ $string['paste_block'] = 'Bloquear';
 $string['paste_blocked'] = 'Não é permitido colar de fontes externas para este trabalho.';
 $string['paste_cite_source'] = 'Citar Fonte';
 $string['paste_setting'] = 'Definições de Colagem';
-$string['paste_setting_help'] = 'Isto permite-lhe controlar se os estudantes podem colar texto no editor Tiny ativo. As definições são Permitir, Bloquear ou utilizar Citar-fonte. Citar-fonte recolhe um comentário do estudante que será visível no separador Diferença e destaca o texto colado na analítica/reprodução do Cursive.';
+$string['paste_setting_help'] = 'Isto permite-lhe controlar se os estudantes podem colar texto no editor Tiny ativo. As definições são Permitir, Bloquear ou utilizar Citar-fonte. Citar-fonte recolhe um comentário do estudante que será visível no separador Diferença e destaca o texto colado na analítica/reprodução do Authory.tech.';
 $string['pastecount'] = 'Contagem de colagens';
 $string['pastewarning'] = 'Não pode colar texto sem fornecer a fonte';
 $string['payloadjson'] = 'JSON de Payload';
 $string['pleasewait'] = 'Por favor, aguarde!';
-$string['pluginname'] = 'Cursive';
-$string['pluginname_desc'] = 'Esta configuração do plugin fornece interrupção de copiar-colar por predefinição. Para se ligar ao Servidor de Aprendizagem Automática do Cursive para autoria e analítica de escrita, por favor introduza o seu token e detalhes do servidor abaixo. Se não os tiver, por favor contacte info@cursivetechnology.com.';
-$string['pluginname_desc_new'] = 'Obrigado por instalar o Cursive. Para atualizações sobre o roteiro de desenvolvimento do Plugin Moodle do Cursive e para solicitar novas funcionalidades';
-$string['pluginname_desc_new_2'] = 'Este plugin adiciona várias novas funcionalidades ao Moodle para apoiar a integridade académica e o desenvolvimento de competências de escrita sem exigir qualquer ligação à API do Cursive. Estas incluem reprodução de escrita e monitorização de copiar+colar com citar-fonte.';
-$string['pluginname_desc_new_3'] = 'Ligar o seu site à API do Cursive fornece aos seus professores e estudantes acesso às nossas funcionalidades de aprendizagem automática e IA, incluindo verificação de autoria, semelhança e comparação de texto, analítica de escrita e muito mais. Para solicitar uma Chave Secreta do Cursive e o URL da API, por favor contacte';
+$string['pluginname'] = 'Authory.tech';
+$string['pluginname_desc'] = 'Esta configuração do plugin fornece interrupção de copiar-colar por predefinição. Para se ligar ao Servidor de Aprendizagem Automática do Authory.tech para autoria e analítica de escrita, por favor introduza o seu token e detalhes do servidor abaixo. Se não os tiver, por favor contacte info@authory.tech.';
+$string['pluginname_desc_new'] = 'Obrigado por instalar o Authory.tech. Para atualizações sobre o roteiro de desenvolvimento do Plugin Moodle do Authory.tech e para solicitar novas funcionalidades';
+$string['pluginname_desc_new_2'] = 'Este plugin adiciona várias novas funcionalidades ao Moodle para apoiar a integridade académica e o desenvolvimento de competências de escrita sem exigir qualquer ligação à API do Authory.tech. Estas incluem reprodução de escrita e monitorização de copiar+colar com citar-fonte.';
+$string['pluginname_desc_new_3'] = 'Ligar o seu site à API do Authory.tech fornece aos seus professores e estudantes acesso às nossas funcionalidades de aprendizagem automática e IA, incluindo verificação de autoria, semelhança e comparação de texto, analítica de escrita e muito mais. Para solicitar uma Chave Secreta do Authory.tech e o URL da API, por favor contacte';
 $string['pluginname_desc_new_link'] = 'subscreva a nossa newsletter';
-$string['privacy:metadata:database:tiny_cursive'] = 'Informação sobre os dados do tiny cursive.';
-$string['privacy:metadata:database:tiny_cursive:content'] = 'Dados de teclas do utilizador para gerar relatório de analítica';
-$string['privacy:metadata:database:tiny_cursive:original_content'] = 'Dados do conteúdo original da submissão do utilizador';
-$string['privacy:metadata:database:tiny_cursive:timemodified'] = 'A hora em que os dados foram modificados pela última vez.';
-$string['privacy:metadata:database:tiny_cursive:userid'] = 'O ID do utilizador que forneceu os dados.';
-$string['privacy:metadata:database:tiny_cursive_comments'] = 'Informação sobre os dados de comentários do tiny cursive.';
+$string['privacy:metadata:database:tiny_authory_tech'] = 'Informação sobre os dados do tiny authory_tech.';
+$string['privacy:metadata:database:tiny_authory_tech:content'] = 'Dados de teclas do utilizador para gerar relatório de analítica';
+$string['privacy:metadata:database:tiny_authory_tech:original_content'] = 'Dados do conteúdo original da submissão do utilizador';
+$string['privacy:metadata:database:tiny_authory_tech:timemodified'] = 'A hora em que os dados foram modificados pela última vez.';
+$string['privacy:metadata:database:tiny_authory_tech:userid'] = 'O ID do utilizador que forneceu os dados.';
+$string['privacy:metadata:database:tiny_cursive_comments'] = 'Informação sobre os dados de comentários do tiny authory_tech.';
 $string['privacy:metadata:database:tiny_cursive_comments:commenttext'] = 'O texto do comentário.';
 $string['privacy:metadata:database:tiny_cursive_comments:timemodified'] = 'A hora em que o comentário foi modificado pela última vez.';
 $string['privacy:metadata:database:tiny_cursive_comments:userid'] = 'O ID do utilizador que forneceu o comentário.';
-$string['privacy:metadata:tiny_cursive'] = 'Dados do utilizador do plugin Tiny cursive.';
+$string['privacy:metadata:tiny_authory_tech'] = 'Dados do utilizador do plugin Tiny authory_tech.';
 $string['progress'] = 'Progresso';
 $string['q_count'] = 'Contagem Q';
 $string['q_count_des'] = 'Q é o nosso substituto para caractere. É qualquer tecla alfanumérica no seu teclado (espaços não incluídos). Estas são todas teclas aditivas. Isto difere da Verbosidade na sua exclusão de edições e espaço.';
@@ -208,8 +208,8 @@ $string['saved'] = 'guardado';
 $string['savedcontent'] = 'Conteúdo Guardado';
 $string['saving'] = 'a guardar';
 $string['score'] = 'Pontuação';
-$string['secretkey'] = 'Chave Secreta do Cursive';
-$string['secretkey_desc'] = 'A Chave Secreta da API da conta Cursive. Por favor, gere um novo token de webservice se atualizou/adicionou esta chave.';
+$string['secretkey'] = 'Chave Secreta do Authory.tech';
+$string['secretkey_desc'] = 'A Chave Secreta da API da conta Authory.tech. Por favor, gere um novo token de webservice se atualizou/adicionou esta chave.';
 $string['sectionadvance'] = 'Avançado';
 $string['sectionadvance_desc'] = 'Configurações personalizadas para Métricas de Qualidade';
 $string['select_time'] = 'Selecionar opção de hora';
@@ -241,10 +241,10 @@ $string['time_writing'] = 'Tempo de escrita ';
 $string['time_writing_desc'] = 'Duração total menos períodos inativos';
 $string['timeleft'] = 'Tempo Restante';
 $string['timesave_success'] = 'Hora guardada com sucesso';
-$string['tiny_cursive'] = 'Autoria e Analítica';
-$string['tiny_cursive_placeholder'] = 'Escreva o seu comentário ou cole a sua ligação aqui…';
-$string['tiny_cursive_srcurl'] = 'Por favor, forneça um comentário';
-$string['tiny_cursive_srcurl_des'] = 'Insira um comentário, ligação ou informação para fornecer contexto para o texto colado. Isto será apresentado como parte da submissão.';
+$string['tiny_authory_tech'] = 'Autoria e Analítica';
+$string['tiny_authory_tech_placeholder'] = 'Escreva o seu comentário ou cole a sua ligação aqui…';
+$string['tiny_authory_tech_srcurl'] = 'Por favor, forneça um comentário';
+$string['tiny_authory_tech_srcurl_des'] = 'Insira um comentário, ligação ou informação para fornecer contexto para o texto colado. Isto será apresentado como parte da submissão.';
 $string['total_active_time'] = 'Tempo ativo total';
 $string['total_active_time_des'] = 'O tempo ativo total é a duração do seu tempo de escrita ativa (a pressionar teclas, a manipular texto) menos períodos de inatividade superiores a 30 segundos.';
 $string['total_time'] = 'Tempo total';

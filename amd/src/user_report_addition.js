@@ -17,7 +17,7 @@
  * Module to handle user report additions in the Tiny editor.
  * This module manages the display of course information in the report interface.
  *
- * @module     tiny_cursive/user_report_addition
+ * @module     tiny_authory_tech/user_report_addition
  * @copyright  2024 CTI <your@email.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -28,7 +28,7 @@ export const init = () => {
     if (!courseNameElement) {
         window.history.back();
     }
-    getString('coursename', 'tiny_cursive').then(courseName => {
+    getString('coursename', 'tiny_authory_tech').then(courseName => {
         const forumTestingText = courseNameElement.textContent.trim();
         const h5Element = document.createElement('div');
 

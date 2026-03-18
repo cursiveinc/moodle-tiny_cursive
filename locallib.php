@@ -15,14 +15,14 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Plugin functions for the tiny_cursive plugin.
+ * Plugin functions for the tiny_authory_tech plugin.
  *
- * @package   tiny_cursive
- * @copyright 2024, CTI <info@cursivetechnology.com>
+ * @package   tiny_authory_tech
+ * @copyright 2024, Authory Technology S.L. <info@authory.tech>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 use core_external\util;
-use tiny_cursive\constants;
+use tiny_authory_tech\constants;
 /**
  * Get user attempts data from the database
  *
@@ -35,7 +35,7 @@ use tiny_cursive\constants;
  * @return array Array containing total count and data records
  * @throws dml_exception
  */
-function tiny_cursive_get_user_attempts_data(
+function tiny_authory_tech_get_user_attempts_data(
     $userid,
     $courseid,
     $moduleid,
@@ -140,7 +140,7 @@ function tiny_cursive_get_user_attempts_data(
  * @return array Array containing total count and data records
  * @throws dml_exception
  */
-function tiny_cursive_get_user_writing_data(
+function tiny_authory_tech_get_user_writing_data(
     $userid = 0,
     $courseid = 0,
     $moduleid = 0,
@@ -213,7 +213,7 @@ function tiny_cursive_get_user_writing_data(
  * @return false|mixed Returns false on failure or object with total_time and word_count on success
  * @throws dml_exception
  */
-function tiny_cursive_get_user_profile_data($userid, $courseid = 0) {
+function tiny_authory_tech_get_user_profile_data($userid, $courseid = 0) {
     global $DB;
     $attempts = [];
     $attempts = "SELECT sum(uw.total_time_seconds) AS total_time,sum(uw.word_count) AS word_count
@@ -239,9 +239,9 @@ function tiny_cursive_get_user_profile_data($userid, $courseid = 0) {
  * @return array[] Array containing submission data and file information
  * @throws dml_exception
  */
-function tiny_cursive_get_user_submissions_data($userid, $modulename, $cmid, $courseid = 0, $oublogpostid = 0) {
+function tiny_authory_tech_get_user_submissions_data($userid, $modulename, $cmid, $courseid = 0, $oublogpostid = 0) {
     global $CFG, $DB;
-    require_once($CFG->dirroot . "/lib/editor/tiny/plugins/cursive/lib.php");
+    require_once($CFG->dirroot . "/lib/editor/tiny/plugins/authory_tech/lib.php");
 
     $sql = "SELECT uw.total_time_seconds, uw.word_count, uw.words_per_minute,
                    uw.backspace_percent, uw.score, uw.copy_behavior, uf.resourceid,
@@ -334,7 +334,7 @@ function tiny_cursive_get_user_submissions_data($userid, $modulename, $cmid, $co
  * @return int The course module ID, or 0 if not found
  * @throws dml_exception
  */
-function tiny_cursive_get_cmid($courseid) {
+function tiny_authory_tech_get_cmid($courseid) {
     global $DB;
 
     $cm = $DB->get_record(
@@ -351,13 +351,13 @@ function tiny_cursive_get_cmid($courseid) {
 /**
  * Create a token for a given user
  *
- * @package tiny_cursive
+ * @package tiny_authory_tech
  * @return string The created token
  */
-function tiny_cursive_create_token_for_user() {
+function tiny_authory_tech_create_token_for_user() {
     global $DB, $USER;
     $token = '';
-    $serviceshortname = 'cursive_json_service'; // Replace with your service shortname.
+    $serviceshortname = 'authory_tech_json_service'; // Replace with your service shortname.
     $service = $DB->get_record('external_services', ['shortname' => $serviceshortname]);
     if ($USER->id && is_siteadmin() && $service) {
         $admin = get_admin();
@@ -379,22 +379,22 @@ function tiny_cursive_create_token_for_user() {
  * @param int $userid The user ID to filter results
  * @return void
  */
-function tiny_cursive_render_user_table($users, $renderer, $courseid, $page, $limit, $linkurl, $moduleid, $userid) {
+function tiny_authory_tech_render_user_table($users, $renderer, $courseid, $page, $limit, $linkurl, $moduleid, $userid) {
     global $OUTPUT;
     // Prepare the URL for the link.
-    $url = new moodle_url('/lib/editor/tiny/plugins/cursive/csvexport.php', [
+    $url = new moodle_url('/lib/editor/tiny/plugins/authory_tech/csvexport.php', [
         'sesskey' => sesskey(),
         'courseid' => $courseid,
         'moduleid' => $moduleid,
         'userid' => $userid,
     ]);
     // Prepare the link text.
-    $linktext  = get_string('download_csv', 'tiny_cursive');
+    $linktext  = get_string('download_csv', 'tiny_authory_tech');
     $dwnldicon = $OUTPUT->pix_icon(
         'download',
-        get_string('download', 'tiny_cursive'),
-        'tiny_cursive',
-        ['class' => 'tiny_cursive-analytics-bar-icon']
+        get_string('download', 'tiny_authory_tech'),
+        'tiny_authory_tech',
+        ['class' => 'tiny_authory_tech-analytics-bar-icon']
     );    // Prepare the attributes for the link.
 
     $attributes = [
@@ -410,7 +410,7 @@ function tiny_cursive_render_user_table($users, $renderer, $courseid, $page, $li
 }
 
 /**
- * Check subscription status for Tiny Cursive plugin
+ * Check subscription status for Tiny Authory.tech plugin
  *
  * Verifies the subscription status by making a request to the remote Python server
  * using the configured secret key. Updates the subscription status in plugin config.
@@ -418,17 +418,17 @@ function tiny_cursive_render_user_table($users, $renderer, $courseid, $page, $li
  * @return array Returns array with status boolean indicating subscription check result
  * @throws moodle_exception If there is an error checking the subscription
  */
-function tiny_cursive_check_subscriptions() {
+function tiny_authory_tech_check_subscriptions() {
     global $DB, $CFG;
     require_once("$CFG->libdir/filelib.php");
 
-    $token = get_config('tiny_cursive', 'secretkey');
+    $token = get_config('tiny_authory_tech', 'secretkey');
 
     if (!$token) {
         return ['status' => false];
     }
     try {
-        $remoteurl = get_config('tiny_cursive', 'python_server') . '/verify-role';
+        $remoteurl = get_config('tiny_authory_tech', 'python_server') . '/verify-role';
         $moodleurl = $CFG->wwwroot;
 
         $curl = new curl();
@@ -452,7 +452,7 @@ function tiny_cursive_check_subscriptions() {
         $result = $curl->post($remoteurl, $postfields, $options);
         $result = json_decode($result);
         if ($result) {
-            set_config('has_subscription', $result->status, 'tiny_cursive');
+            set_config('has_subscription', $result->status, 'tiny_authory_tech');
             return ['status' => true];
         }
     } catch (moodle_exception $e) {

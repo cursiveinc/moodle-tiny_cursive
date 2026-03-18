@@ -15,14 +15,14 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Tiny cursive plugin.
+ * Tiny authory_tech plugin.
  *
- * @package tiny_cursive
- * @copyright  CTI <info@cursivetechnology.com>
+ * @package tiny_authory_tech
+ * @copyright  Authory Technology S.L. <info@authory.tech>
  * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-namespace tiny_cursive\privacy;
+namespace tiny_authory_tech\privacy;
 
 use core_privacy\local\request\approved_contextlist;
 use core_privacy\local\request\writer;
@@ -38,15 +38,15 @@ use context;
 
 
 /**
- * Privacy Subsystem implementation for tiny_cursive.
+ * Privacy Subsystem implementation for tiny_authory_tech.
  *
- * @copyright  Cursive Technology, Inc. <info@cursivetechnology.com>
+ * @copyright  Authory Technology S.L. <info@authory.tech>
  * @author     Brain Station 23 <sales@brainstation-23.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class provider implements core_userlist_provider, meta_provider, plugin_provider {
     /**
-     * Returns information about how tiny_cursive stores its data.
+     * Returns information about how tiny_authory_tech stores its data.
      *
      * @param collection $collection The initialised collection to add items to.
      * @return collection A listing of user data stored through this system.
@@ -54,11 +54,11 @@ class provider implements core_userlist_provider, meta_provider, plugin_provider
     public static function get_metadata(collection $collection): collection {
         // There isn't much point giving details about the pageid, etc.
         $collection->add_database_table('tiny_cursive_files', [
-            'userid' => 'privacy:metadata:database:tiny_cursive:userid',
-            'content' => 'privacy:metadata:database:tiny_cursive:content',
-            'original_content' => 'privacy:metadata:database:tiny_cursive:original_content',
-            'timemodified' => 'privacy:metadata:database:tiny_cursive:timemodified',
-        ], 'privacy:metadata:database:tiny_cursive');
+            'userid' => 'privacy:metadata:database:tiny_authory_tech:userid',
+            'content' => 'privacy:metadata:database:tiny_authory_tech:content',
+            'original_content' => 'privacy:metadata:database:tiny_authory_tech:original_content',
+            'timemodified' => 'privacy:metadata:database:tiny_authory_tech:timemodified',
+        ], 'privacy:metadata:database:tiny_authory_tech');
 
         $collection->add_database_table('tiny_cursive_comments', [
             'userid' => 'privacy:metadata:database:tiny_cursive_comments:userid',
@@ -66,12 +66,12 @@ class provider implements core_userlist_provider, meta_provider, plugin_provider
             'timemodified' => 'privacy:metadata:database:tiny_cursive_comments:timemodified',
         ], 'privacy:metadata:database:tiny_cursive_comments');
 
-        $collection->add_external_location_link('api.cursivetechnology.net', [
-            'userid' => 'privacy:metadata:database:tiny_cursive:userid',
-            'content' => 'privacy:metadata:database:tiny_cursive:content',
-            'original_content' => 'privacy:metadata:database:tiny_cursive:original_content',
-            'timemodified' => 'privacy:metadata:database:tiny_cursive:timemodified',
-        ], 'privacy:metadata:database:tiny_cursive');
+        $collection->add_external_location_link('api.authory.tech', [
+            'userid' => 'privacy:metadata:database:tiny_authory_tech:userid',
+            'content' => 'privacy:metadata:database:tiny_authory_tech:content',
+            'original_content' => 'privacy:metadata:database:tiny_authory_tech:original_content',
+            'timemodified' => 'privacy:metadata:database:tiny_authory_tech:timemodified',
+        ], 'privacy:metadata:database:tiny_authory_tech');
 
         return $collection;
     }
@@ -278,7 +278,7 @@ class provider implements core_userlist_provider, meta_provider, plugin_provider
             // Write the data to the export location.
             writer::with_context(context::instance_by_id($autosave->contextid))
                 ->export_data([
-                    get_string('privacy:metadata:tiny_cursive', 'tiny_cursive'),
+                    get_string('privacy:metadata:tiny_authory_tech', 'tiny_authory_tech'),
                 ], $data);
         }
         $autosaves->close();

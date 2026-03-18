@@ -14,9 +14,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * @module     tiny_cursive/append_submissions_table
+ * @module     tiny_authory_tech/append_submissions_table
  * @category TinyMCE Editor
- * @copyright  CTI <info@cursivetechnology.com>
+ * @copyright  Authory Technology S.L. <info@authory.tech>
  * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
  */
 
@@ -54,7 +54,7 @@ define([
             );
             replayInstances[mid] = replay;
         } else {
-            templates.render('tiny_cursive/no_submission').then(html => {
+            templates.render('tiny_authory_tech/no_submission').then(html => {
                 $('#content' + mid).html(html);
                 return true;
             }).catch(e => window.console.error(e));
@@ -67,7 +67,7 @@ define([
         init: function(scoreSetting, showcomment, hasApiKey) {
             str
                 .get_strings([
-                    {key: "confidence_threshold", component: "tiny_cursive"},
+                    {key: "confidence_threshold", component: "tiny_authory_tech"},
                 ]).done(function() {
                 usersTable.appendTable(scoreSetting, hasApiKey);
             });
@@ -77,7 +77,7 @@ define([
             let parm = new URL(subUrl);
             let hTr = $('table#submissions thead').find('tr').get()[0];
 
-            Str.get_string('analytics', 'tiny_cursive')
+            Str.get_string('analytics', 'tiny_authory_tech')
                 .then(analyticString => {
                     $(hTr).find('th').eq(3).after('<th class="header c4" scope="col">'
                         + analyticString + '<div class="commands">' +
@@ -89,7 +89,7 @@ define([
                         // Create the table cell element and append the anchor.
 
                         let args = {id: userid, modulename: "assign", cmid: cmid};
-                        let methodname = 'cursive_user_list_submission_stats';
+                        let methodname = 'authory_tech_user_list_submission_stats';
                         let com = AJAX.call([{methodname, args}]);
                         try {
                             com[0].done(function(json) {

@@ -14,9 +14,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * @module     tiny_cursive/cursive_writing_reports
+ * @module     tiny_authory_tech/authory_tech_writing_reports
  * @category TinyMCE Editor
- * @copyright  CTI <info@cursivetechnology.com>
+ * @copyright  Authory Technology S.L. <info@authory.tech>
  * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
  */
 
@@ -50,7 +50,7 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", './anal
             replayInstances[mid] = replay;
         } else {
             // eslint-disable-next-line
-            templates.render('tiny_cursive/no_submission').then(html => {
+            templates.render('tiny_authory_tech/no_submission').then(html => {
                 $('#content' + mid).html(html);
             }).catch(e => window.console.error(e));
         }
@@ -61,7 +61,7 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", './anal
         init: function(page, hasApiKey, csvOption) {
             str
                 .get_strings([
-                    {key: "field_require", component: "tiny_cursive"},
+                    {key: "field_require", component: "tiny_authory_tech"},
                 ])
                 .done(function() {
                     usersTable.getusers(page);
@@ -70,7 +70,7 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", './anal
             let myEvents = new AnalyticEvents();
             (async function() {
                 try {
-                    let scoreSetting = await str.get_string('confidence_threshold', 'tiny_cursive');
+                    let scoreSetting = await str.get_string('confidence_threshold', 'tiny_authory_tech');
                     analyticsEvents(scoreSetting, hasApiKey, parseInt(csvOption));
                 } catch (error) {
                     window.console.error('Error fetching string:', error);
@@ -99,7 +99,7 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", './anal
                     let cmid = $(this).data("cmid");
 
                     AJAX.call([{
-                        methodname: 'cursive_get_writing_statistics',
+                        methodname: 'authory_tech_get_writing_statistics',
                         args: {
                             cmid: cmid,
                             fileid: mid,
@@ -142,12 +142,12 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", './anal
                     select.id = "download-type";
                     select.classList.add('form-control', 'inputUrl');
 
-                    let title = await str.get_string('download', 'tiny_cursive');
+                    let title = await str.get_string('download', 'tiny_authory_tech');
 
                     // Add CSV option
                     if (csvOption) {
                         try {
-                            const text = await str.get_string('payloadjson', 'tiny_cursive');
+                            const text = await str.get_string('payloadjson', 'tiny_authory_tech');
                             let option = document.createElement('option');
                             option.text = text;
                             option.value = 0;
@@ -160,7 +160,7 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", './anal
                     // Add API key option
                     if (hasApiKey) {
                         try {
-                            const text = await str.get_string('analyticspdf', 'tiny_cursive');
+                            const text = await str.get_string('analyticspdf', 'tiny_authory_tech');
                             let option2 = document.createElement('option');
                             option2.text = text;
                             option2.value = 1;
@@ -173,7 +173,7 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", './anal
                     // If no options available
                     if (!hasApiKey && !csvOption) {
                         try {
-                            const noOptionText = await str.get_string('no_option', 'tiny_cursive');
+                            const noOptionText = await str.get_string('no_option', 'tiny_authory_tech');
                             const messageText = await str.get_string('message', 'tool_dataprivacy');
                             title = messageText;
                             type = Factory.types.ALERT;
@@ -223,7 +223,7 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", './anal
                 var courseid = $(this).val();
                 var promise1 = AJAX.call([
                     {
-                        methodname: "cursive_get_user_list",
+                        methodname: "authory_tech_get_user_list",
                         args: {
                             courseid: courseid,
                         },
@@ -237,7 +237,7 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", './anal
                     };
                     // eslint-disable-next-line
                     templates
-                        .render("tiny_cursive/user_list", context)
+                        .render("tiny_authory_tech/user_list", context)
                         .then(function(html) {
 
                             var filteredUser = $("#id_username");
@@ -248,7 +248,7 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", './anal
 
                 var promise2 = AJAX.call([
                     {
-                        methodname: "cursive_get_module_list",
+                        methodname: "authory_tech_get_module_list",
                         args: {
                             courseid: courseid,
                         },
@@ -262,7 +262,7 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", './anal
                     };
                     // eslint-disable-next-line
                     templates
-                        .render("tiny_cursive/module_list", context)
+                        .render("tiny_authory_tech/module_list", context)
                         .then(function(html) {
 
                             var filteredUser = $("#id_modulename");

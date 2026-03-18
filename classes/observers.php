@@ -14,19 +14,19 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace tiny_cursive;
+namespace tiny_authory_tech;
 
 /**
- * Tiny cursive plugin observer class.
+ * Tiny authory_tech plugin observer class.
  *
- * @package tiny_cursive
- * @copyright  CTI <info@cursivetechnology.com>
+ * @package tiny_authory_tech
+ * @copyright  Authory Technology S.L. <info@authory.tech>
  * @author eLearningstack
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class observers {
     /**
-     * Tiny cursive plugin update comment observer.
+     * Tiny authory_tech plugin update comment observer.
      *
      * @param \core\event\base $event The event object
      * @return void
@@ -65,13 +65,13 @@ class observers {
     }
 
     /**
-     * Tiny cursive plugin update cursive files observer.
+     * Tiny authory_tech plugin update authory_tech files observer.
      *
      * @param \core\event\base $event The event object
      * @return void
      * @throws \dml_exception
      */
-    public static function update_cursive_files($event) {
+    public static function update_authory_tech_files($event) {
 
         global $DB;
 
@@ -115,7 +115,7 @@ class observers {
     }
 
     /**
-     * Tiny cursive plugin login observer.
+     * Tiny authory_tech plugin login observer.
      *
      * @param \mod_forum\event\post_created $event
      * @return void
@@ -123,11 +123,11 @@ class observers {
      */
     public static function observer_login(\mod_forum\event\post_created $event) {
         self::update_comment($event);
-        self::update_cursive_files($event);
+        self::update_authory_tech_files($event);
     }
 
     /**
-     * Tiny cursive plugin post updated observer.
+     * Tiny authory_tech plugin post updated observer.
      *
      * @param \mod_forum\event\post_updated $event
      * @return void
@@ -135,11 +135,11 @@ class observers {
      */
     public static function post_updated(\mod_forum\event\post_updated $event) {
         self::update_comment($event);
-        self::update_cursive_files($event);
+        self::update_authory_tech_files($event);
     }
 
     /**
-     * Tiny cursive plugin discussion created observer.
+     * Tiny authory_tech plugin discussion created observer.
      *
      * @param \mod_forum\event\discussion_created $event
      * @return void
@@ -178,7 +178,7 @@ class observers {
         $conditions['modulename'] = 'forum_autosave';
 
         self::update_autosaved_content($conditions, $table, $eventdata, $discussionsrec->firstpost);
-        self::update_cursive_files($event);
+        self::update_authory_tech_files($event);
     }
 
     /**

@@ -15,10 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Tiny cursive plugin hooks.
+ * Tiny authory_tech plugin hooks.
  *
- * @package tiny_cursive
- * @copyright  CTI <info@cursivetechnology.com>
+ * @package tiny_authory_tech
+ * @copyright  Authory Technology S.L. <info@authory.tech>
  * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -28,16 +28,16 @@ defined('MOODLE_INTERNAL') || die();
 $callbacks = [
     [
         'hook' => \core\hook\output\before_footer_html_generation::class,
-        'callback' => \tiny_cursive\hook_callbacks::class . '::before_footer_html_generation',
+        'callback' => \tiny_authory_tech\hook_callbacks::class . '::before_footer_html_generation',
         'priority' => 0,
     ], [
         'hook' => \core_course\hook\after_form_definition::class,
-        'callback' => \tiny_cursive\hook_callbacks::class . '::after_form_definition',
+        'callback' => \tiny_authory_tech\hook_callbacks::class . '::after_form_definition',
         'priority' => 0,
     ],
     [
         'hook' => \core_course\hook\after_form_submission::class,
-        'callback' => \tiny_cursive\hook_callbacks::class . '::after_form_submission',
+        'callback' => \tiny_authory_tech\hook_callbacks::class . '::after_form_submission',
         'priority' => 0,
     ],
 ];

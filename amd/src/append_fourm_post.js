@@ -14,9 +14,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * @module     tiny_cursive/append_fourm_post
+ * @module     tiny_authory_tech/append_fourm_post
  * @category TinyMCE Editor
- * @copyright  CTI <info@cursivetechnology.com>
+ * @copyright  Authory Technology S.L. <info@authory.tech>
  * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
  */
 
@@ -44,7 +44,7 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
             );
             replayInstances[mid] = replay;
         } else {
-            templates.render('tiny_cursive/no_submission').then(html => {
+            templates.render('tiny_authory_tech/no_submission').then(html => {
                 $('#content' + mid).html(html);
                 return true;
             }).catch(e => window.console.error(e));
@@ -57,7 +57,7 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
         init: function(scoreSetting, showcomment, hasApiKey) {
             str
                 .get_strings([
-                    {key: "field_require", component: "tiny_cursive"},
+                    {key: "field_require", component: "tiny_authory_tech"},
                 ])
                 .done(function() {
                     usersTable.getToken(scoreSetting, showcomment, hasApiKey);
@@ -96,7 +96,7 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
                 var cmid = M.cfg.contextInstanceId;
 
                 let args = {id: ids, modulename: "forum", cmid: cmid};
-                let methodname = 'cursive_get_forum_comment_link';
+                let methodname = 'authory_tech_get_forum_comment_link';
                 let com = AJAX.call([{methodname, args}]);
                 com[0].done(function(json) {
                     var data = JSON.parse(json);

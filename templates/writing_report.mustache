@@ -16,7 +16,7 @@ along with Moodle. If not, see
 <http: //www.gnu.org/licenses />.
 }}
 {{!
-@template tiny_cursive/writing_report
+@template tiny_authory_tech/writing_report
 
 Template to display a student's writing report and analytics.
 
@@ -38,41 +38,41 @@ Example context (json):
 }
 }}
 
-<div class="tiny_cursive-writing-report">
-    <div class="tiny_cursive-writing-report-header rounded">
+<div class="tiny_authory_tech-writing-report">
+    <div class="tiny_authory_tech-writing-report-header rounded">
         <h1>{{username}}</h1>
-        <h5 class="text-dark">{{#str}}student_writing_statics, tiny_cursive{{/str}}</h5>
+        <h5 class="text-dark">{{#str}}student_writing_statics, tiny_authory_tech{{/str}}</h5>
     </div>
 
-    <div class="tiny_cursive-writing-report-body">
+    <div class="tiny_authory_tech-writing-report-body">
 
         <div
-            class="tiny_cursive-writing-report-summary d-flex flex-wrap gap-5 justify-content-between align-items-center mb-4">
+            class="tiny_authory_tech-writing-report-summary d-flex flex-wrap gap-5 justify-content-between align-items-center mb-4">
             <div>
-                <p><strong>{{#str}}total_words, tiny_cursive{{/str}}:</strong> {{total_word}}</p>
-                <p><strong>{{#str}}total_time, tiny_cursive{{/str}}:</strong> {{total_time}}</p>
-                <p><strong>{{#str}}average_min, tiny_cursive{{/str}}</strong> {{avg_min}}</p>
+                <p><strong>{{#str}}total_words, tiny_authory_tech{{/str}}:</strong> {{total_word}}</p>
+                <p><strong>{{#str}}total_time, tiny_authory_tech{{/str}}:</strong> {{total_time}}</p>
+                <p><strong>{{#str}}average_min, tiny_authory_tech{{/str}}</strong> {{avg_min}}</p>
 
             </div>
             <div>
-                <strong>{{#str}}selectcrs, tiny_cursive{{/str}}:</strong>
+                <strong>{{#str}}selectcrs, tiny_authory_tech{{/str}}:</strong>
                 {{{options}}}
             </div>
         </div>
 
         <div class="table-responsive">
-            <table class="tiny_cursive-writing-report-table table">
+            <table class="tiny_authory_tech-writing-report-table table">
                 <thead>
                     <tr>
-                        <th>{{#str}}module_name, tiny_cursive{{/str}}</th>
-                        <th>{{#str}}last_modified, tiny_cursive{{/str}}</th>
-                        <th>{{#str}}analytics, tiny_cursive{{/str}}</th>
-                        <th>{{#str}}download, tiny_cursive{{/str}}</th>
+                        <th>{{#str}}module_name, tiny_authory_tech{{/str}}</th>
+                        <th>{{#str}}last_modified, tiny_authory_tech{{/str}}</th>
+                        <th>{{#str}}analytics, tiny_authory_tech{{/str}}</th>
+                        <th>{{#str}}download, tiny_authory_tech{{/str}}</th>
                     </tr>
                 </thead>
                 <tbody>
                     {{#userdata}}
-                    <tr class="tiny_cursive-writing-report-table-row">
+                    <tr class="tiny_authory_tech-writing-report-table-row">
                         <td>{{modulename}}</td>
                         <td>{{lastmodified}}</td>
                         <td>
@@ -85,7 +85,7 @@ Example context (json):
                     {{/userdata}}
                     {{^userdata}}
                     <tr>
-                        <td colspan="4" class="text-center"> {{#str}}no_submission,tiny_cursive{{/str}}</td>
+                        <td colspan="4" class="text-center"> {{#str}}no_submission,tiny_authory_tech{{/str}}</td>
                     </tr>
                     {{/userdata}}
                 </tbody>

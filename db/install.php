@@ -15,10 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Tiny cursive plugin event.
+ * Tiny authory_tech plugin event.
  *
- * @package tiny_cursive
- * @copyright  CTI <info@cursivetechnology.com>
+ * @package tiny_authory_tech
+ * @copyright  Authory Technology S.L. <info@authory.tech>
  * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -26,27 +26,27 @@
 /**
  * Enable web services in Moodle
  *
- * @package tiny_cursive
+ * @package tiny_authory_tech
  */
-function xmldb_tiny_cursive_install() {
+function xmldb_tiny_authory_tech_install() {
 
-    tiny_cursive_enable_webservice();
-    tiny_cursive_enable_webservice_protocol();
+    tiny_authory_tech_enable_webservice();
+    tiny_authory_tech_enable_webservice_protocol();
 }
 /**
  * Enable web services in Moodle
  *
- * @package tiny_cursive
+ * @package tiny_authory_tech
  */
-function tiny_cursive_enable_webservice() {
+function tiny_authory_tech_enable_webservice() {
     set_config('enablewebservices', 1);
 }
 
 /**
  * Enable a specific web service protocol
  *
- * @package tiny_cursive
+ * @package tiny_authory_tech
  */
-function tiny_cursive_enable_webservice_protocol() {
+function tiny_authory_tech_enable_webservice_protocol() {
     set_config('webserviceprotocols', 'rest');
 }

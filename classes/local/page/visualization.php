@@ -17,17 +17,17 @@
 /**
  * Class visualization
  *
- * @package    tiny_cursive
- * @copyright  2025 Cursive Technology, Inc. <info@cursivetechnology.com>
+ * @package    tiny_authory_tech
+ * @copyright  2025 Authory Technology S.L. <info@authory.tech>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-namespace tiny_cursive\local\page;
+namespace tiny_authory_tech\local\page;
 
 use html_writer;
 use moodle_url;
 use context_system;
 use stdClass;
-use tiny_cursive\constants;
+use tiny_authory_tech\constants;
 
 /**
  * Visualization class for handling course analytics and data visualization
@@ -108,7 +108,7 @@ class visualization {
         $this->cmid     = $cmid;
         $this->userid   = $userid;
         $this->modinfo  = get_fast_modinfo($courseid);
-        $this->url      = new moodle_url('/lib/editor/tiny/plugins/cursive/visualization.php', ['course' => $courseid]);
+        $this->url      = new moodle_url('/lib/editor/tiny/plugins/authory_tech/visualization.php', ['course' => $courseid]);
     }
 
     /**
@@ -136,12 +136,12 @@ class visualization {
         if (!$onlychart) {
             $PAGE->set_url($this->url);
             $PAGE->set_context(context_system::instance());
-            $PAGE->set_title(get_string('data_visualization', 'tiny_cursive'));
+            $PAGE->set_title(get_string('data_visualization', 'tiny_authory_tech'));
             $PAGE->navbar->add($this->course->shortname, new moodle_url('/course/view.php', ['id' => $this->courseid]));
-            $PAGE->navbar->add(get_string('data_visualization', 'tiny_cursive'), $this->url);
+            $PAGE->navbar->add(get_string('data_visualization', 'tiny_authory_tech'), $this->url);
         }
         echo html_writer::div('', 'hidden', ['id' => 'scatter-chart-data', 'data-data' => json_encode($data)]);
-        $PAGE->requires->js_call_amd('tiny_cursive/scatter_chart', 'init', [$data ? true : false, $status, $this->caption]);
+        $PAGE->requires->js_call_amd('tiny_authory_tech/scatter_chart', 'init', [$data ? true : false, $status, $this->caption]);
     }
 
     /**
@@ -166,12 +166,12 @@ class visualization {
                  WHERE f.courseid = :courseid AND f.cmid = :cmid";
 
         $params    = ['courseid' => $course, 'cmid' => $cmid, 'userid' => $this->userid];
-        $this->caption = get_string('chart_result', 'tiny_cursive');
+        $this->caption = get_string('chart_result', 'tiny_authory_tech');
 
         if ($this->userid) {
             $sql .= " AND f.userid = :userid";
             $params['userid'] = $this->userid;
-            $this->caption = get_string('chart_result_user', 'tiny_cursive');
+            $this->caption = get_string('chart_result_user', 'tiny_authory_tech');
         }
 
         $analytics = $DB->get_records_sql($sql, $params);

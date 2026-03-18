@@ -16,7 +16,7 @@ along with Moodle. If not, see
 <http: //www.gnu.org/licenses />.
 }}
 {{!
-@template tiny_cursive/export_pdf
+@template tiny_authory_tech/export_pdf
 
 Template to generate a PDF export of student writing analytics and submission content.
 Displays student info, writing statistics, and submission text with paste analysis.
@@ -39,92 +39,92 @@ Example context (json):
             "usercomment": "Pasted from research notes"
         }
     ],
-    "submitted": "Essay content with <span class=\"tiny_cursive_added\">pasted text</span>",
+    "submitted": "Essay content with <span class=\"tiny_authory_tech_added\">pasted text</span>",
     "reportdate": "2023-12-01 15:30"
 }
 }}
 
-<div class="tiny_cursive-container">
+<div class="tiny_authory_tech-container">
     <!-- Main Header -->
-    <div class="tiny_cursive-header">
-        <h2>{{#str}}report_title, tiny_cursive{{/str}}</h2>
-        <h6>{{#str}}report_sub_title, tiny_cursive{{/str}}</h6>
+    <div class="tiny_authory_tech-header">
+        <h2>{{#str}}report_title, tiny_authory_tech{{/str}}</h2>
+        <h6>{{#str}}report_sub_title, tiny_authory_tech{{/str}}</h6>
     </div>
 
     <!-- Student Info Box -->
-    <div class="tiny_cursive-info-box">
-        <div class="tiny_cursive-info-row">
+    <div class="tiny_authory_tech-info-box">
+        <div class="tiny_authory_tech-info-row">
             <!-- Student Name -->
-            <div class="tiny_cursive-info-col">
-                <h5>{{#str}}student_name, tiny_cursive{{/str}}:</h5>
+            <div class="tiny_authory_tech-info-col">
+                <h5>{{#str}}student_name, tiny_authory_tech{{/str}}:</h5>
                 <div>{{fullname}}</div>
             </div>
 
             <!-- Assignment -->
-            <div class="tiny_cursive-info-col">
-                <h5>{{#str}}assignment, tiny_cursive{{/str}}:</h5>
+            <div class="tiny_authory_tech-info-col">
+                <h5>{{#str}}assignment, tiny_authory_tech{{/str}}:</h5>
                 <div>{{modulename}}</div>
             </div>
 
             <!-- Report Date -->
-            <div class="tiny_cursive-info-col">
-                <h5>{{#str}}report_date, tiny_cursive{{/str}}:</h5>
+            <div class="tiny_authory_tech-info-col">
+                <h5>{{#str}}report_date, tiny_authory_tech{{/str}}:</h5>
                 <div>{{date}}</div>
             </div>
 
-            <div class="tiny_cursive-info-col">
-                <h5>{{#str}}submission_date, tiny_cursive{{/str}}:</h5>
+            <div class="tiny_authory_tech-info-col">
+                <h5>{{#str}}submission_date, tiny_authory_tech{{/str}}:</h5>
                 <div>{{sub_date}}</div>
             </div>
         </div>
     </div>
 
-    <hr class="tiny_cursive-section-divider">
+    <hr class="tiny_authory_tech-section-divider">
 
-    <div class="tiny_cursive-section-box">
+    <div class="tiny_authory_tech-section-box">
 
-        <div class="tiny_cursive-section-title">
-            <h3>{{#pix}} bar, tiny_cursive {{/pix}}{{#str}}writing_analytics, tiny_cursive{{/str}}</h3>
+        <div class="tiny_authory_tech-section-title">
+            <h3>{{#pix}} bar, tiny_authory_tech {{/pix}}{{#str}}writing_analytics, tiny_authory_tech{{/str}}</h3>
         </div>
 
-        <div class="tiny_cursive-verified-badge"
+        <div class="tiny_authory_tech-verified-badge"
             style="background-color: {{#auth_state}}#28a745{{/auth_state}}{{^auth_state}}gray{{/auth_state}}">
-            {{#str}}authorship, tiny_cursive{{/str}}: {{#auth_state}}{{#str}}verified, tiny_cursive{{/str}}
-            {{/auth_state}}{{^auth_state}}{{#str}}verified!, tiny_cursive{{/str}}{{/auth_state}}
+            {{#str}}authorship, tiny_authory_tech{{/str}}: {{#auth_state}}{{#str}}verified, tiny_authory_tech{{/str}}
+            {{/auth_state}}{{^auth_state}}{{#str}}verified!, tiny_authory_tech{{/str}}{{/auth_state}}
         </div>
 
-        <div class="tiny_cursive-stats-container-loop">
+        <div class="tiny_authory_tech-stats-container-loop">
 
             {{#analytics}}
-            <div class="tiny_cursive-stats-card">
-                <p class="title">{{#str}}character_verify, tiny_cursive{{/str}}</p>
+            <div class="tiny_authory_tech-stats-card">
+                <p class="title">{{#str}}character_verify, tiny_authory_tech{{/str}}</p>
                 <h2>{{analytics.effort}}%</h2>
-                <p class="desc">{{#str}}effort_ratio_desc, tiny_cursive {{/str}}</p>
+                <p class="desc">{{#str}}effort_ratio_desc, tiny_authory_tech {{/str}}</p>
             </div>
 
-            <div class="tiny_cursive-stats-card">
-                <p class="title">{{#str}}time_writing, tiny_cursive {{/str}}</p>
+            <div class="tiny_authory_tech-stats-card">
+                <p class="title">{{#str}}time_writing, tiny_authory_tech {{/str}}</p>
                 <h2>{{analytics.total_time_seconds}}</h2>
-                <p class="desc">{{#str}}time_writing_desc, tiny_cursive {{/str}}</p>
+                <p class="desc">{{#str}}time_writing_desc, tiny_authory_tech {{/str}}</p>
             </div>
 
 
-            <div class="tiny_cursive-stats-card">
-                <p class="title">{{#str}}words_per_minute, tiny_cursive {{/str}}</p>
+            <div class="tiny_authory_tech-stats-card">
+                <p class="title">{{#str}}words_per_minute, tiny_authory_tech {{/str}}</p>
                 <h2>{{analytics.words_per_minute}} WPM</h2>
-                <p class="desc">{{#str}}words_per_minute_desc, tiny_cursive {{/str}}</p>
+                <p class="desc">{{#str}}words_per_minute_desc, tiny_authory_tech {{/str}}</p>
             </div>
 
-            <div class="tiny_cursive-stats-card">
-                <p class="title">{{#str}}total_words, tiny_cursive {{/str}}</p>
+            <div class="tiny_authory_tech-stats-card">
+                <p class="title">{{#str}}total_words, tiny_authory_tech {{/str}}</p>
                 <h2>{{analytics.word_count}}</h2>
-                <p class="desc">{{#str}}total_words_desc, tiny_cursive {{/str}}</p>
+                <p class="desc">{{#str}}total_words_desc, tiny_authory_tech {{/str}}</p>
             </div>
 
-            <div class="tiny_cursive-stats-card">
-                <p class="title">{{#str}}backspace, tiny_cursive {{/str}}</p>
+            <div class="tiny_authory_tech-stats-card">
+                <p class="title">{{#str}}backspace, tiny_authory_tech {{/str}}</p>
                 <h2>{{analytics.backspace_percent}}%</h2>
-                <p class="desc">{{#str}}backspace_desc, tiny_cursive {{/str}}</p>
+                <p class="desc">{{#str}}backspace_desc, tiny_authory_tech {{/str}}</p>
             </div>
             {{/analytics}}
         </div>
@@ -132,42 +132,42 @@ Example context (json):
 
 
 
-    <div class="tiny_cursive-page-break"></div>
+    <div class="tiny_authory_tech-page-break"></div>
 
-    <div class="tiny_cursive-section-box">
-        <div class="tiny_cursive-section-title">
-            <h3>{{#pix}} editdoc, tiny_cursive {{/pix}}{{#str}}submission_content, tiny_cursive {{/str}}</h3>
+    <div class="tiny_authory_tech-section-box">
+        <div class="tiny_authory_tech-section-title">
+            <h3>{{#pix}} editdoc, tiny_authory_tech {{/pix}}{{#str}}submission_content, tiny_authory_tech {{/str}}</h3>
         </div>
 
-        <div class="tiny_cursive-analysis-card">
-            <h4>{{#str}}paste_analysis, tiny_cursive {{/str}}</h4>
-            <p><strong>{{#str}}pastecount, tiny_cursive {{/str}}:</strong> {{pastecount}}</p>
+        <div class="tiny_authory_tech-analysis-card">
+            <h4>{{#str}}paste_analysis, tiny_authory_tech {{/str}}</h4>
+            <p><strong>{{#str}}pastecount, tiny_authory_tech {{/str}}:</strong> {{pastecount}}</p>
             <div>
-                <strong>{{#str}}comments, tiny_cursive {{/str}}:</strong> {{^comments}}None{{/comments}}
+                <strong>{{#str}}comments, tiny_authory_tech {{/str}}:</strong> {{^comments}}None{{/comments}}
                 {{#comments}}
-                    <p class="tiny_cursive-comments">{{usercomment}}</p>
+                    <p class="tiny_authory_tech-comments">{{usercomment}}</p>
                 {{/comments}}
             </div>
         </div>
 
 
-        <div class="tiny_cursive-legend tiny_cursive-export-pdf">
-            <strong>{{#str}}legend, tiny_cursive {{/str}}: </strong>
-            <span class="tiny_cursive_added"></span>
-            <span>{{#str}}editspastesai, tiny_cursive {{/str}}</span>
+        <div class="tiny_authory_tech-legend tiny_authory_tech-export-pdf">
+            <strong>{{#str}}legend, tiny_authory_tech {{/str}}: </strong>
+            <span class="tiny_authory_tech_added"></span>
+            <span>{{#str}}editspastesai, tiny_authory_tech {{/str}}</span>
         </div>
 
-        <div class="tiny_cursive-submission-box">
-            <h2>{{#str}}fullsubmission, tiny_cursive {{/str}}:</h2>
-            <div class="tiny_cursive-export-pdf">
+        <div class="tiny_authory_tech-submission-box">
+            <h2>{{#str}}fullsubmission, tiny_authory_tech {{/str}}:</h2>
+            <div class="tiny_authory_tech-export-pdf">
                 {{{submitted}}}
             </div>
         </div>
     </div>
 
-    <div class="tiny_cursive-footer">
+    <div class="tiny_authory_tech-footer">
         <div>
-            {{#str}}report_gen, tiny_cursive {{/str}}: {{reportdate}}
+            {{#str}}report_gen, tiny_authory_tech {{/str}}: {{reportdate}}
         </div>
     </div>
 </div>

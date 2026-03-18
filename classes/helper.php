@@ -14,18 +14,18 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace tiny_cursive;
+namespace tiny_authory_tech;
 
 /**
  * Class helper
  *
- * @package    tiny_cursive
- * @copyright  2026 Cursive Technology, Inc. <info@cursivetechnology.com>
+ * @package    tiny_authory_tech
+ * @copyright  2026 Authory Technology S.L. <info@authory.tech>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class helper {
     /**
-     * Updates resource IDs for both comments and cursive files
+     * Updates resource IDs for both comments and authory_tech files
      *
      * @param array $data Array containing userid, modulename, courseid, cmid and resourceid
      * @return void
@@ -33,7 +33,7 @@ class helper {
      */
     public static function update_resource_id($data) {
         self::update_comment($data);
-        self::update_cursive_files($data);
+        self::update_authory_tech_files($data);
     }
 
     /**
@@ -64,12 +64,12 @@ class helper {
     }
 
     /**
-     * Updates cursive file in the tiny_cursive_files table.
+     * Updates authory_tech file in the tiny_cursive_files table.
      *
      * @param array $data Array containing userid, modulename, courseid, cmid and resourceid
      * @throws \dml_exception
      */
-    public static function update_cursive_files($data) {
+    public static function update_authory_tech_files($data) {
         global $DB;
 
         $table      = 'tiny_cursive_files';

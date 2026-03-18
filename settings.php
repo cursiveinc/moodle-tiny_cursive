@@ -15,10 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Tiny cursive plugin settings.
+ * Tiny authory_tech plugin settings.
  *
- * @package tiny_cursive
- * @copyright  CTI <info@cursivetechnology.com>
+ * @package tiny_authory_tech
+ * @copyright  Authory Technology S.L. <info@authory.tech>
  * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -28,34 +28,34 @@ defined('MOODLE_INTERNAL') || die;
 require_once(__DIR__ . '/locallib.php');
 global $CFG, $PAGE;
 
-$PAGE->requires->js_call_amd('tiny_cursive/token_approve', 'init', [1]);
+$PAGE->requires->js_call_amd('tiny_authory_tech/token_approve', 'init', [1]);
 
-$ADMIN->add('editortiny', new admin_category('tiny_cursive', new lang_string('pluginname', 'tiny_cursive')));
+$ADMIN->add('editortiny', new admin_category('tiny_authory_tech', new lang_string('pluginname', 'tiny_authory_tech')));
 
 if ($ADMIN->fulltree) {
     $information = html_writer::tag(
         'p',
-        get_string('pluginname_desc_new', 'tiny_cursive') . ' ' .
+        get_string('pluginname_desc_new', 'tiny_authory_tech') . ' ' .
         html_writer::link(
             'https://sjcgf.share.hsforms.com/2SHQOFefUSriOMeP9SzMmmw',
-            get_string('pluginname_desc_new_link', 'tiny_cursive'),
+            get_string('pluginname_desc_new_link', 'tiny_authory_tech'),
             ['target' => '_blank', 'rel' => 'noopener']
-        ) . '. ' . get_string('pluginname_desc_new_2', 'tiny_cursive')
+        ) . '. ' . get_string('pluginname_desc_new_2', 'tiny_authory_tech')
     );
 
     $information .= html_writer::tag(
         'p',
-        get_string('pluginname_desc_new_3', 'tiny_cursive') . ' ' .
+        get_string('pluginname_desc_new_3', 'tiny_authory_tech') . ' ' .
         html_writer::link(
-            'mailto:info@cursivetechnology.com',
-            'info@cursivetechnology.com'
+            'mailto:info@authory.tech',
+            'info@authory.tech'
         ),
         ['style' => 'margin-bottom: 2rem;']
     );
 
     $settings->add(
         new admin_setting_heading(
-            'cursive_settings',
+            'authory_tech_settings',
             "",
             $information
         )
@@ -63,66 +63,66 @@ if ($ADMIN->fulltree) {
 
     $settings->add(
         new admin_setting_configtext(
-            'tiny_cursive/secretkey',
-            get_string('secretkey', 'tiny_cursive'),
-            get_string('secretkey_desc', 'tiny_cursive') . '' .
+            'tiny_authory_tech/secretkey',
+            get_string('secretkey', 'tiny_authory_tech'),
+            get_string('secretkey_desc', 'tiny_authory_tech') . '' .
             "<br/><a id='approve_token' href='#' class='btn btn-primary'>  " .
-            get_string('test_token', 'tiny_cursive') . " </a><span id='token_message'></span>",
+            get_string('test_token', 'tiny_authory_tech') . " </a><span id='token_message'></span>",
             "",
             PARAM_TEXT
         )
     );
     $settings->add(
         new admin_setting_configtext(
-            'tiny_cursive/python_server',
-            get_string('api_url', 'tiny_cursive'),
-            get_string('api_addr_url', 'tiny_cursive'),
+            'tiny_authory_tech/python_server',
+            get_string('api_url', 'tiny_authory_tech'),
+            get_string('api_addr_url', 'tiny_authory_tech'),
             '',
             PARAM_TEXT
         )
     );
     $settings->add(
         new admin_setting_configtext(
-            'tiny_cursive/host_url',
-            get_string('moodle_host', 'tiny_cursive'),
-            get_string('host_domain', 'tiny_cursive'),
+            'tiny_authory_tech/host_url',
+            get_string('moodle_host', 'tiny_authory_tech'),
+            get_string('host_domain', 'tiny_authory_tech'),
             $CFG->wwwroot,
             PARAM_TEXT
         )
     );
     $settings->add(
         new admin_setting_configtext(
-            'tiny_cursive/confidence_threshold',
-            get_string('confidence_thresholds', 'tiny_cursive'),
-            get_string('thresold_description', 'tiny_cursive'),
+            'tiny_authory_tech/confidence_threshold',
+            get_string('confidence_thresholds', 'tiny_authory_tech'),
+            get_string('thresold_description', 'tiny_authory_tech'),
             '',
             PARAM_TEXT
         )
     );
     $settings->add(
         new admin_setting_configcheckbox(
-            'tiny_cursive/showcomments',
-            get_string('cite_src', "tiny_cursive"),
-            get_string('cite_src_des', 'tiny_cursive'),
+            'tiny_authory_tech/showcomments',
+            get_string('cite_src', "tiny_authory_tech"),
+            get_string('cite_src_des', 'tiny_authory_tech'),
             1
         )
     );
     $settings->add(
         new admin_setting_configcheckbox(
-            'tiny_cursive/json_download',
-            get_string('json_title', "tiny_cursive"),
-            get_string('json_des', 'tiny_cursive'),
+            'tiny_authory_tech/json_download',
+            get_string('json_title', "tiny_authory_tech"),
+            get_string('json_des', 'tiny_authory_tech'),
             1
         )
     );
 
     $settings->add(
         new admin_setting_configtext(
-            'tiny_cursive/cursivetoken',
-            get_string('webservicetoken', "tiny_cursive"),
-            "<a id='generate_cursivetoken' href='#' class=''>  " .
-            get_string('generate', 'tiny_cursive') . " </a>" . ' ' .
-            get_string('webservicetoken_des', 'tiny_cursive') . "<br><span id='cursivetoken_'></span>",
+            'tiny_authory_tech/authory_tech_token',
+            get_string('webservicetoken', "tiny_authory_tech"),
+            "<a id='generate_authory_tech_token' href='#' class=''>  " .
+            get_string('generate', 'tiny_authory_tech') . " </a>" . ' ' .
+            get_string('webservicetoken_des', 'tiny_authory_tech') . "<br><span id='authory_tech_token_'></span>",
             '',
             PARAM_TEXT
         )
@@ -130,9 +130,9 @@ if ($ADMIN->fulltree) {
 
     $settings->add(
         new admin_setting_configtext(
-            'tiny_cursive/syncinterval',
-            get_string('syncinterval', 'tiny_cursive'),
-            get_string('syncinterval_des', 'tiny_cursive'),
+            'tiny_authory_tech/syncinterval',
+            get_string('syncinterval', 'tiny_authory_tech'),
+            get_string('syncinterval_des', 'tiny_authory_tech'),
             10,
             PARAM_TEXT
         )
@@ -140,51 +140,51 @@ if ($ADMIN->fulltree) {
 
     $settings->add(
         new admin_setting_configempty(
-            'tiny_cursive/cursivedisable',
-            get_string('cursivedisable', 'tiny_cursive'),
-            "<a href='#cursivedisable' class='btn btn-primary mb-1' id='cursivedisable' >" .
-            get_string('disable', 'tiny_cursive') . "</a>
-            <a href='#cursiveenable' class='btn btn-primary mb-1' id='cursiveenable'>" .
-            get_string('enable', 'tiny_cursive') . "
-            </a><br><span id='cursivedisable_'></span><br>" .
-            get_string('cursivedisable_des', 'tiny_cursive'),
+            'tiny_authory_tech/authory_tech_disable',
+            get_string('authory_tech_disable', 'tiny_authory_tech'),
+            "<a href='#authory_tech_disable' class='btn btn-primary mb-1' id='authory_tech_disable' >" .
+            get_string('disable', 'tiny_authory_tech') . "</a>
+            <a href='#authory_tech_enable' class='btn btn-primary mb-1' id='authory_tech_enable'>" .
+            get_string('enable', 'tiny_authory_tech') . "
+            </a><br><span id='authory_tech_disable_'></span><br>" .
+            get_string('authory_tech_disable_des', 'tiny_authory_tech'),
         )
     );
 
     $settings->add(
         new admin_setting_heading(
-            'cursive_more_info',
-            get_string('new_admin_heading', 'tiny_cursive'),
-            get_string('new_admin_desc', "tiny_cursive"),
+            'authory_tech_more_info',
+            get_string('new_admin_heading', 'tiny_authory_tech'),
+            get_string('new_admin_desc', "tiny_authory_tech"),
         )
     );
 
         $settings->add(
             new admin_setting_configtext(
-                'tiny_cursive/note_text',
-                get_string('note_text_title', 'tiny_cursive'),
+                'tiny_authory_tech/note_text',
+                get_string('note_text_title', 'tiny_authory_tech'),
                 "",
-                get_string('cursive_enable_notice', 'tiny_cursive'),
+                get_string('authory_tech_enable_notice', 'tiny_authory_tech'),
                 PARAM_TEXT
             )
         );
 
     $settings->add(
         new admin_setting_configtext(
-            'tiny_cursive/note_url_text',
-            get_string('note_url_text', 'tiny_cursive'),
+            'tiny_authory_tech/note_url_text',
+            get_string('note_url_text', 'tiny_authory_tech'),
             "",
-            get_string('cursive_more_info', 'tiny_cursive'),
+            get_string('authory_tech_more_info', 'tiny_authory_tech'),
             PARAM_TEXT
         )
     );
 
     $settings->add(
         new admin_setting_configtext(
-            'tiny_cursive/note_url',
-            get_string('note_url_title', 'tiny_cursive'),
+            'tiny_authory_tech/note_url',
+            get_string('note_url_title', 'tiny_authory_tech'),
             "",
-            "https://cursivetechnology.com/moodle-integration-how-it-works",
+            "https://authory.tech",
             PARAM_TEXT
         )
     );

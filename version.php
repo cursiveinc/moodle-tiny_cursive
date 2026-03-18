@@ -15,10 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Tiny cursive plugin version.
+ * Tiny authory_tech plugin version.
  *
- * @package tiny_cursive
- * @copyright  Cursive Technology, Inc. <info@cursivetechnology.com>
+ * @package tiny_authory_tech
+ * @copyright  Authory Technology S.L. <info@authory.tech>
  * @author kuldeep singh & Brainstation23
  *
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -27,7 +27,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->component = 'tiny_cursive';
+$plugin->component = 'tiny_authory_tech';
 $plugin->release = '2.1.4';
 $plugin->version = 2026022000;
 $plugin->requires = 2022041912;

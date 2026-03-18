@@ -15,16 +15,16 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Tiny cursive plugin displaying user writing report.
+ * Tiny authory_tech plugin displaying user writing report.
  *
- * @package tiny_cursive
- * @copyright  CTI <info@cursivetechnology.com>
+ * @package tiny_authory_tech
+ * @copyright  Authory Technology S.L. <info@authory.tech>
  * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 require(__DIR__ . '/../../../../../config.php');
-use tiny_cursive\constants;
+use tiny_authory_tech\constants;
 
 require_once(__DIR__ . '/locallib.php');
 require_once(__DIR__ . '/lib.php');
@@ -52,13 +52,13 @@ if (!empty($courseid)) {
     $params['courseid'] = $courseid;
 }
 
-$url      = new moodle_url('/lib/editor/tiny/plugins/cursive/writing_report.php', $params);
+$url      = new moodle_url('/lib/editor/tiny/plugins/authory_tech/writing_report.php', $params);
 
 if ($courseid) {
-    $cmid    = tiny_cursive_get_cmid($courseid);
+    $cmid    = tiny_authory_tech_get_cmid($courseid);
     $context = context_module::instance($cmid);
 
-    $struser = get_string('student_writing_statics', 'tiny_cursive');
+    $struser = get_string('student_writing_statics', 'tiny_authory_tech');
     $course  = get_course($courseid);
 
     $PAGE->navbar->add($course->shortname, new moodle_url('/course/view.php', ['id' => $courseid]));
@@ -67,27 +67,27 @@ if ($courseid) {
     $context = context_system::instance();
 }
 
-require_capability('tiny/cursive:view', $context);
+require_capability('tiny/authory_tech:view', $context);
 $user = $DB->get_record('user', ['id' => $userid]);
 if (!$user) {
     throw new moodle_exception('invaliduser', 'error');
 }
 
 $PAGE->requires->js_call_amd(
-    'tiny_cursive/cursive_writing_reports',
+    'tiny_authory_tech/authory_tech_writing_reports',
     'init',
-    ["", constants::has_api_key(), get_config('tiny_cursive', 'json_download')]
+    ["", constants::has_api_key(), get_config('tiny_authory_tech', 'json_download')]
 );
 
 $PAGE->set_context(context_system::instance());
 $PAGE->set_url($url);
-$PAGE->set_title(get_string('tiny_cursive', 'tiny_cursive'));
+$PAGE->set_title(get_string('tiny_authory_tech', 'tiny_authory_tech'));
 
 echo $OUTPUT->header();
 
-$renderer    = $PAGE->get_renderer('tiny_cursive');
-$users       = tiny_cursive_get_user_attempts_data($userid, $courseid, null, $orderby, $page, $limit);
-$userprofile = tiny_cursive_get_user_profile_data($userid, $courseid);
+$renderer    = $PAGE->get_renderer('tiny_authory_tech');
+$users       = tiny_authory_tech_get_user_attempts_data($userid, $courseid, null, $orderby, $page, $limit);
+$userprofile = tiny_authory_tech_get_user_profile_data($userid, $courseid);
 
 echo $renderer->tiny_cursive_user_writing_report($users, $userprofile, $userid, $page, $limit, $url);
 echo $OUTPUT->footer();

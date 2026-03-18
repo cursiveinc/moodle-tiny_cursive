@@ -14,26 +14,26 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * TODO describe module cursive_autosave
+ * TODO describe module authory_tech_autosave
  *
- * @module     tiny_cursive/cursive_autosave
- * @copyright  2025 Cursive Technology, Inc. <info@cursivetechnology.com>
+ * @module     tiny_authory_tech/authory_tech_autosave
+ * @copyright  2025 Authory Technology S.L. <info@authory.tech>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 import templates from 'core/templates';
 import {call} from 'core/ajax';
-import Icons from 'tiny_cursive/svg_repo';
+import Icons from 'tiny_authory_tech/svg_repo';
 import {get_string as getString} from 'core/str';
 
-export default class CursiveAutosave {
+export default class AuthoryTechAutosave {
 
     static instance = null;
 
 
     constructor(editor, rightWrapper, modules, isFullScreen) {
-        if (CursiveAutosave.instance) {
-            return CursiveAutosave.instance;
+        if (AuthoryTechAutosave.instance) {
+            return AuthoryTechAutosave.instance;
         }
 
         this.editor = editor;
@@ -45,18 +45,18 @@ export default class CursiveAutosave {
         this.fetchSavedContent = this.fetchSavedContent.bind(this);
         this.handleEscapeKey = this.handleEscapeKey.bind(this);
         this._savingTimer = null;
-        CursiveAutosave.instance = this;
+        AuthoryTechAutosave.instance = this;
         this.fetchStrings();
     }
 
     static getInstance(editor, rightWrapper, modules, isFullScreen) {
         if (!this.instance) {
-            this.instance = new CursiveAutosave(editor, rightWrapper, modules, isFullScreen);
+            this.instance = new AuthoryTechAutosave(editor, rightWrapper, modules, isFullScreen);
         }
         this.instance.isFullScreen = isFullScreen;
         const hasState = modules.modulename === 'quiz'
-            ? document.querySelector(`#tiny_cursive_savingState${modules.questionid}`)
-            : document.querySelector('#tiny_cursive_savingState');
+            ? document.querySelector(`#tiny_authory_tech_savingState${modules.questionid}`)
+            : document.querySelector('#tiny_authory_tech_savingState');
         if (!hasState) {
             this.instance.init();
         }
@@ -65,12 +65,12 @@ export default class CursiveAutosave {
     }
 
     init() {
-        const stateWrapper = this.cursiveSavingState(this.savingState);
-        stateWrapper.classList.add('tiny_cursive_savingState', 'btn');
+        const stateWrapper = this.authoryTechSavingState(this.savingState);
+        stateWrapper.classList.add('tiny_authory_tech_savingState', 'btn');
         if (this.module.modulename === 'quiz') {
-            stateWrapper.id = `tiny_cursive_savingState${this.module.questionid}`;
+            stateWrapper.id = `tiny_authory_tech_savingState${this.module.questionid}`;
         } else {
-            stateWrapper.id = 'tiny_cursive_savingState';
+            stateWrapper.id = 'tiny_authory_tech_savingState';
         }
 
         this.rightWrapper.prepend(stateWrapper);
@@ -78,7 +78,7 @@ export default class CursiveAutosave {
     }
 
     destroy() {
-        CursiveAutosave.instance = null;
+        AuthoryTechAutosave.instance = null;
     }
 
     static destroyInstance() {
@@ -95,7 +95,7 @@ export default class CursiveAutosave {
      * @description Creates and returns a div element with an icon and text span to show the current saving state.
      * The icon and text are updated based on the provided state parameter.
      */
-    cursiveSavingState(state) {
+    authoryTechSavingState(state) {
         let wrapperDiv = document.createElement('div');
         let textSpan = document.createElement('span');
         let button = document.createElement('button');
@@ -106,11 +106,11 @@ export default class CursiveAutosave {
         textSpan.style.color = 'gray';
 
         if (this.module.modulename === 'quiz') {
-            iconSpan.id = `CursiveCloudIcon${this.module.questionid}`;
-            textSpan.id = `CursiveStateText${this.module.questionid}`;
+            iconSpan.id = `AuthoryTechCloudIcon${this.module.questionid}`;
+            textSpan.id = `AuthoryTechStateText${this.module.questionid}`;
         } else {
-            iconSpan.id = 'CursiveCloudIcon';
-            textSpan.id = 'CursiveStateText';
+            iconSpan.id = 'AuthoryTechCloudIcon';
+            textSpan.id = 'AuthoryTechStateText';
         }
         if (state) {
             textSpan.textContent = this.getStateText(state);
@@ -136,9 +136,9 @@ export default class CursiveAutosave {
         instance.savingState = state;
         let stateWrapper = null;
         if (instance.module.modulename === 'quiz') {
-            stateWrapper = document.querySelector(`#tiny_cursive_savingState${instance.module.questionid}`);
+            stateWrapper = document.querySelector(`#tiny_authory_tech_savingState${instance.module.questionid}`);
         } else {
-            stateWrapper = document.querySelector('#tiny_cursive_savingState');
+            stateWrapper = document.querySelector('#tiny_authory_tech_savingState');
         }
 
         let iconSpan = '';
@@ -149,11 +149,11 @@ export default class CursiveAutosave {
         }
 
         if (instance.module.modulename === 'quiz') {
-            iconSpan = stateWrapper.querySelector(`#CursiveCloudIcon${instance.module.questionid}`);
-            stateTextEl = stateWrapper.querySelector(`#CursiveStateText${instance.module.questionid}`);
+            iconSpan = stateWrapper.querySelector(`#AuthoryTechCloudIcon${instance.module.questionid}`);
+            stateTextEl = stateWrapper.querySelector(`#AuthoryTechStateText${instance.module.questionid}`);
         } else {
-            iconSpan = stateWrapper.querySelector('#CursiveCloudIcon');
-            stateTextEl = stateWrapper.querySelector('#CursiveStateText');
+            iconSpan = stateWrapper.querySelector('#AuthoryTechCloudIcon');
+            stateTextEl = stateWrapper.querySelector('#AuthoryTechStateText');
         }
 
         if (stateTextEl && iconSpan) {
@@ -224,9 +224,9 @@ export default class CursiveAutosave {
         }
         let editorWrapper = null;
         if (this.module.modulename === 'quiz') {
-            editorWrapper = document.querySelector(`#tiny_cursive_savingState${this.module.questionid}`);
+            editorWrapper = document.querySelector(`#tiny_authory_tech_savingState${this.module.questionid}`);
         } else {
-            editorWrapper = document.querySelector('#tiny_cursive_savingState');
+            editorWrapper = document.querySelector('#tiny_authory_tech_savingState');
         }
 
         let args = {
@@ -239,7 +239,7 @@ export default class CursiveAutosave {
         };
 
         call([{
-            methodname: "cursive_get_autosave_content",
+            methodname: "authory_tech_get_autosave_content",
             args: args
         }])[0].done((data) => {
             let context = {comments: JSON.parse(data)};
@@ -354,19 +354,19 @@ export default class CursiveAutosave {
      * Renders the saved content dropdown list using a template
      * @param {Object} context - The context object containing saved comments data to render
      * @param {HTMLElement} editorWrapper - The wrapper element to attach the dropdown to
-     * @description Renders the saved content dropdown using the tiny_cursive/saved_content template.
+     * @description Renders the saved content dropdown using the tiny_authory_tech/saved_content template.
      * Creates and positions the dropdown relative to the editor wrapper element.
      * Handles toggling visibility and caching of the saved content.
      * @throws {Error} Logs error to console if template rendering fails
      */
     renderCommentList(context, editorWrapper) {
-        templates.render('tiny_cursive/saved_content', context).then(html => {
+        templates.render('tiny_authory_tech/saved_content', context).then(html => {
             editorWrapper.style.position = 'relative';
 
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = html.trim();
             tempDiv.id = 'savedDropdown';
-            tempDiv.classList.add('tiny_cursive-saved-dropdown');
+            tempDiv.classList.add('tiny_authory_tech-saved-dropdown');
 
             if (!tempDiv) {
                 window.console.error("Saved content template rendered empty or invalid HTML.");
@@ -396,9 +396,9 @@ export default class CursiveAutosave {
         if (!localStorage.getItem('state')) {
 
             Promise.all([
-                getString('saving', 'tiny_cursive'),
-                getString('saved', 'tiny_cursive'),
-                getString('offline', 'tiny_cursive')
+                getString('saving', 'tiny_authory_tech'),
+                getString('saved', 'tiny_authory_tech'),
+                getString('offline', 'tiny_authory_tech')
             ]).then(function(strings) {
                return localStorage.setItem('state', JSON.stringify(strings));
             }).catch(error => window.console.error(error));
@@ -406,7 +406,7 @@ export default class CursiveAutosave {
     }
 
     throwWarning(str, editor) {
-        getString(str, 'tiny_cursive').then(str => {
+        getString(str, 'tiny_authory_tech').then(str => {
             return editor.windowManager.alert(str);
         }).catch(error => window.console.error(error));
     }
@@ -417,14 +417,14 @@ export default class CursiveAutosave {
 
     /**
      * Adds click event listeners to saved content items to insert them into the editor
-     * @description Finds all elements with class 'tiny_cursive-item-preview' and adds click handlers that will
+     * @description Finds all elements with class 'tiny_authory_tech-item-preview' and adds click handlers that will
      * insert the element's text content into the editor when clicked. The text is inserted with
      * a leading space.
      * @param {Object} editor - The TinyMCE editor instance
      * @returns {void}
      */
     insertSavedItems(editor) {
-        const items = document.querySelectorAll('.tiny_cursive-item-preview');
+        const items = document.querySelectorAll('.tiny_authory_tech-item-preview');
         items.forEach(element => {
             element.addEventListener('click', function() {
                 editor.insertContent(" " + this.textContent);

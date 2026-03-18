@@ -17,8 +17,8 @@
  * Module that creates a replay button.
  * The button displays replay functionality for a specific user.
  *
- * @module     tiny_cursive/replay_button
- * @copyright  2024 CTI <info@cursivetechnology.com>
+ * @module     tiny_authory_tech/replay_button
+ * @copyright  2024 Authory Technology S.L. <info@authory.tech>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -34,22 +34,22 @@ define(["core/str"], function(Str) {
         );
 
         const button = document.createElement('div');
-        button.className = 'tiny_cursive-replay-button';
+        button.className = 'tiny_authory_tech-replay-button';
 
         // Left side (icon + label)
         const left = document.createElement('div');
-        left.className = 'tiny_cursive-replay-left';
+        left.className = 'tiny_authory_tech-replay-left';
 
         const icon = document.createElement('img');
-        icon.src = M.util.image_url('playicon', 'tiny_cursive');
+        icon.src = M.util.image_url('playicon', 'tiny_authory_tech');
         icon.alt = 'Replay Icon';
-        icon.className = 'tiny_cursive-replay-bar-icon';
+        icon.className = 'tiny_authory_tech-replay-bar-icon';
 
         const label = document.createElement('span');
-        label.className = 'tiny_cursive-replay-label';
+        label.className = 'tiny_authory_tech-replay-label';
         label.textContent = 'Replay';
 
-        Str.get_string("replay", "tiny_cursive")
+        Str.get_string("replay", "tiny_authory_tech")
             .then((replayString) => {
                 label.textContent = replayString;
                 return replayString;

@@ -14,21 +14,21 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * @module     tiny_cursive/common
+ * @module     tiny_authory_tech/common
  * @category   TinyMCE Editor
- * @copyright  2025 CTI <info@cursivetechnology.com>
+ * @copyright  2025 Authory Technology S.L. <info@authory.tech>
  * @author     Brain Station 23 <sales@brainstation-23.com>
  */
 
 
-const component = 'tiny_cursive';
+const component = 'tiny_authory_tech';
 
 export default {
     component,
     pluginName: `${component}/plugin`,
-    iconUrl: M.util.image_url('cursive', 'tiny_cursive'),
-    iconSaving: M.util.image_url('rotate', 'tiny_cursive'),
-    iconGrayUrl: M.util.image_url('cursive_gray', 'tiny_cursive'),
+    iconUrl: M.util.image_url('authory_tech', 'tiny_authory_tech'),
+    iconSaving: M.util.image_url('rotate', 'tiny_authory_tech'),
+    iconGrayUrl: M.util.image_url('authory_tech_gray', 'tiny_authory_tech'),
     tooltipCss: {
         display: 'block',
         position: 'absolute',

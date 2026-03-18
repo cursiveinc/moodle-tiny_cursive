@@ -14,9 +14,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * @module     tiny_cursive/key_logger
+ * @module     tiny_authory_tech/key_logger
  * @category TinyMCE Editor
- * @copyright  CTI <info@cursivetechnology.com>
+ * @copyright  Authory Technology S.L. <info@authory.tech>
  * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
  */
 
@@ -30,7 +30,7 @@ define(["jquery", "core/ajax", "core/str", "core/templates"], function(
     init: function(page) {
       str
         .get_strings([
-          {key: "field_require", component: "tiny_cursive"}
+          {key: "field_require", component: "tiny_authory_tech"}
         ])
         .done(function() {
           $(document).ready(function($) {
@@ -55,7 +55,7 @@ define(["jquery", "core/ajax", "core/str", "core/templates"], function(
         var courseid = $(this).val();
         var promise1 = AJAX.call([
           {
-            methodname: "cursive_get_user_list",
+            methodname: "authory_tech_get_user_list",
             args: {
               courseid: courseid,
             },
@@ -69,7 +69,7 @@ define(["jquery", "core/ajax", "core/str", "core/templates"], function(
           };
           // eslint-disable-next-line
           templates
-            .render("tiny_cursive/user_list", context)
+            .render("tiny_authory_tech/user_list", context)
             .then(function(html) {
               var filteredUser = $("#id_username");
               filteredUser.html(html);
@@ -79,7 +79,7 @@ define(["jquery", "core/ajax", "core/str", "core/templates"], function(
 
         var promise2 = AJAX.call([
           {
-            methodname: "cursive_get_module_list",
+            methodname: "authory_tech_get_module_list",
             args: {
               courseid: courseid,
             },
@@ -93,7 +93,7 @@ define(["jquery", "core/ajax", "core/str", "core/templates"], function(
           };
           // eslint-disable-next-line
           templates
-            .render("tiny_cursive/module_list", context)
+            .render("tiny_authory_tech/module_list", context)
             .then(function(html) {
 
               var filteredUser = $("#id_modulename");

@@ -14,9 +14,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * @module     tiny_cursive/autosaver
+ * @module     tiny_authory_tech/autosaver
  * @category   TinyMCE Editor
- * @copyright  CTI <info@cursivetechnology.com>
+ * @copyright  Authory Technology S.L. <info@authory.tech>
  * @author     Brain Station 23 <sales@brainstation-23.com>
  */
 
@@ -25,9 +25,9 @@ import {create} from 'core/modal_factory';
 import {get_string as getString} from 'core/str';
 import {save, cancel, hidden} from 'core/modal_events';
 import $ from 'jquery';
-import {iconUrl, iconGrayUrl, tooltipCss} from 'tiny_cursive/common';
-import Autosave from 'tiny_cursive/cursive_autosave';
-import DocumentView from 'tiny_cursive/document_view';
+import {iconUrl, iconGrayUrl, tooltipCss} from 'tiny_authory_tech/common';
+import Autosave from 'tiny_authory_tech/authory_tech_autosave';
+import DocumentView from 'tiny_authory_tech/document_view';
 import {call as getUser} from "core/ajax";
 
 export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, submission, quizInfo, pasteSetting) => {
@@ -130,20 +130,20 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
     const getModal = () => {
 
         Promise.all([
-            getString('tiny_cursive_srcurl', 'tiny_cursive'),
-            getString('tiny_cursive_srcurl_des', 'tiny_cursive'),
-            getString('tiny_cursive_placeholder', 'tiny_cursive')
+            getString('tiny_authory_tech_srcurl', 'tiny_authory_tech'),
+            getString('tiny_authory_tech_srcurl_des', 'tiny_authory_tech'),
+            getString('tiny_authory_tech_placeholder', 'tiny_authory_tech')
         ]).then(function([title, titledes, placeholder]) {
 
             return create({
                 type: 'SAVE_CANCEL',
-                title: `<div><div class="tiny-cursive-title-text">${title}</div>
-                <span class="tiny-cursive-title-description ">${titledes}</span></div>`,
+                title: `<div><div class="tiny-authory_tech-title-text">${title}</div>
+                <span class="tiny-authory_tech-title-description ">${titledes}</span></div>`,
                 body: `<textarea  class="form-control inputUrl" value="" id="inputUrl" placeholder="${placeholder}"></textarea>`,
                 removeOnClose: true,
             })
                 .done(modal => {
-                    modal.getRoot().addClass('tiny-cursive-modal');
+                    modal.getRoot().addClass('tiny-authory_tech-modal');
                     modal.show();
                     var lastEvent = '';
 
@@ -154,12 +154,12 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
                         if (number === "" || number === null || number === undefined) {
                             editor.execCommand('Undo');
                             // eslint-disable-next-line
-                            getString('pastewarning', 'tiny_cursive').then(str => alert(str));
+                            getString('pastewarning', 'tiny_authory_tech').then(str => alert(str));
                         } else {
                             editor.execCommand('Paste');
                         }
 
-                        postOne('cursive_user_comments', {
+                        postOne('authory_tech_user_comments', {
                             modulename: modulename,
                             cmid: cmid,
                             resourceid: resourceId,
@@ -262,7 +262,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
                     isPasteAllowed = false;
                     e.stopPropagation();
                     e.stopImmediatePropagation();
-                    getString('paste_blocked', 'tiny_cursive').then(str => {
+                    getString('paste_blocked', 'tiny_authory_tech').then(str => {
                        return editor.windowManager.alert(str);
                     }).catch(error => window.console.error(error));
                     setTimeout(() => {
@@ -348,7 +348,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
         } catch (error) {
             if (errorAlert) {
                 errorAlert = false;
-                getString('fullmodeerror', 'tiny_cursive').then(str => {
+                getString('fullmodeerror', 'tiny_authory_tech').then(str => {
                     return editor.windowManager.alert(str);
                 }).catch(error => window.console.error(error));
             }
@@ -570,7 +570,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
             try {
                 Autosave.updateSavingState('saving');
                 // eslint-disable-next-line
-                return await postOne('cursive_write_local_to_json', {
+                return await postOne('authory_tech_write_local_to_json', {
                     key: ed.key,
                     event: event,
                     keyCode: ed.keyCode,
@@ -609,7 +609,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
     }
 
     /**
-     * Sets up custom tooltip functionality for the Cursive icon
+     * Sets up custom tooltip functionality for the Authory.tech icon
      * Initializes tooltip text, positions the icon in the menubar,
      * and sets up mouse event handlers for showing/hiding the tooltip
      * @function customTooltip
@@ -623,23 +623,23 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
             if (menubarDiv.length) {
                 menubarDiv.forEach(function(element, index) {
                     index += 1;
-                    let className = 'cursive-menu-' + index;
+                    let className = 'authory_tech-menu-' + index;
                     element.classList.add(className);
                     classArray.push(className);
                 });
             }
 
-            const cursiveIcon = document.createElement('img');
-            cursiveIcon.src = hasApiKey ? iconUrl : iconGrayUrl;
+            const authoryTechIcon = document.createElement('img');
+            authoryTechIcon.src = hasApiKey ? iconUrl : iconGrayUrl;
 
-            cursiveIcon.setAttribute('class', 'tiny_cursive_StateButton');
-            cursiveIcon.style.display = 'inline-block';
+            authoryTechIcon.setAttribute('class', 'tiny_authory_tech_StateButton');
+            authoryTechIcon.style.display = 'inline-block';
 
-            cursiveState(cursiveIcon, menubarDiv, classArray);
+            authoryTechState(authoryTechIcon, menubarDiv, classArray);
 
             for (let index in classArray) {
-                const elementId = "tiny_cursive_StateIcon" + index;
-                const tooltipId = `tiny_cursive_tooltip${index}`;
+                const elementId = "tiny_authory_tech_StateIcon" + index;
+                const tooltipId = `tiny_authory_tech_tooltip${index}`;
 
                 tooltipText.then((text) => {
                     return setTooltip(text, document.querySelector(`#${elementId}`), tooltipId);
@@ -670,19 +670,19 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
             buttonTitle,
             buttonDes,
         ] = await Promise.all([
-            getString('cursive:state:active', 'tiny_cursive'),
-            getString('cursive:state:active:des', 'tiny_cursive'),
+            getString('authory_tech:state:active', 'tiny_authory_tech'),
+            getString('authory_tech:state:active:des', 'tiny_authory_tech'),
         ]);
         return {buttonTitle, buttonDes};
     }
 
     /**
-     * Updates the Cursive icon state and positions it in the menubar
-     * @param {HTMLElement} cursiveIcon - The Cursive icon element to modify
+     * Updates the Authory.tech icon state and positions it in the menubar
+     * @param {HTMLElement} authoryTechIcon - The Authory.tech icon element to modify
      * @param {HTMLElement} menubarDiv - The menubar div element
      * @param {Array} classArray - Array of class names for the menubar div elements
      */
-    function cursiveState(cursiveIcon, menubarDiv, classArray) {
+    function authoryTechState(authoryTechIcon, menubarDiv, classArray) {
         if (!menubarDiv) {
             return;
         }
@@ -690,9 +690,9 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
         for (let index in classArray) {
             const rightWrapper = document.createElement('div');
             const imgWrapper = document.createElement('span');
-            const iconClone = cursiveIcon.cloneNode(true);
+            const iconClone = authoryTechIcon.cloneNode(true);
             const targetMenu = document.querySelector('.' + classArray[index]);
-            let elementId = "tiny_cursive_StateIcon" + index;
+            let elementId = "tiny_authory_tech_StateIcon" + index;
 
             rightWrapper.style.cssText = `
                         margin-left: auto;
@@ -715,14 +715,14 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
             // Document mode, other modules single editor instances
             if (isFullScreen && (modulename === 'assign' || modulename === 'forum'
                 || modulename === 'lesson')) {
-                let existsElement = document.querySelector('.tox-menubar[class*="cursive-menu-"] > div');
+                let existsElement = document.querySelector('.tox-menubar[class*="authory_tech-menu-"] > div');
                 if (existsElement) {
                     existsElement.remove();
                 }
 
                 if (!document.querySelector(`#${elementId}`)) {
                     rightWrapper.style.marginTop = '3px';
-                    document.querySelector('#tiny_cursive-fullpage-right-wrapper').prepend(rightWrapper);
+                    document.querySelector('#tiny_authory_tech-fullpage-right-wrapper').prepend(rightWrapper);
                 }
 
                 Autosave.destroyInstance();
@@ -734,9 +734,9 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
                     existingElement.remove();
                 }
 
-                if (newHeader && !newHeader.querySelector(`span[id*=tiny_cursive_StateIcon]`)) {
+                if (newHeader && !newHeader.querySelector(`span[id*=tiny_authory_tech_StateIcon]`)) {
                     rightWrapper.style.marginTop = '3px';
-                    document.querySelector('#tiny_cursive-fullpage-right-wrapper').prepend(rightWrapper);
+                    document.querySelector('#tiny_authory_tech-fullpage-right-wrapper').prepend(rightWrapper);
                 }
                 Autosave.destroyInstance();
                 Autosave.getInstance(editor, rightWrapper, moduleIds, isFullScreen);
@@ -748,7 +748,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
                 }
                 // Regular view, multiple editor instances
                 if (modulename === 'quiz' && menubar) {
-                    let wrapper = menubar.querySelector('span[id*="tiny_cursive_StateIcon"]');
+                    let wrapper = menubar.querySelector('span[id*="tiny_authory_tech_StateIcon"]');
 
                     if (wrapper) {
                         Autosave.destroyInstance();
@@ -763,19 +763,19 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
     }
 
     /**
-     * Sets up tooltip content and styling for the Cursive icon
+     * Sets up tooltip content and styling for the Authory.tech icon
      * @param {Object} text - Object containing tooltip text strings
      * @param {string} text.buttonTitle - Title text for the tooltip
      * @param {string} text.buttonDes - Description text for the tooltip
-     * @param {HTMLElement} cursiveIcon - The Cursive icon element to attach tooltip to
+     * @param {HTMLElement} authoryTechIcon - The Authory.tech icon element to attach tooltip to
      * @param {string} tooltipId - ID for the tooltip element
      */
-    function setTooltip(text, cursiveIcon, tooltipId) {
+    function setTooltip(text, authoryTechIcon, tooltipId) {
 
         if (document.querySelector(`#${tooltipId}`)) {
             return;
         }
-        if (cursiveIcon) {
+        if (authoryTechIcon) {
 
             const tooltipSpan = document.createElement('span');
             const description = document.createElement('span');
@@ -794,7 +794,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
             tooltipSpan.appendChild(tooltipTitle);
             tooltipSpan.appendChild(linebreak);
             tooltipSpan.appendChild(description);
-            cursiveIcon.appendChild(tooltipSpan);
+            authoryTechIcon.appendChild(tooltipSpan);
         }
     }
 
@@ -849,45 +849,45 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
     function fetchStrings() {
         if (!localStorage.getItem('sbTitle')) {
             Promise.all([
-                getString('assignment', 'tiny_cursive'),
-                getString('discussion', 'tiny_cursive'),
+                getString('assignment', 'tiny_authory_tech'),
+                getString('discussion', 'tiny_authory_tech'),
                 getString('pluginname', 'mod_quiz'),
                 getString('pluginname', 'mod_lesson'),
-                getString('description', 'tiny_cursive'),
+                getString('description', 'tiny_authory_tech'),
             ]).then(function(strings) {
                 return localStorage.setItem('sbTitle', JSON.stringify(strings));
             }).catch(error => window.console.error(error));
         }
         if (!localStorage.getItem('docSideBar')) {
             Promise.all([
-                getString('details', 'tiny_cursive'),
-                getString('student_info', 'tiny_cursive'),
-                getString('progress', 'tiny_cursive'),
-                getString('description', 'tiny_cursive'),
-                getString('replyingto', 'tiny_cursive'),
-                getString('answeringto', 'tiny_cursive'),
-                getString('importantdates', 'tiny_cursive'),
-                getString('rubrics', 'tiny_cursive'),
-                getString('submission_status', 'tiny_cursive'),
-                getString('status', 'tiny_cursive'),
-                getString('draft', 'tiny_cursive'),
-                getString('draftnot', 'tiny_cursive'),
-                getString('last_modified', 'tiny_cursive'),
-                getString('gradings', 'tiny_cursive'),
-                getString('gradenot', 'tiny_cursive'),
-                getString('word_count', 'tiny_cursive'),
-                getString('timeleft', 'tiny_cursive'),
-                getString('nolimit', 'tiny_cursive'),
-                getString('name', 'tiny_cursive'),
-                getString('userename', 'tiny_cursive'),
-                getString('course', 'tiny_cursive'),
-                getString('opened', 'tiny_cursive'),
-                getString('due', 'tiny_cursive'),
-                getString('overdue', 'tiny_cursive'),
-                getString('remaining', 'tiny_cursive'),
-                getString('savechanges', 'tiny_cursive'),
-                getString('subjectnot', 'tiny_cursive'),
-                getString('remaining', 'tiny_cursive'),
+                getString('details', 'tiny_authory_tech'),
+                getString('student_info', 'tiny_authory_tech'),
+                getString('progress', 'tiny_authory_tech'),
+                getString('description', 'tiny_authory_tech'),
+                getString('replyingto', 'tiny_authory_tech'),
+                getString('answeringto', 'tiny_authory_tech'),
+                getString('importantdates', 'tiny_authory_tech'),
+                getString('rubrics', 'tiny_authory_tech'),
+                getString('submission_status', 'tiny_authory_tech'),
+                getString('status', 'tiny_authory_tech'),
+                getString('draft', 'tiny_authory_tech'),
+                getString('draftnot', 'tiny_authory_tech'),
+                getString('last_modified', 'tiny_authory_tech'),
+                getString('gradings', 'tiny_authory_tech'),
+                getString('gradenot', 'tiny_authory_tech'),
+                getString('word_count', 'tiny_authory_tech'),
+                getString('timeleft', 'tiny_authory_tech'),
+                getString('nolimit', 'tiny_authory_tech'),
+                getString('name', 'tiny_authory_tech'),
+                getString('userename', 'tiny_authory_tech'),
+                getString('course', 'tiny_authory_tech'),
+                getString('opened', 'tiny_authory_tech'),
+                getString('due', 'tiny_authory_tech'),
+                getString('overdue', 'tiny_authory_tech'),
+                getString('remaining', 'tiny_authory_tech'),
+                getString('savechanges', 'tiny_authory_tech'),
+                getString('subjectnot', 'tiny_authory_tech'),
+                getString('remaining', 'tiny_authory_tech'),
             ]).then(function(strings) {
                 return localStorage.setItem('docSideBar', JSON.stringify(strings));
             }).catch(error => window.console.error(error));

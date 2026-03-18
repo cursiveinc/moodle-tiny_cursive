@@ -15,17 +15,17 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Tiny cursive download json functionality.
+ * Tiny authory_tech download json functionality.
  *
- * @package tiny_cursive
- * @copyright  CTI <info@cursivetechnology.com>
+ * @package tiny_authory_tech
+ * @copyright  Authory Technology S.L. <info@authory.tech>
  * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 require(__DIR__ . '/../../../../../config.php');
 require_once(__DIR__ . '/locallib.php');
-use tiny_cursive\constants;
+use tiny_authory_tech\constants;
 global $DB, $USER;
 require_login();
 require_sesskey();
@@ -37,21 +37,21 @@ $courseid   = optional_param('course', 0, PARAM_INT);
 $fname      = clean_param(optional_param('fname', '', PARAM_FILE), PARAM_FILE);
 
 if ($cmid <= 0 || $userid <= 0) {
-    throw new moodle_exception('invalidparameters', 'tiny_cursive');
+    throw new moodle_exception('invalidparameters', 'tiny_authory_tech');
 }
 if (intval($USER->id) !== $userid && !constants::is_teacher_admin(context_course::instance($courseid))) {
-    throw new moodle_exception(get_string('warning', 'tiny_cursive'));
+    throw new moodle_exception(get_string('warning', 'tiny_authory_tech'));
 }
 $context    = context_module::instance($cmid);
-require_capability('tiny/cursive:writingreport', $context);
+require_capability('tiny/authory_tech:writingreport', $context);
 
 $filerow    = $DB->get_record('tiny_cursive_files', ['filename' => $fname]);
 if (!$fname || !$filerow || !$filerow->content) {
-    redirect(get_local_referer(false), get_string('filenotfound', 'tiny_cursive'));
+    redirect(get_local_referer(false), get_string('filenotfound', 'tiny_authory_tech'));
 }
 
 
-$filename = $filerow->modulename . " " . get_string('student_writing_statics', 'tiny_cursive') . "_" . uniqid() . ".json";
+$filename = $filerow->modulename . " " . get_string('student_writing_statics', 'tiny_authory_tech') . "_" . uniqid() . ".json";
 
 // Set headers for CSV download.
 header('X-Content-Type-Options: nosniff');

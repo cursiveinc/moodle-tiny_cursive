@@ -16,8 +16,8 @@
 /**
  * SVG repository for icons used in the Curs
  *
- * @module     tiny_cursive/svg_repo
- * @copyright  2025 Cursive Technology, Inc. <info@cursivetechnology.com>
+ * @module     tiny_authory_tech/svg_repo
+ * @copyright  2025 Authory Technology S.L. <info@authory.tech>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 

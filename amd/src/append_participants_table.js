@@ -14,9 +14,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * @module     tiny_cursive/append_participants_table
+ * @module     tiny_authory_tech/append_participants_table
  * @category TinyMCE Editor
- * @copyright  CTI <info@cursivetechnology.com>
+ * @copyright  Authory Technology S.L. <info@authory.tech>
  * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
  */
 
@@ -32,7 +32,7 @@ define(["jquery", "core/config", "core/str"], function($, mdlcfg, Str) {
                 let courseid = M.cfg.courseId;
 
                 // Fetch string for stats header
-                let statsString = await Str.get_string('stats', 'tiny_cursive');
+                let statsString = await Str.get_string('stats', 'tiny_authory_tech');
 
                 // Add the stats header if it doesn't already exist
                 if (!$(hTr).find('#stats').length) {
@@ -49,7 +49,7 @@ define(["jquery", "core/config", "core/str"], function($, mdlcfg, Str) {
                         // Avoid duplicating the icon by checking if the icon is already added
                         if (!$(tr).find('td').eq(6).find('i').length) {
                             let color = 'font-size:24px;color:black;text-decoration:none';
-                            let link = mdlcfg.wwwroot + "/lib/editor/tiny/plugins/cursive/writing_report.php?userid="
+                            let link = mdlcfg.wwwroot + "/lib/editor/tiny/plugins/authory_tech/writing_report.php?userid="
                                 + userid + "&courseid=" + courseid;
                             let icon = 'fa fa-area-chart';
 

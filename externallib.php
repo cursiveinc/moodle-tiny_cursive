@@ -15,22 +15,22 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Tiny cursive plugin.
+ * Tiny authory_tech plugin.
  *
- * @package tiny_cursive
- * @copyright  CTI <info@cursivetechnology.com>
+ * @package tiny_authory_tech
+ * @copyright  Authory Technology S.L. <info@authory.tech>
  * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 use mod_quiz\quiz_settings;
-use tiny_cursive\tiny_cursive_data;
+use tiny_authory_tech\tiny_authory_tech_data;
 use core_external\external_api;
 use core_external\external_function_parameters;
 use core_external\external_single_structure;
 use core_external\external_value;
-use tiny_cursive\constants;
-use tiny_cursive\helper;
+use tiny_authory_tech\constants;
+use tiny_authory_tech\helper;
 
 defined('MOODLE_INTERNAL') || die;
 
@@ -39,14 +39,14 @@ require_once($CFG->dirroot . '/mod/assign/locallib.php');
 require_once(__DIR__ . '/locallib.php');
 
 /**
- * Tiny cursive plugin.
+ * Tiny authory_tech plugin.
  *
- * @package tiny_cursive
- * @copyright  CTI <info@cursivetechnology.com>
+ * @package tiny_authory_tech
+ * @copyright  Authory Technology S.L. <info@authory.tech>
  * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class cursive_json_func_data extends external_api {
+class authory_tech_json_func_data extends external_api {
     /**
      * get_user_list_parameters.
      *
@@ -88,9 +88,9 @@ class cursive_json_func_data extends external_api {
         $cm = $DB->get_record('course_modules', ['course' => $params['courseid']], '*', MUST_EXIST);
         $context = context_module::instance($cm->id);
         self::validate_context($context);
-        require_capability('tiny/cursive:view', $context);
+        require_capability('tiny/authory_tech:view', $context);
         // Get the list of users in the course.
-        $users = tiny_cursive_data::get_courses_users($params);
+        $users = tiny_authory_tech_data::get_courses_users($params);
 
         // Return the user list as JSON.
         return json_encode($users);
@@ -148,9 +148,9 @@ class cursive_json_func_data extends external_api {
         $cm = $DB->get_record('course_modules', ['course' => $params['courseid']], '*', MUST_EXIST);
         $context = context_module::instance($cm->id);
         self::validate_context($context);
-        require_capability('tiny/cursive:view', $context);
+        require_capability('tiny/authory_tech:view', $context);
         // Get the list of modules in the course.
-        $modules = tiny_cursive_data::get_courses_modules($params);
+        $modules = tiny_authory_tech_data::get_courses_modules($params);
 
         // Return the module list as JSON.
         return json_encode($modules);
@@ -168,11 +168,11 @@ class cursive_json_func_data extends external_api {
     }
 
      /**
-      * Returns the parameters definition for cursive_user_comments_func
+      * Returns the parameters definition for authory_tech_user_comments_func
       *
       * @return external_function_parameters Parameters definition for storing user comments
       */
-    public static function cursive_user_comments_func_parameters() {
+    public static function authory_tech_user_comments_func_parameters() {
         return new external_function_parameters(
             [
                 'modulename' => new external_value(PARAM_TEXT, 'modulename', VALUE_DEFAULT, ''),
@@ -187,7 +187,7 @@ class cursive_json_func_data extends external_api {
     }
 
     /**
-     * Store user comments for cursive writing
+     * Store user comments for authory_tech writing
      *
      * @param string $modulename The name of the module
      * @param int $cmid Course module ID
@@ -200,7 +200,7 @@ class cursive_json_func_data extends external_api {
      * @throws coding_exception If parameters are invalid
      * @throws moodle_exception If user lacks required capabilities
      */
-    public static function cursive_user_comments_func(
+    public static function authory_tech_user_comments_func(
         $modulename,
         $cmid,
         $resourceid,
@@ -212,7 +212,7 @@ class cursive_json_func_data extends external_api {
         global $DB, $USER, $CFG;
 
         $params = self::validate_parameters(
-            self::cursive_user_comments_func_parameters(),
+            self::authory_tech_user_comments_func_parameters(),
             [
                 'modulename' => $modulename,
                 'cmid' => $cmid,
@@ -227,7 +227,7 @@ class cursive_json_func_data extends external_api {
         // Capability check.
         $context = context_module::instance($params['cmid']);
         self::validate_context($context);
-        require_capability("tiny/cursive:write", $context);
+        require_capability("tiny/authory_tech:write", $context);
 
         $userid = $USER->id;
         $editoridarr = explode(':', $params['editorid']);
@@ -262,17 +262,17 @@ class cursive_json_func_data extends external_api {
      *
      * @return external_value The return value definition for user comments response
      */
-    public static function cursive_user_comments_func_returns() {
+    public static function authory_tech_user_comments_func_returns() {
         return new external_value(PARAM_BOOL, 'All User Comments');
     }
 
 
     /**
-     * cursive_approve_token_func_parameters
+     * authory_tech_approve_token_func_parameters
      *
      * @return external_function_parameters
      */
-    public static function cursive_approve_token_func_parameters() {
+    public static function authory_tech_approve_token_func_parameters() {
         return new external_function_parameters(
             [
                 'token' => new external_value(PARAM_TEXT, 'usertoken', VALUE_DEFAULT, ''),
@@ -289,12 +289,12 @@ class cursive_json_func_data extends external_api {
      * @throws dml_exception If there is a database error
      * @throws moodle_exception If token verification fails or there are other errors
      */
-    public static function cursive_approve_token_func($token) {
+    public static function authory_tech_approve_token_func($token) {
         global $CFG;
 
-        require_once($CFG->dirroot . '/lib/editor/tiny/plugins/cursive/lib.php');
+        require_once($CFG->dirroot . '/lib/editor/tiny/plugins/authory_tech/lib.php');
         $params = self::validate_parameters(
-            self::cursive_approve_token_func_parameters(),
+            self::authory_tech_approve_token_func_parameters(),
             [
                 'token' => $token,
             ],
@@ -302,9 +302,9 @@ class cursive_json_func_data extends external_api {
         // Check if the user has the required capability.
         $context = context_system::instance(); // Assuming a system-wide capability check.
         self::validate_context($context);
-        require_capability('tiny/cursive:editsettings', $context);
+        require_capability('tiny/authory_tech:editsettings', $context);
 
-        $result = cursive_approve_token();
+        $result = authory_tech_approve_token();
 
         return $result;
     }
@@ -315,7 +315,7 @@ class cursive_json_func_data extends external_api {
      *
      * @return external_value The return value definition for token approval response
      */
-    public static function cursive_approve_token_func_returns() {
+    public static function authory_tech_approve_token_func_returns() {
         return new external_value(PARAM_TEXT, 'Token Approved');
     }
 
@@ -367,7 +367,7 @@ class cursive_json_func_data extends external_api {
 
         $context = context_module::instance($params['cmid']);
         self::validate_context($context);
-        require_capability("tiny/cursive:view", $context);
+        require_capability("tiny/authory_tech:view", $context);
 
         if ($params['modulename'] == 'quiz') {
             $data['filename'] = '';
@@ -543,7 +543,7 @@ class cursive_json_func_data extends external_api {
 
         $context = context_module::instance($params['cmid']);
         self::validate_context($context);
-        require_capability('tiny/cursive:view', $context);
+        require_capability('tiny/authory_tech:view', $context);
 
         $conditions = ["resourceid" => $params['id'], 'modulename' => "forum"];
         $recs = $DB->get_records('tiny_cursive_comments', $conditions);
@@ -675,7 +675,7 @@ class cursive_json_func_data extends external_api {
 
         $context = context_module::instance($params['cmid']);
         self::validate_context($context);
-        require_capability('tiny/cursive:view', $context);
+        require_capability('tiny/authory_tech:view', $context);
 
         if ($modulename == 'quiz') {
             $conditions = ["resourceid" => $params['id'], "cmid" => $params['cmid'], "questionid" => $params['questionid']];
@@ -802,7 +802,7 @@ class cursive_json_func_data extends external_api {
         // Check if user has capability to view assignment comments.
         $context = context_module::instance($params['cmid']);
         self::validate_context($context);
-        require_capability('tiny/cursive:view', $context);
+        require_capability('tiny/authory_tech:view', $context);
 
         $recassignsubmission = $DB->get_record('assign_submission', ['id' => $params['id']], '*', false);
         $userid = $recassignsubmission->userid;
@@ -870,7 +870,7 @@ class cursive_json_func_data extends external_api {
         // Check if user has capability to view assignment comments.
         $context = context_module::instance($params['cmid']);
         self::validate_context($context);
-        require_capability('tiny/cursive:view', $context);
+        require_capability('tiny/authory_tech:view', $context);
 
         $conditions = ["userid" => $params['id'], 'modulename' => $params['modulename'], 'cmid' => $params['cmid']];
         $table = 'tiny_cursive_comments';
@@ -989,9 +989,9 @@ class cursive_json_func_data extends external_api {
         );
         $context = context_module::instance($params['cmid']);
         self::validate_context($context);
-        require_capability("tiny/cursive:view", $context);
+        require_capability("tiny/authory_tech:view", $context);
 
-        $rec = tiny_cursive_get_user_submissions_data($params['id'], $params['modulename'], $params['cmid']);
+        $rec = tiny_authory_tech_get_user_submissions_data($params['id'], $params['modulename'], $params['cmid']);
 
         return json_encode($rec);
     }
@@ -1010,7 +1010,7 @@ class cursive_json_func_data extends external_api {
      *
      * @return external_function_parameters Parameters definition for filtering writing data
      */
-    public static function cursive_filtered_writing_func_parameters() {
+    public static function authory_tech_filtered_writing_func_parameters() {
         return new external_function_parameters(
             [
                 'id' => new external_value(PARAM_TEXT, 'id', VALUE_REQUIRED, 0),
@@ -1028,11 +1028,11 @@ class cursive_json_func_data extends external_api {
      * @throws invalid_parameter_exception If parameters validation fails
      * @throws moodle_exception If context validation fails
      */
-    public static function cursive_filtered_writing_func($id) {
+    public static function authory_tech_filtered_writing_func($id) {
         global $DB, $USER;
 
         $vparams = self::validate_parameters(
-            self::cursive_filtered_writing_func_parameters(),
+            self::authory_tech_filtered_writing_func_parameters(),
             [
                 'id' => $id,
             ],
@@ -1044,7 +1044,7 @@ class cursive_json_func_data extends external_api {
         $cm = $DB->get_record('course_modules', ['course' => $vparams['id']], '*', IGNORE_MULTIPLE);
         $context = context_module::instance($cm->id);
         self::validate_context($context);
-        require_capability('tiny/cursive:view', $context);
+        require_capability('tiny/authory_tech:view', $context);
 
         $attempts = "SELECT qa.resourceid AS attemptid,qa.timemodified,uw.score,uw.copy_behavior, u.id AS userid,
                             u.firstname, u.lastname, u.email,  qa.cmid AS cmid ,qa.courseid,qa.filename,uw.word_count,
@@ -1075,11 +1075,11 @@ class cursive_json_func_data extends external_api {
     }
 
     /**
-     * Returns description of method result value for cursive_filtered_writing_func
+     * Returns description of method result value for authory_tech_filtered_writing_func
      *
      * @return external_value The return value definition for filtered writing data
      */
-    public static function cursive_filtered_writing_func_returns() {
+    public static function authory_tech_filtered_writing_func_returns() {
         return new external_value(PARAM_TEXT, 'Comment Link');
     }
 
@@ -1150,7 +1150,7 @@ class cursive_json_func_data extends external_api {
             $context = context_system::instance();
             // Assuming a system-wide capability check.
             self::validate_context($context);
-            require_capability('tiny/cursive:editsettings', $context);
+            require_capability('tiny/authory_tech:editsettings', $context);
 
             $backspacepercent = round($params['backspace_percent'], 4);
 
@@ -1183,13 +1183,13 @@ class cursive_json_func_data extends external_api {
 
             // Return success status.
             return [
-                'status' => get_string('success', 'tiny_cursive'),
-                'message' => get_string('data_save', 'tiny_cursive'),
+                'status' => get_string('success', 'tiny_authory_tech'),
+                'message' => get_string('data_save', 'tiny_authory_tech'),
             ];
         } catch (dml_exception $e) {
             // Return failure status with error message.
             return [
-                'status' => get_string('failed', 'tiny_cursive'),
+                'status' => get_string('failed', 'tiny_authory_tech'),
                 'message' => $e->getMessage(),
             ];
         }
@@ -1213,7 +1213,7 @@ class cursive_json_func_data extends external_api {
      *
      * @return external_function_parameters Parameters definition for getting reply JSON
      */
-    public static function cursive_get_reply_json_parameters() {
+    public static function authory_tech_get_reply_json_parameters() {
         return new external_function_parameters([
             'filepath' => new external_value(PARAM_TEXT, 'filepath', VALUE_DEFAULT, ''),
         ]);
@@ -1229,11 +1229,11 @@ class cursive_json_func_data extends external_api {
      * @throws invalid_parameter_exception
      * @throws moodle_exception
      */
-    public static function cursive_get_reply_json($filepath) {
+    public static function authory_tech_get_reply_json($filepath) {
         global $DB;
 
         $params = self::validate_parameters(
-            self::cursive_get_reply_json_parameters(),
+            self::authory_tech_get_reply_json_parameters(),
             [
                 'filepath' => $filepath,
             ],
@@ -1245,7 +1245,7 @@ class cursive_json_func_data extends external_api {
 
         $context = context_module::instance($cmid);
         self::validate_context($context);
-        require_capability("tiny/cursive:writingreport", $context);
+        require_capability("tiny/authory_tech:writingreport", $context);
 
         $conditions = ["userid" => $userid, 'resourceid' => $resourceid, 'cmid' => $cmid];
 
@@ -1267,7 +1267,7 @@ class cursive_json_func_data extends external_api {
 
             if ($content === false) {
                 $data->status = false;
-                $content = get_string('filenotfoundor', 'tiny_cursive');
+                $content = get_string('filenotfoundor', 'tiny_authory_tech');
             }
 
             $data->data = $content;
@@ -1279,11 +1279,11 @@ class cursive_json_func_data extends external_api {
     }
 
     /**
-     * Returns description of method result value for cursive_get_reply_json
+     * Returns description of method result value for authory_tech_get_reply_json
      *
      * @return external_single_structure Returns structure containing status and data
      */
-    public static function cursive_get_reply_json_returns() {
+    public static function authory_tech_get_reply_json_returns() {
         return new external_single_structure([
             'status' => new external_value(PARAM_BOOL, "file status"),
             'data' => new external_value(PARAM_TEXT, 'Reply Json'),
@@ -1319,7 +1319,7 @@ class cursive_json_func_data extends external_api {
      *
      * @return external_function_parameters Parameters definition for storing user writing data
      */
-    public static function cursive_get_analytics_parameters() {
+    public static function authory_tech_get_analytics_parameters() {
         return new external_function_parameters([
             'cmid' => new external_value(PARAM_INT, 'cmid', VALUE_REQUIRED, 0, true),
             'fileid' => new external_value(PARAM_INT, 'file id', VALUE_REQUIRED, 0, true),
@@ -1337,11 +1337,11 @@ class cursive_json_func_data extends external_api {
      * @throws invalid_parameter_exception
      * @throws moodle_exception
      */
-    public static function cursive_get_analytics($cmid, $fileid) {
+    public static function authory_tech_get_analytics($cmid, $fileid) {
         global $DB;
 
         $vparams = self::validate_parameters(
-            self::cursive_get_analytics_parameters(),
+            self::authory_tech_get_analytics_parameters(),
             [
                 'cmid' => $cmid,
                 'fileid' => $fileid,
@@ -1350,7 +1350,7 @@ class cursive_json_func_data extends external_api {
 
         $context = context_module::instance($vparams['cmid']);
         self::validate_context($context);
-        require_capability('tiny/cursive:writingreport', $context);
+        require_capability('tiny/authory_tech:writingreport', $context);
 
         $sql = "SELECT u.*, d.meta as effort_ratio, cf.userid, cf.uploaded
                   FROM {tiny_cursive_user_writing} u
@@ -1389,11 +1389,11 @@ class cursive_json_func_data extends external_api {
     }
 
     /**
-     * Returns parameters for cursive_get_analytics method
+     * Returns parameters for authory_tech_get_analytics method
      *
      * @return external_function_parameters Parameters definition for storing quality metrics data
      */
-    public static function cursive_get_analytics_returns() {
+    public static function authory_tech_get_analytics_returns() {
         return new external_single_structure([
             'data' => new external_value(PARAM_TEXT, 'Record object'),
         ]);
@@ -1404,7 +1404,7 @@ class cursive_json_func_data extends external_api {
      *
      * @return external_function_parameters Parameters definition for storing user writing data
      */
-    public static function cursive_store_writing_differencs_parameters() {
+    public static function authory_tech_store_writing_differencs_parameters() {
         return new external_function_parameters([
             'fileid' => new external_value(PARAM_INT, 'file id', VALUE_REQUIRED, 0, true),
             'reconstructed_text' => new external_value(PARAM_TEXT, 'original writing contents', VALUE_REQUIRED, "", true),
@@ -1421,11 +1421,11 @@ class cursive_json_func_data extends external_api {
      * @param string $submittedtext Final submitted text
      * @param string|null $meta Optional metadata
      */
-    public static function cursive_store_writing_differencs($fileid, $reconstructedtext, $submittedtext, $meta = null) {
+    public static function authory_tech_store_writing_differencs($fileid, $reconstructedtext, $submittedtext, $meta = null) {
         global $DB;
 
         $params = self::validate_parameters(
-            self::cursive_store_writing_differencs_parameters(),
+            self::authory_tech_store_writing_differencs_parameters(),
             [
                 'fileid' => $fileid,
                 'reconstructed_text' => $reconstructedtext,
@@ -1436,7 +1436,7 @@ class cursive_json_func_data extends external_api {
 
         $context = context_system::instance(); // Assuming a system-wide capability check.
         self::validate_context($context);
-        require_capability('tiny/cursive:editsettings', $context);
+        require_capability('tiny/authory_tech:editsettings', $context);
 
         $recordexists = $DB->record_exists('tiny_cursive_writing_diff', ['file_id' => $params['fileid']]);
         $record = $recordexists ? $DB->get_record('tiny_cursive_writing_diff', ['file_id' => $params['fileid']]) : new stdClass();
@@ -1453,13 +1453,13 @@ class cursive_json_func_data extends external_api {
             }
 
             return [
-                'status' => get_string('success', 'tiny_cursive'),
-                'message' => get_string('data_save', 'tiny_cursive'),
+                'status' => get_string('success', 'tiny_authory_tech'),
+                'message' => get_string('data_save', 'tiny_authory_tech'),
             ];
         } catch (moodle_exception $e) {
             // Handle the exception.
             return [
-                'status' => get_string('failed', 'tiny_cursive'),
+                'status' => get_string('failed', 'tiny_authory_tech'),
                 'message' => $e->getMessage(),
             ];
         }
@@ -1470,7 +1470,7 @@ class cursive_json_func_data extends external_api {
      *
      * @return external_function_parameters Parameters definition for storing user writing data
      */
-    public static function cursive_store_writing_differencs_returns() {
+    public static function authory_tech_store_writing_differencs_returns() {
         return new external_single_structure([
             'status' => new external_value(PARAM_TEXT, 'Status message'),
             'message' => new external_value(PARAM_TEXT, 'Message'),
@@ -1479,11 +1479,11 @@ class cursive_json_func_data extends external_api {
 
 
     /**
-     * Returns parameters for cursive_get_writing_diff method
+     * Returns parameters for authory_tech_get_writing_diff method
      *
      * @return external_single_structure Returns structure containing status and message
      */
-    public static function cursive_get_writing_differencs_parameters() {
+    public static function authory_tech_get_writing_differencs_parameters() {
         return new external_function_parameters([
             'fileid' => new external_value(PARAM_INT, 'file id', VALUE_REQUIRED, 0, true),
         ]);
@@ -1499,11 +1499,11 @@ class cursive_json_func_data extends external_api {
      * @throws invalid_parameter_exception
      * @throws moodle_exception
      */
-    public static function cursive_get_writing_differencs($fileid) {
+    public static function authory_tech_get_writing_differencs($fileid) {
         global $DB;
 
         $vparams = self::validate_parameters(
-            self::cursive_get_writing_differencs_parameters(),
+            self::authory_tech_get_writing_differencs_parameters(),
             [
                 'fileid' => $fileid,
             ],
@@ -1519,7 +1519,7 @@ class cursive_json_func_data extends external_api {
 
         $context = context_module::instance($cmid);
         self::validate_context($context);
-        require_capability("tiny/cursive:writingreport", $context);
+        require_capability("tiny/authory_tech:writingreport", $context);
 
         $sql = "SELECT WD.*, CF.cmid, CF.resourceid, CF.modulename, COUNT(CC.id) AS commentscount, CF.userid, CF.questionid
                   FROM {tiny_cursive_writing_diff} WD
@@ -1552,11 +1552,11 @@ class cursive_json_func_data extends external_api {
     }
 
     /**
-     * Returns description of method result value for cursive_get_writing_differencs
+     * Returns description of method result value for authory_tech_get_writing_differencs
      *
      * @return external_single_structure Returns structure containing content data
      */
-    public static function cursive_get_writing_differencs_returns() {
+    public static function authory_tech_get_writing_differencs_returns() {
         return new external_single_structure([
             'data' => new external_value(PARAM_TEXT, 'content data'),
         ]);
@@ -1577,10 +1577,10 @@ class cursive_json_func_data extends external_api {
      * @return array Array containing the generated token
      */
     public static function generate_webtoken() {
-        $token = tiny_cursive_create_token_for_user();
+        $token = tiny_authory_tech_create_token_for_user();
         if ($token) {
-            set_config('cursivetoken', $token, 'tiny_cursive');
-            unset_config('ApiSyncInterval', 'tiny_cursive');
+            set_config('authory_tech_token', $token, 'tiny_authory_tech');
+            unset_config('ApiSyncInterval', 'tiny_authory_tech');
         }
         return ['token' => $token];
     }
@@ -1679,7 +1679,7 @@ class cursive_json_func_data extends external_api {
             // Get course context.
             $context = context_module::instance($params['cmid']);
             self::validate_context($context);
-            require_capability('tiny/cursive:write', $context);
+            require_capability('tiny/authory_tech:write', $context);
         } else {
             $userdata["courseId"] = 0;
         }
@@ -1716,7 +1716,7 @@ class cursive_json_func_data extends external_api {
 
         // Auto save function call.
         $params['questionid'] = $questionid ?? 0;
-        constants::cursive_auto_save($params);
+        constants::authory_tech_auto_save($params);
 
         if ($inp) {
             $temparray = json_decode($inp->content, true);
@@ -1758,11 +1758,11 @@ class cursive_json_func_data extends external_api {
     }
 
     /**
-     * Returns the parameters for the cursive_get_config function
+     * Returns the parameters for the authory_tech_get_config function
      *
      * @return external_function_parameters Parameters definition for the external function
      */
-    public static function cursive_get_config_parameters() {
+    public static function authory_tech_get_config_parameters() {
         return new external_function_parameters([
             'courseid' => new external_value(PARAM_INT, 'course id', VALUE_DEFAULT, 0),
             'cmid' => new external_value(PARAM_INT, 'cmid', VALUE_DEFAULT, 0),
@@ -1770,17 +1770,17 @@ class cursive_json_func_data extends external_api {
     }
 
     /**
-     * Get cursive configuration settings for a course and course module
+     * Get authory_tech configuration settings for a course and course module
      *
      * @param int $courseid The course ID to get config for
      * @param int $cmid The course module ID to get config for
      * @return array Array containing config status and sync interval
      */
-    public static function cursive_get_config($courseid, $cmid) {
+    public static function authory_tech_get_config($courseid, $cmid) {
         global $PAGE, $USER, $CFG;
-        require_once($CFG->dirroot . '/lib/editor/tiny/plugins/cursive/lib.php');
+        require_once($CFG->dirroot . '/lib/editor/tiny/plugins/authory_tech/lib.php');
         $params = self::validate_parameters(
-            self::cursive_get_config_parameters(),
+            self::authory_tech_get_config_parameters(),
             [
                 'courseid' => $courseid,
                 'cmid' => $cmid,
@@ -1789,10 +1789,10 @@ class cursive_json_func_data extends external_api {
 
         $context = context_module::instance($params['cmid']);
         self::validate_context($context);
-        require_capability("tiny/cursive:writingreport", $context);
+        require_capability("tiny/authory_tech:writingreport", $context);
 
-        $config       = tiny_cursive_status($params['courseid']);
-        $syncinterval = get_config('tiny_cursive', "syncinterval");
+        $config       = tiny_authory_tech_status($params['courseid']);
+        $syncinterval = get_config('tiny_authory_tech', "syncinterval");
         $cm           = get_coursemodule_from_id('', $params['cmid'], $params['courseid'], false, MUST_EXIST);
         $rubrics      = constants::get_rubrics("mod_{$cm->modname}", $context, $cm->modname);
 
@@ -1831,17 +1831,17 @@ class cursive_json_func_data extends external_api {
     }
 
     /**
-     * Returns description of method result value for cursive_get_config
+     * Returns description of method result value for authory_tech_get_config
      *
      * @return external_single_structure Returns a structure containing config status and sync interval
      */
-    public static function cursive_get_config_returns() {
+    public static function authory_tech_get_config_returns() {
         return new external_single_structure([
             'status' => new external_value(PARAM_BOOL, 'config'),
             'sync_interval' => new external_value(PARAM_INT, 'Data Sync interval'),
             'userid' => new external_value(PARAM_INT, 'userid'),
             'apikey_status' => new external_value(PARAM_BOOL, 'api key status'),
-            'mod_state' => new external_value(PARAM_BOOL, "Cursive Module wise active/deactive state"),
+            'mod_state' => new external_value(PARAM_BOOL, "Authory.tech Module wise active/deactive state"),
             'plugins' => new external_value(PARAM_TEXT, "Supported Plugins Names"),
             'rubrics' => new external_value(PARAM_TEXT, "Assignment or forums rubrics"),
             'submission' => new external_value(PARAM_TEXT, "Submission status"),
@@ -1888,9 +1888,9 @@ class cursive_json_func_data extends external_api {
 
         $context = context_module::instance($params['cmid']);
         self::validate_context($context);
-        require_capability("tiny/cursive:view", $context);
+        require_capability("tiny/authory_tech:view", $context);
 
-        $rec = tiny_cursive_get_user_submissions_data($params['id'], $params['modulename'], $params['cmid']);
+        $rec = tiny_authory_tech_get_user_submissions_data($params['id'], $params['modulename'], $params['cmid']);
 
         return json_encode($rec);
     }
@@ -1905,12 +1905,12 @@ class cursive_json_func_data extends external_api {
     }
 
     /**
-     * Returns the parameters for the disable_cursive function
+     * Returns the parameters for the disable_authory_tech function
      *
      * @return external_function_parameters The parameters structure containing:
-     *         - disable (bool): Optional boolean parameter to disable cursive
+     *         - disable (bool): Optional boolean parameter to disable authory_tech
      */
-    public static function disable_cursive_parameters() {
+    public static function disable_authory_tech_parameters() {
         return new external_function_parameters(
             [
                 'disable' => new external_value(PARAM_BOOL, 'status', VALUE_DEFAULT, null),
@@ -1918,33 +1918,33 @@ class cursive_json_func_data extends external_api {
         );
     }
     /**
-     * Disables cursive functionality for all courses
+     * Disables authory_tech functionality for all courses
      *
-     * @param bool $disable Whether to disable cursive
-     * @return bool True if cursive was successfully disabled for all courses
+     * @param bool  Whether to disable authory_tech
+     * @return bool True if authory_tech was successfully disabled for all courses
      */
-    public static function disable_cursive($disable) {
+    public static function disable_authory_tech($disable) {
 
         try {
             $courses = get_courses();
             $value = !$disable;
             foreach ($courses as $course) {
-                set_config("cursive-{$course->id}", $value, 'tiny_cursive');
+                set_config("authory_tech-{$course->id}", $value, 'tiny_authory_tech');
             }
             return true;
         } catch (moodle_exception $e) {
             // Log error and return false if config update fails.
-            debugging('Error disabling cursive: ' . $e->getMessage(), DEBUG_DEVELOPER);
+            debugging('Error disabling authory_tech: ' . $e->getMessage(), DEBUG_DEVELOPER);
             return false;
         }
     }
     /**
-     * Returns description of disable_cursive return value
+     * Returns description of disable_authory_tech return value
      *
-     * @return external_value Returns a boolean parameter indicating if cursive was disabled
+     * @return external_value Returns a boolean parameter indicating if authory_tech was disabled
      */
-    public static function disable_cursive_returns() {
-        return new external_value(PARAM_BOOL, 'cursive disable message');
+    public static function disable_authory_tech_returns() {
+        return new external_value(PARAM_BOOL, 'authory_tech disable message');
     }
 
     /**
@@ -1989,9 +1989,9 @@ class cursive_json_func_data extends external_api {
 
             $context = context_module::instance($params['cmid']);
             self::validate_context($context);
-            require_capability("tiny/cursive:view", $context);
+            require_capability("tiny/authory_tech:view", $context);
 
-            $rec = tiny_cursive_get_user_submissions_data(
+            $rec = tiny_authory_tech_get_user_submissions_data(
                 $params['id'],
                 $params['modulename'],
                 $params['cmid'],
@@ -2048,7 +2048,7 @@ class cursive_json_func_data extends external_api {
 
         $context = context_module::instance($params['cmid']);
         self::validate_context($context);
-        require_capability("tiny/cursive:write", $context);
+        require_capability("tiny/authory_tech:write", $context);
 
         try {
             $record = new stdClass();
@@ -2126,7 +2126,7 @@ class cursive_json_func_data extends external_api {
 
         $context = context_module::instance($params['cmid']);
         self::validate_context($context);
-        require_capability("tiny/cursive:writingreport", $context);
+        require_capability("tiny/authory_tech:writingreport", $context);
 
         $questionid = constants::get_question_id($params['editorid']);
         if ($questionid) {
@@ -2214,7 +2214,7 @@ class cursive_json_func_data extends external_api {
 
         $context = context_module::instance($params['cmid']);
         self::validate_context($context);
-        require_capability("tiny/cursive:writingreport", $context);
+        require_capability("tiny/authory_tech:writingreport", $context);
 
         helper::update_resource_id($params);
         return true;

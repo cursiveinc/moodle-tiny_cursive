@@ -14,9 +14,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * @module     tiny_cursive/settings
+ * @module     tiny_authory_tech/settings
  * @category TinyMCE Editor
- * @copyright  CTI <info@cursivetechnology.com>
+ * @copyright  Authory Technology S.L. <info@authory.tech>
  * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
  */
 
@@ -28,7 +28,7 @@ define(["jquery", "core/str"], function(
     init: function(showcomments, userRole) {
       str
         .get_strings([
-          {key: "tiny_cursive", component: "tiny_cursive"},
+          {key: "tiny_authory_tech", component: "tiny_authory_tech"},
         ])
         .done(function() {
           usersTable.getToken(showcomments, userRole);

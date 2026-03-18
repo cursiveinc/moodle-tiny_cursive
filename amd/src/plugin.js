@@ -14,9 +14,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * @module     tiny_cursive/plugin
+ * @module     tiny_authory_tech/plugin
  * @category   TinyMCE Editor
- * @copyright  2025 CTI <info@cursivetechnology.com>
+ * @copyright  2025 Authory Technology S.L. <info@authory.tech>
  * @author     Brain Station 23 <sales@brainstation-23.com>
  */
 
@@ -43,7 +43,7 @@ export default new Promise((resolve, reject) => {
             tinyMCE.PluginManager.add(pluginName, (editor) => {
 
                 getConfig.call([{
-                    methodname: "cursive_get_config",
+                    methodname: "authory_tech_get_config",
                     args: {courseid: M.cfg.courseId, cmid: M.cfg.contextInstanceId}
                 }])[0].done((data) => {
                     if (data.status && page.includes(document.body.id) && data.mod_state) {
@@ -61,7 +61,7 @@ export default new Promise((resolve, reject) => {
                         );
                 }
                 }).fail((error) => {
-                    window.console.error('Error getting cursive config:', error);
+                    window.console.error('Error getting authory_tech config:', error);
                 });
 
                 return pluginMetadata;

@@ -16,16 +16,16 @@
 /**
  * This module defines a custom modal for analytics.
  *
- * @module     tiny_cursive/analytic_modal
- * @copyright  2024  CTI <info@cursivetechnology.com>
+ * @module     tiny_authory_tech/analytic_modal
+ * @copyright  2024  Authory Technology S.L. <info@authory.tech>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 import Modal from 'core/modal';
 import $ from 'jquery';
 export default class MyModal extends Modal {
-    static TYPE = "tiny_cursive/analytics_modal";
-    static TEMPLATE = "tiny_cursive/analytics_modal";
+    static TYPE = "tiny_authory_tech/analytics_modal";
+    static TEMPLATE = "tiny_authory_tech/analytics_modal";
 
     configure(modalConfig) {
         // Show this modal on instantiation.

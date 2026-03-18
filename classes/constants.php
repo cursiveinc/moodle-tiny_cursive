@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace tiny_cursive;
+namespace tiny_authory_tech;
 
 use question_engine;
 defined('MOODLE_INTERNAL') || die();
@@ -25,14 +25,14 @@ require_once($CFG->dirroot . '/grade/grading/form/rubric/lib.php');
 /**
  * Class constants
  *
- * @package    tiny_cursive
- * @copyright  2025 Cursive Technology, Inc. <info@cursivetechnology.com>
+ * @package    tiny_authory_tech
+ * @copyright  2025 Authory Technology S.L. <info@authory.tech>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class constants {
     /**
      * Array of supported activity module names.
-     * const array NAMES List of module names where cursive can be used
+     * const array NAMES List of module names where authory_tech can be used
      */
     public const NAMES = ["assign", "forum", "quiz", "lesson", 'pdfannotator']; // Excluded oublog.
     /**
@@ -63,12 +63,12 @@ class constants {
 
 
     /**
-     * Default confidence threshold value for cursive validation.
+     * Default confidence threshold value for authory_tech validation.
      * Uses configured value from settings or defaults to 0.65 if not set.
      * @return float Minimum confidence score required
      */
     public static function confidence_threshold() {
-        $value = get_config('tiny_cursive', 'confidence_threshold');
+        $value = get_config('tiny_authory_tech', 'confidence_threshold');
         return !empty($value) ? floatval($value) : 0.65;
     }
 
@@ -87,41 +87,41 @@ class constants {
         }
 
         if ($cmid === null) {
-            $cmid = tiny_cursive_get_cmid($courseid) ?? 0;
+            $cmid = tiny_authory_tech_get_cmid($courseid) ?? 0;
         }
 
         $pastekey     = "PASTE{$courseid}_{$cmid}";
-        $pastesetting = get_config('tiny_cursive', $pastekey);
+        $pastesetting = get_config('tiny_authory_tech', $pastekey);
 
         return !empty($pastesetting) ? $pastesetting : 'allow';
     }
     /**
-     * Flag indicating whether to display cursive validation comments.
+     * Flag indicating whether to display authory_tech validation comments.
      * Controlled via plugin configuration setting.
      * @return bool Whether to show validation comments
      */
     public static function show_comments() {
-        return get_config('tiny_cursive', 'showcomments');
+        return get_config('tiny_authory_tech', 'showcomments');
     }
 
 
     /**
-     * Check if the cursive functionality is active for the current page/context
+     * Check if the authory_tech functionality is active for the current page/context
      *
-     * @return bool True if cursive is active, false otherwise
+     * @return bool True if authory_tech is active, false otherwise
      */
     public static function is_active() {
         global $PAGE;
         $instance = $PAGE->cm->id ?? 0;
         $courseid = $PAGE->cm->course ?? $PAGE->course->id;
         $key      = "CUR$courseid$instance";
-        $state    = get_config('tiny_cursive', $key);
+        $state    = get_config('tiny_authory_tech', $key);
 
         if ($state === "1" || $state === false) {
             $state = true;
         }
         // Condition changed for course participants list.
-        if ($PAGE->bodyid === array_keys(self::BODY_IDS)[5] && get_config('tiny_cursive', "cursive-$courseid")) {
+        if ($PAGE->bodyid === array_keys(self::BODY_IDS)[5] && get_config('tiny_authory_tech', "authory_tech-$courseid")) {
             $state = true;
         }
 
@@ -129,39 +129,39 @@ class constants {
     }
 
     /**
-     * Check if a valid API key exists for cursive functionality
+     * Check if a valid API key exists for authory_tech functionality
      *
      * @return bool True if valid API key exists, false otherwise
      */
     public static function has_api_key() {
         global $CFG;
-        require_once($CFG->dirroot . '/lib/editor/tiny/plugins/cursive/lib.php');
+        require_once($CFG->dirroot . '/lib/editor/tiny/plugins/authory_tech/lib.php');
 
-        $secret       = get_config('tiny_cursive', 'secretkey');
-        $apikey       = get_config('tiny_cursive', 'apiKey');
-        $syncinterval = get_config('tiny_cursive', 'ApiSyncInterval') ?: 0;
+        $secret       = get_config('tiny_authory_tech', 'secretkey');
+        $apikey       = get_config('tiny_authory_tech', 'apiKey');
+        $syncinterval = get_config('tiny_authory_tech', 'ApiSyncInterval') ?: 0;
         $now          = time();
         $nextsync     = strtotime('+5 minutes');
 
         if (empty($secret)) {
             if ($apikey !== false || $apikey !== "0") {
-                set_config('apiKey', false, 'tiny_cursive');
+                set_config('apiKey', false, 'tiny_authory_tech');
             }
             if ($syncinterval < $now) {
-                set_config('ApiSyncInterval', $nextsync, 'tiny_cursive');
+                set_config('ApiSyncInterval', $nextsync, 'tiny_authory_tech');
             }
             return false;
         }
 
         if ($syncinterval <= $now) {
-            $response = cursive_approve_token();
+            $response = authory_tech_approve_token();
             $data      = json_decode($response);
             $newkey = (!empty($data->status) && $data->status) ? $data->status : false;
 
             if ($newkey != boolval($apikey)) {
-                set_config('apiKey', $newkey, 'tiny_cursive');
+                set_config('apiKey', $newkey, 'tiny_authory_tech');
             }
-            set_config('ApiSyncInterval', $nextsync, 'tiny_cursive');
+            set_config('ApiSyncInterval', $nextsync, 'tiny_authory_tech');
             $apikey = $newkey;
         }
 
@@ -208,7 +208,7 @@ class constants {
                 return true;
         }
         // Get roles for user in given context.
-        if (has_capability('tiny/cursive:view', $context, $USER->id, false)) {
+        if (has_capability('tiny/authory_tech:view', $context, $USER->id, false)) {
             return true;
         }
 
@@ -216,7 +216,7 @@ class constants {
     }
 
     /**
-     * Saves an auto-save record for cursive content
+     * Saves an auto-save record for authory_tech content
      *
      * @param array $params Parameters containing:
      *                      - cmid: Course module ID
@@ -226,7 +226,7 @@ class constants {
      *                      - questionid: Optional question ID
      * @return int|bool The new record ID or false on failure
      */
-    public static function cursive_auto_save($params) {
+    public static function authory_tech_auto_save($params) {
         global $DB, $USER;
         if (self::no_difference($params) || empty(self::normalize_string($params['originalText']))) {
             return false;

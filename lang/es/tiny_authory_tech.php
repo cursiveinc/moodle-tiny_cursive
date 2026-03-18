@@ -15,11 +15,11 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Strings for component 'tiny_cursive', language 'es'
+ * Strings for component 'tiny_authory_tech', language 'es'
  *
- * @package    tiny_cursive
+ * @package    tiny_authory_tech
  * @category   string
- * @copyright  2025 Cursive Technology, Inc. <info@cursivetechnology.com>
+ * @copyright  2025 Authory Technology S.L. <info@authory.tech>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -53,23 +53,23 @@ $string['course'] = 'Curso';
 $string['courseid'] = 'ID del curso';
 $string['coursename'] = 'Nombre del curso';
 $string['curlerror'] = 'Error Curl';
-$string['cursive:dis:fail'] = 'No se pudo deshabilitar Cursive.';
-$string['cursive:dis:succ'] = 'Cursive deshabilitado exitosamente.';
-$string['cursive:editsettings'] = 'Acceder a configuraciones del complemento';
-$string['cursive:ena:fail'] = 'No se pudo habilitar Cursive.';
-$string['cursive:ena:succ'] = 'Cursive habilitado exitosamente.';
-$string['cursive:state:active'] = 'Cursive está activo:';
-$string['cursive:state:active:des'] = 'Su escritura en borrador y su edición ahora están siendo capturadas como parte de su envío.';
-$string['cursive:status'] = 'Algo salió mal mientras se estaba deshabilitando Cursive.';
-$string['cursive:use'] = 'Usar TinyMCE Cursive';
-$string['cursive:view'] = 'Ver reportes de escritura';
-$string['cursive:write'] = 'Escribir Archivo JSON o insertar registros';
-$string['cursive:writingreport'] = 'Acceder a Analítica';
-$string['cursive_enable_notice'] = 'Al habilitar esta característica se activará el complemento Cursive para este curso. Asegúrese que todos los participantes estén informados acerca de su uso.';
-$string['cursive_more_info'] = 'Por favor visite Cursive para más información.';
-$string['cursive_status'] = 'Estado de Cursive';
-$string['cursivedisable'] = 'Configuraciones Globales de Cursive';
-$string['cursivedisable_des'] = 'Esta configuración deshabilitará o habilitará Cursive para todos los cursos. Usted también puede re-habilitar o deshabilitarlo individualmente mediante las configuraciones del curso.';
+$string['authory_tech:dis:fail'] = 'No se pudo deshabilitar Authory.tech.';
+$string['authory_tech:dis:succ'] = 'Authory.tech deshabilitado exitosamente.';
+$string['authory_tech:editsettings'] = 'Acceder a configuraciones del complemento';
+$string['authory_tech:ena:fail'] = 'No se pudo habilitar Authory.tech.';
+$string['authory_tech:ena:succ'] = 'Authory.tech habilitado exitosamente.';
+$string['authory_tech:state:active'] = 'Authory.tech está activo:';
+$string['authory_tech:state:active:des'] = 'Su escritura en borrador y su edición ahora están siendo capturadas como parte de su envío.';
+$string['authory_tech:status'] = 'Algo salió mal mientras se estaba deshabilitando Authory.tech.';
+$string['authory_tech:use'] = 'Usar TinyMCE Authory.tech';
+$string['authory_tech:view'] = 'Ver reportes de escritura';
+$string['authory_tech:write'] = 'Escribir Archivo JSON o insertar registros';
+$string['authory_tech:writingreport'] = 'Acceder a Analítica';
+$string['authory_tech_enable_notice'] = 'Al habilitar esta característica se activará el complemento Authory.tech para este curso. Asegúrese que todos los participantes estén informados acerca de su uso.';
+$string['authory_tech_more_info'] = 'Por favor visite Authory.tech para más información.';
+$string['authory_tech_status'] = 'Estado de Authory.tech';
+$string['authory_tech_disable'] = 'Configuraciones Globales de Authory.tech';
+$string['authory_tech_disable_des'] = 'Esta configuración deshabilitará o habilitará Authory.tech para todos los cursos. Usted también puede re-habilitar o deshabilitarlo individualmente mediante las configuraciones del curso.';
 $string['data_save'] = 'Datos guardados exitosamente';
 $string['date'] = "Fecha";
 $string['difference'] = 'Diferencia';
@@ -118,18 +118,18 @@ $string['p_burst_mean'] = 'Promedio de ráfaga-P (P-Burst)';
 $string['p_burst_mean_des'] = 'El promedio de p-burst (ráfaga-p) es el número promedio de pulsaciones secuenciales entre pausas. Este es un cálculo rápido de su capacidad para enlazar palabras e ideas durante el proceso de escritura. Usted puede notar que su media de p-burst es mayor para ciertos tipos de escritura, o al escribir sobre ciertos temas. Unas cifras más altas pueden reflejar una comprensión más profunda del tema, un pensamiento más organizado y menos distracciones al escribir.';
 $string['pastecount'] = 'Número de pegados';
 $string['pastewarning'] = 'Usted no puede pegar texto sin antes proporcionar un origen';
-$string['pluginname'] = 'Cursive';
-$string['pluginname_desc'] = 'Esta configuración del complemento permite la interrupción de copiar y pegar de forma predeterminada. Para conectarse al servidor de aprendizaje automático de Cursive para la autoría y el análisis de escritura, introduzca su token y los datos del servidor a continuación. Si no los tiene, póngase en contacto con info@cursivetechnology.com.';
-$string['privacy:metadata:database:tiny_cursive'] = 'Información acerca de los datos de tiny cursive.';
-$string['privacy:metadata:database:tiny_cursive:content'] = 'Los datos de teclas pulsadas para generar reporte de analítica';
-$string['privacy:metadata:database:tiny_cursive:original_content'] = 'Datos de contenido del envío original del usuario';
-$string['privacy:metadata:database:tiny_cursive:timemodified'] = 'La hora de cuando los datos fueron modificdos por última vez.';
-$string['privacy:metadata:database:tiny_cursive:userid'] = 'La ID del usuario que proporcionó los datos.';
-$string['privacy:metadata:database:tiny_cursive_comments'] = 'Información acerca de los datos de comentarios de Tiny cursive.';
+$string['pluginname'] = 'Authory.tech';
+$string['pluginname_desc'] = 'Esta configuración del complemento permite la interrupción de copiar y pegar de forma predeterminada. Para conectarse al servidor de aprendizaje automático de Authory.tech para la autoría y el análisis de escritura, introduzca su token y los datos del servidor a continuación. Si no los tiene, póngase en contacto con info@authory.tech.';
+$string['privacy:metadata:database:tiny_authory_tech'] = 'Información acerca de los datos de tiny authory_tech.';
+$string['privacy:metadata:database:tiny_authory_tech:content'] = 'Los datos de teclas pulsadas para generar reporte de analítica';
+$string['privacy:metadata:database:tiny_authory_tech:original_content'] = 'Datos de contenido del envío original del usuario';
+$string['privacy:metadata:database:tiny_authory_tech:timemodified'] = 'La hora de cuando los datos fueron modificdos por última vez.';
+$string['privacy:metadata:database:tiny_authory_tech:userid'] = 'La ID del usuario que proporcionó los datos.';
+$string['privacy:metadata:database:tiny_cursive_comments'] = 'Información acerca de los datos de comentarios de Tiny authory_tech.';
 $string['privacy:metadata:database:tiny_cursive_comments:commenttext'] = 'El texto del comentario.';
 $string['privacy:metadata:database:tiny_cursive_comments:timemodified'] = 'La hora de cuando el comentario fue modificado por última vez.';
 $string['privacy:metadata:database:tiny_cursive_comments:userid'] = 'La ID del usuario que proporcionó el comentario.';
-$string['privacy:metadata:tiny_cursive'] = 'Datos del usuario del complemento Tiny cursive.';
+$string['privacy:metadata:tiny_authory_tech'] = 'Datos del usuario del complemento Tiny authory_tech.';
 $string['q_count'] = 'Número de Q';
 $string['q_count_des'] = 'Q es nuestro sustituto para caracter. Es cualquier tecla alfanumérica en su teclado (espacios no incluidos). Estas son todas teclas aditivas. Esto difiere de Verbosidad en su exclusión de ediciones y espacio.';
 $string['quality'] = 'Calidad';
@@ -141,8 +141,8 @@ $string['random_reflex'] = 'Su propuesta de reflexión aleatoria';
 $string['refer'] = 'Referencias';
 $string['replay'] = 'Reproducir';
 $string['score'] = 'Puntaje';
-$string['secretkey'] = 'Clave Secreta de Cursive';
-$string['secretkey_desc'] = 'La clave secreta de la cuenta de Cursive o API';
+$string['secretkey'] = 'Clave Secreta de Authory.tech';
+$string['secretkey_desc'] = 'La clave secreta de la cuenta de Authory.tech o API';
 $string['sectionadvance'] = 'Avanzado';
 $string['sectionadvance_desc'] = 'Configuraciones avanzadas para Métricas de Calidad';
 $string['select_time'] = 'Seleccionar opción de hora';
@@ -165,10 +165,10 @@ $string['thresold_description'] = 'Cada sitio puede establecer su propio umbral 
 $string['time_writing'] = 'Tiempo escribiendo ';
 $string['time_writing_desc'] = 'Duración total menos períodos inactivos';
 $string['timesave_success'] = 'Tiempo guardado exitosamente';
-$string['tiny_cursive'] = 'Autoría y Analítica';
-$string['tiny_cursive_placeholder'] = 'Escriba su comentario o pegue aquí su enlace…';
-$string['tiny_cursive_srcurl'] = 'Por favor proporcione un comentario';
-$string['tiny_cursive_srcurl_des'] = 'Inserte un comentario, enlace o información para proporcionar contexto para el texto pegado. Esto será mostrado como parte del envío.';
+$string['tiny_authory_tech'] = 'Autoría y Analítica';
+$string['tiny_authory_tech_placeholder'] = 'Escriba su comentario o pegue aquí su enlace…';
+$string['tiny_authory_tech_srcurl'] = 'Por favor proporcione un comentario';
+$string['tiny_authory_tech_srcurl_des'] = 'Inserte un comentario, enlace o información para proporcionar contexto para el texto pegado. Esto será mostrado como parte del envío.';
 $string['total_active_time'] = 'Total de tiempo activo';
 $string['total_active_time_des'] = 'Total de tiempo activo es la duración de su tiempo de escritura activa (presionando teclas, manipulando texto) menos períodos de inactividad mayores de 30 segundos.';
 $string['total_time'] = 'Tiempo total';

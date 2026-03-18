@@ -16,8 +16,8 @@
 /**
  * This module provides functionality to append blog posts in the OU Blogs plugin for TinyMCE editor
  *
- * @module     tiny_cursive/append_oublogs_post
- * @copyright  2025  CTI <info@cursivetechnology.com>
+ * @module     tiny_authory_tech/append_oublogs_post
+ * @copyright  2025  Authory Technology S.L. <info@authory.tech>
  * @author     Brain Station 23 <sales@brainstation-23.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -44,7 +44,7 @@ export const init = (scoreSetting, comments, hasApiKey) => {
             );
             replayInstances[mid] = replay;
         } else {
-            templates.render('tiny_cursive/no_submission').then(html => {
+            templates.render('tiny_authory_tech/no_submission').then(html => {
                 $('#content' + mid).html(html);
                 return true;
             }).catch(e => window.console.error(e));
@@ -66,7 +66,7 @@ export const init = (scoreSetting, comments, hasApiKey) => {
 
         if (userid && resourceId) {
             let args = {id: userid, resourceid: resourceId, modulename: "oublog", cmid: cmid};
-            let methodname = 'cursive_get_oublog_submission_data';
+            let methodname = 'authory_tech_get_oublog_submission_data';
             let com = getData([{methodname, args}]);
             com[0].done(function(json) {
                 var data = JSON.parse(json);

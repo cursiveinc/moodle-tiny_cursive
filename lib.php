@@ -15,21 +15,21 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Plugin functions for the tiny_cursive plugin.
+ * Plugin functions for the tiny_authory_tech plugin.
  *
- * @package   tiny_cursive
- * @copyright 2024, CTI <info@cursivetechnology.com>
+ * @package   tiny_authory_tech
+ * @copyright 2024, Authory Technology S.L. <info@authory.tech>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-use tiny_cursive\constants;
+use tiny_authory_tech\constants;
 /**
  * Given an array with a file path, it returns the itemid and the filepath for the defined filearea.
  *
  * @param array $args The path (the part after the filearea and before the filename).
  * @return array The itemid and the filepath inside the $args path, for the defined filearea.
  */
-function tiny_cursive_get_path_from_pluginfile(array $args): array {
-    // Cursive never has an itemid (the number represents the revision but it's not stored in database).
+function tiny_authory_tech_get_path_from_pluginfile(array $args): array {
+    // Authory.tech never has an itemid (the number represents the revision but it's not stored in database).
     array_shift($args);
 
     // Get the filepath.
@@ -46,19 +46,19 @@ function tiny_cursive_get_path_from_pluginfile(array $args): array {
 }
 
 /**
- * Serves files from the tiny_cursive plugin's file storage area.
+ * Serves files from the tiny_authory_tech plugin's file storage area.
  *
- * This function handles file serving requests for files stored in the tiny_cursive
+ * This function handles file serving requests for files stored in the tiny_authory_tech
  * plugin's file area. It retrieves and sends the requested file to the user.
  *
  * @param stdClass $context The context object for file access permissions
- * @param string $filearea The file area identifier within tiny_cursive
+ * @param string $filearea The file area identifier within tiny_authory_tech
  * @param array $args Array of path segments identifying the file
  * @param bool $forcedownload If true, forces file download rather than display
  * @param array $options Additional options for file serving (e.g. caching, filters)
  * @return void|bool Returns false if file not found, void otherwise
  */
-function tiny_cursive_pluginfile($context, $filearea, $args, $forcedownload, array $options = []) {
+function tiny_authory_tech_pluginfile($context, $filearea, $args, $forcedownload, array $options = []) {
     $itemid = array_shift($args);
     $filename = array_pop($args);
 
@@ -70,7 +70,7 @@ function tiny_cursive_pluginfile($context, $filearea, $args, $forcedownload, arr
 
     $fs   = get_file_storage();
 
-    $file = $fs->get_file($context->id, 'tiny_cursive', $filearea, $itemid, $filepath, $filename);
+    $file = $fs->get_file($context->id, 'tiny_authory_tech', $filearea, $itemid, $filepath, $filename);
     if (!$file) {
         return false;
     }
@@ -78,34 +78,34 @@ function tiny_cursive_pluginfile($context, $filearea, $args, $forcedownload, arr
 }
 
 /**
- * Extends the course navigation with a link to the Cursive writing report.
+ * Extends the course navigation with a link to the Authory.tech writing report.
  * This function adds a navigation node to access writing reports if the user has appropriate permissions
- * and Cursive is enabled for the course.
+ * and Authory.tech is enabled for the course.
  *
  * @param navigation_node $navigation The navigation node to extend
  * @param stdClass $course The course object containing the course details
  * @return void
  * @throws moodle_exception If there is an error creating the navigation node
  */
-function tiny_cursive_extend_navigation_course(\navigation_node $navigation, \stdClass $course) {
+function tiny_authory_tech_extend_navigation_course(\navigation_node $navigation, \stdClass $course) {
     global $CFG;
     require_once(__DIR__ . "/locallib.php");
 
-    $cmid    = tiny_cursive_get_cmid($course->id);
+    $cmid    = tiny_authory_tech_get_cmid($course->id);
     $module  = get_coursemodule_from_id(false, $cmid, $course->id);
-    $cursive = tiny_cursive_status($course->id);
+    $authory_tech_status = tiny_authory_tech_status($course->id);
 
     $url     = new moodle_url(
-        $CFG->wwwroot . '/lib/editor/tiny/plugins/cursive/tiny_cursive_report.php',
+        $CFG->wwwroot . '/lib/editor/tiny/plugins/authory_tech/tiny_authory_tech_report.php',
         ['courseid' => $course->id]
     );
 
-    if ($cmid && $cursive) {
+    if ($cmid && $authory_tech_status) {
         $context = context_module::instance($cmid);
-        $hascap  = has_capability("tiny/cursive:editsettings", $context);
+        $hascap  = has_capability("tiny/authory_tech:editsettings", $context);
         if ($hascap) {
             $navigation->add(
-                get_string('wractivityreport', 'tiny_cursive'),
+                get_string('wractivityreport', 'tiny_authory_tech'),
                 $url,
                 navigation_node::TYPE_SETTING,
                 null,
@@ -124,29 +124,29 @@ function tiny_cursive_extend_navigation_course(\navigation_node $navigation, \st
  * @param global_navigation $navigation The global navigation instance to modify
  * @return void
  */
-function tiny_cursive_extend_navigation(global_navigation $navigation) {
+function tiny_authory_tech_extend_navigation(global_navigation $navigation) {
     if ($home = $navigation->find('home', global_navigation::TYPE_SETTING)) {
         $home->remove();
     }
 }
 
 /**
- * Callback to add Cursive settings to a course module form.
+ * Callback to add Authory.tech settings to a course module form.
  *
- * This function adds a Cursive configuration section to supported module forms,
- * allowing users to enable/disable Cursive functionality for that specific module instance.
+ * This function adds a Authory.tech configuration section to supported module forms,
+ * allowing users to enable/disable Authory.tech functionality for that specific module instance.
  *
  * @param moodleform $formwrapper The form wrapper containing the module form
  * @param MoodleQuickForm $mform The actual form object to add elements to
  * @return void
  */
-function tiny_cursive_coursemodule_standard_elements($formwrapper, $mform) {
+function tiny_authory_tech_coursemodule_standard_elements($formwrapper, $mform) {
     global $PAGE;
 
-    $cursive   = tiny_cursive_status($formwrapper->get_current()->course);
+    $authory_tech_status   = tiny_authory_tech_status($formwrapper->get_current()->course);
     $plugins   = core_component::get_plugin_list('local');
 
-    if (!$cursive) {
+    if (!$authory_tech_status) {
         return;
     }
     if (!isset($plugins['cursive_oublog']) && $PAGE->bodyid === "page-mod-oublog-mod") {
@@ -157,33 +157,33 @@ function tiny_cursive_coursemodule_standard_elements($formwrapper, $mform) {
     $courseid  = $formwrapper->get_current()->course;
     $instance  = $formwrapper->get_current()->coursemodule;
     $key       = "CUR$courseid$instance";
-    $state     = get_config('tiny_cursive', $key);
+    $state     = get_config('tiny_authory_tech', $key);
 
     if ($state === "1" || $state === false) {
         $state = true;
     }
-    // Constants::NAMES is cursive supported plugin list defined in tiny_cursive\constant class.
+    // Constants::NAMES is authory_tech supported plugin list defined in tiny_authory_tech\constant class.
     if (in_array($module, constants::NAMES)) {
-        $mform->addElement('header', 'cursiveheader', 'Cursive', 'local_callbacks');
+        $mform->addElement('header', 'authory_tech_header', 'Authory.tech', 'local_callbacks');
         $options = [
-            0 => get_string('disabled', 'tiny_cursive'),
-            1 => get_string('enabled', 'tiny_cursive'),
+            0 => get_string('disabled', 'tiny_authory_tech'),
+            1 => get_string('enabled', 'tiny_authory_tech'),
         ];
-        $mform->addElement('select', 'cursive', get_string('cursive_status', 'tiny_cursive'), $options);
-        $mform->setType('cursive', PARAM_INT);
+        $mform->addElement('select', 'authory_tech_status', get_string('authory_tech_status', 'tiny_authory_tech'), $options);
+        $mform->setType('authory_tech_status', PARAM_INT);
 
-        $mform->setdefault('cursive', $state);
+        $mform->setdefault('authory_tech_status', );
     }
 
     if ($state) {
         $pasteoptions = [
-            'allow'       => get_string('paste_allow', 'tiny_cursive'),
-            'block'       => get_string('paste_block', 'tiny_cursive'),
-            'cite_source' => get_string('paste_cite_source', 'tiny_cursive'),
+            'allow'       => get_string('paste_allow', 'tiny_authory_tech'),
+            'block'       => get_string('paste_block', 'tiny_authory_tech'),
+            'cite_source' => get_string('paste_cite_source', 'tiny_authory_tech'),
         ];
 
         $pastekey     = "PASTE{$courseid}_{$instance}";
-        $pastesetting = get_config('tiny_cursive', $pastekey);
+        $pastesetting = get_config('tiny_authory_tech', $pastekey);
 
         if (!$pastesetting) {
             $pastesetting = 'allow';
@@ -192,48 +192,48 @@ function tiny_cursive_coursemodule_standard_elements($formwrapper, $mform) {
         $mform->addElement(
             'select',
             'paste_setting',
-            get_string('paste_setting', 'tiny_cursive'),
+            get_string('paste_setting', 'tiny_authory_tech'),
             $pasteoptions
         );
 
         $mform->setType('paste_setting', PARAM_TEXT);
         $mform->setDefault('paste_setting', $pastesetting);
-        $mform->addHelpButton('paste_setting', 'paste_setting', 'tiny_cursive');
+        $mform->addHelpButton('paste_setting', 'paste_setting', 'tiny_authory_tech');
     }
 }
 
 /**
- * Handles post-actions for course module editing, specifically for Cursive settings.
+ * Handles post-actions for course module editing, specifically for Authory.tech settings.
  *
- * This function is called after a course module form is submitted. It saves the Cursive
+ * This function is called after a course module form is submitted. It saves the Authory.tech
  * state configuration for supported modules.
  *
  * @param stdClass $formdata The form data containing module settings
  * @param stdClass $course The course object
  * @return stdClass The modified form data
  */
-function tiny_cursive_coursemodule_edit_post_actions($formdata, $course) {
+function tiny_authory_tech_coursemodule_edit_post_actions($formdata, $course) {
     global $PAGE;
 
-    $cursive = tiny_cursive_status($course->id);
-    if (!$cursive) {
+    $authory_tech_status = tiny_authory_tech_status($course->id);
+    if (!$authory_tech_status) {
         return $formdata;
     }
     if (!isset($plugins['cursive_oublog']) && $PAGE->bodyid === "page-mod-oublog-mod") {
         return $formdata;
     }
 
-    // Constants::NAMES is cursive supported plugin list defined in tiny_cursive\constant class.
+    // Constants::NAMES is authory_tech supported plugin list defined in tiny_authory_tech\constant class.
     if (in_array($formdata->modulename, constants::NAMES)) {
-        $state    = $formdata->cursive;
+        $state    = $formdata->authory_tech_status;
         $courseid = $course->id;
         $instance = $formdata->coursemodule;
         $key      = "CUR$courseid$instance";
-        set_config($key, $state, 'tiny_cursive');
+        set_config($key, $state, 'tiny_authory_tech');
     }
     if (!empty($formdata->paste_setting) && $state == 1) {
         $pastekey = "PASTE{$courseid}_{$instance}";
-        set_config($pastekey, $formdata->paste_setting, 'tiny_cursive');
+        set_config($pastekey, $formdata->paste_setting, 'tiny_authory_tech');
     }
     return $formdata;
 }
@@ -248,7 +248,7 @@ function tiny_cursive_coursemodule_edit_post_actions($formdata, $course) {
  * @throws coding_exception
  * @throws moodle_exception
  */
-function tiny_cursive_myprofile_navigation(core_user\output\myprofile\tree $tree, $user, $course) {
+function tiny_authory_tech_myprofile_navigation(core_user\output\myprofile\tree $tree, $user, $course) {
     global $USER;
     if (empty($course)) {
         $course = get_fast_modinfo(SITEID)->get_course();
@@ -262,18 +262,18 @@ function tiny_cursive_myprofile_navigation(core_user\output\myprofile\tree $tree
         return;
     }
 
-    if (get_config('tiny_cursive', 'disabled')) {
+    if (get_config('tiny_authory_tech', 'disabled')) {
         return;
     }
 
     $url  = new moodle_url(
-        '/lib/editor/tiny/plugins/cursive/my_writing_report.php',
-        ['id' => $user->id, 'course' => isset($course->id) ? $course->id : "", 'mode' => 'cursive']
+        '/lib/editor/tiny/plugins/authory_tech/my_writing_report.php',
+        ['id' => $user->id, 'course' => isset($course->id) ? $course->id : "", 'mode' => 'authory_tech']
     );
     $node = new core_user\output\myprofile\node(
         'reports',
-        'cursive',
-        get_string('student_writing_statics', 'tiny_cursive'),
+        'authory_tech',
+        get_string('student_writing_statics', 'tiny_authory_tech'),
         null,
         $url
     );
@@ -290,24 +290,24 @@ function tiny_cursive_myprofile_navigation(core_user\output\myprofile\tree $tree
  * @return bool|string Returns response from server or false on failure
  * @throws dml_exception
  */
-function tiny_cursive_upload_multipart_record($filerecord, $filenamewithfullpath, $wstoken, $answertext) {
+function tiny_authory_tech_upload_multipart_record($filerecord, $filenamewithfullpath, $wstoken, $answertext) {
     global $CFG;
     require_once($CFG->dirroot . '/lib/filelib.php');
 
-    $moodleurl = get_config('tiny_cursive', 'host_url');
+    $moodleurl = get_config('tiny_authory_tech', 'host_url');
     $result    = '';
 
     try {
-        $token      = get_config('tiny_cursive', 'secretkey');
-        $remoteurl  = get_config('tiny_cursive', 'python_server') . "/upload_file";
+        $token      = get_config('tiny_authory_tech', 'secretkey');
+        $remoteurl  = get_config('tiny_authory_tech', 'python_server') . "/upload_file";
         $filetosend = '';
 
-        $tempfilepath = make_temp_directory('tiny_cursive') . '/' . uniqid('upload_', true);
+        $tempfilepath = make_temp_directory('tiny_authory_tech') . '/' . uniqid('upload_', true);
 
         $jsoncontent  = json_decode($filerecord->content, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new moodle_exception('invalidjson', 'tiny_cursive');
+            throw new moodle_exception('invalidjson', 'tiny_authory_tech');
         }
             file_put_contents($tempfilepath, json_encode($jsoncontent));
             $filetosend = new CURLFILE($tempfilepath, 'application/json', 'uploaded.json');
@@ -315,7 +315,7 @@ function tiny_cursive_upload_multipart_record($filerecord, $filenamewithfullpath
             // Ensure the temporary file does not exceed the size limit.
         if (filesize($tempfilepath) > 16 * 1024 * 1024) {
             unlink($tempfilepath);
-            throw new moodle_exception('filesizelimit', 'tiny_cursive');
+            throw new moodle_exception('filesizelimit', 'tiny_authory_tech');
         }
 
         echo $remoteurl;
@@ -363,16 +363,16 @@ function tiny_cursive_upload_multipart_record($filerecord, $filenamewithfullpath
 }
 
 /**
- * Creates a URL for a file in the tiny_cursive file area
+ * Creates a URL for a file in the tiny_authory_tech file area
  *
  * @param \context $context The context object
  * @param stdClass $user The user object containing fileid
  * @return string|false Returns the download URL for the file, or false if no file found
  * @throws coding_exception
  */
-function tiny_cursive_file_urlcreate($context, $user) {
+function tiny_authory_tech_file_urlcreate($context, $user) {
     $fs    = get_file_storage();
-    $files = $fs->get_area_files($context->id, 'tiny_cursive', 'attachment', $user->fileid, 'sortorder', false);
+    $files = $fs->get_area_files($context->id, 'tiny_authory_tech', 'attachment', $user->fileid, 'sortorder', false);
 
     foreach ($files as $file) {
         if ($file->get_filename() != '.') {
@@ -396,17 +396,17 @@ function tiny_cursive_file_urlcreate($context, $user) {
 }
 
 /**
- * Get the status of tiny_cursive for a specific course
+ * Get the status of tiny_authory_tech for a specific course
  *
  * @param int $courseid The ID of the course to check
- * @return bool Returns true if tiny_cursive is enabled for the course, false otherwise
+ * @return bool Returns true if tiny_authory_tech is enabled for the course, false otherwise
  * @throws dml_exception
  */
-function tiny_cursive_status($courseid = 0) {
-    if (get_config('tiny_cursive', 'disabled')) {
+function tiny_authory_tech_status($courseid = 0) {
+    if (get_config('tiny_authory_tech', 'disabled')) {
         return false;
     }
-    return get_config('tiny_cursive', "cursive-$courseid");
+    return get_config('tiny_authory_tech', "authory_tech-$courseid");
 }
 
 /**
@@ -417,14 +417,14 @@ function tiny_cursive_status($courseid = 0) {
  * @return string The response from the remote verification server, empty string if no token configured
  * @throws moodle_exception If token verification fails or there is a curl error
  */
-function cursive_approve_token() {
+function authory_tech_approve_token() {
     global $CFG;
     require_once("$CFG->libdir/filelib.php");
 
     try {
         // Use Moodle's cURL library.
-        $token     = get_config('tiny_cursive', 'secretkey');
-        $remoteurl = get_config('tiny_cursive', 'python_server') . '/verify-token';
+        $token     = get_config('tiny_authory_tech', 'secretkey');
+        $remoteurl = get_config('tiny_authory_tech', 'python_server') . '/verify-token';
         $moodleurl = $CFG->wwwroot;
 
         if (empty($token)) {
@@ -451,14 +451,14 @@ function cursive_approve_token() {
         $result = $curl->post($remoteurl, $postfields, $options);
 
         if ($result === false) {
-            throw new moodle_exception('curlerror', 'tiny_cursive', '', null, $curl->error);
+            throw new moodle_exception('curlerror', 'tiny_authory_tech', '', null, $curl->error);
         }
     } catch (moodle_exception $e) {
         // Log the exception.
-        debugging("Error in cursive_approve_token_func: " . $e->getMessage());
+        debugging("Error in authory_tech_approve_token_func: " . $e->getMessage());
 
         // Return a Moodle exception.
-        throw new moodle_exception('errorverifyingtoken', 'tiny_cursive', '', null, $e->getMessage());
+        throw new moodle_exception('errorverifyingtoken', 'tiny_authory_tech', '', null, $e->getMessage());
     }
 
     return $result;

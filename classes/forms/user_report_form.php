@@ -15,30 +15,30 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Tiny cursive plugin.
+ * Tiny authory_tech plugin.
  *
- * @package tiny_cursive
- * @copyright  CTI <info@cursivetechnology.com>
+ * @package tiny_authory_tech
+ * @copyright  Authory Technology S.L. <info@authory.tech>
  * @author eLearningstack
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace tiny_cursive\forms;
+namespace tiny_authory_tech\forms;
 use context_course;
 use moodleform;
-use tiny_cursive\constants;
+use tiny_authory_tech\constants;
 
 /**
- * Tiny cursive plugin.
+ * Tiny authory_tech plugin.
  *
- * @package tiny_cursive
- * @copyright  CTI <info@cursivetechnology.com>
+ * @package tiny_authory_tech
+ * @copyright  Authory Technology S.L. <info@authory.tech>
  * @author eLearningstack
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class user_report_form extends moodleform {
     /**
-     * Tiny cursive plugin user report form.
+     * Tiny authory_tech plugin user report form.
      */
     public function definition() {
         // Start dropdowns of course, quiz and user email search field in mform.
@@ -49,33 +49,33 @@ class user_report_form extends moodleform {
         $users = self::get_user($courseid);
         $modules = self::get_modules($courseid);
         $options = ['multiple' => false, 'includefrontpage' => false];
-        $mform->addElement('course', 'courseid', get_string('coursename', 'tiny_cursive'), $options);
+        $mform->addElement('course', 'courseid', get_string('coursename', 'tiny_authory_tech'), $options);
         if ($courseid) {
             $mform->setDefault('courseid', $courseid);
         }
 
         $mform->addRule('courseid', null, 'required', null, 'client');
-        $mform->addElement('select', 'moduleid', get_string('module_name', 'tiny_cursive'), $modules, $attributes);
+        $mform->addElement('select', 'moduleid', get_string('module_name', 'tiny_authory_tech'), $modules, $attributes);
         $mform->setType('moduleid', PARAM_TEXT);
-        $mform->addElement('select', 'userid', get_string('userename', 'tiny_cursive'), $users, $attributes);
+        $mform->addElement('select', 'userid', get_string('userename', 'tiny_authory_tech'), $users, $attributes);
         $mform->setType('userid', PARAM_TEXT);
         $options = [
-            'id'    => get_string('uid', 'tiny_cursive'),
-            'name'  => get_string('name', "tiny_cursive"),
-            'email' => get_string('email', 'tiny_cursive'),
-            'date'  => get_string('date', 'tiny_cursive'),
+            'id'    => get_string('uid', 'tiny_authory_tech'),
+            'name'  => get_string('name', "tiny_authory_tech"),
+            'email' => get_string('email', 'tiny_authory_tech'),
+            'date'  => get_string('date', 'tiny_authory_tech'),
         ];
-        $mform->addElement('select', 'orderby', get_string('orderby', 'tiny_cursive'), $options, $attributes);
+        $mform->addElement('select', 'orderby', get_string('orderby', 'tiny_authory_tech'), $options, $attributes);
         $mform->setType('orderby', PARAM_TEXT);
         $this->add_action_buttons(false, get_string('submit'));
 
         if (!is_siteadmin()) {
-            $PAGE->requires->js_call_amd('tiny_cursive/user_report_addition', 'init', []);
+            $PAGE->requires->js_call_amd('tiny_authory_tech/user_report_addition', 'init', []);
         }
     }
 
     /**
-     * Tiny cursive plugin user report form data.
+     * Tiny authory_tech plugin user report form data.
      *
      * @return object
      */
@@ -101,7 +101,7 @@ class user_report_form extends moodleform {
     }
 
     /**
-     * Tiny cursive plugin get all modules.
+     * Tiny authory_tech plugin get all modules.
      *
      * @param integer $courseid
      * @return array
@@ -109,14 +109,14 @@ class user_report_form extends moodleform {
     public function get_modules($courseid) {
         global $DB;
         // Default option: All modules.
-        $mdetail = [0 => get_string('allmodule', 'tiny_cursive')];
+        $mdetail = [0 => get_string('allmodule', 'tiny_authory_tech')];
 
         if (!$courseid) {
             return $mdetail;
         }
 
         $configs = array_filter(
-            (array) get_config('tiny_cursive'),
+            (array) get_config('tiny_authory_tech'),
             fn($key) => str_starts_with($key, 'CUR'),
             ARRAY_FILTER_USE_KEY
         );
@@ -141,7 +141,7 @@ class user_report_form extends moodleform {
     }
 
     /**
-     * Tiny cursive plugin get all users.
+     * Tiny authory_tech plugin get all users.
      *
      * @param integer $courseid
      * @return array
@@ -150,7 +150,7 @@ class user_report_form extends moodleform {
 
         $udetail = [];
 
-        $udetail[0] = get_string('alluser', 'tiny_cursive');
+        $udetail[0] = get_string('alluser', 'tiny_authory_tech');
 
         if (!empty($courseid)) {
             // Use get_enrolled_users() function instead of raw SQL for better maintainability and security.

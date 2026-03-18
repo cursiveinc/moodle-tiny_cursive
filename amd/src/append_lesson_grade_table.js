@@ -18,8 +18,8 @@
  * Handles the display of analytics, replay functionality and grade information
  * for lesson submissions in the Moodle gradebook interface
  *
- * @module     tiny_cursive/append_lesson_grade_table
- * @copyright  2025  CTI <info@cursivetechnology.com>
+ * @module     tiny_authory_tech/append_lesson_grade_table
+ * @copyright  2025  Authory Technology S.L. <info@authory.tech>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -46,7 +46,7 @@ export const init = (scoreSetting, showcomment, hasApiKey) => {
             );
             replayInstances[mid] = replay;
         } else {
-            templates.render('tiny_cursive/no_submission').then(html => {
+            templates.render('tiny_authory_tech/no_submission').then(html => {
                 $('#content' + mid).html(html);
                 return true;
             }).catch(e => window.console.error(e));
@@ -63,7 +63,7 @@ export const init = (scoreSetting, showcomment, hasApiKey) => {
     let mode = url.searchParams.get('mode');
     let user = url.searchParams.get('user');
 
-    Str.get_string('analytics', 'tiny_cursive').then((strs) => {
+    Str.get_string('analytics', 'tiny_authory_tech').then((strs) => {
         headcolumn.each(function() {
             $(this).find('th:eq(1)').after(`<th class="header">${strs}</th>`);
         });
@@ -107,7 +107,7 @@ export const init = (scoreSetting, showcomment, hasApiKey) => {
     function analytics(userid, cmid, $emailLink, grade) {
 
         let args = {id: userid, modulename: "lesson", cmid: cmid};
-        let methodname = 'cursive_get_lesson_submission_data';
+        let methodname = 'authory_tech_get_lesson_submission_data';
         let com = getData([{methodname, args}]);
         com[0].done(function(json) {
             var data = JSON.parse(json);
@@ -152,7 +152,7 @@ export const init = (scoreSetting, showcomment, hasApiKey) => {
 
         });
         com[0].fail((error) => {
-            window.console.error('Error getting cursive config:', error);
+            window.console.error('Error getting authory_tech config:', error);
         });
     }
 };

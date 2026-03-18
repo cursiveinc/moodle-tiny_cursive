@@ -15,17 +15,17 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Tiny cursive plugin access.
+ * Tiny authory_tech plugin access.
  *
- * @package tiny_cursive
- * @copyright  CTI <info@cursivetechnology.com>
+ * @package tiny_authory_tech
+ * @copyright  Authory Technology S.L. <info@authory.tech>
  * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 $capabilities = [
-    'tiny/cursive:editsettings' => [
+    'tiny/authory_tech:editsettings' => [
         'captype' => 'write',
         'contextlevel' => CONTEXT_SYSTEM,
         'archetypes' => [
@@ -34,7 +34,7 @@ $capabilities = [
         ],
         'clonepermission' => 'moodle/site:configwrite',
     ],
-    'tiny/cursive:view' => [
+    'tiny/authory_tech:view' => [
         'captype' => 'read',
         'contextlevel' => CONTEXT_MODULE,
         'archetypes' => [
@@ -43,7 +43,7 @@ $capabilities = [
         ],
 
     ],
-    'tiny/cursive:write' => [
+    'tiny/authory_tech:write' => [
         'captype' => 'write',
         'contextlevel' => CONTEXT_MODULE,
         'archetypes' => [
@@ -51,7 +51,7 @@ $capabilities = [
             'editingteacher' => CAP_ALLOW,
         ],
     ],
-    'tiny/cursive:writingreport' => [
+    'tiny/authory_tech:writingreport' => [
         'captype' => 'read',
         'contextlevel' => CONTEXT_MODULE,
         'archetypes' => [
@@ -59,7 +59,7 @@ $capabilities = [
             'editingteacher' => CAP_ALLOW,
         ],
     ],
-    'tiny/cursive:use' => [
+    'tiny/authory_tech:use' => [
         'captype' => 'read',
         'contextlevel' => CONTEXT_USER,
         'archetypes' => [
