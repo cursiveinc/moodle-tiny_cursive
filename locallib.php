@@ -18,7 +18,8 @@
  * Plugin functions for the tiny_authory_tech plugin.
  *
  * @package   tiny_authory_tech
- * @copyright 2024, Authory Technology S.L. <info@authory.tech>
+ * @copyright 2024, CTI <info@cursivetechnology.com>
+ * @copyright  2026 Authory Technology S.L. <info@authory.tech>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 use core_external\util;

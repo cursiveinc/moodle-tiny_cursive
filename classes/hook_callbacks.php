@@ -18,7 +18,8 @@
  * Tiny authory_tech plugin.
  *
  * @package tiny_authory_tech
- * @copyright  Authory Technology S.L. <info@authory.tech>
+ * @copyright  CTI <info@cursivetechnology.com>
+ * @copyright  2026 Authory Technology S.L. <info@authory.tech>
  * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -38,7 +39,8 @@ use function array_key_exists;
  * Tiny authory_tech plugin hook callback class.
  *
  * @package tiny_authory_tech
- * @copyright  Authory Technology S.L. <info@authory.tech>
+ * @copyright  CTI <info@cursivetechnology.com>
+ * @copyright  2026 Authory Technology S.L. <info@authory.tech>
  * @author Brain Station 23 <sales@brainstation-23.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

@@ -18,7 +18,8 @@
  * This module manages the display of course information in the report interface.
  *
  * @module     tiny_authory_tech/user_report_addition
- * @copyright  2024 CTI <your@email.com>
+ * @copyright  2024 CTI <info@cursivetechnology.com>
+ * @copyright  2026 Authory Technology S.L. <info@authory.tech>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 import {get_string as getString} from 'core/str';

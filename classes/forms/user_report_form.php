@@ -18,7 +18,8 @@
  * Tiny authory_tech plugin.
  *
  * @package tiny_authory_tech
- * @copyright  Authory Technology S.L. <info@authory.tech>
+ * @copyright  CTI <info@cursivetechnology.com>
+ * @copyright  2026 Authory Technology S.L. <info@authory.tech>
  * @author eLearningstack
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -32,7 +33,8 @@ use tiny_authory_tech\constants;
  * Tiny authory_tech plugin.
  *
  * @package tiny_authory_tech
- * @copyright  Authory Technology S.L. <info@authory.tech>
+ * @copyright  CTI <info@cursivetechnology.com>
+ * @copyright  2026 Authory Technology S.L. <info@authory.tech>
  * @author eLearningstack
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

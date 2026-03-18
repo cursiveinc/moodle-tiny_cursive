@@ -16,7 +16,8 @@
 /**
  * @module     tiny_authory_tech/replay
  * @category TinyMCE Editor
- * @copyright  Authory Technology S.L. <info@authory.tech>
+ * @copyright  CTI <info@cursivetechnology.com>
+ * @copyright  2026 Authory Technology S.L. <info@authory.tech>
  * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
  */
 

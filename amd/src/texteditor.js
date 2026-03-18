@@ -17,7 +17,8 @@
  * Tiny Loader for Moodle
  *
  * @module      tiny_authory_tech/texteditor
- * @copyright   2022 Authory Technology S.L. <info@authory.tech>
+ * @copyright   2022 CTI <info@cursivetechnology.com>
+ * @copyright  2026 Authory Technology S.L. <info@authory.tech>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 

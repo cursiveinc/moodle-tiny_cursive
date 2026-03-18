@@ -18,7 +18,8 @@
  * Tiny authory_tech plugin version.
  *
  * @package tiny_authory_tech
- * @copyright  Authory Technology S.L. <info@authory.tech>
+ * @copyright  Cursive Technology, Inc. <info@cursivetechnology.com>
+ * @copyright  2026 Authory Technology S.L. <info@authory.tech>
  * @author kuldeep singh & Brainstation23
  *
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later

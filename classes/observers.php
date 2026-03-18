@@ -20,7 +20,8 @@ namespace tiny_authory_tech;
  * Tiny authory_tech plugin observer class.
  *
  * @package tiny_authory_tech
- * @copyright  Authory Technology S.L. <info@authory.tech>
+ * @copyright  CTI <info@cursivetechnology.com>
+ * @copyright  2026 Authory Technology S.L. <info@authory.tech>
  * @author eLearningstack
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

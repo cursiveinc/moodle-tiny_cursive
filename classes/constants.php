@@ -26,7 +26,8 @@ require_once($CFG->dirroot . '/grade/grading/form/rubric/lib.php');
  * Class constants
  *
  * @package    tiny_authory_tech
- * @copyright  2025 Authory Technology S.L. <info@authory.tech>
+ * @copyright  2025 Cursive Technology, Inc. <info@cursivetechnology.com>
+ * @copyright  2026 Authory Technology S.L. <info@authory.tech>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class constants {

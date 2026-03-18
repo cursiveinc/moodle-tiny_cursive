@@ -16,7 +16,8 @@
 /**
  * @module     tiny_authory_tech/autosaver
  * @category   TinyMCE Editor
- * @copyright  Authory Technology S.L. <info@authory.tech>
+ * @copyright  CTI <info@cursivetechnology.com>
+ * @copyright  2026 Authory Technology S.L. <info@authory.tech>
  * @author     Brain Station 23 <sales@brainstation-23.com>
  */
 

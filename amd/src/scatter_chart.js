@@ -18,7 +18,8 @@
  * The chart displays effort scores against time spent, with tooltips showing additional metrics.
  *
  * @module     tiny_authory_tech/scatter_chart
- * @copyright  2025 Authory Technology S.L. <info@authory.tech>
+ * @copyright  2025 Cursive Technology, Inc. <info@cursivetechnology.com>
+ * @copyright  2026 Authory Technology S.L. <info@authory.tech>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 

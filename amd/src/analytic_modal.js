@@ -17,7 +17,8 @@
  * This module defines a custom modal for analytics.
  *
  * @module     tiny_authory_tech/analytic_modal
- * @copyright  2024  Authory Technology S.L. <info@authory.tech>
+ * @copyright  2024  CTI <info@cursivetechnology.com>
+ * @copyright  2026 Authory Technology S.L. <info@authory.tech>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 

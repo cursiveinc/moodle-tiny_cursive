@@ -17,7 +17,8 @@
  * This module provides functionality to append blog posts in the OU Blogs plugin for TinyMCE editor
  *
  * @module     tiny_authory_tech/append_oublogs_post
- * @copyright  2025  Authory Technology S.L. <info@authory.tech>
+ * @copyright  2025  CTI <info@cursivetechnology.com>
+ * @copyright  2026 Authory Technology S.L. <info@authory.tech>
  * @author     Brain Station 23 <sales@brainstation-23.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

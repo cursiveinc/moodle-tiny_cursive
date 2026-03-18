@@ -19,7 +19,8 @@
  * for lesson submissions in the Moodle gradebook interface
  *
  * @module     tiny_authory_tech/append_lesson_grade_table
- * @copyright  2025  Authory Technology S.L. <info@authory.tech>
+ * @copyright  2025  CTI <info@cursivetechnology.com>
+ * @copyright  2026 Authory Technology S.L. <info@authory.tech>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
