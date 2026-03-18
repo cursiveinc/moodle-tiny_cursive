@@ -319,8 +319,6 @@ function tiny_authory_tech_upload_multipart_record($filerecord, $filenamewithful
             throw new moodle_exception('filesizelimit', 'tiny_authory_tech');
         }
 
-        echo $remoteurl;
-
         $curl     = new curl();
         $postdata = [
             'file' => $filetosend,
@@ -344,12 +342,8 @@ function tiny_authory_tech_upload_multipart_record($filerecord, $filenamewithful
         $httpcode = $curl->get_info()['http_code'];
 
         if ($result === false) {
-            echo "File not found: " . $filenamewithfullpath . "\n";
-            echo "cURL Error: " . $curl->error . "\n";
-        } else {
-            echo "\nHTTP Status Code: " . $httpcode . "\n";
-            echo "File Id: " . $filerecord->id . "\n";
-            echo "response: " . $result . "\n";
+            debugging("File not found: " . $filenamewithfullpath, DEBUG_DEVELOPER);
+            debugging("cURL Error: " . $curl->error, DEBUG_DEVELOPER);
         }
 
         // Remove the temporary file if it was created.

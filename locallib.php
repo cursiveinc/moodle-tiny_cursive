@@ -112,15 +112,11 @@ function tiny_authory_tech_get_user_attempts_data(
                         FROM ($sql) subquery";
     $totalcount = $DB->count_records_sql($countsql, $params);
 
-    if ($limit) {
-        $sql .= " LIMIT " . $limit;
-        if ($page) {
-            $offset = $page * $limit;
-            $sql .= " OFFSET " . $offset;
-        }
-    }
+    $limitnum  = $limit ? (int)$limit : 0;
+    $limitfrom = $limit ? (int)$page * $limitnum : 0;
+
     try {
-        $res = $DB->get_records_sql($sql, $params);
+        $res = $DB->get_records_sql($sql, $params, $limitfrom, $limitnum);
     } catch (moodle_exception $e) {
         throw new moodle_exception('dmlreadexception', 'error', '', null, $e->getMessage());
     }
@@ -186,21 +182,20 @@ function tiny_authory_tech_get_user_writing_data(
         $params[] = $moduleid;
     }
 
-    $select .= " ORDER BY ? ?";
-    $params[] =
-        $orderby === 'id' ? 'u.id' : ($orderby === 'name' ? 'u.firstname' : ($orderby === 'email' ? 'u.email' : 'uf.timemodified'));
-    $params[] = $order;
+    $allowedcolumns = ['id' => 'u.id', 'name' => 'u.firstname', 'email' => 'u.email', 'date' => 'uf.timemodified'];
+    $ordercol = isset($allowedcolumns[$orderby]) ? $allowedcolumns[$orderby] : 'u.id';
+    $orderdirection = strtoupper($order) === 'DESC' ? 'DESC' : 'ASC';
+    $select .= " ORDER BY $ordercol $orderdirection";
 
     $totalcount = 0;
+    $limitnum  = $limit ? (int)$limit : 0;
+    $limitfrom = $limit ? (int)$perpage : 0;
     if ($limit) {
         $getdetailcount = $DB->get_records_sql($select, $params);
         $totalcount = count($getdetailcount);
-        $select .= " LIMIT ?, ?";
-        $params[] = $perpage;
-        $params[] = $limit;
     }
 
-    $res = $DB->get_records_sql($select, $params);
+    $res = $DB->get_records_sql($select, $params, $limitfrom, $limitnum);
     $resncount = ['count' => $totalcount, 'data' => $res];
 
     return $resncount;
