@@ -157,7 +157,7 @@ export default class DocumentView {
                 titleColor: 'text-info',
                 icon: Icons.people,
                 title: this.studentInfo,
-                bodyHTML: this.generateStudentInfo(this.User, courseName)
+                bodyNode: this.generateStudentInfo(this.User, courseName)
             })
         );
 
@@ -168,7 +168,7 @@ export default class DocumentView {
                     titleColor: 'text-dark',
                     icon: this.moduleIcon,
                     title: this.progress,
-                    bodyHTML: progressBar.innerHTML
+                    bodyNode: progressBar.cloneNode(true)
                 })
             );
         }
@@ -186,7 +186,7 @@ export default class DocumentView {
                     titleColor: 'text-dark',
                     icon: this.moduleIcon,
                     title: `${this.getSidebarTitle().title} ${this.description}`,
-                    bodyHTML: courseDes.innerHTML
+                    bodyNode: courseDes.cloneNode(true)
                 })
             );
         }
@@ -201,7 +201,7 @@ export default class DocumentView {
                         titleColor: 'text-dark',
                         icon: this.moduleIcon,
                         title: this.replyingto,
-                        bodyHTML: replyPost.textContent.trim()
+                        bodyNode: replyPost.textContent.trim()
                     })
                 );
             }
@@ -220,19 +220,21 @@ export default class DocumentView {
                         titleColor: 'text-dark',
                         icon: this.moduleIcon,
                         title: this.answeringto,
-                        bodyHTML: question.textContent
+                        bodyNode: question.textContent
                     })
                 );
             }
 
             if (intro && intro.trim() !== '') {
+                const introNode = this.create('div');
+                introNode.innerHTML = intro;
                 content.append(
                     this.createBox({
                         bg: 'bg-gray',
                         titleColor: 'text-dark',
                         icon: this.moduleIcon,
                         title: `${this.quiz} ${this.description}`,
-                        bodyHTML: intro
+                        bodyNode: introNode
                     })
                 );
             }
@@ -244,7 +246,7 @@ export default class DocumentView {
                         titleColor: 'text-dark',
                         icon: Icons.time,
                         title: this.importantdates,
-                        bodyHTML: this.generateImportantDates(Number(this.quizInfo.open), Number(this.quizInfo.close))
+                        bodyNode: this.generateImportantDates(Number(this.quizInfo.open), Number(this.quizInfo.close))
                     })
                 );
             }
@@ -257,7 +259,7 @@ export default class DocumentView {
                     titleColor: 'text-dark',
                     icon: this.moduleIcon,
                     title: this.rubrics,
-                    bodyHTML: this.generateRubrics(this.Rubrics)
+                    bodyNode: this.generateRubrics(this.Rubrics)
                 })
             );
         }
@@ -269,7 +271,7 @@ export default class DocumentView {
                     titleColor: 'text-dark',
                     icon: Icons.time,
                     title: this.importantdates,
-                    bodyHTML: this.generateImportantDates(openDate, dueDate)
+                    bodyNode: this.generateImportantDates(openDate, dueDate)
                 })
             );
         }
@@ -280,7 +282,7 @@ export default class DocumentView {
                     titleColor: 'text-success',
                     icon: this.moduleIcon,
                     title: this.subStatus,
-                    bodyHTML: this.submissionStatus(this.submission)
+                    bodyNode: this.submissionStatus(this.submission)
                 })
             );
         }
@@ -290,7 +292,7 @@ export default class DocumentView {
 
     }
     // Helper to create info boxes
-    createBox({bg, titleColor, icon, title, bodyHTML}) {
+    createBox({bg, titleColor, icon, title, bodyNode}) {
         const box = this.create('div');
         box.className = `tiny_authory_tech-fullpage-card ${bg}`;
 
@@ -300,7 +302,11 @@ export default class DocumentView {
 
         const body = this.create('div');
         body.className = `tiny_authory_tech-fullpage-card-body`;
-        body.innerHTML = bodyHTML;
+        if (bodyNode instanceof Node) {
+            body.appendChild(bodyNode);
+        } else {
+            body.textContent = String(bodyNode ?? '');
+        }
 
         box.append(heading, body);
         return box;
@@ -338,7 +344,7 @@ export default class DocumentView {
             wrapper.appendChild(rubricDiv);
         });
 
-        return wrapper.innerHTML;
+        return wrapper;
     }
 
     submissionStatus(submission) {
@@ -391,7 +397,7 @@ export default class DocumentView {
 
         gradeWrapper.append(gradeName, gradeValue);
         wrapper.append(statusWrapper, gradeWrapper, modifiedWrapper);
-        return wrapper.innerHTML;
+        return wrapper;
     }
 
     wordCounter(status) {
@@ -524,7 +530,7 @@ export default class DocumentView {
 
         wrapper.append(nameWrapper, usernameWrapper, courseWrapper);
 
-        return wrapper.innerHTML;
+        return wrapper;
 
     }
 
@@ -574,7 +580,7 @@ export default class DocumentView {
 
         wrapper.append(openedWrapper, dueWrapper, remainingWrapper);
 
-        return wrapper.innerHTML;
+        return wrapper;
     }
 
     formatDate(date) {
