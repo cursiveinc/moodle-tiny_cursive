@@ -131,7 +131,10 @@ export default class AnalyticEvents {
             $('#player_' + userid + questionid).css({
                 'display': 'none'
             });
-            $('#content' + userid).removeClass('tiny_authory_tech_outputElement').addClass('tiny_authory_tech').attr('data-label', 'diff');
+            $('#content' + userid)
+                .removeClass('tiny_authory_tech_outputElement')
+                .addClass('tiny_authory_tech')
+                .attr('data-label', 'diff');
             e.preventDefault();
             $('#content' + userid).html($('<div>').addClass('d-flex justify-content-center my-5')
                 .append($('<div>').addClass('tiny_authory_tech-loader')));

@@ -110,7 +110,8 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
 
                     $('div[data-region="review-panel"]').addClass('authory_tech_review_panel_path_mod_assign');
 
-                    $('div[data-region="grading-navigation-panel"]').addClass('authory_tech_grading-navigation-panel_path_mod_assign');
+                    $('div[data-region="grading-navigation-panel"]')
+                        .addClass('authory_tech_grading-navigation-panel_path_mod_assign');
 
                     $('div[data-region="grade-panel"]').addClass('authory_tech_grade-panel_path_mod_assign');
 

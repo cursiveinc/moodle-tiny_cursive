@@ -352,7 +352,8 @@ export default class DocumentView {
         const statusValue = this.create('span');
         const isNew = submission?.current?.status === 'new';
         statusValue.textContent = isNew ? this.draftnot : this.draft;
-        statusValue.className = `tiny_authory_tech-status-value ${isNew ? 'tiny_authory_tech-status-red' : 'tiny_authory_tech-status-green'}`;
+        const statusClass = isNew ? 'tiny_authory_tech-status-red' : 'tiny_authory_tech-status-green';
+        statusValue.className = `tiny_authory_tech-status-value ${statusClass}`;
 
         statusWrapper.append(statusName, statusValue);
 
