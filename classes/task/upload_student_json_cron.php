@@ -73,11 +73,11 @@ class upload_student_json_cron extends scheduled_task {
         $wstoken = $authory_tech_token ?? $token->token;
 
         $sql = "SELECT tcf.*
-                FROM {tiny_cursive_files} tcf
+                FROM {tiny_authory_tech_files} tcf
                 WHERE tcf.timemodified > tcf.uploaded";
         $filerecords = $DB->get_records_sql($sql);
 
-        $table = 'tiny_cursive_files';
+        $table = 'tiny_authory_tech_files';
         foreach ($filerecords as $filerecord) {
             $answer = $filerecord->original_content ?? "";
 

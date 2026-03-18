@@ -159,9 +159,9 @@ class visualization {
 
         $sql = "SELECT f.id as fileid, CONCAT(u.firstname,' ',u.lastname) AS username,
                        f.userid, w.*, d.meta as effort
-                  FROM {tiny_cursive_files} f
-             LEFT JOIN {tiny_cursive_user_writing} w ON f.id = w.file_id
-             LEFT JOIN {tiny_cursive_writing_diff} d ON f.id = d.file_id
+                  FROM {tiny_authory_tech_files} f
+             LEFT JOIN {tiny_authory_tech_user_writing} w ON f.id = w.file_id
+             LEFT JOIN {tiny_authory_tech_writing_diff} d ON f.id = d.file_id
              LEFT JOIN {user} u ON f.userid = u.id
                  WHERE f.courseid = :courseid AND f.cmid = :cmid";
 

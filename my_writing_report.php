@@ -106,5 +106,5 @@ $renderer    = $PAGE->get_renderer('tiny_authory_tech');
 $attempts    = tiny_authory_tech_get_user_attempts_data($userid, $courseid, null, $orderby, $page, $limit);
 $userprofile = tiny_authory_tech_get_user_profile_data($userid, $courseid);
 
-echo $renderer->tiny_cursive_user_writing_report($attempts, $userprofile, $userid, $page, $limit, $url);
+echo $renderer->tiny_authory_tech_user_writing_report($attempts, $userprofile, $userid, $page, $limit, $url);
 echo $OUTPUT->footer();

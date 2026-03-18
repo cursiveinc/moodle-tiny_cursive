@@ -249,7 +249,7 @@ class authory_tech_json_func_data extends external_api {
         $dataobject->timemodified = $params['timemodified'];
 
         try {
-            $DB->insert_record('tiny_cursive_comments', $dataobject);
+            $DB->insert_record('tiny_authory_tech_comments', $dataobject);
             return true;
         } catch (moodle_exception $e) {
             debugging($e->getMessage());
@@ -377,10 +377,10 @@ class authory_tech_json_func_data extends external_api {
                 "questionid" => $params['questionid'],
                 'userid' => $params['userid'],
             ];
-            $table = 'tiny_cursive_comments';
+            $table = 'tiny_authory_tech_comments';
             $recs = $DB->get_records($table, $conditions);
             $sql = 'SELECT filename, content, userid, id AS file_id, uploaded
-                      FROM {tiny_cursive_files}
+                      FROM {tiny_authory_tech_files}
                      WHERE resourceid = :resourceid AND cmid = :cmid
                            AND modulename = :modulename AND questionid=:questionid AND userid = :userid ';
             $filename = $DB->get_record_sql(
@@ -399,7 +399,7 @@ class authory_tech_json_func_data extends external_api {
 
                 if ($data['filename']) {
                     $sql = 'SELECT id AS fileid
-                            FROM {tiny_cursive_files}
+                            FROM {tiny_authory_tech_files}
                             WHERE userid = :userid ORDER BY id ASC LIMIT 1';
                     $ffile = $DB->get_record_sql($sql, ['userid' => $filename->userid]);
 
@@ -412,8 +412,8 @@ class authory_tech_json_func_data extends external_api {
 
                 if ($filename->file_id) {
                     $sql = 'SELECT uwr.*, diff.meta as effort_ratio
-                            FROM {tiny_cursive_user_writing} uwr
-                        LEFT JOIN {tiny_cursive_writing_diff} diff ON uwr.file_id = diff.file_id
+                            FROM {tiny_authory_tech_user_writing} uwr
+                        LEFT JOIN {tiny_authory_tech_writing_diff} diff ON uwr.file_id = diff.file_id
                             WHERE uwr.file_id = :fileid';
                     $report = $DB->get_record_sql($sql, ['fileid' => $filename->file_id]);
                     if (isset($report->effort_ratio)) {
@@ -450,14 +450,14 @@ class authory_tech_json_func_data extends external_api {
             }
         } else {
             $conditions = ["resourceid" => $params['id']];
-            $table = 'tiny_cursive_comments';
+            $table = 'tiny_authory_tech_comments';
             $recs = $DB->get_records($table, $conditions);
 
             $attempts = "SELECT  uw.total_time_seconds ,uw.word_count ,uw.words_per_minute,
                                  uw.backspace_percent,uw.score,uw.copy_behavior,uf.resourceid,
                                  uf.modulename,uf.userid, uf.filename, uf.uploaded,
-                           FROM {tiny_cursive_user_writing} uw
-                           JOIN {tiny_cursive_files} uf ON uw.file_id = uf.id
+                           FROM {tiny_authory_tech_user_writing} uw
+                           JOIN {tiny_authory_tech_files} uf ON uw.file_id = uf.id
                           WHERE uf.resourceid = :id
                                 AND uf.cmid = :cmid
                                 AND uf.modulename = :modulename";
@@ -472,7 +472,7 @@ class authory_tech_json_func_data extends external_api {
                             'resourceid' => $params['id'],
                             'cmid'       => $params['cmid'],
                             'modulename' => $params['modulename']];
-                $filename = $DB->get_record('tiny_cursive_files', $conditions, 'id, filename');
+                $filename = $DB->get_record('tiny_authory_tech_files', $conditions, 'id, filename');
                 $data['filename'] = $filename->filename;
             }
             $data['resubmit'] = constants::is_resubmitable($data, $filename->id);
@@ -546,15 +546,15 @@ class authory_tech_json_func_data extends external_api {
         require_capability('tiny/authory_tech:view', $context);
 
         $conditions = ["resourceid" => $params['id'], 'modulename' => "forum"];
-        $recs = $DB->get_records('tiny_cursive_comments', $conditions);
+        $recs = $DB->get_records('tiny_authory_tech_comments', $conditions);
 
         $attempts = "SELECT uw.total_time_seconds, uw.word_count, uw.words_per_minute, uf.uploaded,
                             uw.backspace_percent, uw.score, uw.copy_behavior, uf.resourceid,
                             uf.modulename, uf.userid, uf.filename, uw.file_id,
                             diff.meta AS effort_ratio
-                      FROM {tiny_cursive_user_writing} uw
-                      JOIN {tiny_cursive_files} uf ON uw.file_id = uf.id
-                 LEFT JOIN {tiny_cursive_writing_diff} diff ON uw.file_id = diff.file_id
+                      FROM {tiny_authory_tech_user_writing} uw
+                      JOIN {tiny_authory_tech_files} uf ON uw.file_id = uf.id
+                 LEFT JOIN {tiny_authory_tech_writing_diff} diff ON uw.file_id = diff.file_id
                      WHERE uf.resourceid = :id
                            AND uf.cmid = :cmid
                            AND uf.modulename = :modulename";
@@ -572,7 +572,7 @@ class authory_tech_json_func_data extends external_api {
 
         if (!isset($data['filename'])) {
             $sql = 'SELECT id as file_id, filename,userid, content
-                      FROM {tiny_cursive_files}
+                      FROM {tiny_authory_tech_files}
                      WHERE resourceid = :resourceid
                             AND cmid = :cmid
                             AND modulename = :modulename';
@@ -587,7 +587,7 @@ class authory_tech_json_func_data extends external_api {
             $data['cmid'] = $params['cmid'];
 
             $sql = 'SELECT *
-                      FROM {tiny_cursive_files}
+                      FROM {tiny_authory_tech_files}
                      WHERE userid = :userid ORDER BY id ASC LIMIT 1';
             $firstfile = $DB->get_record_sql($sql, ['userid' => $filename->userid]);
             if ($firstfile->id == $filename->file_id) {
@@ -596,7 +596,7 @@ class authory_tech_json_func_data extends external_api {
         }
 
         $sql = 'SELECT *
-                  FROM {tiny_cursive_files}
+                  FROM {tiny_authory_tech_files}
                  WHERE userid = :userid ORDER BY id ASC LIMIT 1';
         $firstfile = $DB->get_record_sql($sql, ['userid' => $data['userid'] ?? '']);
         $fileid = $firstfile->id ?? null;
@@ -679,14 +679,14 @@ class authory_tech_json_func_data extends external_api {
 
         if ($modulename == 'quiz') {
             $conditions = ["resourceid" => $params['id'], "cmid" => $params['cmid'], "questionid" => $params['questionid']];
-            $table = 'tiny_cursive_comments';
+            $table = 'tiny_authory_tech_comments';
             $recs = $DB->get_records($table, $conditions);
 
             $attempts = "SELECT uw.total_time_seconds ,uw.word_count ,uw.words_per_minute,
                                 uw.backspace_percent,uw.score,uw.copy_behavior,uf.resourceid ,
                                 uf.modulename,uf.userid, uf.filename
-                           FROM {tiny_cursive_user_writing} uw
-                           JOIN {tiny_cursive_files} uf ON uw.file_id =uf.id
+                           FROM {tiny_authory_tech_user_writing} uw
+                           JOIN {tiny_authory_tech_files} uf ON uw.file_id =uf.id
                           WHERE uf.resourceid = :id
                                 AND uf.cmid = :cmid
                                 AND uf.modulename = :modulename";
@@ -697,7 +697,7 @@ class authory_tech_json_func_data extends external_api {
 
             if (!isset($data->filename)) {
                 $sql = 'SELECT filename
-                          FROM {tiny_cursive_files}
+                          FROM {tiny_authory_tech_files}
                          WHERE resourceid = :resourceid
                                AND cmid = :cmid
                                AND modulename = :modulename';
@@ -710,14 +710,14 @@ class authory_tech_json_func_data extends external_api {
             }
         } else {
             $conditions = ["resourceid" => $params['id']];
-            $table = 'tiny_cursive_comments';
+            $table = 'tiny_authory_tech_comments';
             $recs = $DB->get_records($table, $conditions);
 
             $attempts = "SELECT uw.total_time_seconds ,uw.word_count ,uw.words_per_minute,
                                 uw.backspace_percent,uw.score,uw.copy_behavior,uf.resourceid ,
                                 uf.modulename,uf.userid, uf.filename
-                           FROM {tiny_cursive_user_writing} uw
-                           JOIN {tiny_cursive_files} uf ON uw.file_id =uf.id
+                           FROM {tiny_authory_tech_user_writing} uw
+                           JOIN {tiny_authory_tech_files} uf ON uw.file_id =uf.id
                           WHERE uf.resourceid = :id
                                 AND uf.cmid = :cmid
                                 AND uf.modulename = :modulename ";
@@ -728,7 +728,7 @@ class authory_tech_json_func_data extends external_api {
 
             if (!isset($data->filename)) {
                 $sql = 'SELECT filename
-                          FROM {tiny_cursive_files}
+                          FROM {tiny_authory_tech_files}
                          WHERE resourceid = :resourceid
                                AND cmid = :cmid
                                AND modulename = :modulename';
@@ -807,7 +807,7 @@ class authory_tech_json_func_data extends external_api {
         $recassignsubmission = $DB->get_record('assign_submission', ['id' => $params['id']], '*', false);
         $userid = $recassignsubmission->userid;
         $conditions = ["userid" => $userid, 'modulename' => $params['modulename'], 'cmid' => $params['cmid']];
-        $recs = $DB->get_records('tiny_cursive_comments', $conditions);
+        $recs = $DB->get_records('tiny_authory_tech_comments', $conditions);
         $usercomment = [];
         if ($recs) {
             foreach ($recs as $rec) {
@@ -873,16 +873,16 @@ class authory_tech_json_func_data extends external_api {
         require_capability('tiny/authory_tech:view', $context);
 
         $conditions = ["userid" => $params['id'], 'modulename' => $params['modulename'], 'cmid' => $params['cmid']];
-        $table = 'tiny_cursive_comments';
+        $table = 'tiny_authory_tech_comments';
         $recs = $DB->get_records($table, $conditions);
 
         $attempts = "SELECT uw.total_time_seconds, uw.word_count, uw.words_per_minute,
                             uw.backspace_percent, uw.score, uw.copy_behavior, uf.resourceid,
                             uf.modulename, uf.userid, uw.file_id, uf.filename, uf.uploaded,
                             diff.meta AS effort_ratio
-                       FROM {tiny_cursive_user_writing} uw
-                       JOIN {tiny_cursive_files} uf ON uw.file_id = uf.id
-                  LEFT JOIN {tiny_cursive_writing_diff} diff ON uw.file_id = diff.file_id
+                       FROM {tiny_authory_tech_user_writing} uw
+                       JOIN {tiny_authory_tech_files} uf ON uw.file_id = uf.id
+                  LEFT JOIN {tiny_authory_tech_writing_diff} diff ON uw.file_id = diff.file_id
                       WHERE uf.userid = :id
                             AND uf.cmid = :cmid
                             AND uf.modulename = :modulename";
@@ -902,7 +902,7 @@ class authory_tech_json_func_data extends external_api {
         $data = (array) $data;
         if (!isset($data['filename'])) {
             $sql = 'SELECT filename, content, id, userid
-                      FROM {tiny_cursive_files}
+                      FROM {tiny_authory_tech_files}
                      WHERE userid = :userid
                             AND cmid = :cmid
                             AND modulename = :modulename';
@@ -917,7 +917,7 @@ class authory_tech_json_func_data extends external_api {
         }
         if ($data['filename']) {
             $sql = 'SELECT id AS fileid
-                      FROM {tiny_cursive_files}
+                      FROM {tiny_authory_tech_files}
                      WHERE userid = :userid ORDER BY id ASC LIMIT 1';
             $ffile = $DB->get_record_sql($sql, ['userid' => $data['userid']]);
 
@@ -1050,8 +1050,8 @@ class authory_tech_json_func_data extends external_api {
                             u.firstname, u.lastname, u.email,  qa.cmid AS cmid ,qa.courseid,qa.filename,uw.word_count,
                             uw.words_per_minute , uw.total_time_seconds ,uw.backspace_percent
                        FROM {user} u
-                       JOIN {tiny_cursive_files} qa ON u.id = qa.userid
-                  LEFT JOIN {tiny_cursive_user_writing} uw ON qa.id = uw.file_id
+                       JOIN {tiny_authory_tech_files} qa ON u.id = qa.userid
+                  LEFT JOIN {tiny_authory_tech_user_writing} uw ON qa.id = uw.file_id
                       WHERE qa.userid! = 1";
 
         if ($userid != 0) {
@@ -1155,10 +1155,10 @@ class authory_tech_json_func_data extends external_api {
             $backspacepercent = round($params['backspace_percent'], 4);
 
             // Check if the record exists.
-            $recordexists = $DB->record_exists('tiny_cursive_user_writing', ['file_id' => $params['file_id']]);
+            $recordexists = $DB->record_exists('tiny_authory_tech_user_writing', ['file_id' => $params['file_id']]);
             // Retrieve existing data or initialize a new stdClass object.
             $data =
-                $recordexists ? $DB->get_record('tiny_cursive_user_writing', ['file_id' => $params['file_id']]) : new stdClass();
+                $recordexists ? $DB->get_record('tiny_authory_tech_user_writing', ['file_id' => $params['file_id']]) : new stdClass();
 
             // Populate data attributes.
             $data->file_id = $params['file_id'];
@@ -1176,9 +1176,9 @@ class authory_tech_json_func_data extends external_api {
 
             // Update or insert the record.
             if ($recordexists) {
-                $DB->update_record('tiny_cursive_user_writing', $data);
+                $DB->update_record('tiny_authory_tech_user_writing', $data);
             } else {
-                $DB->insert_record('tiny_cursive_user_writing', $data);
+                $DB->insert_record('tiny_authory_tech_user_writing', $data);
             }
 
             // Return success status.
@@ -1251,8 +1251,8 @@ class authory_tech_json_func_data extends external_api {
 
         $data = new stdClass();
         try {
-            $filedata        = $DB->get_record('tiny_cursive_files', ['filename' => $params['filepath']]);
-            $comments        = $DB->get_records('tiny_cursive_comments', $conditions, '', 'usercomment');
+            $filedata        = $DB->get_record('tiny_authory_tech_files', ['filename' => $params['filepath']]);
+            $comments        = $DB->get_records('tiny_authory_tech_comments', $conditions, '', 'usercomment');
             $content         = $filedata->content ? $filedata->content : $content = false;
             $originalcontent = $filedata->original_content ? $filedata->original_content : $originalcontent = false;
             $data->status    = true;
@@ -1353,9 +1353,9 @@ class authory_tech_json_func_data extends external_api {
         require_capability('tiny/authory_tech:writingreport', $context);
 
         $sql = "SELECT u.*, d.meta as effort_ratio, cf.userid, cf.uploaded
-                  FROM {tiny_cursive_user_writing} u
-             LEFT JOIN {tiny_cursive_writing_diff} d ON u.file_id = d.file_id
-             LEFT JOIN {tiny_cursive_files} cf ON u.file_id = cf.id
+                  FROM {tiny_authory_tech_user_writing} u
+             LEFT JOIN {tiny_authory_tech_writing_diff} d ON u.file_id = d.file_id
+             LEFT JOIN {tiny_authory_tech_files} cf ON u.file_id = cf.id
                  WHERE u.file_id = :fileid";
 
         $params = ['fileid' => $vparams['fileid']];
@@ -1365,7 +1365,7 @@ class authory_tech_json_func_data extends external_api {
         }
 
         $sql = 'SELECT id AS fileid
-                  FROM {tiny_cursive_files}
+                  FROM {tiny_authory_tech_files}
                  WHERE userid = :userid ORDER BY id ASC LIMIT 1';
         $ffile = $DB->get_record_sql($sql, ['userid' => $rec->userid ?? null]);
 
@@ -1438,8 +1438,8 @@ class authory_tech_json_func_data extends external_api {
         self::validate_context($context);
         require_capability('tiny/authory_tech:editsettings', $context);
 
-        $recordexists = $DB->record_exists('tiny_cursive_writing_diff', ['file_id' => $params['fileid']]);
-        $record = $recordexists ? $DB->get_record('tiny_cursive_writing_diff', ['file_id' => $params['fileid']]) : new stdClass();
+        $recordexists = $DB->record_exists('tiny_authory_tech_writing_diff', ['file_id' => $params['fileid']]);
+        $record = $recordexists ? $DB->get_record('tiny_authory_tech_writing_diff', ['file_id' => $params['fileid']]) : new stdClass();
         $record->file_id = $params['fileid'];
         $record->reconstructed_text = $params['reconstructed_text'];
         $record->submitted_text = $params['submitted_text'];
@@ -1447,9 +1447,9 @@ class authory_tech_json_func_data extends external_api {
 
         try {
             if ($recordexists) {
-                $DB->update_record('tiny_cursive_writing_diff', $record);
+                $DB->update_record('tiny_authory_tech_writing_diff', $record);
             } else {
-                $DB->insert_record('tiny_cursive_writing_diff', $record);
+                $DB->insert_record('tiny_authory_tech_writing_diff', $record);
             }
 
             return [
@@ -1510,7 +1510,7 @@ class authory_tech_json_func_data extends external_api {
         );
 
         $filename = $DB->get_record(
-            'tiny_cursive_files',
+            'tiny_authory_tech_files',
             ['id' => $vparams['fileid']],
             'filename',
         );
@@ -1522,9 +1522,9 @@ class authory_tech_json_func_data extends external_api {
         require_capability("tiny/authory_tech:writingreport", $context);
 
         $sql = "SELECT WD.*, CF.cmid, CF.resourceid, CF.modulename, COUNT(CC.id) AS commentscount, CF.userid, CF.questionid
-                  FROM {tiny_cursive_writing_diff} WD
-                  JOIN {tiny_cursive_files} CF ON CF.id = WD.file_id
-             LEFT JOIN {tiny_cursive_comments} CC ON CC.resourceid = CF.resourceid
+                  FROM {tiny_authory_tech_writing_diff} WD
+                  JOIN {tiny_authory_tech_files} CF ON CF.id = WD.file_id
+             LEFT JOIN {tiny_authory_tech_comments} CC ON CC.resourceid = CF.resourceid
                                                 AND CC.modulename = CF.modulename
                                                 AND CC.cmid = CF.cmid
                                                 AND CC.userid = CF.userid
@@ -1536,7 +1536,7 @@ class authory_tech_json_func_data extends external_api {
         $data = $DB->get_record_sql($sql, $params);
         if ($data) {
             $comments = $DB->get_records(
-                'tiny_cursive_comments',
+                'tiny_authory_tech_comments',
                 [
                     'resourceid' => $data->resourceid,
                     'modulename' => $data->modulename,
@@ -1693,7 +1693,7 @@ class authory_tech_json_func_data extends external_api {
             $fname = $USER->id . '_' . $params['resourceId'] . '_' . $params['cmid'] . '_' . $questionid . '_attempt' . '.json';
         }
 
-        $table = 'tiny_cursive_files';
+        $table = 'tiny_authory_tech_files';
         $inp = '';
 
         if ($questionid) {
@@ -2054,7 +2054,7 @@ class authory_tech_json_func_data extends external_api {
             $record = new stdClass();
             $record->id = $params['file_id'];
             $record->uploaded = 0;
-            return $DB->update_record('tiny_cursive_files', $record);
+            return $DB->update_record('tiny_authory_tech_files', $record);
         } catch (dml_exception $e) {
             return false;
         }
@@ -2094,7 +2094,7 @@ class authory_tech_json_func_data extends external_api {
      * @param string $editorid The editor ID
      * @param int $userid The user ID (defaults to current user)
      * @param int $courseid The course ID
-     * @return string JSON encoded array containing usercomment and timemodified fields from tiny_cursive_comments records
+     * @return string JSON encoded array containing usercomment and timemodified fields from tiny_authory_tech_comments records
      * @throws coding_exception
      * @throws dml_exception
      * @throws invalid_parameter_exception
@@ -2130,7 +2130,7 @@ class authory_tech_json_func_data extends external_api {
 
         $questionid = constants::get_question_id($params['editorid']);
         if ($questionid) {
-            $record = $DB->get_records('tiny_cursive_comments', [
+            $record = $DB->get_records('tiny_authory_tech_comments', [
                 'cmid' => $params['cmid'],
                 'modulename' => $params['modulename'],
                 'resourceid' => $params['id'],
@@ -2139,7 +2139,7 @@ class authory_tech_json_func_data extends external_api {
                 'courseid' => $params['courseid'],
             ], 'id desc', 'usercomment, timemodified');
         } else {
-            $record = $DB->get_records('tiny_cursive_comments', [
+            $record = $DB->get_records('tiny_authory_tech_comments', [
                 'cmid' => $params['cmid'],
                 'modulename' => $params['modulename'],
                 'resourceid' => $params['id'],

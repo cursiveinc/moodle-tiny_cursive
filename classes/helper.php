@@ -37,7 +37,7 @@ class helper {
     }
 
     /**
-     * Updates comments in the tiny_cursive_comments table.
+     * Updates comments in the tiny_authory_tech_comments table.
      *
      * @param array $data Array containing userid, modulename, courseid, cmid and resourceid
      * @throws \dml_exception
@@ -45,7 +45,7 @@ class helper {
     public static function update_comment($data) {
         global $DB;
 
-        $table      = 'tiny_cursive_comments';
+        $table      = 'tiny_authory_tech_comments';
         $conditions = [
             "userid"     => $data['userid'],
             "modulename" => $data['modulename'],
@@ -64,7 +64,7 @@ class helper {
     }
 
     /**
-     * Updates authory_tech file in the tiny_cursive_files table.
+     * Updates authory_tech file in the tiny_authory_tech_files table.
      *
      * @param array $data Array containing userid, modulename, courseid, cmid and resourceid
      * @throws \dml_exception
@@ -72,7 +72,7 @@ class helper {
     public static function update_authory_tech_files($data) {
         global $DB;
 
-        $table      = 'tiny_cursive_files';
+        $table      = 'tiny_authory_tech_files';
         $conditions = [
             "userid"     => $data['userid'],
             "modulename" => $data['modulename'],

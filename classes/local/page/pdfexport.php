@@ -155,9 +155,9 @@ class pdfexport {
 
         $sql = "SELECT CONCAT(u.firstname,' ',u.lastname) AS username, f.userid,
                        f.modulename, f.timemodified, f.resourceid, f.questionid, w.*, d.meta as effort, d.submitted_text
-                  FROM {tiny_cursive_files} f
-                  JOIN {tiny_cursive_user_writing} w ON f.id = w.file_id
-                  JOIN {tiny_cursive_writing_diff} d ON f.id = d.file_id
+                  FROM {tiny_authory_tech_files} f
+                  JOIN {tiny_authory_tech_user_writing} w ON f.id = w.file_id
+                  JOIN {tiny_authory_tech_writing_diff} d ON f.id = d.file_id
                   JOIN {user} u ON f.userid = u.id
                  WHERE f.id = :fileid AND f.userid = :userid";
 
@@ -275,7 +275,7 @@ class pdfexport {
                 'questionid' => $analytics->questionid,
             ];
 
-        return $DB->get_records('tiny_cursive_comments', $params, '', 'usercomment');
+        return $DB->get_records('tiny_authory_tech_comments', $params, '', 'usercomment');
     }
 
     /**

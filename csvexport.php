@@ -85,10 +85,10 @@ if ($courseid != 0) {
                         CAST(AVG(COALESCE(uw.score,0)) AS DECIMAL(10,2)) as score,
                         CAST(AVG(COALESCE(uw.copy_behavior,0)) AS DECIMAL(10,2)) as copybehavior,
                         CAST(AVG(COALESCE(CAST(wd.meta AS DECIMAL(10,2)),0)) AS DECIMAL(10,2)) as effort
-                  FROM {tiny_cursive_files} uf
+                  FROM {tiny_authory_tech_files} uf
                   JOIN {user} u ON u.id = uf.userid
-             LEFT JOIN {tiny_cursive_user_writing} uw ON uw.file_id = uf.id
-             LEFT JOIN {tiny_cursive_writing_diff} wd ON wd.file_id = uf.id
+             LEFT JOIN {tiny_authory_tech_user_writing} uw ON uw.file_id = uf.id
+             LEFT JOIN {tiny_authory_tech_writing_diff} wd ON wd.file_id = uf.id
                  WHERE uf.userid != :adminid";
 
 

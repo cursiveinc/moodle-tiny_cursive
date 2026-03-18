@@ -36,7 +36,7 @@ class observers {
         global $DB;
 
         $eventdata  = $event->get_data();
-        $table      = 'tiny_cursive_comments';
+        $table      = 'tiny_authory_tech_comments';
         $modulename = self::get_modules_name($eventdata);
         $conditions = [
             "userid"     => $eventdata['userid'],
@@ -84,7 +84,7 @@ class observers {
             }
         }
 
-        $table      = 'tiny_cursive_files';
+        $table      = 'tiny_authory_tech_files';
         $modulename = self::get_modules_name($eventdata);
         $conditions = [
             "userid"     => $eventdata['userid'],
@@ -152,7 +152,7 @@ class observers {
         $objectid         = $eventdata['objectid'];
         $discussionstable = 'forum_discussions';
         $discussionsrec   = $DB->get_record($discussionstable, ['id' => $objectid]);
-        $table            = 'tiny_cursive_comments';
+        $table            = 'tiny_authory_tech_comments';
 
         $conditions       = [
             "userid"     => $eventdata['userid'],
@@ -196,16 +196,16 @@ class observers {
         $courseid = $data->courseid;
 
         // Retrieve all file records related to the course.
-        $fileids  = $DB->get_records('tiny_cursive_files', ['courseid' => $courseid], '', 'id, filename');
+        $fileids  = $DB->get_records('tiny_authory_tech_files', ['courseid' => $courseid], '', 'id, filename');
 
-        // Delete records from 'tiny_cursive_files' and 'tiny_cursive_comments' tables.
-        $DB->delete_records('tiny_cursive_files', ['courseid' => $courseid]);
-        $DB->delete_records('tiny_cursive_comments', ['courseid' => $courseid]);
+        // Delete records from 'tiny_authory_tech_files' and 'tiny_authory_tech_comments' tables.
+        $DB->delete_records('tiny_authory_tech_files', ['courseid' => $courseid]);
+        $DB->delete_records('tiny_authory_tech_comments', ['courseid' => $courseid]);
 
         // Delete associated user writing records and files.
         foreach ($fileids as $file) {
-            $DB->delete_records('tiny_cursive_user_writing', ['file_id' => $file->id]);
-            $DB->delete_records('tiny_cursive_writing_diff', ['file_id' => $file->id]);
+            $DB->delete_records('tiny_authory_tech_user_writing', ['file_id' => $file->id]);
+            $DB->delete_records('tiny_authory_tech_writing_diff', ['file_id' => $file->id]);
         }
     }
 

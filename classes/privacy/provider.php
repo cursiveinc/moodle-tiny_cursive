@@ -53,18 +53,18 @@ class provider implements core_userlist_provider, meta_provider, plugin_provider
      */
     public static function get_metadata(collection $collection): collection {
         // There isn't much point giving details about the pageid, etc.
-        $collection->add_database_table('tiny_cursive_files', [
+        $collection->add_database_table('tiny_authory_tech_files', [
             'userid' => 'privacy:metadata:database:tiny_authory_tech:userid',
             'content' => 'privacy:metadata:database:tiny_authory_tech:content',
             'original_content' => 'privacy:metadata:database:tiny_authory_tech:original_content',
             'timemodified' => 'privacy:metadata:database:tiny_authory_tech:timemodified',
         ], 'privacy:metadata:database:tiny_authory_tech');
 
-        $collection->add_database_table('tiny_cursive_comments', [
-            'userid' => 'privacy:metadata:database:tiny_cursive_comments:userid',
-            'usercomment' => 'privacy:metadata:database:tiny_cursive_comments:commenttext',
-            'timemodified' => 'privacy:metadata:database:tiny_cursive_comments:timemodified',
-        ], 'privacy:metadata:database:tiny_cursive_comments');
+        $collection->add_database_table('tiny_authory_tech_comments', [
+            'userid' => 'privacy:metadata:database:tiny_authory_tech_comments:userid',
+            'usercomment' => 'privacy:metadata:database:tiny_authory_tech_comments:commenttext',
+            'timemodified' => 'privacy:metadata:database:tiny_authory_tech_comments:timemodified',
+        ], 'privacy:metadata:database:tiny_authory_tech_comments');
 
         $collection->add_external_location_link('api.authory.tech', [
             'userid' => 'privacy:metadata:database:tiny_authory_tech:userid',
@@ -88,14 +88,14 @@ class provider implements core_userlist_provider, meta_provider, plugin_provider
         // Data may be saved in the user context.
         $sql = "SELECT
                     c.id
-                  FROM {tiny_cursive_files} eas
+                  FROM {tiny_authory_tech_files} eas
                   JOIN {context} c ON c.id = eas.cmid
                  WHERE contextlevel = :contextuser AND c.instanceid = :userid";
         $contextlist->add_from_sql($sql, ['contextuser' => CONTEXT_USER, 'userid' => $userid]);
 
         // Data may be saved against the userid.
         $sql = "SELECT cmid
-                  FROM {tiny_cursive_files}
+                  FROM {tiny_authory_tech_files}
                  WHERE userid = :userid";
         $contextlist->add_from_sql($sql, ['userid' => $userid]);
 
@@ -115,7 +115,7 @@ class provider implements core_userlist_provider, meta_provider, plugin_provider
         ];
 
         $sql = "SELECT userid
-                  FROM {tiny_cursive_files}
+                  FROM {tiny_authory_tech_files}
                  WHERE cmid = :cmid";
 
         $userlist->add_from_sql('userid', $sql, $params);
@@ -136,7 +136,7 @@ class provider implements core_userlist_provider, meta_provider, plugin_provider
         $contextparams['userid'] = $user->id;
 
         $sql = "SELECT *
-                  FROM {tiny_cursive_files}
+                  FROM {tiny_authory_tech_files}
                  WHERE userid = :userid AND contextid {$contextsql}";
 
         $userfiledata = $DB->get_recordset_sql($sql, $contextparams);
@@ -149,7 +149,7 @@ class provider implements core_userlist_provider, meta_provider, plugin_provider
         $contextparams['contextuser'] = CONTEXT_USER;
 
         $sql = "SELECT eas.*
-                  FROM {tiny_cursive_files} eas
+                  FROM {tiny_authory_tech_files} eas
                   JOIN {context} c ON c.id = eas.cmid
                  WHERE c.id {$contextsql} AND c.contextlevel = :contextuser AND c.instanceid = :userid";
 
@@ -157,8 +157,8 @@ class provider implements core_userlist_provider, meta_provider, plugin_provider
         self::export_autosaves($user, $autosaves);
 
         $sql = "SELECT eas.*
-                  FROM {tiny_cursive_user_writing} eas
-                  JOIN {tiny_cursive_files} tcf ON tcf.id = eas.file_id
+                  FROM {tiny_authory_tech_user_writing} eas
+                  JOIN {tiny_authory_tech_files} tcf ON tcf.id = eas.file_id
                   JOIN {context} c ON c.id = tcf.cmid
                  WHERE c.id {$contextsql} AND c.contextlevel = :contextuser AND c.instanceid = :userid";
 
@@ -174,21 +174,21 @@ class provider implements core_userlist_provider, meta_provider, plugin_provider
     public static function delete_data_for_all_users_in_context(context $context) {
         global $DB;
 
-        $filesrecords = $DB->get_records('tiny_cursive_files', ['cmid' => $context->instanceid]);
+        $filesrecords = $DB->get_records('tiny_authory_tech_files', ['cmid' => $context->instanceid]);
 
         foreach ($filesrecords as $record) {
-            $DB->delete_records('tiny_cursive_user_writing', [
+            $DB->delete_records('tiny_authory_tech_user_writing', [
                 'file_id' => $record->id,
             ]);
-            $DB->delete_records('tiny_cursive_writing_diff', [
+            $DB->delete_records('tiny_authory_tech_writing_diff', [
                 'file_id' => $record->id,
             ]);
         }
 
-        $DB->delete_records('tiny_cursive_comments', [
+        $DB->delete_records('tiny_authory_tech_comments', [
             'cmid' => $context->instanceid,
         ]);
-        $DB->delete_records('tiny_cursive_files', [
+        $DB->delete_records('tiny_authory_tech_files', [
             'cmid' => $context->instanceid,
         ]);
     }
@@ -223,9 +223,9 @@ class provider implements core_userlist_provider, meta_provider, plugin_provider
         [$contextsql, $contextparams] = $DB->get_in_or_equal($contextlist->get_contextids(), SQL_PARAMS_NAMED);
         $contextparams['userid'] = $user->id;
 
-        // Fetch all records from tiny_cursive_files for this user and context.
+        // Fetch all records from tiny_authory_tech_files for this user and context.
         $filerecords = $DB->get_records_select(
-            'tiny_cursive_files',
+            'tiny_authory_tech_files',
             "userid = :userid AND cmid {$contextsql}",
             $contextparams
         );
@@ -234,16 +234,16 @@ class provider implements core_userlist_provider, meta_provider, plugin_provider
             // Collect file ids for deletion in related tables.
             $fileids = array_keys($filerecords);
 
-            // Delete from tiny_cursive_user_writing using file_id.
-            $DB->delete_records_list('tiny_cursive_user_writing', 'file_id', $fileids);
+            // Delete from tiny_authory_tech_user_writing using file_id.
+            $DB->delete_records_list('tiny_authory_tech_user_writing', 'file_id', $fileids);
 
-            // Delete from tiny_cursive_writing_diff using file_id.
-            $DB->delete_records_list('tiny_cursive_writing_diff', 'file_id', $fileids);
+            // Delete from tiny_authory_tech_writing_diff using file_id.
+            $DB->delete_records_list('tiny_authory_tech_writing_diff', 'file_id', $fileids);
         }
 
-        // Delete from tiny_cursive_files, tiny_cursive_comments using the context and user.
-        $DB->delete_records_select('tiny_cursive_files', "userid = :userid AND cmid {$contextsql}", $contextparams);
-        $DB->delete_records_select('tiny_cursive_comments', "userid = :userid AND cmid {$contextsql}", $contextparams);
+        // Delete from tiny_authory_tech_files, tiny_authory_tech_comments using the context and user.
+        $DB->delete_records_select('tiny_authory_tech_files', "userid = :userid AND cmid {$contextsql}", $contextparams);
+        $DB->delete_records_select('tiny_authory_tech_comments', "userid = :userid AND cmid {$contextsql}", $contextparams);
     }
 
     /**

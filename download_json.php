@@ -45,7 +45,7 @@ if (intval($USER->id) !== $userid && !constants::is_teacher_admin(context_course
 $context    = context_module::instance($cmid);
 require_capability('tiny/authory_tech:writingreport', $context);
 
-$filerow    = $DB->get_record('tiny_cursive_files', ['filename' => $fname]);
+$filerow    = $DB->get_record('tiny_authory_tech_files', ['filename' => $fname]);
 if (!$fname || !$filerow || !$filerow->content) {
     redirect(get_local_referer(false), get_string('filenotfound', 'tiny_authory_tech'));
 }

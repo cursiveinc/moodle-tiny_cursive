@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="lib/editor/tiny/plugins/cursive/db" VERSION="2024060212" COMMENT="XMLDB file for Moodle tiny/cursive"
+<XMLDB PATH="lib/editor/tiny/plugins/authory_tech/db" VERSION="2024060212" COMMENT="XMLDB file for Moodle tiny/authory_tech"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../../../../lib/xmldb/xmldb.xsd">
   <TABLES>
-    <TABLE NAME="tiny_cursive_files" COMMENT="Stores File names.">
+    <TABLE NAME="tiny_authory_tech_files" COMMENT="Stores File names.">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Where this question comes in order in the list of questions in this quiz. Like question_attempts.slot."/>
@@ -28,7 +28,7 @@
         <INDEX NAME="idx_files_uploaded" UNIQUE="false" FIELDS="uploaded"/>
       </INDEXES>
     </TABLE>
-    <TABLE NAME="tiny_cursive_comments" COMMENT="Stores user comments .">
+    <TABLE NAME="tiny_authory_tech_comments" COMMENT="Stores user comments .">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Where this question comes in order in the list of questions in this quiz. Like question_attempts.slot."/>
@@ -50,7 +50,7 @@
         <INDEX NAME="idx_comments_courseid" UNIQUE="false" FIELDS="courseid"/>
       </INDEXES>
     </TABLE>
-    <TABLE NAME="tiny_cursive_user_writing" COMMENT="tiny_user_writing_statics.">
+    <TABLE NAME="tiny_authory_tech_user_writing" COMMENT="tiny_user_writing_statics.">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="file_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
@@ -74,7 +74,7 @@
       </INDEXES>
     </TABLE>
 
-    <TABLE NAME="tiny_cursive_writing_diff" COMMENT="Writing Difference data">
+    <TABLE NAME="tiny_authory_tech_writing_diff" COMMENT="Writing Difference data">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="file_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>

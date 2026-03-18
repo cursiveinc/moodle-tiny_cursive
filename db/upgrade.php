@@ -36,7 +36,7 @@ function xmldb_tiny_authory_tech_upgrade($oldversion) {
     $dbman = $DB->get_manager();
 
     if ($oldversion < 2023041937) {
-        $table = new xmldb_table('tiny_cursive_files');
+        $table = new xmldb_table('tiny_authory_tech_files');
         $field = new xmldb_field('questionid', XMLDB_TYPE_INTEGER, '20', null, null, null, '0', 'uploaded');
 
         if (!$dbman->field_exists($table, $field)) {
@@ -46,7 +46,7 @@ function xmldb_tiny_authory_tech_upgrade($oldversion) {
     }
 
     if ($oldversion < 2024060227) {
-        $table = new xmldb_table('tiny_cursive_writing_diff');
+        $table = new xmldb_table('tiny_authory_tech_writing_diff');
         // Check if the table exists.
         if ($dbman->table_exists($table)) {
             // Drop the existing table.
@@ -71,7 +71,7 @@ function xmldb_tiny_authory_tech_upgrade($oldversion) {
     }
 
     if ($oldversion < 2024060228) {
-        $table = new xmldb_table('tiny_cursive_files');
+        $table = new xmldb_table('tiny_authory_tech_files');
         $field = new xmldb_field('content', XMLDB_TYPE_TEXT, null, null, null, null, null, 'filename');
 
         if (!$dbman->field_exists($table, $field)) {
@@ -81,7 +81,7 @@ function xmldb_tiny_authory_tech_upgrade($oldversion) {
     }
 
     if ($oldversion < 2024060282) {
-        $table = new xmldb_table('tiny_cursive_quality_metrics');
+        $table = new xmldb_table('tiny_authory_tech_quality_metrics');
 
         $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
         $table->add_field('file_id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
@@ -97,7 +97,7 @@ function xmldb_tiny_authory_tech_upgrade($oldversion) {
         $table->add_field('p_burst_cnt', XMLDB_TYPE_NUMBER, '10, 5', null, XMLDB_NOTNULL, null, '0');
 
         $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
-        $table->add_key('file_id_fk', XMLDB_KEY_FOREIGN, ['file_id'], 'tiny_cursive_files', ['id']);
+        $table->add_key('file_id_fk', XMLDB_KEY_FOREIGN, ['file_id'], 'tiny_authory_tech_files', ['id']);
 
         if (!$dbman->table_exists($table)) {
             $dbman->create_table($table);
@@ -107,7 +107,7 @@ function xmldb_tiny_authory_tech_upgrade($oldversion) {
     }
 
     if ($oldversion < 2024060283) {
-        $table = new xmldb_table('tiny_cursive_user_writing');
+        $table = new xmldb_table('tiny_authory_tech_user_writing');
         $field = new xmldb_field('quality_access', XMLDB_TYPE_INTEGER, 2, null, XMLDB_NOTNULL, null, '0', 'copy_behavior');
 
         if (!$dbman->field_exists($table, $field)) {
@@ -117,7 +117,7 @@ function xmldb_tiny_authory_tech_upgrade($oldversion) {
     }
 
     if ($oldversion < 2024060285) {
-        $table = new xmldb_table('tiny_cursive_quality_metrics');
+        $table = new xmldb_table('tiny_authory_tech_quality_metrics');
 
         // Add each new field if it doesn't already exist.
         $fields = [
@@ -215,7 +215,7 @@ function xmldb_tiny_authory_tech_upgrade($oldversion) {
     }
 
     if ($oldversion < 2024062004) {
-        $table = new xmldb_table('tiny_cursive_files');
+        $table = new xmldb_table('tiny_authory_tech_files');
         $field = new xmldb_field('original_content', XMLDB_TYPE_TEXT, null, null, false, null, null, 'content');
 
         if (!$dbman->field_exists($table, $field)) {
@@ -226,7 +226,7 @@ function xmldb_tiny_authory_tech_upgrade($oldversion) {
 
     // Added Indexing into existing tables.
     if ($oldversion < 2026013002) {
-        $table = new xmldb_table('tiny_cursive_files');
+        $table = new xmldb_table('tiny_authory_tech_files');
 
         // Composite index for the most common query pattern (non-quiz modules).
         $index = new xmldb_index(
@@ -266,7 +266,7 @@ function xmldb_tiny_authory_tech_upgrade($oldversion) {
             $dbman->add_index($table, $index);
         }
 
-        $table = new xmldb_table('tiny_cursive_comments');
+        $table = new xmldb_table('tiny_authory_tech_comments');
 
         // Composite index for the most common query pattern (non-quiz modules).
         $index = new xmldb_index(
@@ -300,17 +300,17 @@ function xmldb_tiny_authory_tech_upgrade($oldversion) {
             $dbman->add_index($table, $index);
         }
 
-        $table = new xmldb_table('tiny_cursive_user_writing');
+        $table = new xmldb_table('tiny_authory_tech_user_writing');
 
-        // Index for efficient joins with tiny_cursive_files.
+        // Index for efficient joins with tiny_authory_tech_files.
         $index = new xmldb_index('idx_user_writing_fileid', XMLDB_INDEX_NOTUNIQUE, ['file_id']);
         if (!$dbman->index_exists($table, $index)) {
             $dbman->add_index($table, $index);
         }
 
-        $table = new xmldb_table('tiny_cursive_writing_diff');
+        $table = new xmldb_table('tiny_authory_tech_writing_diff');
 
-        // Index for efficient joins with tiny_cursive_files.
+        // Index for efficient joins with tiny_authory_tech_files.
         $index = new xmldb_index('idx_writing_diff_fileid', XMLDB_INDEX_NOTUNIQUE, ['file_id']);
         if (!$dbman->index_exists($table, $index)) {
             $dbman->add_index($table, $index);

@@ -144,7 +144,7 @@ class tiny_authory_tech_renderer extends plugin_renderer_base {
      * @throws dml_exception
      * @throws moodle_exception
      */
-    public function tiny_cursive_user_writing_report($users, $userprofile, $userid, $page = 0, $limit = 5, $baseurl = '') {
+    public function tiny_authory_tech_user_writing_report($users, $userprofile, $userid, $page = 0, $limit = 5, $baseurl = '') {
         global $CFG, $DB, $USER;
         require_once($CFG->dirroot . "/lib/editor/tiny/plugins/authory_tech/lib.php");
 
@@ -314,7 +314,7 @@ class tiny_authory_tech_renderer extends plugin_renderer_base {
                                 WHEN p.parent = 0 THEN p.subject
                                 ELSE CONCAT(pp.subject, ' / ', p.subject)
                            END AS title
-                      FROM {tiny_cursive_files} cp
+                      FROM {tiny_authory_tech_files} cp
                  LEFT JOIN {forum_posts} p ON cp.resourceid = p.id
                  LEFT JOIN {forum_posts} pp ON p.parent = pp.id
                            WHERE cp.id = :fileid";

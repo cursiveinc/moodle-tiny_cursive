@@ -63,10 +63,10 @@ function tiny_authory_tech_get_user_attempts_data(
                    uw.word_count AS word_count, uw.words_per_minute AS words_per_minute,
                    uw.backspace_percent AS backspace_percent, uw.score AS score,
                    uw.copy_behavior AS copy_behavior
-              FROM {tiny_cursive_files} uf
+              FROM {tiny_authory_tech_files} uf
               JOIN {user} u ON uf.userid = u.id
               JOIN {course} c ON c.id = uf.courseid AND c.visible = 1
-         LEFT JOIN {tiny_cursive_user_writing} uw ON uw.file_id = uf.id
+         LEFT JOIN {tiny_authory_tech_user_writing} uw ON uw.file_id = uf.id
              WHERE uf.userid <> :userid1";
 
     $params['userid1'] = guest_user()->id;
@@ -165,9 +165,9 @@ function tiny_authory_tech_get_user_writing_data(
                       uw.backspace_percent AS backspace_percent,
                       uw.score AS score,
                       uw.copy_behavior AS copy_behavior
-                FROM {tiny_cursive_files} uf
+                FROM {tiny_authory_tech_files} uf
                 JOIN {user} u ON uf.userid = u.id
-           LEFT JOIN {tiny_cursive_user_writing} uw ON uw.file_id = uf.id
+           LEFT JOIN {tiny_authory_tech_user_writing} uw ON uw.file_id = uf.id
                WHERE uf.userid != ?";
 
     $params[] = guest_user()->id; // Exclude user ID 1.
@@ -217,8 +217,8 @@ function tiny_authory_tech_get_user_profile_data($userid, $courseid = 0) {
     global $DB;
     $attempts = [];
     $attempts = "SELECT sum(uw.total_time_seconds) AS total_time,sum(uw.word_count) AS word_count
-                   FROM {tiny_cursive_user_writing} uw
-                   JOIN {tiny_cursive_files} uf
+                   FROM {tiny_authory_tech_user_writing} uw
+                   JOIN {tiny_authory_tech_files} uf
                         ON uw.file_id = uf.id
                   WHERE uf.userid = :userid";
     if ($courseid != 0) {
@@ -247,9 +247,9 @@ function tiny_authory_tech_get_user_submissions_data($userid, $modulename, $cmid
                    uw.backspace_percent, uw.score, uw.copy_behavior, uf.resourceid,
                    uf.modulename, uf.userid, uw.file_id, uf.filename, uf.uploaded,
                    diff.meta AS effort_ratio
-              FROM {tiny_cursive_user_writing} uw
-              JOIN {tiny_cursive_files} uf ON uw.file_id = uf.id
-         LEFT JOIN {tiny_cursive_writing_diff} diff ON uw.file_id = diff.file_id
+              FROM {tiny_authory_tech_user_writing} uw
+              JOIN {tiny_authory_tech_files} uf ON uw.file_id = uf.id
+         LEFT JOIN {tiny_authory_tech_writing_diff} diff ON uw.file_id = diff.file_id
              WHERE uf.userid = :userid
                    AND uf.cmid = :cmid
                    AND uf.modulename = :modulename";
@@ -285,7 +285,7 @@ function tiny_authory_tech_get_user_submissions_data($userid, $modulename, $cmid
             'modulename' => $modulename,
         ];
         $sql = 'SELECT id as fileid, userid, filename, content
-                  FROM {tiny_cursive_files}
+                  FROM {tiny_authory_tech_files}
                  WHERE userid = :userid
                        AND cmid = :cmid
                        AND modulename = :modulename';
@@ -307,7 +307,7 @@ function tiny_authory_tech_get_user_submissions_data($userid, $modulename, $cmid
 
     if (isset($data['filename']) && $data['filename']) {
         $sql = 'SELECT id as fileid
-                  FROM {tiny_cursive_files}
+                  FROM {tiny_authory_tech_files}
                  WHERE userid = :userid ORDER BY id ASC LIMIT 1';
 
         $ffile = $DB->get_record_sql($sql, ['userid' => $userid]);

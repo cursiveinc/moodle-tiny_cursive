@@ -185,7 +185,7 @@ class constants {
 
         $data = (object) $data;
 
-        $upload = $DB->get_record('tiny_cursive_files', ['id' => $fileid], 'uploaded', IGNORE_MISSING);
+        $upload = $DB->get_record('tiny_authory_tech_files', ['id' => $fileid], 'uploaded', IGNORE_MISSING);
         $upload = $upload ? intval($upload->uploaded) : 0;
 
         $effort = intval($data->effort_ratio ?? 9999999); // Default to high value if not set, it is possible to get effort 0.
@@ -241,7 +241,7 @@ class constants {
             $autosave->usercomment = trim($params['originalText']);
             $autosave->questionid = $params['questionid'];
             $autosave->timemodified = time();
-            return $DB->insert_record('tiny_cursive_comments', $autosave);
+            return $DB->insert_record('tiny_authory_tech_comments', $autosave);
         } catch (\dml_exception $e) {
             return false;
         }
@@ -262,7 +262,7 @@ class constants {
         global $DB, $USER;
         $record = null;
         if ($params['questionid']) {
-            $record = $DB->get_records('tiny_cursive_comments', [
+            $record = $DB->get_records('tiny_authory_tech_comments', [
                 'cmid' => $params['cmid'],
                 'modulename' => $params['modulename'] . "_autosave",
                 'resourceid' => $params['resourceId'],
@@ -272,7 +272,7 @@ class constants {
             ], 'timemodified DESC', 'usercomment', 0, 1);
             $record = reset($record);
         } else {
-            $record = $DB->get_records('tiny_cursive_comments', [
+            $record = $DB->get_records('tiny_authory_tech_comments', [
                 'cmid' => $params['cmid'],
                 'modulename' => $params['modulename'] . "_autosave",
                 'resourceid' => $params['resourceId'],
