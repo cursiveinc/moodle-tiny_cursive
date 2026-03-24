@@ -135,7 +135,7 @@ function setStudentView(data, hasApiKey, userid, scoreSetting, target, questioni
         let data = JSON.parse(studentData);
         let analytics = data?.res ?? data.data ;
 
-        if (!analytics) {
+        if (!analytics[0] && !analytics.filename) {
             return;
         }
 
