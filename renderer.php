@@ -244,8 +244,11 @@ class tiny_cursive_renderer extends plugin_renderer_base {
             ) : null;
 
             $this->generate_custom_title($cm, $user, $DB, $module);
-
             $filepath = $user->filename;
+            if ($cm->modname === 'quiz' && $user) {
+                $question = question_bank::load_question($user->questionid);
+                $module->name = $module->name . " / " . $question->name;
+            }
             $row      = [];
             $row['modulename']   = $module ? $module->name : '';
             $row['lastmodified'] = date("l jS \of F Y h:i:s A", $user->timemodified);
