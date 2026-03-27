@@ -558,11 +558,14 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
         checkIsPdfAnnotator();
         let data = localStorage.getItem(filename);
 
-        if (!data || data.length === 0) {
+        if (!data || data.length === 0 || !navigator.onLine) {
+            if (!navigator.onLine) {
+                Autosave.updateSavingState('offline');
+            }
             return;
         } else {
             localStorage.removeItem(filename);
-            editor.fire('change');
+
             let originalText = editor.getContent({format: 'text'});
             if (!originalText) {
                 originalText = getRawText(editor);

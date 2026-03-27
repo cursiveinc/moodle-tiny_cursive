@@ -239,6 +239,15 @@ $functions = [
         'ajax' => true,
         'capabilities' => 'tiny/cursive:view',
     ],
+        'cursive_remove_submission' => [
+        'classname' => 'cursive_json_func_data',
+        'methodname' => 'remove_student_submission',
+        'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
+        'description' => 'remove cursive submission when student submission is removed.',
+        'type' => 'write',
+        'ajax' => true,
+        'capabilities' => 'tiny/cursive:view',
+    ],
 ];
 
 // We define the services to install as pre-build services.

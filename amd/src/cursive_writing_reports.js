@@ -87,13 +87,12 @@ export const init = (page, hasApiKey, csvOption) => {
      */
     function analyticsEvents(scoreSetting, hasApiKey, csvOption) {
 
-        $(".analytic-modal").each(function () {
-            var mid = $(this).data("id");
-            var filepath = $(this).data("filepath");
-            let context = {};
-            context.userid = mid;
-            let cmid = $(this).data("cmid");
-
+                $(".analytic-modal").each(function() {
+                    var mid = $(this).data("id");
+                    var filepath = $(this).data("filepath");
+                    let context = {};
+                    context.userid = mid;
+                    let cmid = $(this).data("cmid");
 
             AJAX.call([{
                 methodname: 'cursive_get_writing_statistics',
@@ -104,12 +103,12 @@ export const init = (page, hasApiKey, csvOption) => {
             }])[0].done(response => {
                 let data = JSON.parse(response.data);
 
-                // Show replay button if no API key, otherwise show analytics button
-                if (!hasApiKey) {
-                    $(this).html(replayButton(mid));
-                } else {
-                    $(this).html(analyticButton(data.effort_ratio, $(this).data('id')));
-                }
+                        // Show replay button if no API key, otherwise show analytics button
+                        if (!hasApiKey) {
+                            $(this).html(replayButton(mid));
+                        } else {
+                            $(this).html(analyticButton(data.effort_ratio, $(this).data('id')));
+                        }
 
                 context.formattime = myEvents.formatedTime(data);
                 context.tabledata = data;
@@ -194,24 +193,24 @@ export const init = (page, hasApiKey, csvOption) => {
             }).then(modal => {
                 modal.show();
 
-                if (type === Factory.types.SAVE_CANCEL) {
-                    modal.getRoot().on(Events.save, function() {
-                        const data = document.getElementById('download-type');
-                        if (!data) {
-                            return;
+                        if (type === Factory.types.SAVE_CANCEL) {
+                            modal.getRoot().on(Events.save, function() {
+                                const data = document.getElementById('download-type');
+                                if (!data) {
+                                    return;
+                                }
+                                if (parseInt(data.value)) {
+                                    window.location.href = link2;
+                                } else {
+                                    window.location.href = link1;
+                                }
+                            });
                         }
-                        if (parseInt(data.value)) {
-                            window.location.href = link2;
-                        } else {
-                            window.location.href = link1;
-                        }
+                        return modal;
+                    }).catch(error => {
+                        window.console.error('failed to open modal', error);
                     });
-                }
-                return modal;
-            }).catch(error => {
-                window.console.error('failed to open modal', error);
-            });
-        });
+                });
 
         const chartTitle = document.getElementById('CursiveChartTitle');
         const chartDesc = document.getElementById('CursiveChartDescription');

@@ -60,7 +60,19 @@ class constants {
             'page-mod-lesson-essay'         => ['append_lesson_grade_table', 'lesson'],
             'page-mod-pdfannotator-view'    => ['append_pdfannotator', 'pdfannotator'],
         ];
-
+    /**
+     * Array mapping page body IDs to their corresponding handler functions and module types.
+     * Each entry consists of:
+     * - Key: The page body ID string
+     * - Value: Array containing [handler function name, module type]
+     * const array BODY_IDS Mapping of page IDs to handlers
+     */
+    public const STUDENT_VIEW = [
+            'page-mod-assign-view'         => ['analytics_student_view', 'assignView'],
+            'page-mod-quiz-review'         => ['analytics_student_view', 'quizView'],
+            'page-mod-forum-discuss'       => ['analytics_student_view', 'forumView'],
+            'page-mod-lesson-view'         => ['analytics_student_view', 'lessonView'],
+    ];
 
     /**
      * Default confidence threshold value for cursive validation.
