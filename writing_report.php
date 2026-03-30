@@ -63,10 +63,10 @@ if ($courseid) {
     $PAGE->navbar->add($course->shortname, new moodle_url('/course/view.php', ['id' => $courseid]));
     $PAGE->navbar->add($struser, $url);
 } else {
-    $cmid    = tiny_cursive_get_cmid($courseid ?? $SESSION->lastcourseid);
+    $cmid    = tiny_cursive_get_cmid($SESSION->lastcourseid);
     $context = context_module::instance($cmid);
-    $course  = get_course($courseid ?? $SESSION->lastcourseid);
-    $PAGE->navbar->add($course->shortname, new moodle_url('/course/view.php', ['id' => $courseid ?? $SESSION->lastcourseid]));
+    $course  = get_course($SESSION->lastcourseid);
+    $PAGE->navbar->add($course->shortname, new moodle_url('/course/view.php', ['id' => $SESSION->lastcourseid]));
     $params['courseid'] = $SESSION->lastcourseid;
     $url      = new moodle_url('/lib/editor/tiny/plugins/cursive/writing_report.php', $params);
     $PAGE->navbar->add($struser, $url);
