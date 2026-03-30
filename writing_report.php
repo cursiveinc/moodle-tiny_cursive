@@ -40,7 +40,7 @@ if (\core\session\manager::is_loggedinas()) {
 }
 
 $userid   = optional_param('userid', 0, PARAM_INT);
-$courseid = required_param('courseid', PARAM_INT);
+$courseid = optional_param('courseid', 0, PARAM_INT);
 $orderby  = optional_param('orderby', 'id', PARAM_TEXT);
 $page     = optional_param('page', 0, PARAM_INT);
 
@@ -52,7 +52,6 @@ if (!empty($courseid) && $courseid > 0) {
     $SESSION->lastcourseid = $courseid;
 }
 
-$params['courseid'] = $courseid;
 $url      = new moodle_url('/lib/editor/tiny/plugins/cursive/writing_report.php', $params);
 $struser = get_string('student_writing_statics', 'tiny_cursive');
 
@@ -67,7 +66,6 @@ if ($courseid) {
     $context = context_module::instance($cmid);
     $course  = get_course($SESSION->lastcourseid);
     $PAGE->navbar->add($course->shortname, new moodle_url('/course/view.php', ['id' => $SESSION->lastcourseid]));
-    $params['courseid'] = $SESSION->lastcourseid;
     $url      = new moodle_url('/lib/editor/tiny/plugins/cursive/writing_report.php', $params);
     $PAGE->navbar->add($struser, $url);
 }
