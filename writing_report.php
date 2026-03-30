@@ -52,21 +52,23 @@ if (!empty($courseid) && $courseid > 0) {
     $SESSION->lastcourseid = $courseid;
 }
 
-if (empty($courseid) && !empty($SESSION->lastcourseid)) {
-    $courseid = $SESSION->lastcourseid;
-}
 $params['courseid'] = $courseid;
 $url      = new moodle_url('/lib/editor/tiny/plugins/cursive/writing_report.php', $params);
 $struser = get_string('student_writing_statics', 'tiny_cursive');
-$cmid    = tiny_cursive_get_cmid($courseid ?? $SESSION->lastcourseid);
-$context = context_module::instance($cmid);
-$course  = get_course($courseid);
 
 if ($courseid) {
+    $cmid    = tiny_cursive_get_cmid($courseid);
+    $context = context_module::instance($cmid);
+    $course  = get_course($courseid);
     $PAGE->navbar->add($course->shortname, new moodle_url('/course/view.php', ['id' => $courseid]));
     $PAGE->navbar->add($struser, $url);
 } else {
-    $PAGE->navbar->add($course->shortname, new moodle_url('/course/view.php', ['id' => $courseid]));
+    $cmid    = tiny_cursive_get_cmid($courseid ?? $SESSION->lastcourseid);
+    $context = context_module::instance($cmid);
+    $course  = get_course($courseid ?? $SESSION->lastcourseid);
+    $PAGE->navbar->add($course->shortname, new moodle_url('/course/view.php', ['id' => $courseid ?? $SESSION->lastcourseid]));
+    $params['courseid'] = $SESSION->lastcourseid;
+    $url      = new moodle_url('/lib/editor/tiny/plugins/cursive/writing_report.php', $params);
     $PAGE->navbar->add($struser, $url);
 }
 
