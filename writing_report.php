@@ -29,7 +29,7 @@ use tiny_cursive\constants;
 require_once(__DIR__ . '/locallib.php');
 require_once(__DIR__ . '/lib.php');
 
-global $CFG, $DB, $PAGE, $OUTPUT;
+global $CFG, $DB, $PAGE, $OUTPUT, $SESSION;
 require_login(null, false);
 
 if (isguestuser()) {
@@ -48,23 +48,26 @@ $limit    = 10;
 $perpage  = $page * $limit;
 
 $params   = ['userid' => $userid];
-if (!empty($courseid)) {
-    $params['courseid'] = $courseid;
+if (!empty($courseid) && $courseid > 0) {
+    $SESSION->lastcourseid = $courseid;
 }
 
+if (empty($courseid) && !empty($SESSION->lastcourseid)) {
+    $courseid = $SESSION->lastcourseid;
+}
+$params['courseid'] = $courseid;
 $url      = new moodle_url('/lib/editor/tiny/plugins/cursive/writing_report.php', $params);
+$struser = get_string('student_writing_statics', 'tiny_cursive');
+$cmid    = tiny_cursive_get_cmid($courseid ?? $SESSION->lastcourseid);
+$context = context_module::instance($cmid);
+$course  = get_course($courseid);
 
 if ($courseid) {
-    $cmid    = tiny_cursive_get_cmid($courseid);
-    $context = context_module::instance($cmid);
-
-    $struser = get_string('student_writing_statics', 'tiny_cursive');
-    $course  = get_course($courseid);
-
     $PAGE->navbar->add($course->shortname, new moodle_url('/course/view.php', ['id' => $courseid]));
     $PAGE->navbar->add($struser, $url);
 } else {
-    $context = context_system::instance();
+    $PAGE->navbar->add($course->shortname, new moodle_url('/course/view.php', ['id' => $courseid]));
+    $PAGE->navbar->add($struser, $url);
 }
 
 require_capability('tiny/cursive:view', $context);

@@ -178,15 +178,12 @@ export default class dhasboardChart {
 
     prepareData() {
 
-        let session = 1;
         const labels = [];
         const datasets = [];
 
         const dataValues = Object.values(this.dataset);
-
-        dataValues.forEach(() => {
-            labels.push(`Session ${session}`);
-            session++;
+        dataValues.forEach((data) => {
+            labels.push([data.title, ("("+data.cshortname+")")]);
         });
 
 
