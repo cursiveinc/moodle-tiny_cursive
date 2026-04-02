@@ -27,9 +27,22 @@ require_once($CFG->dirroot . '/grade/grading/form/rubric/lib.php');
  *
  * @package    tiny_cursive
  * @copyright  2025 Cursive Technology, Inc. <info@cursivetechnology.com>
+ * @author     Brain Station 23 Ltd <sales@brainstation-23.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class constants {
+    /**
+     * Base URL for the Cursive Technology API
+     * @var string The API base endpoint URL
+     */
+    public const BASE_URL = 'https://staging.api.cursivetechnology.net/api';
+
+    /**
+     * API endpoint path for Moodle integration installs
+     * @var string The specific endpoint path for installation operations
+     */
+    public const API_END = "/moodle/integration/installs";
+
     /**
      * Array of supported activity module names.
      * const array NAMES List of module names where cursive can be used

@@ -23,7 +23,7 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-
+use tiny_cursive\task\post_upgrade_task;
 /**
  * Run all ClamAV plugin upgrade steps between the current DB version and the current version on disk.
  *
@@ -319,6 +319,6 @@ function xmldb_tiny_cursive_upgrade($oldversion) {
         // Savepoint reached.
         upgrade_plugin_savepoint(true, 2026013002, 'tiny', 'cursive');
     }
-
+    \core\task\manager::queue_adhoc_task(new post_upgrade_task(), true);
     return true;
 }

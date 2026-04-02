@@ -174,6 +174,7 @@ $string['pluginname_desc_new'] = "Thanks for installing Cursive. For updates on 
 $string['pluginname_desc_new_2'] = "This plugin adds several new features to Moodle to support academic integrity and writing skills development without requiring any connection to the Cursive API. These include writing replay and cite-source copy+paste monitoring.";
 $string['pluginname_desc_new_3'] = "Connecting your site to the Cursive API provides your teachers and students access to our machine learning and AI features including authorship verification, text similarity and comparison, writing analytics, and more. To request a Cursive Secret Key and the API URL, please contact";
 $string['pluginname_desc_new_link'] = "sign up for our newsletter";
+$string['postupgradetask'] = 'Post upgrade task';
 $string['privacy:metadata:database:tiny_cursive'] = 'Information about the tiny cursive data.';
 $string['privacy:metadata:database:tiny_cursive:content'] = 'User keystroke data for generating analytics report';
 $string['privacy:metadata:database:tiny_cursive:original_content'] = 'User original submission content data';
