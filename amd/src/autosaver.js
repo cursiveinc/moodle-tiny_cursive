@@ -73,13 +73,16 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
         });
     }
 
-    const postOne = async(methodname, args) => {
+    const postOne = async(methodname, args, filename = "") => {
         try {
             const response = await call([{
                 methodname,
                 args,
             }])[0];
             if (response) {
+                if (filename) {
+                    localStorage.removeItem(filename);
+                }
                 setTimeout(() => {
                     Autosave.updateSavingState('saved');
                 }, 1000);
@@ -564,8 +567,6 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
             }
             return;
         } else {
-            localStorage.removeItem(filename);
-
             let originalText = editor.getContent({format: 'text'});
             if (!originalText) {
                 originalText = getRawText(editor);
@@ -583,7 +584,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
                     editorid: editorid,
                     "json_data": data,
                     originalText: originalText
-                });
+                }, filename);
             } catch (error) {
                 window.console.error('Error submitting data:', error);
             }
