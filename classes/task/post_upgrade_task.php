@@ -45,7 +45,6 @@ class post_upgrade_task extends adhoc_task {
     public function execute() {
         global $CFG;
 
-        $plugininfo = core_plugin_manager::instance()->get_plugin_info('tiny_cursive');
         $url = new moodle_url('/');
 
         $data = new stdClass();
