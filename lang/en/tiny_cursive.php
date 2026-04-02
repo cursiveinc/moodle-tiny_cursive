@@ -303,6 +303,6 @@ $string['wad'] = "Writing Analytics Dashboard";
 $string['acc'] = "assignments completed";
 $string['ctype'] = "Chart Type";
 $string['metric'] = "Metric";
-$string['expand'] = "Expand Chart";
+$string['expand'] = "Hide Chart";
+$string['expandshow'] = "Show Chart";
 $string['rr'] = "Revision Rate (%)";
-

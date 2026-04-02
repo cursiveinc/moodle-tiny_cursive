@@ -235,22 +235,26 @@ export const init = (page, hasApiKey, csvOption) => {
                 generateProgressChart(dataType, chartType, subType, dataset, false);
 
             });
-            $('#CursiveMetricSelect').on('change', function () {
+            $('#CursiveMetricSelect').on('change', function() {
                 subType = $(this).val();
                 let description = $(this).find(':selected').data('track');
                 chartDesc.textContent = description;
                 generateProgressChart(dataType, chartType, subType, dataset, false);
             });
 
-            $('#expandChart').on('click', function () {
-                $('#CursiveChartContainer').toggleClass('cursive-expand-height');
-                generateProgressChart(dataType, chartType, subType, dataset);
-            });
             document.getElementById('CursiveChartTypeSelect').dispatchEvent(new Event('change'));
             document.getElementById('CursiveMetricSelect').dispatchEvent(new Event('change'));
         } else {
             generateProgressChart("draw", chartType, subType, [], false);
         }
+        $('#expandChart').on('click', function() {
+            $('#CursiveChartContainer').toggleClass('cursive-expand-height');
+            $('#showtext').toggleClass('d-none');
+            $('#hidetext').toggleClass('d-none');
+            setTimeout(() => {
+                $('#tiny_cursive-chart-container').toggleClass('cursive-hide-chartcontainer');
+            }, 200);
+        });
     }
 
     /**
