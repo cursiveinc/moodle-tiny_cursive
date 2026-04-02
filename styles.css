@@ -101,14 +101,17 @@ body#page-cws #region-main>div {
 
 .cursive-cws-chart-container {
     position: relative;
-    height: 400px;
+    height: 500px;
     width: 100%;
     transition: height 0.3s ease-in-out;
     overflow: hidden;
 }
 
 .cursive-expand-height {
-    height: 500px;
+    height: 0;
+}
+.cursive-hide-chartcontainer {
+    display: none;
 }
 
 .cursive-card-custom {

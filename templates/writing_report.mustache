@@ -157,14 +157,15 @@ Example context (json):
                 </div>
                 <div class="col-md-3 text-md-end text-center text-md-right">
                     <button class="btn btn-primary btn-custom" id="expandChart">
-                       {{#pix}}t/expanded, core {{/pix}} {{#str}}expand, tiny_cursive {{/str}}
+                        <span id="showtext" class="d-none">{{#str}}expandshow, tiny_cursive {{/str}}</span>
+                        <span id="hidetext" class="">{{#str}}expand, tiny_cursive {{/str}}</span>
                     </button>
                 </div>
             </div>
         </div>
     </div>
 </div>
-<div class="">
+<div id="tiny_cursive-chart-container">
     <div class="card cursive-card-custom mb-4">
         <div class="card-body">
             <div class="mb-4">
