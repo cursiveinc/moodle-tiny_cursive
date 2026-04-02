@@ -50,9 +50,8 @@ window.video_playback = function (mid, filepath, questionid = "") {
 };
 
 export const assignView = (scoreSetting, hasApiKey, userid) => {
-    let child = document.querySelectorAll('.generaltable tr');
-    let childNo = child.length > 6 ? 6 : 5;
-    let target = document.querySelector(`.generaltable tr:nth-child(${childNo}) > th:nth-child(1)`);
+    const target = Array.from(document.querySelectorAll('.generaltable th'))
+        .find(th => th.textContent.trim().includes('Online text'));
     let cmid = M.cfg.contextInstanceId;
     let args = {id: userid, modulename: 'assign', cmid: cmid};
     let studentData = getStudentData('cursive_user_list_submission_stats', args);
