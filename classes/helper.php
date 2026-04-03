@@ -159,14 +159,14 @@ class helper {
             $response = $curl->post($url, $json, $options);
             $decoded = self::check_request_response($curl, $response);
 
-            if (empty($decoded['success'])) {
+            if (empty($decoded['message'])) {
                 mtrace(
                     "\nRemote platform rejected data: " . json_encode($decoded),
                     DEBUG_DEVELOPER
                 );
             }
 
-            mtrace("\nplugin information share successfully: " . json_encode($decoded), DEBUG_DEVELOPER);
+            mtrace("\nResponse from remote: " . json_encode($decoded['message']), DEBUG_DEVELOPER);
         } catch (moodle_exception $e) {
             mtrace(
                 'Error sending data: ' . $e->getMessage(),
