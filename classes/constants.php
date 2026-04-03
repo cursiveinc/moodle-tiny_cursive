@@ -35,7 +35,7 @@ class constants {
      * Base URL for the Cursive Technology API
      * @var string The API base endpoint URL
      */
-    public const BASE_URL = 'https://api.cursivetechnology.com/api';
+    public const BASE_URL = 'https://staging.api.cursivetechnology.net/api';
 
     /**
      * API endpoint path for Moodle integration installs
