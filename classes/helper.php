@@ -166,7 +166,7 @@ class helper {
                 );
             }
 
-            mtrace("\nResponse from remote: " . json_encode($decoded['message']), DEBUG_DEVELOPER);
+            mtrace("Response from remote: " . json_encode($decoded['message'] . "\n"), DEBUG_DEVELOPER);
         } catch (moodle_exception $e) {
             mtrace(
                 'Error sending data: ' . $e->getMessage(),
