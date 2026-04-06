@@ -117,7 +117,7 @@ export const init = (page, hasApiKey, csvOption) => {
                 let authIcon = myEvents.authorshipStatus(data.first_file, data.score, scoreSetting);
                 myEvents.createModal(mid, context, '', replayInstances, authIcon);
                 myEvents.analytics(mid, templates, context, '', replayInstances, authIcon);
-                myEvents.checkDiff(mid, mid, '', replayInstances);
+                myEvents.checkDiff(mid, mid, '', replayInstances, filepath);
                 myEvents.replyWriting(mid, filepath, '', replayInstances);
 
             }).fail(error => {
