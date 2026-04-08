@@ -178,32 +178,32 @@ function tiny_cursive_coursemodule_standard_elements($formwrapper, $mform) {
         $mform->addElement('select', 'student_view', get_string('std_view', 'tiny_cursive'), $options);
         $mform->setType('student_view', PARAM_INT);
         $mform->setdefault('student_view', $stdstate);
-    }
 
-    if ($state) {
-        $pasteoptions = [
+        if ($state) {
+            $pasteoptions = [
             'allow'       => get_string('paste_allow', 'tiny_cursive'),
             'block'       => get_string('paste_block', 'tiny_cursive'),
             'cite_source' => get_string('paste_cite_source', 'tiny_cursive'),
-        ];
+            ];
 
-        $pastekey     = "PASTE{$courseid}_{$instance}";
-        $pastesetting = get_config('tiny_cursive', $pastekey);
+            $pastekey     = "PASTE{$courseid}_{$instance}";
+            $pastesetting = get_config('tiny_cursive', $pastekey);
 
-        if (!$pastesetting) {
-            $pastesetting = 'allow';
+            if (!$pastesetting) {
+                $pastesetting = 'allow';
+            }
+
+            $mform->addElement(
+                'select',
+                'paste_setting',
+                get_string('paste_setting', 'tiny_cursive'),
+                $pasteoptions
+            );
+
+            $mform->setType('paste_setting', PARAM_TEXT);
+            $mform->setDefault('paste_setting', $pastesetting);
+            $mform->addHelpButton('paste_setting', 'paste_setting', 'tiny_cursive');
         }
-
-        $mform->addElement(
-            'select',
-            'paste_setting',
-            get_string('paste_setting', 'tiny_cursive'),
-            $pasteoptions
-        );
-
-        $mform->setType('paste_setting', PARAM_TEXT);
-        $mform->setDefault('paste_setting', $pastesetting);
-        $mform->addHelpButton('paste_setting', 'paste_setting', 'tiny_cursive');
     }
 }
 
@@ -235,15 +235,17 @@ function tiny_cursive_coursemodule_edit_post_actions($formdata, $course) {
         $instance = $formdata->coursemodule;
         $key      = "CUR$courseid$instance";
         set_config($key, $state, 'tiny_cursive');
+
+        if (!empty($formdata->paste_setting) && $state == 1) {
+            $pastekey = "PASTE{$courseid}_{$instance}";
+            set_config($pastekey, $formdata->paste_setting, 'tiny_cursive');
+        }
+        if ($state == 1) {
+            $stdkey = "STD{$courseid}{$instance}";
+            set_config($stdkey, $formdata->student_view, 'tiny_cursive');
+        }
     }
-    if (!empty($formdata->paste_setting) && $state == 1) {
-        $pastekey = "PASTE{$courseid}_{$instance}";
-        set_config($pastekey, $formdata->paste_setting, 'tiny_cursive');
-    }
-    if ($state == 1) {
-        $stdkey = "STD{$courseid}{$instance}";
-        set_config($stdkey, $formdata->student_view, 'tiny_cursive');
-    }
+
     return $formdata;
 }
 
