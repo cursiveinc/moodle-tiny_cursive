@@ -128,31 +128,42 @@ Example context (json):
             <div class="row align-items-center justify-content-between">
                 <div class="col-md-3" hidden>
                     <div class="d-flex flex-column flex-lg-row align-items-center">
-                        <!-- <label for="CursiveChartTypeSelect" class="form-label mb-0 me-3 fw-medium">{{#str}}ctype, tiny_cursive{{/str}}:</label> -->
+                        <label for="CursiveChartTypeSelect" class="form-label mb-0 me-3 fw-medium">{{#str}}ctype, tiny_cursive{{/str}}:</label>
                         <select class="custom-select" id="CursiveChartTypeSelect" data-chart="{{chartdata}}" disabled>
-                            <option data-track="{{#str}}wpot, tiny_cursive{{/str}}" value="progress">{{#str}}wpot, tiny_cursive{{/str}}</option>
-                            <option data-track="{{#str}}wsa_sub, tiny_cursive{{/str}}" value="speed">{{#str}}wsa, tiny_cursive{{/str}}</option>
-                            <option data-track="{{#str}}eem_sub, tiny_cursive{{/str}}" value="effort">{{#str}}eem, tiny_cursive{{/str}}</option>
-                            <option data-track="{{#str}}wbp_sub, tiny_cursive{{/str}}" value="behavior_pattern">{{#str}}wbp, tiny_cursive{{/str}}</option>
+                            <option data-track="{{#str}}wpot, tiny_cursive{{/str}}" value="progress">{{#str}}wpot,
+                                tiny_cursive{{/str}}</option>
+                            <option data-track="{{#str}}wsa_sub, tiny_cursive{{/str}}" value="speed">{{#str}}wsa,
+                                tiny_cursive{{/str}}</option>
+                            <option data-track="{{#str}}eem_sub, tiny_cursive{{/str}}" value="effort">{{#str}}eem,
+                                tiny_cursive{{/str}}</option>
+                            <option data-track="{{#str}}wbp_sub, tiny_cursive{{/str}}" value="behavior_pattern">
+                                {{#str}}wbp, tiny_cursive{{/str}}</option>
                         </select>
                     </div>
                 </div>
                 <div class="col-md-3 mt-3 mt-md-0 d-none" id="CursiveMetricControls">
                     <div class="d-flex flex-column flex-lg-row align-items-center">
-                        <label for="CursiveMetricSelect" class="form-label mb-0 me-3 fw-medium">{{#str}}metric, tiny_cursive{{/str}}:</label>
+                        <label for="CursiveMetricSelect" class="form-label mb-0 me-3 fw-medium">{{#str}}metric,
+                            tiny_cursive{{/str}}:</label>
                         <select class="custom-select" id="CursiveMetricSelect">
-                            <option data-track="{{#str}}track_wpm, tiny_cursive{{/str}}" value="words_per_minute">{{#str}}words_per_minute_desc, tiny_cursive{{/str}}</option>
-                            <option data-track="{{#str}}track_wc, tiny_cursive{{/str}}"  value="word_count">{{#str}}word_count, tiny_cursive{{/str}}</option>
-                            <option data-track="{{#str}}track_es, tiny_cursive{{/str}}" value="effort">{{#str}}es, tiny_cursive{{/str}}</option>
-                            <option data-track="{{#str}}track_rr, tiny_cursive{{/str}}" value="backspace_percent">{{#str}}rr, tiny_cursive{{/str}}</option>
-                            <option data-track="{{#str}}track_cpm, tiny_cursive{{/str}}"  value="characters_per_minute">{{#str}}characters_per_minute, tiny_cursive{{/str}}</option>
+                            <option data-track="{{#str}}track_wpm, tiny_cursive{{/str}}" value="words_per_minute">
+                                {{#str}}words_per_minute_desc, tiny_cursive{{/str}}</option>
+                            <option data-track="{{#str}}track_wc, tiny_cursive{{/str}}" value="word_count">
+                                {{#str}}word_count, tiny_cursive{{/str}}</option>
+                            <option data-track="{{#str}}track_es, tiny_cursive{{/str}}" value="effort">{{#str}}es,
+                                tiny_cursive{{/str}}</option>
+                            <option data-track="{{#str}}track_rr, tiny_cursive{{/str}}" value="backspace_percent">
+                                {{#str}}rr, tiny_cursive{{/str}}</option>
+                            <option data-track="{{#str}}track_cpm, tiny_cursive{{/str}}" value="characters_per_minute">
+                                {{#str}}characters_per_minute, tiny_cursive{{/str}}</option>
                         </select>
                     </div>
                 </div>
-                <div class="col-md-3 my-3 my-md-0" id="CursiveMetricControls">
+                <div class="col-md-3 my-3 my-md-0" id="CursiveMetricsControls">
                     <div class="d-flex flex-column flex-lg-row align-items-center">
-                        <label for="CursiveCourseSelect" class="form-label mb-0 me-3 fw-medium">{{#str}}course, tiny_cursive{{/str}}:</label>
-                            {{{options}}}
+                        <label class="form-label mb-0 me-3 fw-medium">{{#str}}course,
+                            tiny_cursive{{/str}}:</label>
+                        {{{options}}}
                     </div>
                 </div>
                 <div class="col-md-3 text-md-end text-center text-md-right">
@@ -184,7 +195,6 @@ Example context (json):
 </div>
 
 <div class="tiny_cursive-writing-report bg-white rounded border shadow-sm">
-
     <div class="p-3">
         <h3>{{#str}}rwm, tiny_cursive{{/str}}</h3>
     </div>
@@ -219,5 +229,4 @@ Example context (json):
             </tbody>
         </table>
     </div>
-</div>
 </div>

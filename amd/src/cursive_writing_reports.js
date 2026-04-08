@@ -30,13 +30,13 @@ import Events from "core/modal_events";
 import Alert from "core/modal";
 import Modal from "core/modal_save_cancel";
 import Factory from "core/modal_factory";
-import dashboardChart from "tiny_cursive/dashboard_chart";
+import DashboardChart from "tiny_cursive/dashboard_chart";
 import replayButton from 'tiny_cursive/replay_button';
 
 export const init = (page, hasApiKey, csvOption) => {
     const replayInstances = {};
     // eslint-disable-next-line
-    window.video_playback = function (mid, filepath) {
+    window.video_playback = function(mid, filepath) {
         if (filepath !== '') {
             const replay = new Replay(
                 'content' + mid,
@@ -57,14 +57,14 @@ export const init = (page, hasApiKey, csvOption) => {
 
     str
         .get_strings([
-            { key: "field_require", component: "tiny_cursive" },
+            {key: "field_require", component: "tiny_cursive"},
         ])
-        .done(function () {
+        .done(function() {
             getusers(page);
         });
 
     let myEvents = new AnalyticEvents();
-    (async function () {
+    (async function() {
         try {
             let scoreSetting = await str.get_string('confidence_threshold', 'tiny_cursive');
             analyticsEvents(scoreSetting, hasApiKey, parseInt(csvOption));
@@ -127,7 +127,7 @@ export const init = (page, hasApiKey, csvOption) => {
         });
 
 
-        $('.download-btn').on('click', async function (e) {
+        $('.download-btn').on('click', async function(e) {
             e.preventDefault();
 
             const link1 = $(this).attr('href');
@@ -266,7 +266,7 @@ export const init = (page, hasApiKey, csvOption) => {
      * @param {string} page - The current page identifier used for context in templates
      */
     function getusers(page) {
-        $("#id_coursename").change(function () {
+        $("#id_coursename").change(function() {
             var courseid = $(this).val();
             var promise1 = AJAX.call([
                 {
@@ -276,7 +276,7 @@ export const init = (page, hasApiKey, csvOption) => {
                     },
                 },
             ]);
-            promise1[0].done(function (json) {
+            promise1[0].done(function(json) {
                 var data = JSON.parse(json);
                 var context = {
                     tabledata: data,
@@ -285,7 +285,7 @@ export const init = (page, hasApiKey, csvOption) => {
                 // eslint-disable-next-line
                 templates
                     .render("tiny_cursive/user_list", context)
-                    .then(function (html) {
+                    .then(function(html) {
 
                         var filteredUser = $("#id_username");
                         filteredUser.html(html);
@@ -301,7 +301,7 @@ export const init = (page, hasApiKey, csvOption) => {
                     },
                 },
             ]);
-            promise2[0].done(function (json) {
+            promise2[0].done(function(json) {
                 var data = JSON.parse(json);
                 var context = {
                     tabledata: data,
@@ -310,7 +310,7 @@ export const init = (page, hasApiKey, csvOption) => {
                 // eslint-disable-next-line
                 templates
                     .render("tiny_cursive/module_list", context)
-                    .then(function (html) {
+                    .then(function(html) {
 
                         var filteredUser = $("#id_modulename");
                         filteredUser.html(html);
@@ -337,10 +337,10 @@ export const init = (page, hasApiKey, csvOption) => {
 
         if (dataType === 'progress') {
             $('#CursiveMetricControls').removeClass('d-none');
-            new dashboardChart(dataType, chartType, subType, dataset, toggle);
+            new DashboardChart(dataType, chartType, subType, dataset, toggle);
         } else {
             $('#CursiveMetricControls').addClass('d-none');
-            new dashboardChart(dataType, chartType, null, dataset, toggle);
+            new DashboardChart(dataType, chartType, null, dataset, toggle);
         }
     }
 };

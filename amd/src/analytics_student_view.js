@@ -30,7 +30,7 @@ import $ from 'jquery';
 
 const replayInstances = {};
 // eslint-disable-next-line camelcase
-window.video_playback = function (mid, filepath, questionid = "") {
+window.video_playback = function(mid, filepath, questionid = "") {
     if (filepath !== '') {
         const replay = new Replay(
             'content' + mid,
@@ -132,7 +132,7 @@ function getStudentData(methodname, arg) {
 function setStudentView(data, hasApiKey, userid, scoreSetting, target, questionid = "", module = "") {
     data.done(function(studentData) {
         let data = JSON.parse(studentData);
-        let analytics = data?.res ?? data.data ;
+        let analytics = data?.res ?? data.data;
 
         if (!analytics[0] && !analytics.filename) {
             return;
@@ -141,13 +141,13 @@ function setStudentView(data, hasApiKey, userid, scoreSetting, target, questioni
         let container = document.createElement('div');
         if (module === "assign") {
             container.className = 'mt-2';
-        } else if (module === "lesson"){
+        } else if (module === "lesson") {
             container.className = 'ms-2 text-center';
         } else {
             container.className = 'mt-2 text-center';
         }
         if (!hasApiKey) {
-            container.appendChild(replayButton(userid+questionid));
+            container.appendChild(replayButton(userid + questionid));
         } else {
             container.appendChild(analyticButton(analytics.effort_ratio, userid, questionid));
         }

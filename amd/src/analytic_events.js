@@ -68,12 +68,12 @@ export default class AnalyticEvents {
                     $('#analytic' + userid + questionid).prop('disabled', true);
                     $('#diff' + userid + questionid).prop('disabled', true);
                     $('#analytic' + userid + questionid).css({
-                            'background-color': 'rgba(168, 168, 168, 0.133)',
-                            'cursor': 'not-allowed'
-                        });
+                        'background-color': 'rgba(168, 168, 168, 0.133)',
+                        'cursor': 'not-allowed'
+                    });
                     $('#diff' + userid + questionid).css({
-                            'background-color': 'rgba(168, 168, 168, 0.133)',
-                            'cursor': 'not-allowed'
+                        'background-color': 'rgba(168, 168, 168, 0.133)',
+                        'cursor': 'not-allowed'
                     });
                     moreBtn.on('click', function(e) {
                         e.preventDefault();
@@ -97,7 +97,7 @@ export default class AnalyticEvents {
             $('#content' + userid).attr('data-label', 'analytics');
             $('#player_' + userid + questionid).css({'display': 'none'});
             $('#content' + userid).removeClass('tiny_cursive_outputElement')
-                                  .addClass('tiny_cursive').attr('data-label', 'analytics');
+                .addClass('tiny_cursive').attr('data-label', 'analytics');
             e.preventDefault();
             $('#content' + userid).html($('<div>').addClass('d-flex justify-content-center my-5')
                 .append($('<div>').addClass('tiny_cursive-loader')));
@@ -183,85 +183,83 @@ export default class AnalyticEvents {
                                         }
                                     }
                                 }
-
                                 return pasteCount;
-
                             }).catch(() => responsedata.commentscount || 0);
                         }
-
                         return Promise.resolve(responsedata.commentscount || 0);
                     };
 
-                    getPasteCount().then(pasteCount => {
+                    return getPasteCount().then(pasteCount => {
+                        // eslint-disable-next-line
+                        return getStrings([
+                            {key: 'original_text', component: 'tiny_cursive'},
+                            {key: 'editspastesai', component: 'tiny_cursive'},
+                            {key: 'pastecount', component: 'tiny_cursive'},
+                            {key: 'comments', component: 'tiny_cursive'}
+                        ]).done(strings => {
+                            const originalTextString = strings[0];
+                            const editsPastesAIString = strings[1];
+                            const pasteCountString = strings[2];
+                            const commentsString = strings[3];
 
-                    getStrings([
-                        {key: 'original_text', component: 'tiny_cursive'},
-                        {key: 'editspastesai', component: 'tiny_cursive'},
-                        {key: 'pastecount', component: 'tiny_cursive'},
-                        {key: 'comments', component: 'tiny_cursive'}
-                    ]).done(strings => {
-                        const originalTextString = strings[0];
-                        const editsPastesAIString = strings[1];
-                        const pasteCountString = strings[2];
-                        const commentsString = strings[3];
+                            const commentBox = $('<div class="p-2 border rounded mb-2">');
+                            var pasteCountDiv = $('<div></div>');
+                            pasteCountDiv.append('<div><strong>' + pasteCountString + ' :</strong> ' + pasteCount + '</div>');
 
-                        const commentBox = $('<div class="p-2 border rounded mb-2">');
-                        var pasteCountDiv = $('<div></div>');
-                        pasteCountDiv.append('<div><strong>' + pasteCountString + ' :</strong> ' + pasteCount + '</div>');
+                            commentBox.append(pasteCountDiv);
 
-                        commentBox.append(pasteCountDiv);
+                            let comments = Object.values(responsedata.comments || {});
 
-                        let comments = Object.values(responsedata.comments || {});
+                            if (comments.length > 0) {
 
-                      if (comments.length > 0) {
+                                var commentsDiv = $('<div class="border-bottom"></div>');
+                                commentsDiv.append('<strong>' + commentsString + '</strong>');
 
-                        var commentsDiv = $('<div class="border-bottom"></div>');
-                        commentsDiv.append('<strong>' + commentsString + '</strong>');
+                                var commentsList = $('<div></div>');
 
-                        var commentsList = $('<div></div>');
-
-                         for (let i = 0; i < comments.length; i++) {
+                                for (let i = 0; i < comments.length; i++) {
                                     var commentDiv = $(`<div style="word-wrap: break-word; word-break: break-word"
-                                        class="shadow-sm p-1 my-1"></div>`).text(comments[i].usercomment);
+                                                    class="shadow-sm p-1 my-1"></div>`).text(comments[i].usercomment);
                                     commentsList.append(commentDiv);
                                 }
 
-                            commentBox.append(commentsDiv).append(commentsList);
-                        }
+                                commentBox.append(commentsDiv).append(commentsList);
+                            }
 
-                        const $legend = $('<div class="d-flex p-2 border rounded mb-2">');
+                            const $legend = $('<div class="d-flex p-2 border rounded mb-2">');
 
-                        // Create the first legend item
-                        const $attributedItem = $('<div>', {"class": "tiny_cursive-legend-item"});
-                        const $attributedBox = $('<div>', {"class": "tiny_cursive-box attributed"});
-                        const $attributedText = $('<span>').text(originalTextString);
-                        $attributedItem.append($attributedBox).append($attributedText);
+                            // Create the first legend item
+                            const $attributedItem = $('<div>', {"class": "tiny_cursive-legend-item"});
+                            const $attributedBox = $('<div>', {"class": "tiny_cursive-box attributed"});
+                            const $attributedText = $('<span>').text(originalTextString);
+                            $attributedItem.append($attributedBox).append($attributedText);
 
-                        // Create the second legend item
-                        const $unattributedItem = $('<div>', {"class": 'tiny_cursive-legend-item'});
-                        const $unattributedBox = $('<div>', {"class": 'tiny_cursive-box tiny_cursive_added'});
-                        const $unattributedText = $('<span>').text(editsPastesAIString);
-                        $unattributedItem.append($unattributedBox).append($unattributedText);
+                            // Create the second legend item
+                            const $unattributedItem = $('<div>', {"class": 'tiny_cursive-legend-item'});
+                            const $unattributedBox = $('<div>', {"class": 'tiny_cursive-box tiny_cursive_added'});
+                            const $unattributedText = $('<span>').text(editsPastesAIString);
+                            $unattributedItem.append($unattributedBox).append($unattributedText);
 
-                        // Append the legend items to the legend container.
-                        $legend.append($attributedItem).append($unattributedItem);
+                            // Append the legend items to the legend container.
+                            $legend.append($attributedItem).append($unattributedItem);
 
-                        let contents = $('<div>').addClass('tiny_cursive-comparison-content');
-                        let textBlock2 = $('<div>').addClass('tiny_cursive-text-block').append(
-                            $('<div>').attr('id', 'tiny_cursive-reconstructed_text').html(JSON.parse(submittedText))
-                        );
+                            let contents = $('<div>').addClass('tiny_cursive-comparison-content');
+                            let textBlock2 = $('<div>').addClass('tiny_cursive-text-block').append(
+                                $('<div>').attr('id', 'tiny_cursive-reconstructed_text').html(JSON.parse(submittedText))
+                            );
 
-                        contents.append(commentBox, $legend, textBlock2);
-                        $('#content' + userid).html(contents); // Update content.
-                    }).fail(error => {
-                        window.console.error("Failed to load language strings:", error);
-                        $('#content' + userid).html(nodata);
-                    });
+                            contents.append(commentBox, $legend, textBlock2);
+                            $('#content' + userid).html(contents); // Update content.
+                        }).catch(error => {
+                            window.console.error("Failed to load language strings:", error);
+                            $('#content' + userid).html(nodata);
+                        });
                     });
                 } else {
                     $('#content' + userid).html(nodata);
                 }
-            }).fail(error => {
+                return responsedata;
+            }).catch(error => {
                 $('#content' + userid).html(nodata);
                 throw new Error('Error loading JSON file: ' + error.message);
             });

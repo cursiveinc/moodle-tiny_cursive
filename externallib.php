@@ -2244,7 +2244,8 @@ class cursive_json_func_data extends external_api {
     /**
      * Removes a student submission
      *
-     * @param int $submissionid The ID of the submission to remove
+     * @param int $courseid The ID of the course
+     * @param int $userid The ID of the user
      * @param int $cmid The course module ID
      * @return bool True if the submission was successfully removed
      * @throws coding_exception

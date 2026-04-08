@@ -27,7 +27,7 @@ body#page-cws #region-main {
     background-color: transparent;
 }
 
-body#page-cws #region-main>div {
+body#page-cws #region-main > div {
     padding: 0;
 }
 
@@ -162,7 +162,7 @@ body#page-cws #region-main>div {
     border-bottom: 2px solid #dee2e6;
 }
 
-.tiny_cursive_table tbody+tbody {
+.tiny_cursive_table tbody + tbody {
     border-top: 2px solid #dee2e6;
 }
 
@@ -170,7 +170,7 @@ body#page-cws #region-main>div {
 .tiny_cursive_table-borderless th,
 .tiny_cursive_table-borderless td,
 .tiny_cursive_table-borderless thead th,
-.tiny_cursive_table-borderless tbody+tbody {
+.tiny_cursive_table-borderless tbody + tbody {
     border: 0;
 }
 
@@ -726,7 +726,7 @@ body#page-cws #region-main>div {
 .tiny_cursive-writing-report table td {
     padding: 12px;
     /* border-bottom: 1px solid #ccc; */
-    vertical-align: middle
+    vertical-align: middle;
 }
 
 .tiny_cursive-writing-report table tr:nth-child(even) {
@@ -838,7 +838,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     background-color: #fff2cc;
 }
 
-/* Combined styling for AI suggested + pasted text */
+/* Combined styling for AI suggested  +  pasted text */
 .tiny_cursive-ai-suggested-char.tiny_cursive-pasted-char {
     font-weight: bold;
     background-color: #f3e5f5;
@@ -846,14 +846,14 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     color: #7b1fa2;
 }
 
-/* Combined styling for AI suggested + highlighted text */
+/* Combined styling for AI suggested  +  highlighted text */
 .tiny_cursive-ai-suggested-char.tiny_cursive-highlighted-char {
     background-color: #e8f5e8;
     border-bottom: 2px dotted #4caf50;
     color: #388e3c;
 }
 
-/* Triple combination: AI + pasted + highlighted */
+/* Triple combination: AI  +  pasted  +  highlighted */
 .tiny_cursive-ai-suggested-char.tiny_cursive-pasted-char.tiny_cursive-highlighted-char {
     font-weight: bold;
     background-color: #fff3e0;
@@ -1039,7 +1039,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
 
 /* Toggle-based Paste Events Panel */
 .tiny_cursive_paste_events_panel {
-    background: #ffffff;
+    background: #fff;
     border: 1px solid #e0e0e0;
     border-radius: 8px;
     padding: 16px;
@@ -1469,7 +1469,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     background-color: rgb(218, 218, 218);
 }
 
-.tiny_cursive_scatter #toggle:checked~.content {
+.tiny_cursive_scatter #toggle:checked ~ .content {
     width: max-content;
     padding: 0 12px;
 }
@@ -1743,6 +1743,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
 }
 
 #page-mod-lesson-view .tiny_cursive-analytics-left {
+    /* stylelint-disable-next-line declaration-no-important */
     padding: 4px 14px !important;
 }
 

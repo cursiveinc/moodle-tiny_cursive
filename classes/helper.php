@@ -132,13 +132,11 @@ class helper {
     /**
      * Performs data synchronization to remote platform
      *
-     * @param array | object $data The data to be sent (must contain 'id' field for course/category)
+     * @param array|object $data The data to be sent
      * @return void
      * @throws moodle_exception When remote platform rejects the data or other sync errors occur
      */
     public static function perform_data_sent($data) {
-        global $DB;
-
         if (empty($data)) {
             mtrace("\nInvalid form data", DEBUG_DEVELOPER);
             return;
