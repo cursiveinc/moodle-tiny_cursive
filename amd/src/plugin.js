@@ -47,7 +47,7 @@ export default new Promise((resolve, reject) => {
                     args: {courseid: M.cfg.courseId, cmid: M.cfg.contextInstanceId}
                 }])[0].done((data) => {
                     if (data.status && page.includes(document.body.id) && data.mod_state) {
-
+                        M.userAgent = data.useragent;
                         Autosaver.register(
                             editor,
                             data.sync_interval,

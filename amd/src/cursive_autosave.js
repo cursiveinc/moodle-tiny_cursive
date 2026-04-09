@@ -133,6 +133,9 @@ export default class CursiveAutosave {
      */
     static updateSavingState(state) {
         const instance = this.instance;
+        if (!instance?.savingState) {
+            return;
+        }
         instance.savingState = state;
         let stateWrapper = null;
         if (instance.module.modulename === 'quiz') {

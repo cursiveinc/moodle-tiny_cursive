@@ -80,6 +80,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
                 args,
             }])[0];
             if (response) {
+                localStorage.removeItem(filename);
                 setTimeout(() => {
                     Autosave.updateSavingState('saved');
                 }, 1000);
@@ -199,6 +200,9 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
             filename = `${userid}_${resourceId}_${cmid}_${questionid}_${modulename}_attempt`;
         }
 
+        if (editor.key === 'Unidentified') {
+            return;
+        }
         if (localStorage.getItem(filename)) {
             let data = JSON.parse(localStorage.getItem(filename));
             data.push({
@@ -213,7 +217,8 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
                 position: ed.caretPosition,
                 rePosition: ed.rePosition,
                 pastedContent: editor.pastedContent,
-                aiContent: editor.aiContent
+                aiContent: editor.aiContent,
+                userAgent: M.userAgent
             });
             localStorage.setItem(filename, JSON.stringify(data));
         } else {
@@ -229,7 +234,8 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
                 position: ed.caretPosition,
                 rePosition: ed.rePosition,
                 pastedContent: editor.pastedContent,
-                aiContent: editor.aiContent
+                aiContent: editor.aiContent,
+                userAgent: M.userAgent
             }];
             localStorage.setItem(filename, JSON.stringify(data));
         }
@@ -263,7 +269,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
                     e.stopPropagation();
                     e.stopImmediatePropagation();
                     getString('paste_blocked', 'tiny_cursive').then(str => {
-                       return editor.windowManager.alert(str);
+                        return editor.windowManager.alert(str);
                     }).catch(error => window.console.error(error));
                     setTimeout(() => {
                         isPasteAllowed = true;
@@ -414,14 +420,14 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
 
     editor.on('input', function(e) {
         let position = getCaretPosition(true);
+        let aiContent = e.data;
+
         editor.caretPosition = position.caretPosition;
         editor.rePosition = position.rePosition;
-        let aiContent = e.data;
 
         if (e.inputType === 'insertReplacementText' || (e.inputType === 'insertText' && aiContent && aiContent.length > 1)) {
 
             aiContents.push(aiContent);
-
             e.key = "ai";
             e.keyCode = 0;
             e.caretPosition = position.caretPosition;
@@ -430,8 +436,26 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
 
             sendKeyEvent("aiInsert", e);
         }
+        sentMobileInput(e);
     });
 
+    /**
+     * Constructs a mouse event object with caret position and button information
+     * @param {Object} e - The TinyMCE editor instance
+     * @function sentMobileInput
+     * @description Capture Mobile device input
+     */
+    function sentMobileInput(e) {
+        if (e.data && M.userAgent === 'mobile' || M.userAgent === 'tablet') {
+            e.key = e.data || ' ';
+            e.keyCode = e.key.charCodeAt(0);
+            let position = getCaretPosition(true);
+            e.caretPosition = position.caretPosition;
+            e.rePosition = position.rePosition;
+            sendKeyEvent("keyDown", e);
+            sendKeyEvent("keyUp", e);
+        }
+    }
 
     /**
      * Constructs a mouse event object with caret position and button information
@@ -561,8 +585,6 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
         if (!data || data.length === 0) {
             return;
         } else {
-            localStorage.removeItem(filename);
-            editor.fire('change');
             let originalText = editor.getContent({format: 'text'});
             if (!originalText) {
                 originalText = getRawText(editor);

@@ -1826,6 +1826,7 @@ class cursive_json_func_data extends external_api {
             'submission'    => json_encode($submissiondata),
             'quizinfo'      => json_encode($quizdata),
             'pastesetting'  => $pastesetting,
+            'useragent'     => core_useragent::get_device_type(),
         ];
         return $data;
     }
@@ -1847,6 +1848,7 @@ class cursive_json_func_data extends external_api {
             'submission' => new external_value(PARAM_TEXT, "Submission status"),
             'quizinfo' => new external_value(PARAM_TEXT, 'quiz info'),
             'pastesetting'  => new external_value(PARAM_TEXT, 'Paste setting'),
+            'useragent'  => new external_value(PARAM_TEXT, 'User agent'),
         ]);
     }
 
