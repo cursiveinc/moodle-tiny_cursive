@@ -367,7 +367,7 @@ class cursive_json_func_data extends external_api {
 
         $context = context_module::instance($params['cmid']);
         self::validate_context($context);
-        require_capability("tiny/cursive:view", $context);
+        require_capability("tiny/cursive:writingreport", $context);
 
         if ($params['modulename'] == 'quiz') {
             $data['filename'] = '';
@@ -543,7 +543,7 @@ class cursive_json_func_data extends external_api {
 
         $context = context_module::instance($params['cmid']);
         self::validate_context($context);
-        require_capability('tiny/cursive:view', $context);
+        require_capability('tiny/cursive:writingreport', $context);
 
         $conditions = ["resourceid" => $params['id'], 'modulename' => "forum"];
         $recs = $DB->get_records('tiny_cursive_comments', $conditions);
@@ -989,7 +989,7 @@ class cursive_json_func_data extends external_api {
         );
         $context = context_module::instance($params['cmid']);
         self::validate_context($context);
-        require_capability("tiny/cursive:view", $context);
+        require_capability("tiny/cursive:writingreport", $context);
 
         $rec = tiny_cursive_get_user_submissions_data($params['id'], $params['modulename'], $params['cmid']);
 
@@ -1252,18 +1252,15 @@ class cursive_json_func_data extends external_api {
         $data = new stdClass();
         try {
             $filedata        = $DB->get_record('tiny_cursive_files', ['filename' => $params['filepath']]);
-            $comments        = $DB->get_records('tiny_cursive_comments', $conditions, '', 'usercomment');
             $content         = $filedata->content ? $filedata->content : $content = false;
             $originalcontent = $filedata->original_content ? $filedata->original_content : $originalcontent = false;
             $data->status    = true;
-            $commentslist    = [];
+            $query = $conditions;
+            $query['modulename'] = '%_autosave';
 
-            foreach ($comments as $comment) {
-                $commentslist[] = $comment->usercomment;
-            }
-
-            $commentslist = array_values($commentslist);
-            $data->comments = json_encode($commentslist);
+            $where = "userid = :userid AND resourceid = :resourceid AND cmid = :cmid AND modulename NOT LIKE :modulename";
+            $records = $DB->get_records_select('tiny_cursive_comments', $where, $query);
+            $data->comments = json_encode(array_column($records, 'usercomment'));
 
             if ($content === false) {
                 $data->status = false;
@@ -1888,7 +1885,7 @@ class cursive_json_func_data extends external_api {
 
         $context = context_module::instance($params['cmid']);
         self::validate_context($context);
-        require_capability("tiny/cursive:view", $context);
+        require_capability("tiny/cursive:writingreport", $context);
 
         $rec = tiny_cursive_get_user_submissions_data($params['id'], $params['modulename'], $params['cmid']);
 
@@ -2227,5 +2224,70 @@ class cursive_json_func_data extends external_api {
      */
     public static function update_pdf_annote_id_returns() {
         return new external_value(PARAM_BOOL, 'update pdf annote id');
+    }
+
+    /**
+     * Returns parameters for remove_student_submission method
+     *
+     * @return external_function_parameters Parameters definition for removing student submission
+     */
+    public static function remove_student_submission_parameters() {
+        return new external_function_parameters(
+            [
+                'courseid' => new external_value(PARAM_INT, 'course id'),
+                'userid' => new external_value(PARAM_INT, 'user id'),
+                'cmid' => new external_value(PARAM_INT, 'course module id'),
+            ]
+        );
+    }
+
+    /**
+     * Removes a student submission
+     *
+     * @param int $courseid The ID of the course
+     * @param int $userid The ID of the user
+     * @param int $cmid The course module ID
+     * @return bool True if the submission was successfully removed
+     * @throws coding_exception
+     * @throws dml_exception
+     * @throws invalid_parameter_exception
+     * @throws moodle_exception
+     * @throws required_capability_exception
+     */
+    public static function remove_student_submission($courseid, $userid, $cmid) {
+        global $DB;
+
+        $params = self::validate_parameters(
+            self::remove_student_submission_parameters(),
+            [
+                'courseid' => $courseid,
+                'userid' => $userid,
+                'cmid' => $cmid,
+            ]
+        );
+
+        $context = context_module::instance($params['cmid']);
+        self::validate_context($context);
+        require_capability("tiny/cursive:write", $context);
+
+        $params['resourceid'] = $params['cmid']; // Since in assignment resourceid = cmid.
+        $filedata = $DB->get_record('tiny_cursive_files', $params);
+
+        if ($filedata) {
+            $DB->delete_records('tiny_cursive_user_writing', ['file_id' => $filedata->id]);
+            $DB->delete_records('tiny_cursive_writing_diff', ['file_id' => $filedata->id]);
+            $DB->delete_records('tiny_cursive_comments', $params);
+            return $DB->delete_records('tiny_cursive_files', ['id' => $filedata->id]);
+        }
+        return false;
+    }
+
+    /**
+     * Returns description of remove_student_submission return value
+     *
+     * @return external_value Returns a boolean parameter indicating if the submission was successfully removed
+     */
+    public static function remove_student_submission_returns() {
+        return new external_value(PARAM_BOOL, 'remove student submission');
     }
 }

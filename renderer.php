@@ -82,6 +82,11 @@ class tiny_cursive_renderer extends plugin_renderer_base {
 
             $this->generate_custom_title($cm, $user, $DB, $module);
 
+            if ($cm->modname === 'quiz' && $user) {
+                $question = question_bank::load_question($user->questionid);
+                $module->name = $module->name . " / " . $question->name;
+            }
+
             $row               = [];
             $row['fileid']     = $user->fileid;
             $row['username']   = fullname($user);
@@ -152,7 +157,6 @@ class tiny_cursive_renderer extends plugin_renderer_base {
         $svg       = $this->output->pix_icon('analytics', 'analytics icon', 'tiny_cursive', ['class' => 'mr-0']);
         $totaltime = "0";
         $icon      = html_writer::tag('i', $svg, ['class' => 'tiny_cursive-analytics-icon']);
-        $user      = $DB->get_record('user', ['id' => $userid], '*', MUST_EXIST);
 
         $dwnldicon = $this->output->pix_icon(
             'download',
@@ -162,25 +166,29 @@ class tiny_cursive_renderer extends plugin_renderer_base {
         );
 
         if (isset($userprofile->total_time) && $userprofile->total_time > 0) {
-            $seconds   = $userprofile->total_time;
-            $interval  = new DateInterval('PT' . $seconds . 'S');
-            $datetime  = new DateTime('@0');
-            $datetime->add($interval);
-            $hrs       = $datetime->format('G');
-            $mins      = $datetime->format('i');
-            $secs      = $datetime->format('s');
-            $totaltime = (int) $hrs . "h : " . (int) $mins . "m : " . (int) $secs . "s";
-            $avgwords  = round($userprofile->word_count / ($userprofile->total_time / 60));
+            $seconds = (int)$userprofile->total_time;
+            $hours   = floor($seconds / 3600);
+            $minutes = floor(($seconds % 3600) / 60);
+            $secs    = $seconds % 60;
+
+            if ($hours > 0) {
+                $totaltime = sprintf('%d:%02d:%02d', $hours, $minutes, $secs);
+            } else {
+                $totaltime = sprintf('%d:%02d', $minutes, $secs);
+            }
+
+            $avgwords = round($userprofile->word_count / ($seconds / 60));
         } else {
+            $totaltime = '0';
             $avgwords  = 0;
         }
 
         if (is_siteadmin($USER->id)) {
-            $courses = enrol_get_users_courses($userid, true, 'id, fullname', 'fullname ASC');
+            $courses = enrol_get_users_courses($userid, true, 'id, fullname, shortname', 'fullname ASC');
         } else if ($USER->id != $userid) {
-            $courses = enrol_get_users_courses($USER->id, true, 'id, fullname', 'fullname ASC');
+            $courses = enrol_get_users_courses($USER->id, true, 'id, fullname, shortname', 'fullname ASC');
         } else {
-            $courses = enrol_get_users_courses($USER->id, true, 'id, fullname', 'fullname ASC');
+            $courses = enrol_get_users_courses($USER->id, true, 'id, fullname, shortname', 'fullname ASC');
         }
 
         $options    = [];
@@ -213,10 +221,12 @@ class tiny_cursive_renderer extends plugin_renderer_base {
         $totalcount = $users['count'];
         $data       = $users['data'];
 
+        $coursename = $courses[$courseid]->fullname ?? get_string('allcourses', 'tiny_cursive');
         $userdata = [];
-        foreach ($data as $user) {
+        $lastupdate = 0;
+        foreach ($data as &$user) {
             $courseid = $user->courseid;
-
+            $lastupdate = $user->timemodified > $lastupdate ? $user->timemodified : $lastupdate;
             $cursive = get_config('tiny_cursive', "cursive-$courseid");
             if ($cursive == '0') {
                 continue;
@@ -227,6 +237,8 @@ class tiny_cursive_renderer extends plugin_renderer_base {
                 $modinfo = get_fast_modinfo($courseid);
                 if ($modinfo && isset($modinfo->cms[$user->cmid])) {
                     $cm = $modinfo->get_cm($user->cmid);
+                    $user->title = $cm->name;
+                    $user->cshortname = $courses[$courseid]->shortname;
                 }
             }
 
@@ -239,8 +251,11 @@ class tiny_cursive_renderer extends plugin_renderer_base {
             ) : null;
 
             $this->generate_custom_title($cm, $user, $DB, $module);
-
             $filepath = $user->filename;
+            if ($cm->modname === 'quiz' && $user) {
+                $question = question_bank::load_question($user->questionid);
+                $module->name = $module->name . " / " . $question->name;
+            }
             $row      = [];
             $row['modulename']   = $module ? $module->name : '';
             $row['lastmodified'] = date("l jS \of F Y h:i:s A", $user->timemodified);
@@ -281,16 +296,23 @@ class tiny_cursive_renderer extends plugin_renderer_base {
             $userdata[] = $row;
         }
 
-        $title = fullname($user);
+        $title = fullname($user ?? $USER);
+
+        $profile = $DB->get_record('user', ['id' => $userid], '*', MUST_EXIST);
         echo $this->output->render_from_template(
             'tiny_cursive/writing_report',
             [
                 'total_word' => $userprofile->word_count ?? 0,
                 'total_time' => $totaltime,
-                'avg_min'    => $avgwords,
+                'avg_spd'    => $avgwords,
                 'username'   => $title,
+                'chartdata'  => json_encode($data),
                 'userdata'   => $userdata,
                 'options'    => $select,
+                'coursename' => $coursename,
+                'total_sub'  => $totalcount,
+                'lastupdate' => $lastupdate ? date("F j, Y", $lastupdate) : "- -",
+                'profile_pic' => $this->output->user_picture($profile, ['size' => 100, 'link' => true]),
             ],
         );
 
