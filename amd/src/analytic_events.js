@@ -27,6 +27,7 @@ import myModal from "./analytic_modal";
 import { call as getContent } from "core/ajax";
 import { get_string as getString } from 'core/str';
 import { get_strings as getStrings } from 'core/str';
+import template from 'core/templates';
 
 export default class AnalyticEvents {
 
@@ -34,7 +35,7 @@ export default class AnalyticEvents {
         getString('notenoughtinfo', 'tiny_cursive').then(str => {
             localStorage.setItem('notenoughtinfo', str);
             return str;
-        });
+        }).catch(error => window.console.log(error));
     }
 
     createModal(userid, context, questionid = '', replayInstances = null, authIcon) {
@@ -50,6 +51,21 @@ export default class AnalyticEvents {
                         content.innerHTML = authIcon.outerHTML;
                     }
                     modal.show();
+
+                    const isReplayButton = element.querySelector('.tiny_cursive-replay-button') !== null;
+
+                    if (isReplayButton) {
+                        setTimeout(() => {
+                            document.querySelectorAll('.tiny_cursive-nav-tab .active')
+                                .forEach(el => el.classList.remove('active'));
+
+                            const replayTab = document.getElementById('rep' + userid + questionid);
+                            if (replayTab) {
+                                replayTab.click();
+                                replayTab.classList.add('active');
+                            }
+                        }, 50);
+                    }
 
                     const moreBtn = document.querySelector('body #more' + userid + questionid);
 
@@ -73,20 +89,9 @@ export default class AnalyticEvents {
                             diffBtn.style.cursor = 'not-allowed';
                         }
 
-                        moreBtn.addEventListener('click', function () {
-                            document
-                                .querySelectorAll('.tiny_cursive-nav-tab .active')
-                                .forEach(el => el.classList.remove('active'));
-
-                            this.classList.add('active');
-
-                            const repBtn = document.getElementById('rep' + userid + questionid);
-                            if (repBtn) {
-                                repBtn.disabled = false;
-                            }
-                            if (replayInstances && replayInstances[userid]) {
-                                replayInstances[userid].stopReplay();
-                            }
+                        moreBtn.addEventListener('click', function (e) {
+                            e.preventDefault();
+                            self.learnMore(this, context, userid, questionid, replayInstances);
                         });
                     }
 
@@ -164,7 +169,7 @@ export default class AnalyticEvents {
         });
     }
 
-    checkDiff(userid, fileid, questionid = '', replayInstances = null) {
+    checkDiff(userid, fileid, questionid = '', replayInstances = null, filepath = null) {
         const nodata = document.createElement('p');
         nodata.classList.add('tiny_cursive_nopayload', 'bg-light');
 
@@ -240,13 +245,50 @@ export default class AnalyticEvents {
                     if (responsedata) {
                         let submittedText = atob(responsedata.submitted_text);
 
+                        const getPasteCount = () => {
+                            if (filepath) {
+                                return getContent([{
+                                    methodname: 'cursive_get_reply_json',
+                                    args: { filepath: filepath }
+                                }])[0].then(replayResponse => {
+                                    let pasteCount = 0;
+                                    if (replayResponse && replayResponse.status && replayResponse.data) {
+                                        let logData = JSON.parse(replayResponse.data);
+                                        if ('data' in logData) {
+                                            logData = logData.data;
+                                        }
+                                        if ('payload' in logData) {
+                                            logData = logData.payload;
+                                        }
+                                        if (Array.isArray(logData)) {
+                                            for (let i = 0; i < logData.length; i++) {
+                                                const event = logData[i];
+                                                if (event.event === 'Paste' &&
+                                                    typeof event.pastedContent === 'string' &&
+                                                    event.pastedContent.trim() !== '') {
+                                                    pasteCount++;
+                                                }
+                                            }
+                                        }
+                                    }
+                                    return pasteCount;
+                                }).catch(() => responsedata.commentscount || 0);
+                            }
+                            return Promise.resolve(responsedata.commentscount || 0);
+                        };
+
                         // Fetch dynamic strings
                         getStrings([
                             { key: 'original_text', component: 'tiny_cursive' },
-                            { key: 'editspastesai', component: 'tiny_cursive' }
+                            { key: 'editspastesai', component: 'tiny_cursive' },
+                            { key: 'pastecount', component: 'tiny_cursive' },
+                            { key: 'comments', component: 'tiny_cursive' }
+
                         ]).then(strings => {
                             const originalTextString = strings[0];
                             const editsPastesAIString = strings[1];
+                            const pasteCountString = strings[2];
+                            const commentsString = strings[3];
 
                             // Create comment box
                             const commentBox = document.createElement('div');
@@ -412,6 +454,40 @@ export default class AnalyticEvents {
           }
         });
       }
+
+      learnMore(moreBtn, context, userid, questionid, replayInstances) {
+        document.querySelectorAll('.tiny_cursive-nav-tab .active')
+            .forEach(el => el.classList.remove('active'));
+        moreBtn.classList.add('active');
+
+        const repBtn = document.getElementById('rep' + userid + questionid);
+        if (repBtn) {
+            repBtn.disabled = false;
+        }
+
+        if (replayInstances && replayInstances[userid]) {
+            replayInstances[userid].stopReplay();
+        }
+
+        const contentEl = document.getElementById('content' + userid + questionid);
+        if (contentEl) {
+            contentEl.classList.remove('tiny_cursive_outputElement');
+        }
+
+        const replayControls = document.getElementById('replayControls_' + userid + questionid);
+        if (replayControls) {
+            replayControls.classList.add('d-none');
+        }
+
+        template.render('tiny_cursive/learn_more', context).then(function(html) {
+            if (contentEl) {
+                contentEl.innerHTML = html;
+            }
+            return true;
+        }).catch(function(error) {
+            window.console.error("Failed to render template:", error);
+        });
+    }
 
 
     formatedTime(data) {
