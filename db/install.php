@@ -23,6 +23,7 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use tiny_cursive\task\post_upgrade_task;
 /**
  * Enable web services in Moodle
  *
@@ -32,6 +33,7 @@ function xmldb_tiny_cursive_install() {
 
     tiny_cursive_enable_webservice();
     tiny_cursive_enable_webservice_protocol();
+    \core\task\manager::queue_adhoc_task(new post_upgrade_task(), true);
 }
 /**
  * Enable web services in Moodle

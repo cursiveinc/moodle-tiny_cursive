@@ -47,7 +47,7 @@ $userid   = optional_param('userid', 0, PARAM_INT);
 $uidparam = optional_param('id', 0, PARAM_INT);
 $cparam   = optional_param('course', 0, PARAM_INT);
 
-$limit    = 5;
+$limit    = 10;
 $perpage  = $page * $limit;
 
 
@@ -95,7 +95,7 @@ $PAGE->set_context(context_system::instance());
 $PAGE->set_url($url);
 $PAGE->set_title(get_string('tiny_cursive', 'tiny_cursive'));
 $PAGE->set_pagelayout('mypublic');
-$PAGE->set_pagetype('user-profile');
+$PAGE->set_pagetype('cws'); // CWS: Cursive Writing Statistics.
 
 $PAGE->navbar->add(get_string('profile'), new moodle_url('/user/profile.php'));
 $PAGE->navbar->add(get_string('student_writing_statics', 'tiny_cursive'), $url);

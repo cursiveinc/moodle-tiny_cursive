@@ -73,13 +73,16 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
         });
     }
 
-    const postOne = async(methodname, args) => {
+    const postOne = async(methodname, args, filename = "") => {
         try {
             const response = await call([{
                 methodname,
                 args,
             }])[0];
             if (response) {
+                if (filename) {
+                    localStorage.removeItem(filename);
+                }
                 setTimeout(() => {
                     Autosave.updateSavingState('saved');
                 }, 1000);
@@ -558,11 +561,12 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
         checkIsPdfAnnotator();
         let data = localStorage.getItem(filename);
 
-        if (!data || data.length === 0) {
+        if (!data || data.length === 0 || !navigator.onLine) {
+            if (!navigator.onLine) {
+                Autosave.updateSavingState('offline');
+            }
             return;
         } else {
-            localStorage.removeItem(filename);
-            editor.fire('change');
             let originalText = editor.getContent({format: 'text'});
             if (!originalText) {
                 originalText = getRawText(editor);
@@ -580,7 +584,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
                     editorid: editorid,
                     "json_data": data,
                     originalText: originalText
-                });
+                }, filename);
             } catch (error) {
                 window.console.error('Error submitting data:', error);
             }
