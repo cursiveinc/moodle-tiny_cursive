@@ -14,7 +14,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * TODO describe module cursive_autosave
+ * Cursive autosave module for TinyMCE editor integration
  *
  * @module     tiny_cursive/cursive_autosave
  * @copyright  2025 Cursive Technology, Inc. <info@cursivetechnology.com>
@@ -198,7 +198,7 @@ export default class CursiveAutosave {
         switch (state) {
             case 'saving': return Icons.cloudSave;
             case 'saved': return Icons.cloudSave;
-            case 'offline': return 'data:image/svg+xml;base64,' + btoa(Icons.offline);
+            case 'offline': return Icons.offline;
             default: return '';
         }
     }
