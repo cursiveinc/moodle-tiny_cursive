@@ -59,6 +59,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
     let PASTE_SETTING = pasteSetting || 'allow';
     let shouldBlockPaste = false;
     let isPasteAllowed = false;
+    let pendingPasteContent = null;
 
     if (ur.includes('pdfannotator')) {
         document.addEventListener('click', e => {
@@ -159,7 +160,24 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
                             // eslint-disable-next-line
                             getString('pastewarning', 'tiny_cursive').then(str => alert(str));
                         } else {
-                            editor.execCommand('Paste');
+                            if (pendingPasteContent) {
+                                editor.execCommand('Undo');
+                                editor.execCommand('mceInsertContent', false, {
+                                    content: pendingPasteContent,
+                                    paste: true
+                                });
+
+                                sendKeyEvent("Paste", {
+                                    key: "v",
+                                    keyCode: 86,
+                                    caretPosition: editor.caretPosition,
+                                    rePosition: editor.rePosition,
+                                    pastedContent: pendingPasteContent,
+                                    srcElement: {baseURI: window.location.href}
+                                });
+
+                                pendingPasteContent = null;
+                            }
                         }
 
                         postOne('cursive_user_comments', {
@@ -283,6 +301,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
                     e.preventDefault();
                     e.stopPropagation();
                     e.stopImmediatePropagation();
+                    pendingPasteContent = trimmedPastedContent;
                     getModal(e);
                 }
                 isPasteAllowed = true;
