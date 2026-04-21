@@ -91,7 +91,7 @@ function tiny_cursive_get_user_attempts_data(
                        uf.courseid, uf.timemodified, uf.cmid, uf.filename,
                        uw.total_time_seconds, uw.key_count, uw.keys_per_minute,
                        uw.character_count, uw.characters_per_minute, uw.word_count,
-                       uw.words_per_minute, uw.backspace_percent, uw.score, uw.copy_behavior, wd.meta";
+                       uw.words_per_minute, uw.backspace_percent, uw.score, uw.copy_behavior, wd.meta ";
 
     switch ($orderby) {
         case 'name':
