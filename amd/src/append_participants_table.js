@@ -26,6 +26,7 @@ define(["core/config", "core/str"], function(mdlcfg, Str) {
             await usersTable.appendTable(page);
         },
         appendTable: async function() {
+        document.addEventListener('DOMContentLoaded', async function() {
             let h_tr = document.querySelector('thead tr');
             let courseid = M.cfg.courseId;
 
@@ -55,7 +56,9 @@ define(["core/config", "core/str"], function(mdlcfg, Str) {
                     const userId = input.id.slice(4);
 
                     if (userId) {
-                        const sixthTd = row.querySelector('td:last-child');
+                        const sixthTd = row.querySelector('td:nth-child(6)');
+
+                        if (!sixthTd.querySelector('i')) {
 
                         const color = 'font-size:24px;color:black;text-decoration:none';
                         const link = mdlcfg.wwwroot + "/lib/editor/tiny/plugins/cursive/writing_report.php?userid="
@@ -75,7 +78,7 @@ define(["core/config", "core/str"], function(mdlcfg, Str) {
                         thunderIcon.appendChild(anchor);
 
                         sixthTd.after(thunderIcon);
-                        // }
+                        }
                     }
                 }
             });
@@ -92,7 +95,7 @@ define(["core/config", "core/str"], function(mdlcfg, Str) {
                     }, 1800);
                 });
             });
-            // });
+            });
         }
     };
     return usersTable;

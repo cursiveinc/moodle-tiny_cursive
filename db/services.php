@@ -19,7 +19,7 @@
  *
  * @package tiny_cursive
  * @copyright  CTI <info@cursivetechnology.com>
- * @author Brain Station 23 <elearning@brainstation-23.com>
+ * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -212,6 +212,41 @@ $functions = [
         'type' => 'read',
         'ajax' => true,
         'capabilities' => 'tiny/cursive:view',
+    ], 'cursive_resubmit_payload_data' => [
+        'classname' => 'cursive_json_func_data',
+        'methodname' => 'resubmit_payload_data',
+        'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
+        'description' => 'resubmit payload data',
+        'type' => 'write',
+        'ajax' => true,
+        'capabilities' => 'tiny/cursive:view',
+    ],
+    'cursive_get_autosave_content' => [
+        'classname' => 'cursive_json_func_data',
+        'methodname' => 'get_autosave_content',
+        'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
+        'description' => 'resubmit payload data',
+        'type' => 'write',
+        'ajax' => true,
+        'capabilities' => 'tiny/cursive:view',
+    ],
+    'cursive_update_pdf_annote_id' => [
+        'classname' => 'cursive_json_func_data',
+        'methodname' => 'update_pdf_annote_id',
+        'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
+        'description' => 'update resourceid for pdf annote analytics file',
+        'type' => 'write',
+        'ajax' => true,
+        'capabilities' => 'tiny/cursive:view',
+    ],
+        'cursive_remove_submission' => [
+        'classname' => 'cursive_json_func_data',
+        'methodname' => 'remove_student_submission',
+        'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
+        'description' => 'remove cursive submission when student submission is removed.',
+        'type' => 'write',
+        'ajax' => true,
+        'capabilities' => 'tiny/cursive:view',
     ],
 ];
 
@@ -239,6 +274,8 @@ $services = [
             'cursive_generate_webtoken',
             'cursive_write_local_to_json',
             'cursive_get_config',
+            'cursive_store_quality_metrics',
+            'cursive_get_quality_metrics',
         ],
         'shortname' => 'cursive_json_service',
         'downloadfiles' => 1, // Allow file downloads.

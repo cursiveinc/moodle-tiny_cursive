@@ -27,6 +27,7 @@ import {call as getData} from 'core/ajax';
 import templates from 'core/templates';
 import AnalyticEvents from './analytic_events';
 import analyticButton from './analytic_button';
+import replayButton from './replay_button';
 import * as Str from 'core/str';
 
 export const init = (scoreSetting, showcomment, hasApiKey) => {
@@ -49,7 +50,7 @@ export const init = (scoreSetting, showcomment, hasApiKey) => {
                 if (contentElement) {
                     contentElement.innerHTML = html;
                 }
-                return contentElement;
+                return true;
             }).catch(e => window.console.error(e));
         }
         return false;
@@ -131,9 +132,11 @@ export const init = (scoreSetting, showcomment, hasApiKey) => {
 
           let analyticButtonDiv = document.createElement('div');
           let analyticsColumn = document.createElement('td');
-          analyticButtonDiv.append(
-            analyticButton(hasApiKey ? data.res.effort_ratio : "", userid)
-          );
+          if (!hasApiKey) {
+            analyticButtonDiv.innerHTML = replayButton(userid).outerHTML;
+          } else {
+            analyticButtonDiv.append(analyticButton(data.res.effort_ratio, userid));
+          }
           analyticButtonDiv.dataset.region = "analytic-div" + userid;
           analyticsColumn.append(analyticButtonDiv);
 
@@ -169,7 +172,7 @@ export const init = (scoreSetting, showcomment, hasApiKey) => {
           );
           myEvents.createModal(userid, context, '', replayInstances, authIcon);
           myEvents.analytics(userid, templates, context, '', replayInstances, authIcon);
-          myEvents.checkDiff(userid, data.res.file_id, '', replayInstances);
+          myEvents.checkDiff(userid, data.res.file_id, '', replayInstances, filepath);
           myEvents.replyWriting(userid, filepath, '', replayInstances);
         });
 

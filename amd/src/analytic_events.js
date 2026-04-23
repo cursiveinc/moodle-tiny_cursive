@@ -278,7 +278,8 @@ export default class AnalyticEvents {
                         };
 
                         // Fetch dynamic strings
-                        getStrings([
+                    return getPasteCount().then(pasteCount => {
+                        return getStrings([
                             { key: 'original_text', component: 'tiny_cursive' },
                             { key: 'editspastesai', component: 'tiny_cursive' },
                             { key: 'pastecount', component: 'tiny_cursive' },
@@ -296,27 +297,20 @@ export default class AnalyticEvents {
 
                             // Paste count
                             const pasteCountDiv = document.createElement('div');
-                            getString('pastecount', 'tiny_cursive').then(str => {
-                                pasteCountDiv.innerHTML = `<div><strong>${str} :</strong> ${responsedata.commentscount}</div>`;
-                                return true;
-                            }).catch(error => window.console.log(error));
-
+                            pasteCountDiv.innerHTML = `<div><strong>${pasteCountString} :</strong> ${pasteCount}</div>`;
                             // Comments header
                             const commentsDiv = document.createElement('div');
                             commentsDiv.className = 'border-bottom';
-                            getString('comments', 'tiny_cursive').then(str => {
-                                commentsDiv.innerHTML = `<strong>${str}</strong>`;
-                                return true;
-                            }).catch(error => window.console.error(error));
+                            commentsDiv.innerHTML = `<strong>${commentsString}</strong>`;
 
                             // Comments list
                             const commentsList = document.createElement('div');
-                            const comments = responsedata.comments;
-                            for (let index in comments) {
+                            const comments = Object.values(responsedata.comments || {});
+                            for (let i = 0; i < comments.length; i++) {
                                 const commentDiv = document.createElement('div');
                                 commentDiv.style.cssText = 'word-wrap: break-word; word-break: break-word';
                                 commentDiv.className = 'shadow-sm p-1 my-1';
-                                commentDiv.textContent = comments[index].usercomment;
+                                commentDiv.textContent = comments[i].usercomment;
                                 commentsList.appendChild(commentDiv);
                             }
 
@@ -375,6 +369,7 @@ export default class AnalyticEvents {
                                 content.innerHTML = '';
                                 content.appendChild(nodata);
                             }
+                        });
                         });
                     } else {
                         if (content) {

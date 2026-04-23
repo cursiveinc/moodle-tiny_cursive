@@ -26,6 +26,7 @@ define([
     "core/templates",
     "./replay",
     './analytic_button',
+    './replay_button',
     './analytic_events',
     'core/str'], function(
         AJAX,
@@ -33,6 +34,7 @@ define([
         templates,
         Replay,
         analyticButton,
+        replayButton,
         AnalyticEvents,
         Str
     ) {
@@ -51,6 +53,7 @@ define([
         } else {
             templates.render('tiny_cursive/no_submission').then(html => {
                 document.getElementById('content' + mid).innerHTML = html;
+                return true;
             }).catch(e => window.console.error(e));
         }
         return false;
@@ -97,7 +100,11 @@ define([
                                 }
 
                                 const tableCell = document.createElement('td');
-                                tableCell.appendChild(analyticButton(hasApiKey ? data.res.effort_ratio : "", userid));
+                                if (!hasApiKey) {
+                                    tableCell.innerHTML = replayButton(userid).outerHTML;
+                                } else {
+                                    tableCell.appendChild(analyticButton(data.res.effort_ratio, userid));
+                                }
                                 tr.children[3].insertAdjacentElement('afterend', tableCell);
 
                                 // Get Module Name from element
@@ -117,7 +124,7 @@ define([
                                 let authIcon = myEvents.authorshipStatus(data.res.first_file, data.res.score, scoreSetting);
                                 myEvents.createModal(userid, context, '', replayInstances, authIcon);
                                 myEvents.analytics(userid, templates, context, '', replayInstances, authIcon);
-                                myEvents.checkDiff(userid, data.res.file_id, '', replayInstances);
+                                myEvents.checkDiff(userid, data.res.file_id, '', replayInstances, filepath);
                                 myEvents.replyWriting(userid, filepath, '', replayInstances);
 
                             }).fail(function(error) {
