@@ -27,9 +27,22 @@ require_once($CFG->dirroot . '/grade/grading/form/rubric/lib.php');
  *
  * @package    tiny_cursive
  * @copyright  2025 Cursive Technology, Inc. <info@cursivetechnology.com>
+ * @author     Brain Station 23 Ltd <sales@brainstation-23.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class constants {
+    /**
+     * Base URL for the Cursive Technology API
+     * @var string The API base endpoint URL
+     */
+    public const BASE_URL = 'https://staging.api.cursivetechnology.net/api';
+
+    /**
+     * API endpoint path for Moodle integration installs
+     * @var string The specific endpoint path for installation operations
+     */
+    public const API_END = "/moodle/integration/installs";
+
     /**
      * Array of supported activity module names.
      * const array NAMES List of module names where cursive can be used
@@ -60,7 +73,19 @@ class constants {
             'page-mod-lesson-essay'         => ['append_lesson_grade_table', 'lesson'],
             'page-mod-pdfannotator-view'    => ['append_pdfannotator', 'pdfannotator'],
         ];
-
+    /**
+     * Array mapping page body IDs to their corresponding handler functions and module types.
+     * Each entry consists of:
+     * - Key: The page body ID string
+     * - Value: Array containing [handler function name, module type]
+     * const array BODY_IDS Mapping of page IDs to handlers
+     */
+    public const STUDENT_VIEW = [
+            'page-mod-assign-view'         => ['analytics_student_view', 'assignView'],
+            'page-mod-quiz-review'         => ['analytics_student_view', 'quizView'],
+            'page-mod-forum-discuss'       => ['analytics_student_view', 'forumView'],
+            'page-mod-lesson-view'         => ['analytics_student_view', 'lessonView'],
+    ];
 
     /**
      * Default confidence threshold value for cursive validation.

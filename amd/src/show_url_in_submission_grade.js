@@ -135,7 +135,7 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
 
                     myEvents.createModal(userid, context, '', replayInstances, authIcon);
                     myEvents.analytics(userid, templates, context, '', replayInstances, authIcon);
-                    myEvents.checkDiff(userid, data.data.file_id, '', replayInstances);
+                    myEvents.checkDiff(userid, data.data.file_id, '', replayInstances, filepath);
                     myEvents.replyWriting(userid, filepath, '', replayInstances);
 
 

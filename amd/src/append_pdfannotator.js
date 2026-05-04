@@ -251,7 +251,7 @@ export const init = (scoreSetting, comments, hasApiKey, userid) => {
             let authIcon = myEvents.authorshipStatus(data.data.first_file, data.data.score, scoreSetting);
             myEvents.createModal(resourceid, context, '', replayInstances, authIcon);
             myEvents.analytics(resourceid, templates, context, '', replayInstances, authIcon);
-            myEvents.checkDiff(resourceid, data.data.file_id, '', replayInstances);
+            myEvents.checkDiff(resourceid, data.data.file_id, '', replayInstances, filepath);
             myEvents.replyWriting(resourceid, filepath, '', replayInstances);
 
         });

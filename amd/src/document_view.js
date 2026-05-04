@@ -179,6 +179,7 @@ export default class DocumentView {
                     Element.style.verticalAlign = 'middle';
                 });
             }
+
             content.append(
                 this.createBox({
                     bg: 'bg-gray',
@@ -207,46 +208,7 @@ export default class DocumentView {
         }
 
         if (this.module === 'quiz' && this.editor?.id) {
-
-            let questionId = this.getQuestionId(this.editor?.id);
-            let question = document.querySelector(`#question-${questionId} .qtext`);
-            let intro = atob(this.quizInfo.intro);
-
-            if (question?.textContent.trim()) {
-                content.append(
-                    this.createBox({
-                        bg: 'bg-amber',
-                        titleColor: 'text-dark',
-                        icon: this.moduleIcon,
-                        title: this.answeringto,
-                        bodyHTML: question.textContent
-                    })
-                );
-            }
-
-            if (intro && intro.trim() !== '') {
-                content.append(
-                    this.createBox({
-                        bg: 'bg-gray',
-                        titleColor: 'text-dark',
-                        icon: this.moduleIcon,
-                        title: `${this.quiz} ${this.description}`,
-                        bodyHTML: intro
-                    })
-                );
-            }
-
-            if (Number(this.quizInfo.open)) {
-                content.append(
-                    this.createBox({
-                        bg: 'bg-amber',
-                        titleColor: 'text-dark',
-                        icon: Icons.time,
-                        title: this.importantdates,
-                        bodyHTML: this.generateImportantDates(Number(this.quizInfo.open), Number(this.quizInfo.close))
-                    })
-                );
-            }
+            this.extendQuizModule(content);
         }
 
         if (Object.keys(this.Rubrics).length) {
@@ -288,6 +250,49 @@ export default class DocumentView {
         return container;
 
     }
+
+    extendQuizModule(content) {
+        let questionId = this.getQuestionId(this.editor?.id);
+        let question = document.querySelector(`#question-${questionId} .qtext`);
+        let intro = atob(this.quizInfo.intro);
+
+        if (question?.textContent.trim()) {
+            content.append(
+                this.createBox({
+                    bg: 'bg-amber',
+                    titleColor: 'text-dark',
+                    icon: this.moduleIcon,
+                    title: this.answeringto,
+                    bodyHTML: question.textContent
+                })
+            );
+        }
+
+        if (intro && intro.trim() !== '') {
+            content.append(
+                this.createBox({
+                    bg: 'bg-gray',
+                    titleColor: 'text-dark',
+                    icon: this.moduleIcon,
+                    title: `${this.getSidebarTitle().title} ${this.description}`,
+                    bodyHTML: intro
+                })
+            );
+        }
+
+        if (Number(this.quizInfo.open)) {
+            content.append(
+                this.createBox({
+                    bg: 'bg-amber',
+                    titleColor: 'text-dark',
+                    icon: Icons.time,
+                    title: this.importantdates,
+                    bodyHTML: this.generateImportantDates(Number(this.quizInfo.open), Number(this.quizInfo.close))
+                })
+            );
+        }
+    }
+
     // Helper to create info boxes
     createBox({bg, titleColor, icon, title, bodyHTML}) {
         const box = this.create('div');

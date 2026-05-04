@@ -107,7 +107,6 @@ class user_report_form extends moodleform {
      * @return array
      */
     public function get_modules($courseid) {
-        global $DB;
         // Default option: All modules.
         $mdetail = [0 => get_string('allmodule', 'tiny_cursive')];
 
