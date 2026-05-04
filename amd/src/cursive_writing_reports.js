@@ -113,8 +113,9 @@ export const init = (page, hasApiKey, csvOption) => {
                 context.formattime = myEvents.formatedTime(data);
                 context.tabledata = data;
                 context.apikey = hasApiKey;
+
                 // Perform actions that require context.tabledata
-                let authIcon = myEvents.authorshipStatus(data.first_file, data.score, scoreSetting);
+                let authIcon = myEvents.authorshipStatus(data.user_agent, data.first_file, data.score, scoreSetting);
                 myEvents.createModal(mid, context, '', replayInstances, authIcon);
                 myEvents.analytics(mid, templates, context, '', replayInstances, authIcon);
                 myEvents.checkDiff(mid, mid, '', replayInstances, filepath);
