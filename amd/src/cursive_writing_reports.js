@@ -227,7 +227,14 @@ define(["core/ajax", "core/str", "core/templates", "./replay", "./analytic_butto
                     var dataType = document.getElementById('CursiveChartTypeSelect').value;
                     var chartType = "line";
                     var subType = document.getElementById('CursiveMetricSelect')?.value ?? "";
-                    var dataset = document.getElementById('CursiveChartTypeSelect').dataset.chart;
+                    var parseddataset = document.getElementById('CursiveChartTypeSelect').dataset.chart;
+
+                    var dataset = {};
+                    try {
+                        dataset = JSON.parse(parseddataset || '{}');
+                    } catch(e) {
+                        window.console.error('Failed to parse chart dataset:', e);
+                    }
 
                     if (hasApiKey) {
                         usersTable.generateProgressChart(dataType, chartType, subType, dataset, false);
