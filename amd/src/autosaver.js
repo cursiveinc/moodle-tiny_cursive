@@ -29,6 +29,7 @@ import {iconUrl, iconGrayUrl, tooltipCss} from 'tiny_cursive/common';
 import Autosave from 'tiny_cursive/cursive_autosave';
 import DocumentView from 'tiny_cursive/document_view';
 import {call as getUser} from "core/ajax";
+import InputMutationDetector from 'tiny_cursive/input_mutation_detector';
 
 export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, submission, quizInfo, pasteSetting) => {
 
@@ -223,6 +224,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
         if (editor.key === 'Unidentified') {
             return;
         }
+
         if (localStorage.getItem(filename)) {
             let data = JSON.parse(localStorage.getItem(filename));
             data.push({
@@ -266,6 +268,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
         let position = getCaretPosition(false);
         editor.caretPosition = position.caretPosition;
         editor.rePosition = position.rePosition;
+        // console.log('KeyUp: ', editor.key);
         sendKeyEvent("keyUp", editor);
     });
     editor.on('Paste', async(e) => {
@@ -334,6 +337,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
         let position = getCaretPosition();
         editor.caretPosition = position.caretPosition;
         editor.rePosition = position.rePosition;
+        // console.log('KeyDown: ', editor.key);
         sendKeyEvent("keyDown", editor);
     });
     editor.on('Cut', () => {
@@ -442,7 +446,9 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
     editor.on('input', function(e) {
         let position = getCaretPosition(true);
         let aiContent = e.data;
-
+        if (!editor.inputMutationDetector) {
+            sentMobileInputUsingMutationDetector(editor);
+        }
         editor.caretPosition = position.caretPosition;
         editor.rePosition = position.rePosition;
 
@@ -457,7 +463,9 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
 
             sendKeyEvent("aiInsert", e);
         }
+        // console.log('Input: ', e);
         sentMobileInput(e);
+
     });
 
     /**
@@ -467,17 +475,42 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
      * @description Capture Mobile device input
      */
     function sentMobileInput(e) {
+
         if (e.data && M.userAgent === 'mobile' || M.userAgent === 'tablet') {
-            e.key = e.data || ' ';
-            e.keyCode = e.key.charCodeAt(0);
-            let position = getCaretPosition(true);
-            e.caretPosition = position.caretPosition;
-            e.rePosition = position.rePosition;
-            sendKeyEvent("keyDown", e);
-            sendKeyEvent("keyUp", e);
+            // e.key = e.data || ' ';
+            // e.keyCode = e.key.charCodeAt(0);
+            // let position = getCaretPosition(true);
+            // e.caretPosition = position.caretPosition;
+            // e.rePosition = position.rePosition;
+            // sendKeyEvent("keyDown", e);
+            // sendKeyEvent("keyUp", e);
         }
     }
 
+    function sentMobileInputUsingMutationDetector(editor) {
+
+        editor.inputMutationDetector = new InputMutationDetector(editor, (key) => {
+            event = {
+                key: key,
+                keyCode: key.charCodeAt(0),
+                data: key,
+            };
+
+            let position = getCaretPosition(true);
+            event.caretPosition = position.caretPosition;
+            event.rePosition = position.rePosition;
+            sendKeyEvent("keyDown", event);
+            sendKeyEvent("keyUp", event);
+
+            });
+    }
+
+    editor.on('remove', () => {
+        if (editor.inputMutationDetector) {
+            editor.inputMutationDetector.disconnect();
+            editor.inputMutationDetector = null;
+        }
+    });
     /**
      * Constructs a mouse event object with caret position and button information
      * @param {Object} editor - The TinyMCE editor instance
