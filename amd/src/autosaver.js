@@ -443,30 +443,76 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
         }
     });
 
-    editor.on('input', function(e) {
-        let position = getCaretPosition(true);
-        let aiContent = e.data;
-        if (!editor.inputMutationDetector) {
-            sentMobileInputUsingMutationDetector(editor);
-        }
-        editor.caretPosition = position.caretPosition;
-        editor.rePosition = position.rePosition;
+    // editor.on('input', function(e) {
+    //     let position = getCaretPosition(true);
+    //     let aiContent = e.data;
+    //     if (!editor.inputMutationDetector) {
+    //         sentMobileInputUsingMutationDetector(editor);
+    //     }
+    //     editor.caretPosition = position.caretPosition;
+    //     editor.rePosition = position.rePosition;
 
-        if (e.inputType === 'insertReplacementText' || (e.inputType === 'insertText' && aiContent && aiContent.length > 1)) {
+    //     if (e.inputType === 'insertReplacementText' || (e.inputType === 'insertText' && aiContent && aiContent.length > 1)) {
 
-            aiContents.push(aiContent);
-            e.key = "ai";
-            e.keyCode = 0;
-            e.caretPosition = position.caretPosition;
-            e.rePosition = position.rePosition;
-            e.aiContent = aiContent;
+    //         aiContents.push(aiContent);
+    //         e.key = "ai";
+    //         e.keyCode = 0;
+    //         e.caretPosition = position.caretPosition;
+    //         e.rePosition = position.rePosition;
+    //         e.aiContent = aiContent;
 
-            sendKeyEvent("aiInsert", e);
-        }
-        // console.log('Input: ', e);
-        sentMobileInput(e);
+    //         sendKeyEvent("aiInsert", e);
+    //     }
+    //     // console.log('Input: ', e);
+    //     sentMobileInput(e);
 
-    });
+    // });
+
+    let isComposing = false;
+let previousContent = '';
+
+editor.on('compositionstart', function() {
+    isComposing = true;
+    previousContent = '';
+});
+
+editor.on('compositionupdate', function(e) {
+    const current = e.data;
+    const prev = previousContent;
+
+    if (current.length > prev.length) {
+        const newChar = current.slice(prev.length);
+        sentMobileInput(newChar);
+
+    } else if (current.length < prev.length) {
+        sentMobileInput('Backspace');
+    }
+
+    previousContent = current;
+});
+
+editor.on('compositionend', function() {
+    isComposing = false;
+    previousContent = '';
+});
+
+editor.on('input', function(e) {
+    if (isComposing) return;
+
+    if (e.inputType === 'deleteContentBackward') {
+        sentMobileInput('Backspace');
+
+    } else if (e.inputType === 'deleteContentForward') {
+        sentMobileInput('Delete');
+
+    } else if (e.inputType === 'insertLineBreak' || e.inputType === 'insertParagraph') {
+        sentMobileInput('Enter');
+
+    } else if (e.inputType === 'insertText' && e.data) {
+        sentMobileInput(e.data);
+    }
+});
+
 
     /**
      * Constructs a mouse event object with caret position and button information
@@ -474,17 +520,21 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
      * @function sentMobileInput
      * @description Capture Mobile device input
      */
-    function sentMobileInput(e) {
+    function sentMobileInput(key) {
 
-        if (e.data && M.userAgent === 'mobile' || M.userAgent === 'tablet') {
-            // e.key = e.data || ' ';
-            // e.keyCode = e.key.charCodeAt(0);
-            // let position = getCaretPosition(true);
-            // e.caretPosition = position.caretPosition;
-            // e.rePosition = position.rePosition;
-            // sendKeyEvent("keyDown", e);
-            // sendKeyEvent("keyUp", e);
-        }
+        // if (e.data && M.userAgent === 'mobile' || M.userAgent === 'tablet') {
+            event = {
+                key: key,
+                keyCode: key.charCodeAt(0),
+                data: key,
+            };
+
+            let position = getCaretPosition(true);
+            event.caretPosition = position.caretPosition;
+            event.rePosition = position.rePosition;
+            sendKeyEvent("keyDown", event);
+            sendKeyEvent("keyUp", event);
+        // }
     }
 
     function sentMobileInputUsingMutationDetector(editor) {
