@@ -209,7 +209,8 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
         }).catch(error => window.console.error(error));
 
     };
-
+    let lastKeyFingerprint = null;
+    let lastKeyTimestamp = 0;
     const sendKeyEvent = (events, editor) => {
         ed = editor;
         event = events;
@@ -221,10 +222,24 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
             filename = `${userid}_${resourceId}_${cmid}_${questionid}_${modulename}_attempt`;
         }
 
+        // Deduplicate: block same key + event within 100ms (iPhone double-fire)
+        const now = Date.now();
+        const fingerprint = event + '_' + editor.key + '_' + ed.caretPosition;
+
+        if (fingerprint === lastKeyFingerprint && (now - lastKeyTimestamp) < 100) {
+            console.warn('Duplicate blocked:', fingerprint);
+            return;
+        }
+        const keys = ['Shift', 'Control', 'Alt', 'Meta', 'Delete', 'Backspace', 'Enter'];
+        if (editor.key.length > 1 && !keys.includes(editor.key)) {return}
+        lastKeyFingerprint = fingerprint;
+        lastKeyTimestamp   = now;
+
+        // Unidentified key guard
         if (editor.key === 'Unidentified') {
             return;
         }
-
+        console.log(editor);
         if (localStorage.getItem(filename)) {
             let data = JSON.parse(localStorage.getItem(filename));
             data.push({
@@ -468,8 +483,42 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
 
     // });
 
-    let isComposing = false;
+let isComposing = false;
 let previousContent = '';
+let lastKeyFingerprint2 = null;
+let lastKeyTimestamp2 = 0;
+
+function sentMobileInput(key) {
+    const now = Date.now();
+    const fingerprint = key;
+
+    // Block duplicate calls within 50ms
+    if (fingerprint === lastKeyFingerprint2 && (now - lastKeyTimestamp2) < 50) {
+        return;
+    }
+
+    lastKeyFingerprint2 = fingerprint;
+    lastKeyTimestamp2   = now;
+
+    const keyCode = key === 'Backspace' ? 8
+                  : key === 'Delete'    ? 46
+                  : key === 'Enter'     ? 13
+                  : key === ' '         ? 32
+                  : key.charCodeAt(0);
+
+    const event = {
+        key:     key,
+        keyCode: keyCode,
+        data:    key,
+    };
+
+    let position = getCaretPosition(true);
+    event.caretPosition = position.caretPosition;
+    event.rePosition    = position.rePosition;
+
+    sendKeyEvent("keyDown", event);
+    sendKeyEvent("keyUp", event);
+}
 
 editor.on('compositionstart', function() {
     isComposing = true;
@@ -481,6 +530,7 @@ editor.on('compositionupdate', function(e) {
     const prev = previousContent;
 
     if (current.length > prev.length) {
+        // only send the NEW character added
         const newChar = current.slice(prev.length);
         sentMobileInput(newChar);
 
@@ -492,12 +542,22 @@ editor.on('compositionupdate', function(e) {
 });
 
 editor.on('compositionend', function() {
+    // DO NOT send anything here — compositionupdate already sent each char
     isComposing = false;
     previousContent = '';
 });
 
 editor.on('input', function(e) {
     if (isComposing) return;
+
+    // Block whole words from autocomplete/swipe keyboard
+    if (e.data && e.data.length > 1 && e.inputType === 'insertText') {
+        // word was autocompleted — send each char individually
+        for (const char of e.data) {
+            sentMobileInput(char);
+        }
+        return;
+    }
 
     if (e.inputType === 'deleteContentBackward') {
         sentMobileInput('Backspace');
@@ -513,29 +573,45 @@ editor.on('input', function(e) {
     }
 });
 
-
     /**
      * Constructs a mouse event object with caret position and button information
      * @param {Object} e - The TinyMCE editor instance
      * @function sentMobileInput
      * @description Capture Mobile device input
      */
-    function sentMobileInput(key) {
+let lastKey = null;
+let lastKeyTime = 0;
 
-        // if (e.data && M.userAgent === 'mobile' || M.userAgent === 'tablet') {
-            event = {
-                key: key,
-                keyCode: key.charCodeAt(0),
-                data: key,
-            };
+function sentMobileInput(key) {
+    const now = Date.now();
 
-            let position = getCaretPosition(true);
-            event.caretPosition = position.caretPosition;
-            event.rePosition = position.rePosition;
-            sendKeyEvent("keyDown", event);
-            sendKeyEvent("keyUp", event);
-        // }
+    // Deduplicate iPhone double-fire (same key within 100ms)
+    if (key === lastKey && (now - lastKeyTime) < 100) {
+        return;
     }
+
+    lastKey = key;
+    lastKeyTime = now;
+
+    const keyCode = key === 'Backspace' ? 8
+                  : key === 'Delete'    ? 46
+                  : key === 'Enter'     ? 13
+                  : key === ' '         ? 32
+                  : key.charCodeAt(0);
+
+    const event = {
+        key:     key,
+        keyCode: keyCode,
+        data:    key,
+    };
+
+    let position = getCaretPosition(true);
+    event.caretPosition = position.caretPosition;
+    event.rePosition    = position.rePosition;
+
+    sendKeyEvent("keyDown", event);
+    sendKeyEvent("keyUp", event);
+}
 
     function sentMobileInputUsingMutationDetector(editor) {
 
