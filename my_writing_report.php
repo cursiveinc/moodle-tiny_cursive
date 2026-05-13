@@ -19,7 +19,7 @@
  *
  * @package tiny_cursive
  * @copyright  CTI <info@cursivetechnology.com>
- * @author Brain Station 23 <elearning@brainstation-23.com>
+ * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 use tiny_cursive\constants;
@@ -47,7 +47,7 @@ $userid   = optional_param('userid', 0, PARAM_INT);
 $uidparam = optional_param('id', 0, PARAM_INT);
 $cparam   = optional_param('course', 0, PARAM_INT);
 
-$limit    = 5;
+$limit    = 10;
 $perpage  = $page * $limit;
 
 
@@ -89,13 +89,13 @@ if ($courseid) {
 
 $PAGE->requires->js_call_amd('tiny_cursive/key_logger', 'init', [1]);
 $PAGE->requires->js_call_amd('tiny_cursive/cursive_writing_reports', 'init', ["", constants::has_api_key(),
-                 get_config('tiny_cursive', 'json_download')]);
+                get_config('tiny_cursive', 'json_download')]);
 
 $PAGE->set_context(context_system::instance());
 $PAGE->set_url($url);
 $PAGE->set_title(get_string('tiny_cursive', 'tiny_cursive'));
 $PAGE->set_pagelayout('mypublic');
-$PAGE->set_pagetype('user-profile');
+$PAGE->set_pagetype('cws'); // CWS: Cursive Writing Statistics.
 
 $PAGE->navbar->add(get_string('profile'), new moodle_url('/user/profile.php'));
 $PAGE->navbar->add(get_string('student_writing_statics', 'tiny_cursive'), $url);
@@ -108,4 +108,3 @@ $userprofile = tiny_cursive_get_user_profile_data($userid, $courseid);
 
 echo $renderer->tiny_cursive_user_writing_report($attempts, $userprofile, $userid, $page, $limit, $url);
 echo $OUTPUT->footer();
-

@@ -26,14 +26,16 @@ define([
     "core/templates",
     "./replay",
     "./analytic_button",
-    "./analytic_events"
+    "./analytic_events",
+    "./replay_button"
 ], function(
     AJAX,
     str,
     templates,
     Replay,
     analyticButton,
-    AnalyticEvents
+    AnalyticEvents,
+    replayButton
 ) {
     const replayInstances = {};
     // eslint-disable-next-line
@@ -54,6 +56,7 @@ define([
                 if (contentElement) {
                     contentElement.innerHTML = html;
                 }
+                return true;
             }).catch(e => window.console.error(e));
         }
         return false;
@@ -68,7 +71,7 @@ define([
             }
 
             str.get_strings([{key: "field_require", component: "tiny_cursive"}])
-                .then(() => {
+                    .done(function() {
                     usersTable.appendSubmissionDetail(score_setting, showcomment, hasApiKey);
                 });
         },
@@ -107,12 +110,16 @@ define([
                     filepath = data.data.filename;
                 }
 
-                const analytic_button_div = document.createElement('div');
-                analytic_button_div.classList.add('text-center', 'mt-2');
-                analytic_button_div.appendChild(analyticButton(hasApiKey ? data.data.effort_ratio : "", userid));
+                const analyticButtonDiv = document.createElement('div');
+                analyticButtonDiv.classList.add('text-center', 'mt-2');
+                if (!hasApiKey) {
+                    analyticButtonDiv.innerHTML = replayButton(userid).outerHTML;
+                } else {
+                    analyticButtonDiv.append(analyticButton(data.data.effort_ratio, userid));
+                }
 
                 const gradeActions = document.querySelector('div[data-region="grade-actions"]');
-                gradeActions.parentNode.insertBefore(analytic_button_div, gradeActions);
+                gradeActions.parentNode.insertBefore(analyticButtonDiv, gradeActions);
 
                 const reviewPanel = document.querySelector('div[data-region="review-panel"]');
                 if (reviewPanel) {
@@ -146,7 +153,7 @@ define([
                 const authIcon = myEvents.authorshipStatus(data.data.first_file, data.data.score, score_setting);
                 myEvents.createModal(userid, context, '', replayInstances, authIcon);
                 myEvents.analytics(userid, templates, context, '', replayInstances, authIcon);
-                myEvents.checkDiff(userid, data.data.file_id, '', replayInstances);
+                myEvents.checkDiff(userid, data.data.file_id, '', replayInstances, filepath);
                 myEvents.replyWriting(userid, filepath, '', replayInstances);
             });
             return com.usercomment;

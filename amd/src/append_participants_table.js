@@ -22,67 +22,67 @@
 
 define(["core/config", "core/str"], function(mdlcfg, Str) {
     var usersTable = {
-        init: async function(page) {
-            await usersTable.appendTable(page);
+        init: async function() {
+            await usersTable.appendTable();
         },
         appendTable: async function() {
             let h_tr = document.querySelector('thead tr');
+            if (!h_tr) {
+                return;
+            }
             let courseid = M.cfg.courseId;
-
-            // Fetch string for stats header.
             let statsString = await Str.get_string('stats', 'tiny_cursive');
 
-            // Add the stats header if it doesn't already exist.
             if (!h_tr.querySelector('#stats')) {
-                const sixthHeader = h_tr.querySelector('th:nth-child(7)'); // Adjust index if needed
-                const newHeader = document.createElement('th');
-                newHeader.className = 'header c7';
-                newHeader.setAttribute('scope', 'col');
-                newHeader.id = 'stats';
-                newHeader.textContent = statsString;
-                sixthHeader.after(newHeader);
+                const lastHeader = h_tr.querySelector('th:last-child');
+                if (lastHeader) {
+                    const newHeader = document.createElement('th');
+                    newHeader.className = 'header c7';
+                    newHeader.setAttribute('scope', 'col');
+                    newHeader.id = 'stats';
+                    newHeader.textContent = statsString;
+                    lastHeader.after(newHeader);
+                }
             }
 
-            // Iterate over each row in the table body
             const tbody = document.querySelector('tbody');
-            const rows = tbody.querySelectorAll('tr');
+            if (!tbody) {
+                return;
+            }
 
+            const rows = tbody.querySelectorAll('tr');
             rows.forEach((row) => {
                 const tdUser = row.querySelector('td');
+                if (!tdUser) {
+                    return;
+                }
                 const input = tdUser.querySelector('input');
-
                 if (input) {
                     const userId = input.id.slice(4);
-
                     if (userId) {
-                        const sixthTd = row.querySelector('td:last-child');
-
-                        const color = 'font-size:24px;color:black;text-decoration:none';
-                        const link = mdlcfg.wwwroot + "/lib/editor/tiny/plugins/cursive/writing_report.php?userid="
-                            + userId + "&courseid=" + courseid;
-                        const icon = 'fa fa-area-chart';
-
-                        const thunderIcon = document.createElement('td');
-                        const anchor = document.createElement('a');
-                        const iconElement = document.createElement('i');
-
-                        anchor.href = link;
-                        anchor.dataset.id = userId;
-                        iconElement.className = icon;
-                        iconElement.style = color;
-
-                        anchor.appendChild(iconElement);
-                        thunderIcon.appendChild(anchor);
-
-                        sixthTd.after(thunderIcon);
-                        // }
+                        const lastTd = row.querySelector('td:last-child');
+                        const alreadyAdded = row.querySelector('td a[data-id]');
+                        if (lastTd && !alreadyAdded) {
+                            const color = 'font-size:24px;color:black;text-decoration:none';
+                            const link = mdlcfg.wwwroot + "/lib/editor/tiny/plugins/cursive/writing_report.php?userid="
+                                + userId + "&courseid=" + courseid;
+                            const icon = 'fa fa-area-chart';
+                            const thunderIcon = document.createElement('td');
+                            const anchor = document.createElement('a');
+                            const iconElement = document.createElement('i');
+                            anchor.href = link;
+                            anchor.dataset.id = userId;
+                            iconElement.className = icon;
+                            iconElement.style = color;
+                            anchor.appendChild(iconElement);
+                            thunderIcon.appendChild(anchor);
+                            lastTd.after(thunderIcon);
+                        }
                     }
                 }
             });
 
-            // Add event listener for page change or other events triggering table update
             const pageItems = document.querySelectorAll('.page-item, .header');
-
             pageItems.forEach((element) => {
                 element.addEventListener('click', () => {
                     setTimeout(() => {
@@ -92,7 +92,6 @@ define(["core/config", "core/str"], function(mdlcfg, Str) {
                     }, 1800);
                 });
             });
-            // });
         }
     };
     return usersTable;

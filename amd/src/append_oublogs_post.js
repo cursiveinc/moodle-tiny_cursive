@@ -26,6 +26,7 @@ import {call as getData} from 'core/ajax';
 import templates from 'core/templates';
 import AnalyticEvents from './analytic_events';
 import analyticButton from './analytic_button';
+import replayButton from './replay_button';
 import Replay from './replay';
 
 export const init = (scoreSetting, comments, hasApiKey) => {
@@ -47,7 +48,7 @@ export const init = (scoreSetting, comments, hasApiKey) => {
                 if (contentElement) {
                     contentElement.innerHTML = html;
                 }
-                return contentElement;
+                return true;
             }).catch(e => window.console.error(e));
         }
         return false;
@@ -83,7 +84,11 @@ export const init = (scoreSetting, comments, hasApiKey) => {
 
                 const postLinksElement = element.querySelector('.oublog-post-links');
                 if (postLinksElement) {
-                    postLinksElement.append(analyticButton(hasApiKey ? data.res.effort_ratio : "", userid));
+                    if (!hasApiKey) {
+                        postLinksElement.append(replayButton(userid));
+                    } else {
+                        postLinksElement.append(analyticButton(data.res.effort_ratio, userid));
+                    }
                 }
 
                 const myEvents = new AnalyticEvents();
@@ -98,7 +103,7 @@ export const init = (scoreSetting, comments, hasApiKey) => {
                 const authIcon = myEvents.authorshipStatus(data.res.first_file, data.res.score, scoreSetting);
                 myEvents.createModal(userid, context, '', replayInstances, authIcon);
                 myEvents.analytics(userid, templates, context, '', replayInstances, authIcon);
-                myEvents.checkDiff(userid, data.res.file_id, '', replayInstances);
+                myEvents.checkDiff(userid, data.res.file_id, '', replayInstances, filepath);
                 myEvents.replyWriting(userid, filepath, '', replayInstances);
 
             });

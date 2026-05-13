@@ -26,14 +26,16 @@ define([
     "core/templates",
     "./replay",
     "./analytic_button",
-    "./analytic_events"
+    "./analytic_events",
+    "./replay_button"
 ], function(
     AJAX,
     str,
     templates,
     Replay,
     analyticButton,
-    AnalyticEvents
+    AnalyticEvents,
+    replayButton
 ) {
     const replayInstances = {};
     // eslint-disable-next-line
@@ -48,14 +50,13 @@ define([
             );
             replayInstances[mid] = replay;
         } else {
-            templates.render('tiny_cursive/no_submission').then(function(html) {
+            templates.render('tiny_cursive/no_submission').then(html => {
                 const contentElement = document.getElementById('content' + mid);
                 if (contentElement) {
                     contentElement.innerHTML = html;
                 }
-            }).catch(function(e) {
-                window.console.error(e);
-            });
+                return true;
+            }).catch(e => window.console.error(e));
         }
         return false;
     };
@@ -106,18 +107,22 @@ define([
                         // eslint-disable-next-line
                         let content = document.querySelector('.que.essay .editquestion a[href*="question/bank/editquestion/question.php"][href*="&id='
                             + data.data.questionid + '"]');
+                            if (!content) {
+                                content = document.querySelector(
+                                    '.que.aitext .editquestion a[href*="question/bank/editquestion/question.php"]' +
+                                    '[href*="&id=' + data.data.questionid + '"]'
+                                );
+                            }
                         if (content) {
-                            let qtextElement = content.parentNode.parentElement.nextSibling.querySelector('.qtext');
+                            let qtextElement = content.parentNode.parentNode.parentNode.querySelector('.qtext');
                             let filepath = data.data.filename || '';
                             let analyticButtonDiv = document.createElement('div');
                             analyticButtonDiv.classList.add('text-center', 'mt-2');
-                            const button = analyticButton(
-                                hasApiKey ? data.data.effort_ratio : "",
-                                userid,
-                                questionid
-                            );
-
-                            analyticButtonDiv.appendChild(button);
+                            if (!hasApiKey) {
+                                analyticButtonDiv.innerHTML = replayButton(userid + questionid).outerHTML;
+                            } else {
+                                analyticButtonDiv.append(analyticButton(data.data.effort_ratio, userid, questionid));
+                            }
 
                             if (qtextElement) {
                                 qtextElement.appendChild(analyticButtonDiv);
@@ -136,7 +141,7 @@ define([
 
                             myEvents.createModal(userid, context, questionid, replayInstances, authIcon);
                             myEvents.analytics(userid, templates, context, questionid, replayInstances, authIcon);
-                            myEvents.checkDiff(userid, data.data.file_id, questionid, replayInstances);
+                            myEvents.checkDiff(userid, data.data.file_id, questionid, replayInstances, filepath);
                             myEvents.replyWriting(userid, filepath, questionid, replayInstances);
                         }
                     }
