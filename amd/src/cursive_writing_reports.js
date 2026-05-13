@@ -21,7 +21,8 @@
  */
 
 define(["core/ajax", "core/str", "core/templates", "./replay", "./analytic_button", "./analytic_events",
-    "core/modal_events", "core/modal_save_cancel", "core/modal_factory", "core/modal"],
+    "core/modal_events", "core/modal_save_cancel", "core/modal_factory", "core/modal",
+    "tiny_cursive/dashboard_chart", "tiny_cursive/replay_button"],
     function (
         AJAX,
         str,
@@ -32,7 +33,9 @@ define(["core/ajax", "core/str", "core/templates", "./replay", "./analytic_butto
         Events,
         Modal,
         Factory,
-        Alert
+        Alert,
+        DashboardChart,
+        replayButton
     ) {
         const replayInstances = {};
         // eslint-disable-next-line
@@ -49,6 +52,7 @@ define(["core/ajax", "core/str", "core/templates", "./replay", "./analytic_butto
             } else {
                 templates.render('tiny_cursive/no_submission').then(html => {
                     document.getElementById('content' + mid).innerHTML = html;
+                    return true;
                 }).catch(e => window.console.error(e));
             }
             return false;
@@ -100,7 +104,11 @@ define(["core/ajax", "core/str", "core/templates", "./replay", "./analytic_butto
                             try {
                                 let data = JSON.parse(response.data);
                                 modalElement.innerHTML = '';
-                                modalElement.appendChild(analyticButton(hasApiKey ? data.effort_ratio : "", mid));
+                                if (!hasApiKey) {
+                                    modalElement.appendChild(replayButton(mid));
+                                } else {
+                                    modalElement.appendChild(analyticButton(data.effort_ratio, mid));
+                                }
 
                                 context.formattime = myEvents.formatedTime(data);
                                 context.tabledata = data;
@@ -109,7 +117,7 @@ define(["core/ajax", "core/str", "core/templates", "./replay", "./analytic_butto
                                 let authIcon = myEvents.authorshipStatus(data.first_file, data.score, scoreSetting);
                                 myEvents.createModal(mid, context, '', replayInstances, authIcon);
                                 myEvents.analytics(mid, templates, context, '', replayInstances, authIcon);
-                                myEvents.checkDiff(mid, mid, '', replayInstances);
+                                myEvents.checkDiff(mid, mid, '', replayInstances, filepath);
                                 myEvents.replyWriting(mid, filepath, '', replayInstances);
                             } catch (error) {
                                 window.console.error('Failed to parse response data:', error);
@@ -125,9 +133,6 @@ define(["core/ajax", "core/str", "core/templates", "./replay", "./analytic_butto
 
                             const link1 = this.getAttribute('href');
                             const link2 = this.getAttribute('data-link');
-
-                            window.console.log("link1 ", link1);
-                            window.console.log("link2 ", link2);
 
                             let type = Factory.types.SAVE_CANCEL;
                             let optionModal = Modal;
@@ -216,7 +221,57 @@ define(["core/ajax", "core/str", "core/templates", "./replay", "./analytic_butto
                         });
                     });
 
+                    const chartTitle = document.getElementById('CursiveChartTitle');
+                    const chartDesc = document.getElementById('CursiveChartDescription');
+
+                    var dataType = document.getElementById('CursiveChartTypeSelect').value;
+                    var chartType = "line";
+                    var subType = document.getElementById('CursiveMetricSelect')?.value ?? "";
+                    var parseddataset = document.getElementById('CursiveChartTypeSelect').dataset.chart;
+
+                    var dataset = {};
+                    try {
+                        dataset = JSON.parse(parseddataset || '{}');
+                    } catch(e) {
+                        window.console.error('Failed to parse chart dataset:', e);
+                    }
+
+                    if (hasApiKey) {
+                        usersTable.generateProgressChart(dataType, chartType, subType, dataset, false);
+
+                    document.getElementById('CursiveChartTypeSelect').addEventListener('change', function() {
+                        chartTitle.textContent = this.options[this.selectedIndex].text;
+                            document.getElementById('CursiveMetricSelect').dispatchEvent(new Event('change'));
+                                if (this.dataType !== 'progress') {
+                                    chartDesc.textContent = this.options[this.selectedIndex].dataset.track;
+                                }
+                        dataType = this.value;
+                        chartType = dataType === 'effort' ? 'bar' : 'line';
+                        usersTable.generateProgressChart(dataType, chartType, subType, dataset, false);
+                    });
+
+                document.getElementById('CursiveMetricSelect').addEventListener('change', function() {
+                    subType = this.value;
+                    let description = this.options[this.selectedIndex].dataset.track;
+                    chartDesc.textContent = description;
+                    usersTable.generateProgressChart(dataType, chartType, subType, dataset, false);
+                });
+
+                document.getElementById('CursiveChartTypeSelect').dispatchEvent(new Event('change'));
+                document.getElementById('CursiveMetricSelect').dispatchEvent(new Event('change'));
+                } else {
+                    usersTable.generateProgressChart("draw", chartType, subType, [], false);
                 }
+
+               document.getElementById('expandChart').addEventListener('click', function() {
+               document.getElementById('CursiveChartContainer').classList.toggle('cursive-expand-height');
+               document.getElementById('showtext').classList.toggle('d-none');
+               document.getElementById('hidetext').classList.toggle('d-none');
+                    setTimeout(() => {
+                    document.getElementById('tiny_cursive-chart-container').classList.toggle('cursive-hide-chartcontainer');
+                    }, 200);
+                });
+            }
             },
 
             getusers: function (page) {
@@ -255,6 +310,16 @@ define(["core/ajax", "core/str", "core/templates", "./replay", "./analytic_butto
                             });
                     });
                 });
+            },
+
+            generateProgressChart: function(dataType, chartType, subType, dataset, toggle) {
+                if (dataType === 'progress') {
+                    document.getElementById('CursiveMetricControls').classList.remove('d-none');
+                    new DashboardChart(dataType, chartType, subType, dataset, toggle);
+                } else {
+                    document.getElementById('CursiveMetricControls').classList.add('d-none');
+                    new DashboardChart(dataType, chartType, null, dataset, toggle);
+                }
             },
         };
 

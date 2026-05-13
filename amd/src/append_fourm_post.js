@@ -20,12 +20,14 @@
  * @author Brain Station 23 <elearning@brainstation-23.com>
  */
 
-define(["core/ajax", "core/str", "core/templates", "./replay", "./analytic_button", "./analytic_events"], function(
+define(["core/ajax", "core/str", "core/templates", "./replay", "./analytic_button", "./replay_button",
+    "./analytic_events"], function(
     AJAX,
     str,
     templates,
     Replay,
     analyticButton,
+    replayButton,
     AnalyticEvents) {
     const replayInstances = {};
     // eslint-disable-next-line camelcase
@@ -42,6 +44,7 @@ define(["core/ajax", "core/str", "core/templates", "./replay", "./analytic_butto
         } else {
             templates.render('tiny_cursive/no_submission').then(html => {
                 document.getElementById('content' + mid).innerHTML = html;
+                return true;
             }).catch(e => window.console.error(e));
         }
         return false;
@@ -58,22 +61,9 @@ define(["core/ajax", "core/str", "core/templates", "./replay", "./analytic_butto
                 });
         },
         getToken: function(scoreSetting, showcomment, hasApiKey) {
-            const articles = document.querySelectorAll('#page-mod-forum-discuss article');
-            articles.forEach(function(entry) {
-                const replyButton = document.querySelectorAll('a[data-region="post-action"][title="Reply"]');
+            document.querySelectorAll('#page-mod-forum-discuss article').forEach(function(entry) {
 
-                if (replyButton.length > 0) {
-                    replyButton.forEach(button => {
-
-                        button.addEventListener('click', function(event) {
-                            event.preventDefault();
-                            const url = button.getAttribute('href');
-                            window.location.href = url;
-                        });
-                    });
-                }
-
-                const ids = document.getElementById(entry.id).getAttribute('data-post-id');
+                const ids = entry.getAttribute('data-post-id');
                 var cmid = M.cfg.contextInstanceId;
 
                 let args = {id: ids, modulename: "forum", cmid: cmid};
@@ -89,13 +79,16 @@ define(["core/ajax", "core/str", "core/templates", "./replay", "./analytic_butto
 
                     if (filepath) {
                         const analyticButtonDiv = document.createElement('div');
-                        analyticButtonDiv.append(analyticButton(hasApiKey ? data.data.effort_ratio : "",ids));
+                        if (!hasApiKey) {
+                            analyticButtonDiv.innerHTML = replayButton(ids).outerHTML;
+                        } else {
+                            analyticButtonDiv.append(analyticButton(data.data.effort_ratio, ids));
+                        }
                         analyticButtonDiv.classList.add('text-center', 'my-2');
                         analyticButtonDiv.setAttribute('data-region', "analytic-div" + ids);
 
-                        const postContent = document.getElementById('post-content-' + ids);
-
-                        postContent.append(analyticButtonDiv);
+                        const postContent = entry.querySelector('#post-content-' + ids);
+                        postContent.prepend(analyticButtonDiv);
 
                         const myEvents = new AnalyticEvents();
                         const context = {
@@ -109,7 +102,7 @@ define(["core/ajax", "core/str", "core/templates", "./replay", "./analytic_butto
                         const authIcon = myEvents.authorshipStatus(data.data.first_file, data.data.score, scoreSetting);
                         myEvents.createModal(ids, context, '', replayInstances, authIcon);
                         myEvents.analytics(ids, templates, context, '', replayInstances, authIcon);
-                        myEvents.checkDiff(ids, data.data.file_id, '', replayInstances);
+                        myEvents.checkDiff(ids, data.data.file_id, '', replayInstances, filepath);
                         myEvents.replyWriting(ids, filepath, '', replayInstances);
                     }
                 });

@@ -95,8 +95,10 @@ function tiny_cursive_extend_navigation_course(\navigation_node $navigation, \st
     $module  = get_coursemodule_from_id(false, $cmid, $course->id);
     $cursive = tiny_cursive_status($course->id);
 
-    $url     = new moodle_url($CFG->wwwroot . '/lib/editor/tiny/plugins/cursive/tiny_cursive_report.php',
-       ['courseid' => $course->id]);
+    $url     = new moodle_url(
+        $CFG->wwwroot . '/lib/editor/tiny/plugins/cursive/tiny_cursive_report.php',
+        ['courseid' => $course->id]
+    );
 
     if ($cmid && $cursive) {
         $context = context_module::instance($cmid);
@@ -155,7 +157,9 @@ function tiny_cursive_coursemodule_standard_elements($formwrapper, $mform) {
     $courseid  = $formwrapper->get_current()->course;
     $instance  = $formwrapper->get_current()->coursemodule;
     $key       = "CUR$courseid$instance";
+    $stdkey    = "STD$courseid$instance";
     $state     = get_config('tiny_cursive', $key);
+    $stdstate  = get_config('tiny_cursive', $stdkey);
 
     if ($state === "1" || $state === false) {
         $state = true;
@@ -164,13 +168,42 @@ function tiny_cursive_coursemodule_standard_elements($formwrapper, $mform) {
     if (in_array($module, constants::NAMES)) {
         $mform->addElement('header', 'cursiveheader', 'Cursive', 'local_callbacks');
         $options = [
-           0 => get_string('disabled', 'tiny_cursive'),
-           1 => get_string('enabled', 'tiny_cursive'),
+            0 => get_string('disabled', 'tiny_cursive'),
+            1 => get_string('enabled', 'tiny_cursive'),
         ];
         $mform->addElement('select', 'cursive', get_string('cursive_status', 'tiny_cursive'), $options);
         $mform->setType('cursive', PARAM_INT);
-
         $mform->setdefault('cursive', $state);
+
+        $mform->addElement('select', 'student_view', get_string('std_view', 'tiny_cursive'), $options);
+        $mform->setType('student_view', PARAM_INT);
+        $mform->setdefault('student_view', $stdstate);
+
+        if ($state) {
+            $pasteoptions = [
+            'allow'       => get_string('paste_allow', 'tiny_cursive'),
+            'block'       => get_string('paste_block', 'tiny_cursive'),
+            'cite_source' => get_string('paste_cite_source', 'tiny_cursive'),
+            ];
+
+            $pastekey     = "PASTE{$courseid}_{$instance}";
+            $pastesetting = get_config('tiny_cursive', $pastekey);
+
+            if (!$pastesetting) {
+                $pastesetting = 'allow';
+            }
+
+            $mform->addElement(
+                'select',
+                'paste_setting',
+                get_string('paste_setting', 'tiny_cursive'),
+                $pasteoptions
+            );
+
+            $mform->setType('paste_setting', PARAM_TEXT);
+            $mform->setDefault('paste_setting', $pastesetting);
+            $mform->addHelpButton('paste_setting', 'paste_setting', 'tiny_cursive');
+        }
     }
 }
 
@@ -202,7 +235,17 @@ function tiny_cursive_coursemodule_edit_post_actions($formdata, $course) {
         $instance = $formdata->coursemodule;
         $key      = "CUR$courseid$instance";
         set_config($key, $state, 'tiny_cursive');
+
+        if (!empty($formdata->paste_setting) && $state == 1) {
+            $pastekey = "PASTE{$courseid}_{$instance}";
+            set_config($pastekey, $formdata->paste_setting, 'tiny_cursive');
+        }
+        if ($state == 1) {
+            $stdkey = "STD{$courseid}{$instance}";
+            set_config($stdkey, $formdata->student_view, 'tiny_cursive');
+        }
     }
+
     return $formdata;
 }
 
@@ -238,8 +281,13 @@ function tiny_cursive_myprofile_navigation(core_user\output\myprofile\tree $tree
         '/lib/editor/tiny/plugins/cursive/my_writing_report.php',
         ['id' => $user->id, 'course' => isset($course->id) ? $course->id : "", 'mode' => 'cursive']
     );
-    $node = new core_user\output\myprofile\node('reports', 'cursive',
-    get_string('student_writing_statics', 'tiny_cursive'), null, $url);
+    $node = new core_user\output\myprofile\node(
+        'reports',
+        'cursive',
+        get_string('student_writing_statics', 'tiny_cursive'),
+        null,
+        $url
+    );
     $tree->add_node($node);
 }
 
@@ -265,7 +313,7 @@ function tiny_cursive_upload_multipart_record($filerecord, $filenamewithfullpath
         $remoteurl  = get_config('tiny_cursive', 'python_server') . "/upload_file";
         $filetosend = '';
 
-        $tempfilepath = tempnam(sys_get_temp_dir(), 'upload');
+        $tempfilepath = make_temp_directory('tiny_cursive') . '/' . uniqid('upload_', true);
 
         $jsoncontent  = json_decode($filerecord->content, true);
 
@@ -370,7 +418,6 @@ function tiny_cursive_status($courseid = 0) {
         return false;
     }
     return get_config('tiny_cursive', "cursive-$courseid");
-
 }
 
 /**
@@ -387,7 +434,7 @@ function cursive_approve_token() {
 
     try {
         // Use Moodle's cURL library.
-        $token     = get_config( 'tiny_cursive', 'secretkey');
+        $token     = get_config('tiny_cursive', 'secretkey');
         $remoteurl = get_config('tiny_cursive', 'python_server') . '/verify-token';
         $moodleurl = $CFG->wwwroot;
 

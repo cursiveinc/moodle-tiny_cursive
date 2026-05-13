@@ -19,7 +19,7 @@
  *
  * @package tiny_cursive
  * @copyright  CTI <info@cursivetechnology.com>
- * @author Brain Station 23 <elearning@brainstation-23.com>
+ * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -29,7 +29,7 @@ use tiny_cursive\constants;
 require_once(__DIR__ . '/locallib.php');
 require_once(__DIR__ . '/lib.php');
 
-global $CFG, $DB, $PAGE, $OUTPUT;
+global $CFG, $DB, $PAGE, $OUTPUT, $SESSION;
 require_login(null, false);
 
 if (isguestuser()) {
@@ -40,7 +40,7 @@ if (\core\session\manager::is_loggedinas()) {
 }
 
 $userid   = optional_param('userid', 0, PARAM_INT);
-$courseid = required_param('courseid',  PARAM_INT);
+$courseid = optional_param('courseid', 0, PARAM_INT);
 $orderby  = optional_param('orderby', 'id', PARAM_TEXT);
 $page     = optional_param('page', 0, PARAM_INT);
 
@@ -48,23 +48,26 @@ $limit    = 10;
 $perpage  = $page * $limit;
 
 $params   = ['userid' => $userid];
-if (!empty($courseid)) {
-    $params['courseid'] = $courseid;
+if (!empty($courseid) && $courseid > 0) {
+    $SESSION->lastcourseid = $courseid;
 }
 
 $url      = new moodle_url('/lib/editor/tiny/plugins/cursive/writing_report.php', $params);
+$struser = get_string('student_writing_statics', 'tiny_cursive');
 
 if ($courseid) {
     $cmid    = tiny_cursive_get_cmid($courseid);
     $context = context_module::instance($cmid);
-
-    $struser = get_string('student_writing_statics', 'tiny_cursive');
     $course  = get_course($courseid);
-
     $PAGE->navbar->add($course->shortname, new moodle_url('/course/view.php', ['id' => $courseid]));
     $PAGE->navbar->add($struser, $url);
 } else {
-    $context = context_system::instance();
+    $cmid    = tiny_cursive_get_cmid($SESSION->lastcourseid);
+    $context = context_module::instance($cmid);
+    $course  = get_course($SESSION->lastcourseid);
+    $PAGE->navbar->add($course->shortname, new moodle_url('/course/view.php', ['id' => $SESSION->lastcourseid]));
+    $url      = new moodle_url('/lib/editor/tiny/plugins/cursive/writing_report.php', $params);
+    $PAGE->navbar->add($struser, $url);
 }
 
 require_capability('tiny/cursive:view', $context);
@@ -73,13 +76,16 @@ if (!$user) {
     throw new moodle_exception('invaliduser', 'error');
 }
 
-$PAGE->requires->js_call_amd('tiny_cursive/cursive_writing_reports', 'init',
-                 ["", constants::has_api_key(), get_config('tiny_cursive', 'json_download')]);
+$PAGE->requires->js_call_amd(
+    'tiny_cursive/cursive_writing_reports',
+    'init',
+    ["", constants::has_api_key(), get_config('tiny_cursive', 'json_download')]
+);
 
 $PAGE->set_context(context_system::instance());
 $PAGE->set_url($url);
 $PAGE->set_title(get_string('tiny_cursive', 'tiny_cursive'));
-
+$PAGE->set_pagetype('cws'); // CWS: Cursive Writing Statistics.
 echo $OUTPUT->header();
 
 $renderer    = $PAGE->get_renderer('tiny_cursive');
