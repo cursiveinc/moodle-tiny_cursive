@@ -29,7 +29,6 @@ import AnalyticEvents from "tiny_cursive/analytic_events";
 import Events from "core/modal_events";
 import Alert from "core/modal";
 import Modal from "core/modal_save_cancel";
-import Factory from "core/modal_factory";
 import DashboardChart from "tiny_cursive/dashboard_chart";
 import replayButton from 'tiny_cursive/replay_button';
 
@@ -133,7 +132,6 @@ export const init = (page, hasApiKey, csvOption) => {
             const link1 = $(this).attr('href');
             const link2 = $(this).data('link');
 
-            let type = Factory.types.SAVE_CANCEL;
             let optionModal = Modal;
             let select = document.createElement('select');
             select.id = "download-type";
@@ -181,20 +179,18 @@ export const init = (page, hasApiKey, csvOption) => {
             }
 
             optionModal.create({
-                type: type,
                 title: title,
                 body: select,
                 removeOnClose: true,
-                buttons: type === Factory.types.SAVE_CANCEL ? [{
+                buttons: [{
                     text: 'OK',
                     type: 'submit',
                     primary: true
-                }] : []
+                }],
+                show: true,
             }).then(modal => {
-                modal.show();
-
-                        if (type === Factory.types.SAVE_CANCEL) {
-                            modal.getRoot().on(Events.save, function() {
+                if (optionModal !== Alert) {
+                    modal.getRoot().on(Events.save, function() {
                                 const data = document.getElementById('download-type');
                                 if (!data) {
                                     return;

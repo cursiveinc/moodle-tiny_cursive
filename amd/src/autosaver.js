@@ -21,7 +21,7 @@
  */
 
 import {call} from 'core/ajax';
-import {create} from 'core/modal_factory';
+import SaveCancelModal from 'core/modal_save_cancel';
 import {get_string as getString} from 'core/str';
 import {save, cancel, hidden} from 'core/modal_events';
 import $ from 'jquery';
@@ -139,16 +139,15 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
             getString('tiny_cursive_placeholder', 'tiny_cursive')
         ]).then(function([title, titledes, placeholder]) {
 
-            return create({
-                type: 'SAVE_CANCEL',
+            return SaveCancelModal.create({
                 title: `<div><div class="tiny-cursive-title-text">${title}</div>
                 <span class="tiny-cursive-title-description ">${titledes}</span></div>`,
                 body: `<textarea  class="form-control inputUrl" value="" id="inputUrl" placeholder="${placeholder}"></textarea>`,
                 removeOnClose: true,
+                show: true,
             })
-                .done(modal => {
+                .then(modal => {
                     modal.getRoot().addClass('tiny-cursive-modal');
-                    modal.show();
                     var lastEvent = '';
 
                     modal.getRoot().on(save, function() {
