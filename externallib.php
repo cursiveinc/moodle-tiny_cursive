@@ -552,9 +552,9 @@ class cursive_json_func_data extends external_api {
                             uw.backspace_percent, uw.score, uw.copy_behavior, uf.resourceid,
                             uf.modulename, uf.userid, uf.filename, uw.file_id,
                             diff.meta AS effort_ratio
-                      FROM {tiny_cursive_user_writing} uw
-                      JOIN {tiny_cursive_files} uf ON uw.file_id = uf.id
-                 LEFT JOIN {tiny_cursive_writing_diff} diff ON uw.file_id = diff.file_id
+                        FROM {tiny_cursive_files} uf
+                        LEFT JOIN {tiny_cursive_user_writing} uw ON uw.file_id = uf.id
+                LEFT JOIN {tiny_cursive_writing_diff} diff ON uf.id = diff.file_id
                      WHERE uf.resourceid = :id
                            AND uf.cmid = :cmid
                            AND uf.modulename = :modulename";
