@@ -220,7 +220,9 @@ function tiny_cursive_coursemodule_standard_elements($formwrapper, $mform) {
 function tiny_cursive_coursemodule_edit_post_actions($formdata, $course) {
     global $PAGE;
 
+    $plugins   = core_component::get_plugin_list('local');
     $cursive = tiny_cursive_status($course->id);
+
     if (!$cursive) {
         return $formdata;
     }
