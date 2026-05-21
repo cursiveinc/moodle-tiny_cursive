@@ -138,7 +138,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
             getString('tiny_cursive_srcurl_des', 'tiny_cursive'),
             getString('tiny_cursive_placeholder', 'tiny_cursive')
         ]).then(function([title, titledes, placeholder]) {
-
+            // eslint-disable-next-line promise/no-nesting
             return SaveCancelModal.create({
                 title: `<div><div class="tiny-cursive-title-text">${title}</div>
                 <span class="tiny-cursive-title-description ">${titledes}</span></div>`,
