@@ -137,7 +137,7 @@ class cursive_json_func_data extends external_api {
 
         // Validate parameters.
         $params = self::validate_parameters(
-            self::get_user_list_parameters(), // This should probably be self::get_module_list_parameters() if it exists.
+            self::get_module_list_parameters(),
             [
                 'page' => $page,
                 'courseid' => $courseid,
@@ -552,9 +552,9 @@ class cursive_json_func_data extends external_api {
                             uw.backspace_percent, uw.score, uw.copy_behavior, uf.resourceid,
                             uf.modulename, uf.userid, uf.filename, uw.file_id,
                             diff.meta AS effort_ratio
-                      FROM {tiny_cursive_user_writing} uw
-                      JOIN {tiny_cursive_files} uf ON uw.file_id = uf.id
-                 LEFT JOIN {tiny_cursive_writing_diff} diff ON uw.file_id = diff.file_id
+                        FROM {tiny_cursive_files} uf
+                        LEFT JOIN {tiny_cursive_user_writing} uw ON uw.file_id = uf.id
+                LEFT JOIN {tiny_cursive_writing_diff} diff ON uf.id = diff.file_id
                      WHERE uf.resourceid = :id
                            AND uf.cmid = :cmid
                            AND uf.modulename = :modulename";
@@ -622,141 +622,6 @@ class cursive_json_func_data extends external_api {
      * @return external_value The return value definition for forum comment link response
      */
     public static function get_forum_comment_link_returns() {
-        return new external_value(PARAM_TEXT, 'Comment Link');
-    }
-
-    /**
-     * Returns description of get_quiz_comment_link() parameters
-     *
-     * @return external_function_parameters Parameters definition for quiz comment link
-     */
-    public static function get_quiz_comment_link_parameters() {
-        return new external_function_parameters(
-            [
-                'id' => new external_value(PARAM_INT, 'id', VALUE_DEFAULT, null),
-                'modulename' => new external_value(PARAM_TEXT, 'modulename', VALUE_DEFAULT, ''),
-                'cmid' => new external_value(PARAM_INT, 'cmid', VALUE_DEFAULT, null),
-                'questionid' => new external_value(PARAM_INT, 'questionid', VALUE_DEFAULT, null),
-            ],
-        );
-    }
-
-    /**
-     * Get quiz comment link data including user comments and writing analytics
-     *
-     * @param int $id The resource ID
-     * @param string $modulename The module name (e.g. 'quiz')
-     * @param int|null $cmid The course module ID
-     * @param int|null $questionid The question ID for quiz questions
-     * @return string JSON encoded array containing user comments and analytics data
-     * @throws coding_exception
-     * @throws dml_exception
-     * @throws invalid_parameter_exception
-     * @throws moodle_exception
-     */
-    public static function get_quiz_comment_link(
-        $id,
-        $modulename,
-        $cmid = null,
-        $questionid = null,
-    ) {
-        global $DB, $CFG;
-        require_once($CFG->dirroot . '/lib/accesslib.php');
-        require_once($CFG->dirroot . '/question/lib.php');
-        $params = self::validate_parameters(
-            self::get_comment_link_parameters(),
-            [
-                'id' => $id,
-                'modulename' => $modulename,
-                'cmid' => $cmid,
-                'questionid' => $questionid,
-            ],
-        );
-
-        $context = context_module::instance($params['cmid']);
-        self::validate_context($context);
-        require_capability('tiny/cursive:view', $context);
-
-        if ($modulename == 'quiz') {
-            $conditions = ["resourceid" => $params['id'], "cmid" => $params['cmid'], "questionid" => $params['questionid']];
-            $table = 'tiny_cursive_comments';
-            $recs = $DB->get_records($table, $conditions);
-
-            $attempts = "SELECT uw.total_time_seconds ,uw.word_count ,uw.words_per_minute,
-                                uw.backspace_percent,uw.score,uw.copy_behavior,uf.resourceid ,
-                                uf.modulename,uf.userid, uf.filename
-                           FROM {tiny_cursive_user_writing} uw
-                           JOIN {tiny_cursive_files} uf ON uw.file_id =uf.id
-                          WHERE uf.resourceid = :id
-                                AND uf.cmid = :cmid
-                                AND uf.modulename = :modulename";
-            $data = $DB->get_record_sql(
-                $attempts,
-                ['id' => $params['id'], 'cmid' => $params['cmid'], 'modulename' => $params['modulename']],
-            );
-
-            if (!isset($data->filename)) {
-                $sql = 'SELECT filename
-                          FROM {tiny_cursive_files}
-                         WHERE resourceid = :resourceid
-                               AND cmid = :cmid
-                               AND modulename = :modulename';
-                $filename = $DB->get_record_sql(
-                    $sql,
-                    ['resourceid' => $params['id'], 'cmid' => $params['cmid'], 'modulename' => $params['modulename']],
-                );
-
-                $data['filename'] = $filename->filename;
-            }
-        } else {
-            $conditions = ["resourceid" => $params['id']];
-            $table = 'tiny_cursive_comments';
-            $recs = $DB->get_records($table, $conditions);
-
-            $attempts = "SELECT uw.total_time_seconds ,uw.word_count ,uw.words_per_minute,
-                                uw.backspace_percent,uw.score,uw.copy_behavior,uf.resourceid ,
-                                uf.modulename,uf.userid, uf.filename
-                           FROM {tiny_cursive_user_writing} uw
-                           JOIN {tiny_cursive_files} uf ON uw.file_id =uf.id
-                          WHERE uf.resourceid = :id
-                                AND uf.cmid = :cmid
-                                AND uf.modulename = :modulename ";
-            $data = $DB->get_record_sql(
-                $attempts,
-                ['id' => $params['id'], 'cmid' => $params['cmid'], 'modulename' => $params['modulename']],
-            );
-
-            if (!isset($data->filename)) {
-                $sql = 'SELECT filename
-                          FROM {tiny_cursive_files}
-                         WHERE resourceid = :resourceid
-                               AND cmid = :cmid
-                               AND modulename = :modulename';
-                $filename = $DB->get_record_sql(
-                    $sql,
-                    ['resourceid' => $params['id'], 'cmid' => $params['cmid'], 'modulename' => $params['modulename']],
-                );
-
-                $data['filename'] = $filename->filename;
-            }
-        }
-        $usercomment = [];
-        if ($recs) {
-            foreach ($recs as $key => $rec) {
-                array_push($usercomment, $rec);
-            }
-            return json_encode(['usercomment' => $usercomment, 'data' => $data]);
-        } else {
-            return json_encode(['usercomment' => 'comments', 'data' => $data]);
-        }
-    }
-
-    /**
-     * Returns description of get_quiz_comment_link() result value
-     *
-     * @return external_value The return value definition for quiz comment link response
-     */
-    public static function get_quiz_comment_link_returns() {
         return new external_value(PARAM_TEXT, 'Comment Link');
     }
 
