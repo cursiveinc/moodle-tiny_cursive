@@ -256,7 +256,6 @@ $functions = [
 $services = [
     'Cursive Json Service' => [
         'functions' => [
-            'cursive_get_quizlist',
             'cursive_get_module_list',
             'cursive_user_comments',
             'cursive_get_comment_link',
@@ -274,8 +273,6 @@ $services = [
             'cursive_generate_webtoken',
             'cursive_write_local_to_json',
             'cursive_get_config',
-            'cursive_store_quality_metrics',
-            'cursive_get_quality_metrics',
         ],
         'shortname' => 'cursive_json_service',
         'downloadfiles' => 1, // Allow file downloads.
