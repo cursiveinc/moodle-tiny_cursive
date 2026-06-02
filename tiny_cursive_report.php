@@ -97,7 +97,7 @@ $canvas = html_writer::tag('canvas', '', [
 $canvasdiv = html_writer::div($canvas, 'col-xl-8 mb-3 mb-xl-0 rounded border p-3 my-2');
 $filter = html_writer::div($mform->render(), 'col-xl-4');
 
-echo html_writer::div($filter . $canvasdiv, 'row g-3');
+echo html_writer::div($filter . $canvasdiv, 'row g-3 mt-3');
 
 $renderer     = $PAGE->get_renderer('tiny_cursive');
 

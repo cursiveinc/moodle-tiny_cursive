@@ -400,61 +400,10 @@ function tiny_cursive_render_user_table($users, $renderer, $courseid, $page, $li
         'target' => '_blank',
         'id' => 'export',
         'role' => 'button',
-        'class' => 'btn btn-primary',
+        'class' => 'btn btn-primary my-3',
         'style' => 'margin-right:50px; padding: 9px 18px',
     ];
     // Generate the link using html_writer::link.
     echo html_writer::link($url, $dwnldicon . $linktext, $attributes);
     echo $renderer->timer_report($users, $courseid, $page, $limit, $linkurl);
-}
-
-/**
- * Check subscription status for Tiny Cursive plugin
- *
- * Verifies the subscription status by making a request to the remote Python server
- * using the configured secret key. Updates the subscription status in plugin config.
- *
- * @return array Returns array with status boolean indicating subscription check result
- * @throws moodle_exception If there is an error checking the subscription
- */
-function tiny_cursive_check_subscriptions() {
-    global $DB, $CFG;
-    require_once("$CFG->libdir/filelib.php");
-
-    $token = get_config('tiny_cursive', 'secretkey');
-
-    if (!$token) {
-        return ['status' => false];
-    }
-    try {
-        $remoteurl = get_config('tiny_cursive', 'python_server') . '/verify-role';
-        $moodleurl = $CFG->wwwroot;
-
-        $curl = new curl();
-        $options = [
-            'CURLOPT_RETURNTRANSFER' => true,
-            'CURLOPT_HTTPHEADER' => [
-                'Authorization: Bearer ' . $token,
-                'X-Moodle-Url: ' . $moodleurl,
-                'Content-Type: multipart/form-data',
-                'Accept: application/json',
-            ],
-        ];
-
-        // Prepare POST fields.
-        $postfields = [
-            'token' => $token,
-            'moodle_url' => $moodleurl,
-        ];
-        $result = '';
-        // Execute the request.
-        $result = $curl->post($remoteurl, $postfields, $options);
-        $result = json_decode($result);
-        if ($result) {
-            set_config('has_subscription', $result->status, 'tiny_cursive');
-            return ['status' => true];
-        }
-    } catch (moodle_exception $e) {
-        throw new moodle_exception($e->getMessage());
-    }
 }
