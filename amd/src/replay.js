@@ -447,7 +447,7 @@ export default class Replay {
         carouselContainer.classList.add('tiny_cursive_paste_events_carousel', 'paste-events-carousel');
 
         const navigationRow = document.createElement('div');
-        navigationRow.classList.add('paste-events-navigation', 'tiny_cursive_navigation_row');
+        navigationRow.classList.add('tiny_cursive-paste-events-navigation', 'tiny_cursive_navigation_row');
 
         const counterDisplay = document.createElement('div');
         counterDisplay.classList.add('paste-events-counter', 'tiny_cursive_counter_display');
@@ -517,7 +517,7 @@ export default class Replay {
         topRow.style.alignItems = 'center';
 
         const timestampContainer = document.createElement('div');
-        timestampContainer.className = 'paste-event-timestamp tiny_cursive_paste_event_timestamp';
+        timestampContainer.className = 'tiny_cursive-paste-event-timestamp tiny_cursive_paste_event_timestamp';
         timestampContainer.textContent = pasteEvent.formattedTime;
 
         topRow.appendChild(timestampContainer);
@@ -559,7 +559,7 @@ export default class Replay {
         contentContainer.style.minWidth = '0';
 
         const pastedTextContainer = document.createElement('div');
-        pastedTextContainer.className = 'paste-event-text tiny_cursive_pasted_text_container';
+        pastedTextContainer.className = 'tiny_cursive-paste-event-text tiny_cursive_pasted_text_container';
         pastedTextContainer.textContent = pasteEvent.pastedText;
 
         let commentContainer = null;
@@ -569,7 +569,7 @@ export default class Replay {
             pastedTextContainer.style.display = 'none';
 
             commentContainer = document.createElement('div');
-            commentContainer.className = 'paste-event-comment tiny_cursive_comment_container';
+            commentContainer.className = 'tiny_cursive-paste-event-comment tiny_cursive_comment_container';
             commentContainer.textContent = pasteEvent.comment;
             commentContainer.style.display = 'block';
 

@@ -5,71 +5,71 @@
     <TABLE NAME="tiny_cursive_files" COMMENT="Stores File names.">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
-        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Where this question comes in order in the list of questions in this quiz. Like question_attempts.slot."/>
-        <FIELD NAME="cmid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Foreign key references quiz.id."/>
-        <FIELD NAME="modulename" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="How many marks this question contributes to quiz.sumgrades."/>
-        <FIELD NAME="resourceid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The page number that this questions appears on. If the question in slot n appears on page p, then the question in slot n+1 must appear on page p or p+1. Well, except that when a quiz is being created, there may be empty pages, which would cause the page number to jump here."/>
-        <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Set to 1 when current question requires previous one to be answered first."/>
-        <FIELD NAME="filename" TYPE="char" LENGTH="255" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="How many marks this question contributes to quiz.sumgrades."/>
-        <FIELD NAME="content" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Encoded Files data for backup uses"/>
-        <FIELD NAME="original_content" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="original text content"/>
-        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Last modified time."/>
-        <FIELD NAME="uploaded" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="File upladed to api."/>
-        <FIELD NAME="questionid" TYPE="int" LENGTH="20" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="ID of the user who created the file record"/>
+        <FIELD NAME="cmid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Course module id for the related resource"/>
+        <FIELD NAME="modulename" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Name of the related module or component"/>
+        <FIELD NAME="resourceid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="ID of the related resource or activity instance"/>
+        <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="ID of the course containing the resource"/>
+        <FIELD NAME="filename" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="Name of the uploaded file"/>
+        <FIELD NAME="content" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Stored file content or encoded payload"/>
+        <FIELD NAME="original_content" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Original unmodified text content"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Time when the record was last modified"/>
+        <FIELD NAME="uploaded" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Flag indicating whether the file has been uploaded to the API"/>
+        <FIELD NAME="questionid" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false" COMMENT="Optional related question id"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
       <INDEXES>
-        <INDEX NAME="idx_files_lookup" UNIQUE="false" FIELDS="cmid,modulename,resourceid,userid"/>
-        <INDEX NAME="idx_files_quiz_lookup" UNIQUE="false" FIELDS="cmid,modulename,resourceid,userid,questionid"/>
+        <INDEX NAME="idx_files_lookup" UNIQUE="false" FIELDS="cmid, modulename, resourceid, userid"/>
+        <INDEX NAME="idx_files_quiz_lookup" UNIQUE="false" FIELDS="cmid, modulename, resourceid, userid, questionid"/>
         <INDEX NAME="idx_files_userid" UNIQUE="false" FIELDS="userid"/>
         <INDEX NAME="idx_files_courseid" UNIQUE="false" FIELDS="courseid"/>
         <INDEX NAME="idx_files_uploaded" UNIQUE="false" FIELDS="uploaded"/>
       </INDEXES>
     </TABLE>
-    <TABLE NAME="tiny_cursive_comments" COMMENT="Stores user comments .">
+    <TABLE NAME="tiny_cursive_comments" COMMENT="Stores user comments">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
-        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Where this question comes in order in the list of questions in this quiz. Like question_attempts.slot."/>
-        <FIELD NAME="cmid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Foreign key references quiz.id."/>
-        <FIELD NAME="modulename" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="How many marks this question contributes to quiz.sumgrades."/>
-        <FIELD NAME="resourceid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The page number that this questions appears on. If the question in slot n appears on page p, then the question in slot n+1 must appear on page p or p+1. Well, except that when a quiz is being created, there may be empty pages, which would cause the page number to jump here."/>
-        <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Set to 1 when current question requires previous one to be answered first."/>
-        <FIELD NAME="usercomment" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="How many marks this question contributes to quiz.sumgrades."/>
-        <FIELD NAME="questionid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="question id"/>
-        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Last modified time."/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="ID of the user who added the comment"/>
+        <FIELD NAME="cmid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Course module id for the related resource"/>
+        <FIELD NAME="modulename" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Name of the related module or component"/>
+        <FIELD NAME="resourceid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="ID of the related resource or activity instance"/>
+        <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="ID of the course containing the resource"/>
+        <FIELD NAME="usercomment" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="Text of the user comment"/>
+        <FIELD NAME="questionid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Optional related question id"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Time when the comment was last modified"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
-        <INDEXES>
-        <INDEX NAME="idx_comments_lookup" UNIQUE="false" FIELDS="cmid,modulename,resourceid,userid"/>
-        <INDEX NAME="idx_comments_quiz_lookup" UNIQUE="false" FIELDS="cmid,modulename,resourceid,userid,questionid"/>
+      <INDEXES>
+        <INDEX NAME="idx_comments_lookup" UNIQUE="false" FIELDS="cmid, modulename, resourceid, userid"/>
+        <INDEX NAME="idx_comments_quiz_lookup" UNIQUE="false" FIELDS="cmid, modulename, resourceid, userid, questionid"/>
         <INDEX NAME="idx_comments_userid" UNIQUE="false" FIELDS="userid"/>
         <INDEX NAME="idx_comments_courseid" UNIQUE="false" FIELDS="courseid"/>
       </INDEXES>
     </TABLE>
-    <TABLE NAME="tiny_cursive_user_writing" COMMENT="tiny_user_writing_statics.">
+    <TABLE NAME="tiny_cursive_user_writing" COMMENT="Stores writing and typing metrics for a file">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
-        <FIELD NAME="file_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
-        <FIELD NAME="total_time_seconds" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Where this question comes in order in the list of questions in this quiz. Like question_attempts.slot."/>
-        <FIELD NAME="key_count" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Foreign key references quiz.id."/>
-        <FIELD NAME="keys_per_minute" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The page number that this questions appears on. If the question in slot n appears on page p, then the question in slot n+1 must appear on page p or p+1. Well, except that when a quiz is being created, there may be empty pages, which would cause the page number to jump here."/>
-        <FIELD NAME="character_count" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Set to 1 when the current question requires the previous one to be answered first."/>
-        <FIELD NAME="characters_per_minute" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="How many marks this question contributes to quiz.sumgrades."/>
-        <FIELD NAME="word_count" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Last modified time."/>
-        <FIELD NAME="words_per_minute" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Last modified time."/>
-        <FIELD NAME="backspace_percent" TYPE="float" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Last modified time."/>
-        <FIELD NAME="score" TYPE="float" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="User score to show icons."/>
-        <FIELD NAME="copy_behavior" TYPE="float" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="User score to show icons."/>
-        <FIELD NAME="quality_access" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Access to Quality Metrics option"/>
+        <FIELD NAME="file_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="ID of the related file record"/>
+        <FIELD NAME="total_time_seconds" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Total writing duration in seconds"/>
+        <FIELD NAME="key_count" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Number of keys pressed"/>
+        <FIELD NAME="keys_per_minute" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Typing speed measured in keys per minute"/>
+        <FIELD NAME="character_count" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Number of characters typed"/>
+        <FIELD NAME="characters_per_minute" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Typing speed measured in characters per minute"/>
+        <FIELD NAME="word_count" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Number of words typed"/>
+        <FIELD NAME="words_per_minute" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Typing speed measured in words per minute"/>
+        <FIELD NAME="backspace_percent" TYPE="float" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Percentage of keystrokes that were backspaces"/>
+        <FIELD NAME="score" TYPE="float" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Computed score for the writing session"/>
+        <FIELD NAME="copy_behavior" TYPE="float" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Metric tracking copy/paste behavior"/>
+        <FIELD NAME="quality_access" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Access flag for quality metrics"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
-         <INDEXES>
+      <INDEXES>
         <INDEX NAME="idx_user_writing_fileid" UNIQUE="false" FIELDS="file_id"/>
       </INDEXES>
     </TABLE>
@@ -85,7 +85,7 @@
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
-            <INDEXES>
+      <INDEXES>
         <INDEX NAME="idx_writing_diff_fileid" UNIQUE="false" FIELDS="file_id"/>
       </INDEXES>
     </TABLE>
