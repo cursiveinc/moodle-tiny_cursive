@@ -59,7 +59,7 @@ export const init = (scoreSetting, showcomment, hasApiKey) => {
     if(document.body.id === 'page-mod-workshop-submission') {
         const submission = $('#page-mod-workshop-submission div.author > div.fullname > a')?.attr('href');
         const authorid = submission ? new URL(submission, window.location.origin).searchParams.get('id') : 0;
-        const buttonBox = $('#region-main div.box');
+        const buttonBox = $('#region-main div.box:has(.singlebutton)');
 
         if (authorid) {
             analytics(authorid, cmid, buttonBox);
