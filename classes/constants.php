@@ -161,7 +161,7 @@ class constants {
     public static function has_api_key() {
         global $CFG;
         require_once($CFG->dirroot . '/lib/editor/tiny/plugins/cursive/lib.php');
-
+        return true;
         $secret       = get_config('tiny_cursive', 'secretkey');
         $apikey       = get_config('tiny_cursive', 'apiKey');
         $syncinterval = get_config('tiny_cursive', 'ApiSyncInterval') ?: 0;

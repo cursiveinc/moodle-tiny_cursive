@@ -458,3 +458,84 @@ function tiny_cursive_check_subscriptions() {
         throw new moodle_exception($e->getMessage());
     }
 }
+
+
+/**
+ * Renders the X-axis / Y-axis selector controls above the scatter chart.
+ *
+ * All visible text comes from lang strings so the UI is fully translatable.
+ * The returned HTML is pure structure; behaviour is handled by the AMD module
+ * tiny_cursive/scatter_chart.
+ *
+ * @param  string $xaxis  Currently selected X-axis key ('time'|'effort'|'words').
+ * @param  string $yaxis  Currently selected Y-axis key ('time'|'effort'|'words').
+ * @return string         HTML string ready for echo / html_writer composition.
+ */
+function tiny_cursive_render_axis_selector(string $xaxis, string $yaxis): string {
+
+    // Axis choices: value => lang string key.
+    $axischoices = [
+        'time'   => 'axis_time',
+        'effort' => 'axis_effort',
+        'words'  => 'axis_words',
+    ];
+
+    // Build <option> lists for each select.
+    $xoptions = '';
+    $yoptions = '';
+    foreach ($axischoices as $value => $stringkey) {
+        $label = get_string($stringkey, 'tiny_cursive');
+
+        $xattrs = ['value' => $value];
+        if ($value === $xaxis) {
+            $xattrs['selected'] = 'selected';
+        }
+        if ($value === $yaxis) {
+            $xattrs['disabled'] = 'disabled';
+        }
+        $xoptions .= html_writer::tag('option', $label, $xattrs);
+
+        $yattrs = ['value' => $value];
+        if ($value === $yaxis) {
+            $yattrs['selected'] = 'selected';
+        }
+        if ($value === $xaxis) {
+            $yattrs['disabled'] = 'disabled';
+        }
+        $yoptions .= html_writer::tag('option', $label, $yattrs);
+    }
+
+    $xselect = html_writer::tag('select', $xoptions, [
+        'id'    => 'cursive-xaxis',
+        'name'  => 'xaxis',
+        'class' => 'custom-select custom-select-sm',
+    ]);
+
+    $yselect = html_writer::tag('select', $yoptions, [
+        'id'    => 'cursive-yaxis',
+        'name'  => 'yaxis',
+        'class' => 'custom-select custom-select-sm',
+    ]);
+
+    $xlabel = html_writer::tag('label', get_string('xaxis', 'tiny_cursive'), [
+        'for'   => 'cursive-xaxis',
+        'class' => 'mr-1 mb-0 font-weight-semibold text-nowrap',
+    ]);
+
+    $ylabel = html_writer::tag('label', get_string('yaxis', 'tiny_cursive'), [
+        'for'   => 'cursive-yaxis',
+        'class' => 'ml-3 mr-1 mb-0 font-weight-semibold text-nowrap',
+    ]);
+
+    $submitbtn = html_writer::tag('button', get_string('submit'), [
+        'id'    => 'cursive-axis-submit',
+        'type'  => 'button',
+        'class' => 'btn btn-primary btn-sm ml-3',
+    ]);
+
+    return html_writer::div(
+        $xlabel . $xselect . $ylabel . $yselect . $submitbtn,
+        'd-flex align-items-center mb-2 border rounded p-3 mb-3',
+        ['id' => 'cursive-axis-controls']
+    );
+}

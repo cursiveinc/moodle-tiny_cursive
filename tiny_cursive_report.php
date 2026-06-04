@@ -17,31 +17,50 @@
 /**
  * Tiny cursive plugin writing report.
  *
- * @package tiny_cursive
+ * @package    tiny_cursive
  * @copyright  CTI <info@cursivetechnology.com>
- * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @author     kuldeep singh <mca.kuldeep.sekhon@gmail.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 use tiny_cursive\constants;
 use tiny_cursive\forms\user_report_form;
-require(__DIR__ . '/../../../../../config.php');
 
+require(__DIR__ . '/../../../../../config.php');
 require_once(__DIR__ . '/locallib.php');
 require_once(__DIR__ . '/lib.php');
 
 global $DB, $PAGE, $OUTPUT;
 
-require_login(); // Teacher and admin can see this page.
+require_login();
+
 $courseid = required_param('courseid', PARAM_INT);
 $userid   = optional_param('userid', 0, PARAM_INT);
 $moduleid = optional_param('moduleid', 0, PARAM_INT);
-$orderby  = optional_param('orderby', 'id', PARAM_TEXT);
+$orderby  = optional_param('orderby', 'id', PARAM_ALPHA);
 $page     = optional_param('page', 0, PARAM_INT);
+$xaxis    = optional_param('xaxis', 'time', PARAM_ALPHA);
+$yaxis    = optional_param('yaxis', 'effort', PARAM_ALPHA);
 
-$limit    = 5;
-$perpage  = $page * $limit;
+// Validate axis values against the allowed set.
+$allowedaxes = ['time', 'effort', 'words'];
 
-$params   = [
+if (!in_array($xaxis, $allowedaxes)) {
+    $xaxis = 'time';
+}
+if (!in_array($yaxis, $allowedaxes) || $yaxis === $xaxis) {
+    foreach ($allowedaxes as $candidate) {
+        if ($candidate !== $xaxis) {
+            $yaxis = $candidate;
+            break;
+        }
+    }
+}
+
+$limit   = 5;
+$perpage = $page * $limit;
+
+$params = [
     'sesskey'             => sesskey(),
     '_qf__userreportform' => 1,
     'courseid'            => $courseid,
@@ -50,12 +69,11 @@ $params   = [
     'orderby'             => $orderby,
     'submitbutton'        => 'Submit',
 ];
-$url     = new moodle_url('/lib/editor/tiny/plugins/cursive/tiny_cursive_report.php', $params);
+$url = new moodle_url('/lib/editor/tiny/plugins/cursive/tiny_cursive_report.php', $params);
 
 if ($courseid && $courseid != 0) {
     $cmid    = tiny_cursive_get_cmid($courseid);
     $context = context_module::instance($cmid);
-
     $struser = get_string('student_writing_statics', 'tiny_cursive');
     $course  = get_course($courseid);
 
@@ -71,14 +89,13 @@ $PAGE->requires->js_call_amd('tiny_cursive/key_logger', 'init', [1]);
 $PAGE->requires->js_call_amd(
     'tiny_cursive/cursive_writing_reports',
     'init',
-    ["", constants::has_api_key(), get_config('tiny_cursive', 'json_download')]
+    ['', constants::has_api_key(), get_config('tiny_cursive', 'json_download')]
 );
 
 $PAGE->set_context(context_system::instance());
 $PAGE->set_title(get_string('tiny_cursive', 'tiny_cursive'));
 $PAGE->set_url($url);
 $PAGE->set_heading(get_string('tiny_cursive', 'tiny_cursive'));
-
 
 echo $OUTPUT->header();
 
@@ -89,17 +106,20 @@ $mform = new user_report_form(null, [
     'orderby'  => $orderby,
 ], '', '', []);
 
-$canvas = html_writer::tag('canvas', '', [
-    'id' => "effortScatterChart",
-    'style' => "max-height: 350px;",
-]);
+// Build axis selector HTML using html_writer; all labels from lang strings.
+$axisselectorhtml = tiny_cursive_render_axis_selector($xaxis, $yaxis);
 
-$canvasdiv = html_writer::div($canvas, 'col-xl-8 mb-3 mb-xl-0 rounded border p-3 my-2');
-$filter = html_writer::div($mform->render(), 'col-xl-4');
+if (!constants::has_api_key()) {
+    $axisselectorhtml = "";
+}
+
+$canvas    = html_writer::tag('canvas', '', ['id' => 'effortScatterChart', 'style' => 'max-height: 350px;']);
+$canvasdiv = html_writer::div($axisselectorhtml . $canvas, 'col-xl-8 mb-3 mb-xl-0 rounded border p-3 my-2');
+$filter    = html_writer::div($mform->render(), 'col-xl-4');
 
 echo html_writer::div($filter . $canvasdiv, 'row g-3');
 
-$renderer     = $PAGE->get_renderer('tiny_cursive');
+$renderer = $PAGE->get_renderer('tiny_cursive');
 
 if ($formdata = $mform->get_data()) {
     if ($formdata->courseid) {
@@ -114,40 +134,14 @@ if ($formdata = $mform->get_data()) {
         $page,
         $limit
     );
-
-    tiny_cursive_render_user_table(
-        $users,
-        $renderer,
-        $courseid,
-        $page,
-        $limit,
-        $url,
-        $moduleid,
-        $userid
-    );
-    $chart   = new \tiny_cursive\local\page\visualization($courseid, "", $moduleid, $formdata->userid);
-    $chart->render();
+    tiny_cursive_render_user_table($users, $renderer, $courseid, $page, $limit, $url, $moduleid, $userid);
+    $chart = new \tiny_cursive\local\page\visualization($courseid, '', $moduleid, $formdata->userid);
+    $chart->render($xaxis, $yaxis);
 } else {
-    $users = tiny_cursive_get_user_attempts_data(
-        $userid,
-        $courseid,
-        $moduleid,
-        $orderby,
-        $page,
-        $limit
-    );
-    tiny_cursive_render_user_table(
-        $users,
-        $renderer,
-        $courseid,
-        $page,
-        $limit,
-        $url,
-        $moduleid,
-        $userid
-    );
-    $chart   = new \tiny_cursive\local\page\visualization($courseid, "", $moduleid, $userid);
-    $chart->render();
+    $users = tiny_cursive_get_user_attempts_data($userid, $courseid, $moduleid, $orderby, $page, $limit);
+    tiny_cursive_render_user_table($users, $renderer, $courseid, $page, $limit, $url, $moduleid, $userid);
+    $chart = new \tiny_cursive\local\page\visualization($courseid, '', $moduleid, $userid);
+    $chart->render($xaxis, $yaxis);
 }
 
 echo $OUTPUT->footer();

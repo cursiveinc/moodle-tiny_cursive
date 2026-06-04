@@ -21,6 +21,7 @@
  * @copyright  2025 Cursive Technology, Inc. <info@cursivetechnology.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 namespace tiny_cursive\local\page;
 
 use html_writer;
@@ -30,76 +31,72 @@ use stdClass;
 use tiny_cursive\constants;
 
 /**
- * Visualization class for handling course analytics and data visualization
+ * Visualization class for handling course analytics and data visualization.
  *
- * This class manages the visualization of writing analytics data for courses and course modules.
- * It handles:
- * - Setting up and rendering visualization pages
- * - Retrieving and processing course analytics data
- * - Managing module filters and navigation
- * - Categorizing writing efforts into different levels
- * - Generating visualization data for scatter charts
+ * Manages the rendering of writing-analytics scatter charts for a given course
+ * and course module.  Axis configuration (X / Y) is accepted at render time and
+ * forwarded to the AMD scatter_chart module so the chart reflects the user's
+ * most recent selection without a full page reload.
  */
 class visualization {
     /**
-     * The ID of the course being visualized
+     * The ID of the course being visualized.
      * @var int
      */
     protected $courseid;
 
     /**
-     * Course module information
+     * Course module information.
      * @var \course_modinfo
      */
     protected $modinfo;
 
     /**
-     * The course object
+     * The course object.
      * @var stdClass
      */
     protected $course;
 
     /**
-     * The course module ID
+     * The course module ID.
      * @var int
      */
     protected $cmid;
 
     /**
-     * The type of module being visualized
+     * The type of module being visualized.
      * @var string
      */
     protected $type;
 
     /**
-     * The URL for the visualization page
+     * The URL for the visualization page.
      * @var moodle_url
      */
     protected $url;
 
     /**
-     * The user ID being visualized
+     * The user ID being visualized.
      * @var int
      */
     protected $userid;
 
     /**
-     * The caption for the visualization
+     * The caption displayed above the chart.
      * @var string
      */
     protected $caption;
-    /**
-     * Template name for rendering
-     */
-    public const TEMPLATE = "visualisation";
+
+    /** @var string Mustache template name for standalone rendering. */
+    public const TEMPLATE = 'visualisation';
 
     /**
-     * Constructor for the visualization class
+     * Constructor.
      *
-     * @param int $courseid The ID of the course to visualize
-     * @param string $type The type of module being visualized
-     * @param int $cmid The course module ID
-     * @param int $userid The user id
+     * @param int    $courseid The ID of the course to visualize.
+     * @param string $type     The module type being visualized.
+     * @param int    $cmid     The course module ID.
+     * @param int    $userid   The user ID (0 = all users).
      */
     public function __construct(int $courseid, string $type, $cmid, $userid) {
         $this->type     = $type;
@@ -108,141 +105,209 @@ class visualization {
         $this->cmid     = $cmid;
         $this->userid   = $userid;
         $this->modinfo  = get_fast_modinfo($courseid);
-        $this->url      = new moodle_url('/lib/editor/tiny/plugins/cursive/visualization.php', ['course' => $courseid]);
+        $this->url      = new moodle_url(
+            '/lib/editor/tiny/plugins/cursive/visualization.php',
+            ['course' => $courseid]
+        );
     }
 
     /**
-     * Renders the visualization page by setting up the page configuration with course analytics data
+     * Renders the visualization by emitting the data store div and queuing the AMD call.
      *
-     * Calls page_setup() with:
-     * - Course analytics data from get_course_analytics()
-     * - API key status from constants::has_api_key()
-     * - onlychart parameter set to true to show just the chart
+     * @param string $xaxis Axis key for X ('time'|'effort'|'words'). Defaults to 'time'.
+     * @param string $yaxis Axis key for Y ('time'|'effort'|'words'). Defaults to 'effort'.
      */
-    public function render() {
-
-        $this->page_setup($this->get_course_analytics($this->courseid, $this->cmid), constants::has_api_key(), true);
+    public function render(string $xaxis = 'time', string $yaxis = 'effort'): void {
+        $this->page_setup(
+            $this->get_course_analytics($this->courseid, $this->cmid),
+            constants::has_api_key(),
+            true,
+            $xaxis,
+            $yaxis
+        );
     }
 
     /**
-     * Sets up the page configuration for visualization
+     * Emits the hidden data store and registers the AMD module initialisation.
      *
-     * @param array $data The visualization data to be displayed
-     * @param bool $status The API key status
-     * @param bool $onlychart Whether to only show the chart without page chrome
+     * The axis keys are passed as the 4th and 5th arguments to scatter_chart::init
+     * so the JS module can apply them immediately on page load without waiting for
+     * a user interaction.
+     *
+     * @param array  $data      Visualisation data returned by get_course_analytics().
+     * @param bool   $status    Whether a valid API key is configured.
+     * @param bool   $onlychart True when embedded inside the report page (no page chrome).
+     * @param string $xaxis     Axis key for X.
+     * @param string $yaxis     Axis key for Y.
      */
-    private function page_setup($data, $status, $onlychart) {
+    private function page_setup(
+        $data,
+        bool $status,
+        bool $onlychart,
+        string $xaxis,
+        string $yaxis
+    ): void {
         global $PAGE;
+
         if (!$onlychart) {
             $PAGE->set_url($this->url);
             $PAGE->set_context(context_system::instance());
             $PAGE->set_title(get_string('data_visualization', 'tiny_cursive'));
-            $PAGE->navbar->add($this->course->shortname, new moodle_url('/course/view.php', ['id' => $this->courseid]));
+            $PAGE->navbar->add(
+                $this->course->shortname,
+                new moodle_url('/course/view.php', ['id' => $this->courseid])
+            );
             $PAGE->navbar->add(get_string('data_visualization', 'tiny_cursive'), $this->url);
         }
-        echo html_writer::div('', 'hidden', ['id' => 'scatter-chart-data', 'data-data' => json_encode($data)]);
-        $PAGE->requires->js_call_amd('tiny_cursive/scatter_chart', 'init', [$data ? true : false, $status, $this->caption]);
+
+        // Hidden div acts as the server-side data store read by scatter_chart.js.
+        echo html_writer::div('', 'hidden', [
+            'id'        => 'scatter-chart-data',
+            'data-data' => json_encode($data),
+        ]);
+
+        // Pass xaxis and yaxis as AMD init args (positions 4 and 5).
+        $PAGE->requires->js_call_amd(
+            'tiny_cursive/scatter_chart',
+            'init',
+            [$data ? true : false, $status, $this->caption, $xaxis, $yaxis]
+        );
     }
 
     /**
-     * Gets analytics data for a specific course and course module
+     * Fetches and groups writing analytics records for the given course and module.
      *
-     * @param int $course The course ID to get analytics for
-     * @param int $cmid The course module ID to get analytics for
-     * @return array | void Returns either:
-     *               - Array of writing data grouped by effort level for visualization
-     *               - Array with 'state' => 'apply_filter' if no analytics and no cmid
-     *               - Array with 'state' => 'no_submission' if no analytics but has cmid
+     * Each point object carries all raw metric fields (effort, time, words, wpm)
+     * so the client-side AMD module can remap x/y without a round-trip.
+     *
+     * @param  int        $course Course ID.
+     * @param  int        $cmid   Course-module ID.
+     * @return array|void Grouped dataset array, or an array with a 'state' key on error conditions.
      */
-    private function get_course_analytics($course, $cmid) {
+    private function get_course_analytics(int $course, int $cmid) {
         global $DB;
 
-        $sql = "SELECT f.id as fileid, CONCAT(u.firstname,' ',u.lastname) AS username,
-                       f.userid, w.*, d.meta as effort
+        $sql = 'SELECT f.id AS fileid,
+                       CONCAT(u.firstname, \' \', u.lastname) AS username,
+                       f.userid, w.*, d.meta AS effort
                   FROM {tiny_cursive_files} f
              LEFT JOIN {tiny_cursive_user_writing} w ON f.id = w.file_id
              LEFT JOIN {tiny_cursive_writing_diff} d ON f.id = d.file_id
              LEFT JOIN {user} u ON f.userid = u.id
-                 WHERE f.courseid = :courseid AND f.cmid = :cmid";
+                 WHERE f.courseid = :courseid
+                   AND f.cmid     = :cmid';
 
-        $params    = ['courseid' => $course, 'cmid' => $cmid, 'userid' => $this->userid];
+        $params        = ['courseid' => $course, 'cmid' => $cmid];
         $this->caption = get_string('chart_result', 'tiny_cursive');
 
         if ($this->userid) {
-            $sql .= " AND f.userid = :userid";
+            $sql           .= ' AND f.userid = :userid';
             $params['userid'] = $this->userid;
-            $this->caption = get_string('chart_result_user', 'tiny_cursive');
+            $this->caption    = get_string('chart_result_user', 'tiny_cursive');
         }
 
         $analytics = $DB->get_records_sql($sql, $params);
         $writing   = [];
 
         foreach ($analytics as $analytic) {
-            $effortlabel = $this->get_effort_level($analytic->effort);
-            $key = $effortlabel['label']; // Group by this.
+            $effortlevel = $this->get_effort_level($analytic->effort);
+            $key         = $effortlevel['label'];
 
             if (!isset($writing[$key])) {
-                $writing[$key]        = new stdClass();
-                $writing[$key]->label = $effortlabel['label'];
-                $writing[$key]->backgroundColor = $effortlabel['color'];
-                $writing[$key]->pointRadius = 8;
-                $writing[$key]->pointStyle  = 'circle';
-                $writing[$key]->data   = [];
+                $writing[$key]                  = new stdClass();
+                $writing[$key]->label           = $effortlevel['label'];
+                $writing[$key]->backgroundColor = $effortlevel['color'];
+                $writing[$key]->pointRadius     = 8;
+                $writing[$key]->pointStyle      = 'circle';
+                $writing[$key]->data            = [];
             }
 
-            $point         = new stdClass();
-            if (
-                isset($analytic->total_time_seconds) &&
-                isset($analytic->effort) &&
-                isset($analytic->word_count) &&
-                isset($analytic->words_per_minute)
-            ) {
-                $point->x      = $analytic->total_time_seconds;
-                $point->y      = $analytic->effort;
-                $point->label  = $analytic->username;
-                $point->effort = $analytic->effort;
-                $point->time   = $analytic->total_time_seconds;
-                $point->words  = $analytic->word_count;
-                $point->wpm    = $analytic->words_per_minute;
+            // Only add a point when all required numeric fields are present and non-null.
+            $hasmetrics = !empty($analytic->total_time_seconds)
+                && is_numeric($analytic->total_time_seconds)
+                && !empty($analytic->word_count)
+                && is_numeric($analytic->word_count)
+                && is_numeric($analytic->words_per_minute);
+
+            if ($hasmetrics) {
+                $point         = new stdClass();
+                // x / y use the PHP-supplied defaults; scatter_chart.js remaps them
+                // client-side when the user changes the axis selectors.
+                $point->x      = (int) $analytic->total_time_seconds;
+                $point->y      = is_numeric($analytic->effort) ? (float) $analytic->effort : 0.0;
+                $point->label  = !empty($analytic->username) ? $analytic->username : '';
+                $point->effort = is_numeric($analytic->effort) ? (float) $analytic->effort : 0.0;
+                $point->time   = (int) $analytic->total_time_seconds;
+                $point->words  = (int) $analytic->word_count;
+                $point->wpm    = is_numeric($analytic->words_per_minute) ? (float) $analytic->words_per_minute : 0.0;
+
+                $writing[$key]->data[] = $point;
             }
-            $writing[$key]->data[] = $point;
         }
 
-        // Re-index to get plain array (Chart.js needs numerically indexed array).
-        $writing = array_values($writing);
+        // Remove buckets that ended up with no valid points (guards against phantom
+        // legend entries when all records had null metrics), then re-index.
+        $writing = array_values(array_filter($writing, function ($bucket) {
+            return !empty($bucket->data);
+        }));
 
         if (count($analytics) > 0 && $cmid) {
             return $writing;
-        } else if (count($analytics) == 0 && $cmid == 0) {
+        } else if (count($analytics) === 0 && $cmid == 0) {
             return ['state' => 'apply_filter'];
-        } else if (count($analytics) == 0 && $cmid) {
-            return ["state" => "no_submission"];
+        } else if (count($analytics) === 0 && $cmid) {
+            return ['state' => 'no_submission'];
         }
     }
 
     /**
-     * Gets the active analytics type and generates filter data for each module
+     * Returns the effort-level label and colour for a given numeric effort score.
      *
-     * @param string $type The module type to check against
-     * @return array Array of module filter data containing:
-     *               - link: URL for the module
-     *               - state: Active state CSS class
-     *               - name: Capitalized module name
+     * Colour scheme (4 tiers):
+     *  - Low      < 0.5          → red    (#D32F2F)
+     *  - Low      0.5 – 1.0      → orange (#FF9800)
+     *  - High     1.0 – 1.3      → green  (#43A047)
+     *  - Very high 1.3+          → dark green (#2E7D32)
+     *
+     * Null or non-numeric values are treated as zero (lowest tier).
+     *
+     * @param  mixed $effort Raw effort score from the database (may be null).
+     * @return array         Associative array with keys 'label' and 'color'.
      */
-    private function get_active_analytics_type($type) {
+    private function get_effort_level($effort): array {
+        // Treat null, empty string, or non-numeric values as zero.
+        $score = is_numeric($effort) ? (float) $effort : 0.0;
 
+        if ($score < 0.5) {
+            return ['label' => 'Low effort (<0.5)', 'color' => '#D32F2F'];
+        } else if ($score <= 1.0) {
+            return ['label' => 'Low (0.5-1.0)', 'color' => '#FF9800'];
+        } else if ($score <= 1.3) {
+            return ['label' => 'High (1.0-1.3)', 'color' => '#43A047'];
+        } else {
+            return ['label' => 'Very high (1.3+)', 'color' => '#2E7D32'];
+        }
+    }
+
+    /**
+     * Gets the active analytics type and generates filter data for each module.
+     *
+     * @param  string $type The module type to match as active.
+     * @return array        Array of filter data arrays with keys: link, state, name.
+     */
+    private function get_active_analytics_type(string $type): array {
         $modules = array_values(array_unique(array_map(
             function ($cm) use ($type) {
                 if (!in_array($cm->modname, constants::NAMES)) {
-                    return;
+                    return null;
                 }
-                $id      = array_values($this->get_multiple_mod($cm->modname))[0]['id']; // Cmid.
-                $filters = ["link" => $this->generate_link(['name' => $cm->name, "type" => $cm->modname, "id" => $id]),
-                           "state" => "", "name" => ucfirst($cm->modname)];
-                if ($cm->modname === $type) {
-                    $filters['state'] = "btn-outline-primary";
-                }
-                return $filters;
+                $id     = array_values($this->get_multiple_mod($cm->modname))[0]['id'];
+                $filter = [
+                    'link'  => $this->generate_link(['name' => $cm->name, 'type' => $cm->modname, 'id' => $id]),
+                    'state' => ($cm->modname === $type) ? 'btn-outline-primary' : '',
+                    'name'  => ucfirst($cm->modname),
+                ];
+                return $filter;
             },
             array_filter($this->modinfo->get_cms(), function ($cm) {
                 return $cm->uservisible;
@@ -252,16 +317,14 @@ class visualization {
         return $modules;
     }
 
-
     /**
-     * Generates a URL link for a module by combining current page URL with module parameters
+     * Generates an absolute URL for a module link.
      *
-     * @param array $mod Module data containing parameters for the URL
-     * @return string The generated URL string
+     * @param  array  $mod Module parameters to merge into the current page URL.
+     * @return string      The generated URL string.
      */
-    private function generate_link($mod) {
+    private function generate_link(array $mod): string {
         global $PAGE;
-
         $current = $PAGE->url->out(false);
         unset($mod['name']);
         $url = new moodle_url($current, $mod);
@@ -269,100 +332,75 @@ class visualization {
     }
 
     /**
-     * Gets the full name of a module based on its ID
+     * Returns the full name of a module by its ID.
      *
-     * @param array $mods Array of module data containing id and name
-     * @param int|null $id ID of the module to find, or null to get first module name
-     * @return string The name of the matched module, or empty string if not found
+     * @param  array    $mods Array of module data with keys: id, name, type.
+     * @param  int|null $id   Module ID to look up, or null to return the first entry.
+     * @return string         Module name, or empty string if not found.
      */
-    private function get_mod_fullname($mods, $id) {
+    private function get_mod_fullname(array $mods, $id): string {
         if ($id) {
-            $matched = array_filter($mods, fn($m) => $m['id'] == $id);
+            $matched = array_filter($mods, function ($m) use ($id) {
+                return $m['id'] == $id;
+            });
             if (!empty($matched)) {
                 return array_values($matched)[0]['name'];
             }
-        } else {
+        } else if (!empty($mods)) {
             return array_values($mods)[0]['name'];
         }
-
-        return "";
+        return '';
     }
 
     /**
-     * Gets all instances of a specific module type that are visible to the user
+     * Returns all visible instances of a given module type for the course.
      *
-     * @param string $type The module type to get instances of
-     * @return array Array of module instances with id, name and type
+     * @param  string $type Module type string (e.g. 'forum', 'assign').
+     * @return array        Array of arrays with keys: id, name, type.
      */
-    private function get_multiple_mod($type) {
-        $modules = array_map(
-            fn($cm) => ['id' => $cm->id, 'name' => $cm->name, "type" => $type],
+    private function get_multiple_mod(string $type): array {
+        return array_map(
+            function ($cm) use ($type) {
+                return ['id' => $cm->id, 'name' => $cm->name, 'type' => $type];
+            },
             array_filter(
                 $this->modinfo->get_instances_of($type),
-                fn($cm) => $cm->uservisible
+                function ($cm) {
+                    return $cm->uservisible;
+                }
             )
         );
-
-        return $modules;
     }
 
     /**
-     * Prepares module data by adding link and state information
+     * Adds link and active-state data to a set of module arrays.
      *
-     * @param array $mods Array of module data to prepare
-     * @param int $id ID of the current module
-     * @return array Modified array of module data with added link and state
+     * @param  array $mods Array of module data arrays.
+     * @param  int   $id   ID of the currently selected module.
+     * @return array       Modified array with 'link' and 'state' keys added.
      */
-    private function prepare_mods($mods, $id) {
+    private function prepare_mods(array $mods, int $id): array {
         foreach ($mods as &$mod) {
-            $mod['link'] = $this->generate_link($mod);
-            $mod["state"] = $mod["id"] == $id ? "btn-outline-primary" : "";
+            $mod['link']  = $this->generate_link($mod);
+            $mod['state'] = ($mod['id'] == $id) ? 'btn-outline-primary' : '';
         }
-
         return $mods;
     }
 
     /**
-     * Prepares data for visualization by gathering module information
+     * Prepares data for the full visualization page (non-embedded mode).
      *
-     * @return array Data array containing:
-     *               - filter: Array of active analytics types
-     *               - multiple: Array of module data if multiple modules exist
-     *               - fullname: Full name of the selected module
+     * @return array Data array with keys: filter, fullname, and optionally multiple.
      */
-    private function prepare_data() {
-
+    private function prepare_data(): array {
         $mods = $this->get_multiple_mod($this->type);
-        $data = ["filter"   => $this->get_active_analytics_type($this->type)];
+        $data = ['filter' => $this->get_active_analytics_type($this->type)];
 
         if (count($mods) > 1) {
-            $multiple         = $this->prepare_mods($mods, $this->cmid);
-            $data["multiple"] = array_values($multiple);
-            $data['fullname'] = $this->get_mod_fullname($mods, $this->cmid);
-        } else {
-            $data['fullname'] = $this->get_mod_fullname($mods, $this->cmid);
+            $data['multiple'] = array_values($this->prepare_mods($mods, $this->cmid));
         }
+        $data['fullname'] = $this->get_mod_fullname($mods, $this->cmid);
 
         return $data;
-    }
-
-    /**
-     * Get the effort level label and color based on the effort value
-     *
-     * @param float $effort The effort value to evaluate
-     * @return array Array containing label and color for the effort level
-     */
-    private function get_effort_level($effort) {
-        if ($effort < 0.5) {
-            return ["label" => "Low effort (<0.5)", "color" => "#FF9800"];
-        } else if ($effort <= 1.0) {
-            return ["label" => "Average (0.5-1.0)", "color" => "#2196F3"];
-        } else if ($effort <= 1.3) {
-            return ["label" => "High effort (1.0-1.3)", "color" => "#43A047"];
-        } else if ($effort <= 1.6) {
-            return ["label" => "Very high effort (1.3-1.6)", "color" => "#2E7D32"];
-        } else {
-            return ["label" => "Exceptional effort (1.6+)", "color" => "#1B5E20"];
-        }
     }
 }
