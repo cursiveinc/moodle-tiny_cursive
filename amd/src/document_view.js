@@ -74,7 +74,7 @@ export default class DocumentView {
 
         const url = new URL(window.location.href);
         const replyId = url.searchParams.get("reply");
-        const toggle = document.querySelector('#cursive-fullpagemode-sidebar-toggle');
+        const toggle = document.querySelector('#tiny_cursive-fullpagemode-sidebar-toggle');
         const timelimitBlock = this.getTimerBlock(this.module);
         const headerInfo = this.getSidebarTitle();
         const progressBar = document.querySelector('.box.progress_bar');
@@ -88,7 +88,7 @@ export default class DocumentView {
 
         const container = this.create('div');
         Object.assign(container, {
-            id: 'cursive-fullpagemode-sidebar',
+            id: 'tiny_cursive-fullpagemode-sidebar',
             className: 'bg-white h-100 shadow'
         });
         Object.assign(container.style, {
@@ -514,12 +514,12 @@ export default class DocumentView {
         courseLabel.textContent = `${this.course}: `;
         courseValue.textContent = course.title;
 
-        usernameLabel.className = 'cfw-bold me-2';
-        usernameValue.className = 'cursiveFw-wrap';
-        courseLabel.className = 'cfw-bold me-2';
-        courseValue.className = 'cursiveFw-wrap';
-        nameLabel.className = 'cfw-bold me-2';
-        nameValue.className = 'cursiveFw-wrap';
+        usernameLabel.className = 'tiny_cursive-cfw-bold me-2';
+        usernameValue.className = 'tiny_cursive-fw-wrap';
+        courseLabel.className = 'tiny_cursive-fw-bold me-2';
+        courseValue.className = 'tiny_cursive-fw-wrap';
+        nameLabel.className = 'tiny_cursive-fw-bold me-2';
+        nameValue.className = 'tiny_cursive-fw-wrap';
 
         nameWrapper.append(nameLabel, nameValue);
         usernameWrapper.append(usernameLabel, usernameValue);
@@ -746,10 +746,10 @@ export default class DocumentView {
             iframeBody.style.padding = '0.5in';
         }
         p2.style.position = 'relative';
-        document.getElementById('cursive-fullpagemode-sidebar')?.remove();
+        document.getElementById('tiny_cursive-fullpagemode-sidebar')?.remove();
 
         let toggle = this.create('div');
-        toggle.id = 'cursive-fullpagemode-sidebar-toggle';
+        toggle.id = 'tiny_cursive-fullpagemode-sidebar-toggle';
         toggle.innerHTML = Icons.hamburger;
         p2.appendChild(toggle);
         p2.appendChild(this.docSideBar(statusBar));
@@ -757,7 +757,7 @@ export default class DocumentView {
 
     normalizePage(editorId) {
         document.getElementById('tiny_cursive-fullpage-custom-header')?.remove();
-        document.getElementById('cursive-fullpagemode-sidebar')?.remove();
+        document.getElementById('tiny_cursive-fullpagemode-sidebar')?.remove();
 
         let current = document.getElementById(editorId);
         let p1 = current.parentElement;

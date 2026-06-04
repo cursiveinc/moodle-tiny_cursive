@@ -264,11 +264,11 @@ define(["core/ajax", "core/str", "core/templates", "./replay", "./analytic_butto
                 }
 
                document.getElementById('expandChart').addEventListener('click', function() {
-               document.getElementById('CursiveChartContainer').classList.toggle('cursive-expand-height');
+               document.getElementById('CursiveChartContainer').classList.toggle('tiny_cursive-expand-height');
                document.getElementById('showtext').classList.toggle('d-none');
                document.getElementById('hidetext').classList.toggle('d-none');
                     setTimeout(() => {
-                    document.getElementById('tiny_cursive-chart-container').classList.toggle('cursive-hide-chartcontainer');
+                    document.getElementById('tiny_cursive-chart-container').classList.toggle('tiny_cursive-hide-chartcontainer');
                     }, 200);
                 });
             }
