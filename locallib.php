@@ -366,19 +366,14 @@ function tiny_cursive_create_token_for_user() {
 }
 
 /**
- * Renders a table displaying user data with export functionality
+ * Renders a cummulative CSV download button for the user report page.
  *
- * @param array $users Array of user data to display in the table
- * @param renderer_base $renderer The renderer object used to display the table
  * @param int $courseid The course ID to filter results
- * @param int $page Current page number for pagination
- * @param int $limit Number of records per page
- * @param string $linkurl Base URL for pagination links
  * @param int $moduleid The module ID to filter results
  * @param int $userid The user ID to filter results
- * @return void
+ * @return string HTML string representing the rendered table
  */
-function tiny_cursive_render_user_table($users, $renderer, $courseid, $page, $limit, $linkurl, $moduleid, $userid) {
+function tiny_cursive_render_download_button($courseid, $moduleid, $userid) {
     global $OUTPUT;
     // Prepare the URL for the link.
     $url = new moodle_url('/lib/editor/tiny/plugins/cursive/csvexport.php', [
@@ -400,63 +395,11 @@ function tiny_cursive_render_user_table($users, $renderer, $courseid, $page, $li
         'target' => '_blank',
         'id' => 'export',
         'role' => 'button',
-        'class' => 'btn btn-primary',
-        'style' => 'margin-right:50px; padding: 9px 18px',
+        'class' => 'btn btn-sm btn-primary',
+
     ];
     // Generate the link using html_writer::link.
-    echo html_writer::link($url, $dwnldicon . $linktext, $attributes);
-    echo $renderer->timer_report($users, $courseid, $page, $limit, $linkurl);
-}
-
-/**
- * Check subscription status for Tiny Cursive plugin
- *
- * Verifies the subscription status by making a request to the remote Python server
- * using the configured secret key. Updates the subscription status in plugin config.
- *
- * @return array Returns array with status boolean indicating subscription check result
- * @throws moodle_exception If there is an error checking the subscription
- */
-function tiny_cursive_check_subscriptions() {
-    global $DB, $CFG;
-    require_once("$CFG->libdir/filelib.php");
-
-    $token = get_config('tiny_cursive', 'secretkey');
-
-    if (!$token) {
-        return ['status' => false];
-    }
-    try {
-        $remoteurl = get_config('tiny_cursive', 'python_server') . '/verify-role';
-        $moodleurl = $CFG->wwwroot;
-
-        $curl = new curl();
-        $options = [
-            'CURLOPT_RETURNTRANSFER' => true,
-            'CURLOPT_HTTPHEADER' => [
-                'Authorization: Bearer ' . $token,
-                'X-Moodle-Url: ' . $moodleurl,
-                'Content-Type: multipart/form-data',
-                'Accept: application/json',
-            ],
-        ];
-
-        // Prepare POST fields.
-        $postfields = [
-            'token' => $token,
-            'moodle_url' => $moodleurl,
-        ];
-        $result = '';
-        // Execute the request.
-        $result = $curl->post($remoteurl, $postfields, $options);
-        $result = json_decode($result);
-        if ($result) {
-            set_config('has_subscription', $result->status, 'tiny_cursive');
-            return ['status' => true];
-        }
-    } catch (moodle_exception $e) {
-        throw new moodle_exception($e->getMessage());
-    }
+    return html_writer::link($url, $dwnldicon . $linktext, $attributes);
 }
 
 
@@ -538,4 +481,85 @@ function tiny_cursive_render_axis_selector(string $xaxis, string $yaxis): string
         'd-flex align-items-center mb-2 border rounded p-3 mb-3',
         ['id' => 'cursive-axis-controls']
     );
+}
+
+/**
+ * Renders the X-axis / Y-axis selector controls for the scatter chart (version 2).
+ *
+ * This version returns only the inner control elements without a wrapping div,
+ * allowing the calling page to apply its own container styling. All visible text
+ * comes from lang strings so the UI is fully translatable.
+ *
+ * @param  string $xaxis  Currently selected X-axis key ('time'|'effort'|'words').
+ * @param  string $yaxis  Currently selected Y-axis key ('time'|'effort'|'words').
+ * @return string         HTML string containing axis selector controls ready for composition.
+ */
+function tiny_cursive_render_axis_selector_v2(string $xaxis, string $yaxis): string {
+
+    // Axis choices: value => lang string key.
+    $axischoices = [
+        'time'   => 'axis_time',
+        'effort' => 'axis_effort',
+        'words'  => 'axis_words',
+    ];
+
+    // Build <option> lists for each select with mutual-exclusion disabled states.
+    $xoptions = '';
+    $yoptions = '';
+    foreach ($axischoices as $value => $stringkey) {
+        $label = get_string($stringkey, 'tiny_cursive');
+
+        $xattrs = ['value' => $value];
+        if ($value === $xaxis) {
+            $xattrs['selected'] = 'selected';
+        }
+        if ($value === $yaxis) {
+            $xattrs['disabled'] = 'disabled';
+        }
+        $xoptions .= html_writer::tag('option', $label, $xattrs);
+
+        $yattrs = ['value' => $value];
+        if ($value === $yaxis) {
+            $yattrs['selected'] = 'selected';
+        }
+        if ($value === $xaxis) {
+            $yattrs['disabled'] = 'disabled';
+        }
+        $yoptions .= html_writer::tag('option', $label, $yattrs);
+    }
+
+    $xselect = html_writer::tag('select', $xoptions, [
+        'id'    => 'cursive-xaxis',
+        'name'  => 'xaxis',
+        'class' => 'form-control form-control-sm cursive-axis-select',
+    ]);
+
+    $yselect = html_writer::tag('select', $yoptions, [
+        'id'    => 'cursive-yaxis',
+        'name'  => 'yaxis',
+        'class' => 'form-control form-control-sm cursive-axis-select',
+    ]);
+
+    $xlabel = html_writer::tag('label', get_string('xaxis', 'tiny_cursive'), [
+        'for'   => 'cursive-xaxis',
+        'class' => 'mb-0',
+    ]);
+
+    $ylabel = html_writer::tag('label', get_string('yaxis', 'tiny_cursive'), [
+        'for'   => 'cursive-yaxis',
+        'class' => 'mb-0',
+    ]);
+
+    $xgroup = html_writer::div($xlabel . $xselect, 'cursive-axis-group');
+    $ygroup = html_writer::div($ylabel . $yselect, 'cursive-axis-group');
+
+    $submitbtn = html_writer::tag('button', get_string('submit'), [
+        'id'    => 'cursive-axis-submit',
+        'type'  => 'button',
+        'class' => 'btn btn-primary btn-axis-submit',
+    ]);
+
+    // Return the inner content only; the wrapping .cursive-axis-bar div
+    // is applied by the calling page so the header flex layout works correctly.
+    return $xgroup . $ygroup . $submitbtn;
 }

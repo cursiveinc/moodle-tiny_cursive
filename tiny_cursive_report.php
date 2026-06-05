@@ -15,7 +15,11 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Tiny cursive plugin writing report.
+ * Tiny cursive plugin writing report — v2 layout.
+ *
+ * Logic is identical to tiny_cursive_report.php (v1).
+ * Only the HTML structure and CSS classes have changed to produce a
+ * card-based, two-column layout with a dedicated chart header bar.
  *
  * @package    tiny_cursive
  * @copyright  CTI <info@cursivetechnology.com>
@@ -34,6 +38,7 @@ global $DB, $PAGE, $OUTPUT;
 
 require_login();
 
+// ── Parameters (unchanged from v1) ──────────────────────────────────────────
 $courseid = required_param('courseid', PARAM_INT);
 $userid   = optional_param('userid', 0, PARAM_INT);
 $moduleid = optional_param('moduleid', 0, PARAM_INT);
@@ -42,7 +47,6 @@ $page     = optional_param('page', 0, PARAM_INT);
 $xaxis    = optional_param('xaxis', 'time', PARAM_ALPHA);
 $yaxis    = optional_param('yaxis', 'effort', PARAM_ALPHA);
 
-// Validate axis values against the allowed set.
 $allowedaxes = ['time', 'effort', 'words'];
 
 if (!in_array($xaxis, $allowedaxes)) {
@@ -106,18 +110,59 @@ $mform = new user_report_form(null, [
     'orderby'  => $orderby,
 ], '', '', []);
 
-// Build axis selector HTML using html_writer; all labels from lang strings.
-$axisselectorhtml = tiny_cursive_render_axis_selector($xaxis, $yaxis);
 
-if (!constants::has_api_key()) {
-    $axisselectorhtml = "";
-}
+$axisbar = tiny_cursive_render_axis_selector_v2($xaxis, $yaxis);
 
-$canvas    = html_writer::tag('canvas', '', ['id' => 'effortScatterChart', 'style' => 'max-height: 350px;']);
-$canvasdiv = html_writer::div($axisselectorhtml . $canvas, 'col-xl-8 mb-3 mb-xl-0 rounded border p-3 my-2');
-$filter    = html_writer::div($mform->render(), 'col-xl-4');
 
-echo html_writer::div($filter . $canvasdiv, 'row g-3');
+$canvas = html_writer::tag('canvas', '', [
+    'id'    => 'effortScatterChart',
+    'style' => 'max-height: 340px; width: 100%;',
+]);
+
+
+$filterheader = html_writer::div(
+    html_writer::tag('span', get_string('filters', 'tiny_cursive'), ['class' => 'cursive-card-header-title']),
+    'cursive-card-header'
+);
+$filterbody = html_writer::div($mform->render(), 'cursive-card-body');
+$filtercard = html_writer::div(
+    $filterheader . $filterbody . $requirednote,
+    'cursive-card'
+);
+
+$axisbar = constants::has_api_key() ? html_writer::div($axisbar, 'cursive-axis-bar') : '';
+$chartheader = html_writer::div(
+    html_writer::tag('span', get_string('analytics_chart', 'tiny_cursive'), ['class' => 'cursive-card-header-title']) .
+    $axisbar,
+    'cursive-card-header'
+);
+$chartwrap   = html_writer::div($canvas, 'cursive-chart-wrap');
+$chartcard   = html_writer::div($chartheader . $chartwrap, 'cursive-card');
+
+
+$topgrid = html_writer::div(
+    html_writer::div($filtercard, '') .
+    html_writer::div($chartcard, ''),
+    'cursive-top-grid'
+);
+
+echo html_writer::div($topgrid, 'cursive-report-v2');
+
+// ── Table section ─────────────────────────────────────────────────────────────
+// Rendered inside its own card wrapper; the actual table + download button
+// come from tiny_cursive_render_user_table() and visualization->render()
+// which echo directly, so we open the card shell around them.
+echo html_writer::start_div('cursive-report-v2');
+echo html_writer::start_div('cursive-card cursive-table-card mt-2');
+echo html_writer::div(
+    html_writer::tag(
+        'span',
+        get_string('student_writing_statics', 'tiny_cursive'),
+        ['class' => 'cursive-card-header-title']
+    ) . tiny_cursive_render_download_button($courseid, $moduleid, $userid),
+    'cursive-card-header'
+);
+echo html_writer::start_div('cursive-card-body p-0');
 
 $renderer = $PAGE->get_renderer('tiny_cursive');
 
@@ -134,14 +179,18 @@ if ($formdata = $mform->get_data()) {
         $page,
         $limit
     );
-    tiny_cursive_render_user_table($users, $renderer, $courseid, $page, $limit, $url, $moduleid, $userid);
+    echo $renderer->timer_report($users, $courseid, $page, $limit, $url);
     $chart = new \tiny_cursive\local\page\visualization($courseid, '', $moduleid, $formdata->userid);
     $chart->render($xaxis, $yaxis);
 } else {
     $users = tiny_cursive_get_user_attempts_data($userid, $courseid, $moduleid, $orderby, $page, $limit);
-    tiny_cursive_render_user_table($users, $renderer, $courseid, $page, $limit, $url, $moduleid, $userid);
+    echo $renderer->timer_report($users, $courseid, $page, $limit, $url);
     $chart = new \tiny_cursive\local\page\visualization($courseid, '', $moduleid, $userid);
     $chart->render($xaxis, $yaxis);
 }
+
+echo html_writer::end_div(); // .cursive-card-body
+echo html_writer::end_div(); // .cursive-card
+echo html_writer::end_div(); // .cursive-report-v2
 
 echo $OUTPUT->footer();

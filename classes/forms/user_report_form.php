@@ -44,12 +44,33 @@ class user_report_form extends moodleform {
         // Start dropdowns of course, quiz and user email search field in mform.
         global $PAGE;
         $mform = &$this->_form;
-        $attributes = '';
+        $attributes = ['style' => 'width: 90%;'];
         $courseid = $this->_customdata['courseid'];
         $users = self::get_user($courseid);
         $modules = self::get_modules($courseid);
         $options = ['multiple' => false, 'includefrontpage' => false];
-        $mform->addElement('course', 'courseid', get_string('coursename', 'tiny_cursive'), $options);
+
+        $courses = [];
+        $courselist = get_courses();
+
+        foreach ($courselist as $course) {
+            if ($course->id == SITEID) {
+                continue;
+            }
+
+            $courses[$course->id] = format_string($course->fullname);
+        }
+
+        $mform->addElement(
+            'select',
+            'courseid',
+            get_string('coursename', 'tiny_cursive'),
+            $courses,
+            $attributes
+        );
+
+        $mform->setType('courseid', PARAM_INT);
+
         if ($courseid) {
             $mform->setDefault('courseid', $courseid);
         }
