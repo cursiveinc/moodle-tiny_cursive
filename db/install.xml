@@ -21,8 +21,8 @@
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
       <INDEXES>
-        <INDEX NAME="idx_files_lookup" UNIQUE="false" FIELDS="cmid,modulename,resourceid,userid"/>
-        <INDEX NAME="idx_files_quiz_lookup" UNIQUE="false" FIELDS="cmid,modulename,resourceid,userid,questionid"/>
+        <INDEX NAME="idx_files_lookup" UNIQUE="false" FIELDS="cmid, modulename, resourceid, userid"/>
+        <INDEX NAME="idx_files_quiz_lookup" UNIQUE="false" FIELDS="cmid, modulename, resourceid, userid, questionid"/>
         <INDEX NAME="idx_files_userid" UNIQUE="false" FIELDS="userid"/>
         <INDEX NAME="idx_files_courseid" UNIQUE="false" FIELDS="courseid"/>
         <INDEX NAME="idx_files_uploaded" UNIQUE="false" FIELDS="uploaded"/>
@@ -44,8 +44,8 @@
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
         <INDEXES>
-        <INDEX NAME="idx_comments_lookup" UNIQUE="false" FIELDS="cmid,modulename,resourceid,userid"/>
-        <INDEX NAME="idx_comments_quiz_lookup" UNIQUE="false" FIELDS="cmid,modulename,resourceid,userid,questionid"/>
+        <INDEX NAME="idx_comments_lookup" UNIQUE="false" FIELDS="cmid, modulename, resourceid, userid"/>
+        <INDEX NAME="idx_comments_quiz_lookup" UNIQUE="false" FIELDS="cmid, modulename, resourceid, userid, questionid"/>
         <INDEX NAME="idx_comments_userid" UNIQUE="false" FIELDS="userid"/>
         <INDEX NAME="idx_comments_courseid" UNIQUE="false" FIELDS="courseid"/>
       </INDEXES>

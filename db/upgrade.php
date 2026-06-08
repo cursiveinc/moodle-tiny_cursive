@@ -209,13 +209,12 @@ function xmldb_tiny_cursive_upgrade($oldversion) {
         // $oldfield = new xmldb_field('quality_access');
 
         // if ($dbman->field_exists($table, $oldfield)) {
-        //     $dbman->drop_field($table, $oldfield);
+        // $dbman->drop_field($table, $oldfield);
         // }
 
         // Savepoint
         upgrade_plugin_savepoint(true, 2026042300, 'tiny', 'cursive');
     }
-
 
     if ($oldversion < 2026052200) {
         // Define table tiny_cursive_quality_metrics to be dropped if it exists.
