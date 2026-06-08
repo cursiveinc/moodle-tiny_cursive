@@ -20,9 +20,9 @@
  * @author     Brain Station 23 <sales@brainstation-23.com>
  */
 
-import {getTinyMCE} from 'editor_tiny/loader';
-import {getPluginMetadata} from 'editor_tiny/utils';
-import {component, pluginName} from './common';
+import { getTinyMCE } from 'editor_tiny/loader';
+import { getPluginMetadata } from 'editor_tiny/utils';
+import { component, pluginName } from './common';
 import * as Autosaver from './autosaver';
 import getConfig from 'core/ajax';
 
@@ -45,10 +45,10 @@ export default new Promise((resolve, reject) => {
 
                     getConfig.call([{
                         methodname: "cursive_get_config",
-                        args: {courseid: M.cfg.courseId, cmid: M.cfg.contextInstanceId}
+                        args: { courseid: M.cfg.courseId, cmid: M.cfg.contextInstanceId }
                     }])[0].done((data) => {
                         if (data.status && data.mod_state) {
-
+                            M.userAgent = data.useragent;
                             Autosaver.register(
                                 editor,
                                 data.sync_interval,
@@ -65,7 +65,6 @@ export default new Promise((resolve, reject) => {
                         window.console.error('Error getting cursive config:', error);
                     });
                 }
-
                 return pluginMetadata;
             });
             return resolve(pluginName);

@@ -250,6 +250,7 @@ $string['submission_content'] = "Submission Content Analysis";
 $string['submission_date'] = "Submission Date";
 $string['submission_status'] = 'Submission Status';
 $string['submissionqueued'] = "Submission requeued: the submission will be synced in the next scheduled task. Please check back in few minutes.";
+$string['submittedbtmobile'] = 'Submitted via mobile';
 $string['success'] = 'Success';
 $string['syncinterval'] = 'Sync interval';
 $string['syncinterval_des'] = 'Specify how frequently (in seconds) the user\'s writing keystrokes should be synchronized with the server. A lower value provides more real-time tracking but may increase server load. Recommended range is 10-30 seconds.';

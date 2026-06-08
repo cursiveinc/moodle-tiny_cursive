@@ -29,6 +29,7 @@ import {iconUrl, iconGrayUrl, tooltipCss} from 'tiny_cursive/common';
 import Autosave from 'tiny_cursive/cursive_autosave';
 import DocumentView from 'tiny_cursive/document_view';
 import {call as getUser} from "core/ajax";
+import InputMutationDetector from 'tiny_cursive/input_mutation_detector';
 
 export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, submission, quizInfo, pasteSetting) => {
 
@@ -207,7 +208,8 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
         }).catch(error => window.console.error(error));
 
     };
-
+    let lastKeyFingerprint = null;
+    let lastKeyTimestamp = 0;
     const sendKeyEvent = (events, editor) => {
         ed = editor;
         event = events;
@@ -219,6 +221,24 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
             filename = `${userid}_${resourceId}_${cmid}_${questionid}_${modulename}_attempt`;
         }
 
+        // Deduplicate: block same key + event within 100ms (iPhone double-fire)
+        const now = Date.now();
+        const fingerprint = event + '_' + editor.key + '_' + ed.caretPosition;
+
+        if (fingerprint === lastKeyFingerprint && (now - lastKeyTimestamp) < 100) {
+            console.warn('Duplicate blocked:', fingerprint);
+            return;
+        }
+        const keys = ['Shift', 'Control', 'Alt', 'Meta', 'Delete', 'Backspace', 'Enter'];
+        if (editor.key.length > 1 && !keys.includes(editor.key)) {return}
+        lastKeyFingerprint = fingerprint;
+        lastKeyTimestamp   = now;
+
+        // Unidentified key guard
+        if (editor.key === 'Unidentified') {
+            return;
+        }
+        console.log(editor);
         if (localStorage.getItem(filename)) {
             let data = JSON.parse(localStorage.getItem(filename));
             data.push({
@@ -233,7 +253,8 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
                 position: ed.caretPosition,
                 rePosition: ed.rePosition,
                 pastedContent: editor.pastedContent,
-                aiContent: editor.aiContent
+                aiContent: editor.aiContent,
+                userAgent: M.userAgent
             });
             localStorage.setItem(filename, JSON.stringify(data));
         } else {
@@ -249,7 +270,8 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
                 position: ed.caretPosition,
                 rePosition: ed.rePosition,
                 pastedContent: editor.pastedContent,
-                aiContent: editor.aiContent
+                aiContent: editor.aiContent,
+                userAgent: M.userAgent
             }];
             localStorage.setItem(filename, JSON.stringify(data));
         }
@@ -260,6 +282,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
         let position = getCaretPosition(false);
         editor.caretPosition = position.caretPosition;
         editor.rePosition = position.rePosition;
+        // console.log('KeyUp: ', editor.key);
         sendKeyEvent("keyUp", editor);
     });
     editor.on('Paste', async(e) => {
@@ -283,7 +306,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
                     e.stopPropagation();
                     e.stopImmediatePropagation();
                     getString('paste_blocked', 'tiny_cursive').then(str => {
-                       return editor.windowManager.alert(str);
+                        return editor.windowManager.alert(str);
                     }).catch(error => window.console.error(error));
                     setTimeout(() => {
                         isPasteAllowed = true;
@@ -328,6 +351,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
         let position = getCaretPosition();
         editor.caretPosition = position.caretPosition;
         editor.rePosition = position.rePosition;
+        // console.log('KeyDown: ', editor.key);
         sendKeyEvent("keyDown", editor);
     });
     editor.on('Cut', () => {
@@ -433,27 +457,185 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
         }
     });
 
-    editor.on('input', function(e) {
-        let position = getCaretPosition(true);
-        editor.caretPosition = position.caretPosition;
-        editor.rePosition = position.rePosition;
-        let aiContent = e.data;
+    // editor.on('input', function(e) {
+    //     let position = getCaretPosition(true);
+    //     let aiContent = e.data;
+    //     if (!editor.inputMutationDetector) {
+    //         sentMobileInputUsingMutationDetector(editor);
+    //     }
+    //     editor.caretPosition = position.caretPosition;
+    //     editor.rePosition = position.rePosition;
 
-        if (e.inputType === 'insertReplacementText' || (e.inputType === 'insertText' && aiContent && aiContent.length > 1)) {
+    //     if (e.inputType === 'insertReplacementText' || (e.inputType === 'insertText' && aiContent && aiContent.length > 1)) {
 
-            aiContents.push(aiContent);
+    //         aiContents.push(aiContent);
+    //         e.key = "ai";
+    //         e.keyCode = 0;
+    //         e.caretPosition = position.caretPosition;
+    //         e.rePosition = position.rePosition;
+    //         e.aiContent = aiContent;
 
-            e.key = "ai";
-            e.keyCode = 0;
-            e.caretPosition = position.caretPosition;
-            e.rePosition = position.rePosition;
-            e.aiContent = aiContent;
+    //         sendKeyEvent("aiInsert", e);
+    //     }
+    //     // console.log('Input: ', e);
+    //     sentMobileInput(e);
 
-            sendKeyEvent("aiInsert", e);
+    // });
+
+let isComposing = false;
+let previousContent = '';
+let lastKeyFingerprint2 = null;
+let lastKeyTimestamp2 = 0;
+
+function sentMobileInput(key) {
+    const now = Date.now();
+    const fingerprint = key;
+
+    // Block duplicate calls within 50ms
+    if (fingerprint === lastKeyFingerprint2 && (now - lastKeyTimestamp2) < 50) {
+        return;
+    }
+
+    lastKeyFingerprint2 = fingerprint;
+    lastKeyTimestamp2   = now;
+
+    const keyCode = key === 'Backspace' ? 8
+                  : key === 'Delete'    ? 46
+                  : key === 'Enter'     ? 13
+                  : key === ' '         ? 32
+                  : key.charCodeAt(0);
+
+    const event = {
+        key:     key,
+        keyCode: keyCode,
+        data:    key,
+    };
+
+    let position = getCaretPosition(true);
+    event.caretPosition = position.caretPosition;
+    event.rePosition    = position.rePosition;
+
+    sendKeyEvent("keyDown", event);
+    sendKeyEvent("keyUp", event);
+}
+
+editor.on('compositionstart', function() {
+    isComposing = true;
+    previousContent = '';
+});
+
+editor.on('compositionupdate', function(e) {
+    const current = e.data;
+    const prev = previousContent;
+
+    if (current.length > prev.length) {
+        // only send the NEW character added
+        const newChar = current.slice(prev.length);
+        sentMobileInput(newChar);
+
+    } else if (current.length < prev.length) {
+        sentMobileInput('Backspace');
+    }
+
+    previousContent = current;
+});
+
+editor.on('compositionend', function() {
+    // DO NOT send anything here — compositionupdate already sent each char
+    isComposing = false;
+    previousContent = '';
+});
+
+editor.on('input', function(e) {
+    if (isComposing) return;
+
+    // Block whole words from autocomplete/swipe keyboard
+    if (e.data && e.data.length > 1 && e.inputType === 'insertText') {
+        // word was autocompleted — send each char individually
+        for (const char of e.data) {
+            sentMobileInput(char);
+        }
+        return;
+    }
+
+    if (e.inputType === 'deleteContentBackward') {
+        sentMobileInput('Backspace');
+
+    } else if (e.inputType === 'deleteContentForward') {
+        sentMobileInput('Delete');
+
+    } else if (e.inputType === 'insertLineBreak' || e.inputType === 'insertParagraph') {
+        sentMobileInput('Enter');
+
+    } else if (e.inputType === 'insertText' && e.data) {
+        sentMobileInput(e.data);
+    }
+});
+
+    /**
+     * Constructs a mouse event object with caret position and button information
+     * @param {Object} e - The TinyMCE editor instance
+     * @function sentMobileInput
+     * @description Capture Mobile device input
+     */
+let lastKey = null;
+let lastKeyTime = 0;
+
+function sentMobileInput(key) {
+    const now = Date.now();
+
+    // Deduplicate iPhone double-fire (same key within 100ms)
+    if (key === lastKey && (now - lastKeyTime) < 100) {
+        return;
+    }
+
+    lastKey = key;
+    lastKeyTime = now;
+
+    const keyCode = key === 'Backspace' ? 8
+                  : key === 'Delete'    ? 46
+                  : key === 'Enter'     ? 13
+                  : key === ' '         ? 32
+                  : key.charCodeAt(0);
+
+    const event = {
+        key:     key,
+        keyCode: keyCode,
+        data:    key,
+    };
+
+    let position = getCaretPosition(true);
+    event.caretPosition = position.caretPosition;
+    event.rePosition    = position.rePosition;
+
+    sendKeyEvent("keyDown", event);
+    sendKeyEvent("keyUp", event);
+}
+
+    function sentMobileInputUsingMutationDetector(editor) {
+
+        editor.inputMutationDetector = new InputMutationDetector(editor, (key) => {
+            event = {
+                key: key,
+                keyCode: key.charCodeAt(0),
+                data: key,
+            };
+
+            let position = getCaretPosition(true);
+            event.caretPosition = position.caretPosition;
+            event.rePosition = position.rePosition;
+            sendKeyEvent("keyDown", event);
+            sendKeyEvent("keyUp", event);
+
+            });
+    }
+
+    editor.on('remove', () => {
+        if (editor.inputMutationDetector) {
+            editor.inputMutationDetector.disconnect();
+            editor.inputMutationDetector = null;
         }
     });
-
-
     /**
      * Constructs a mouse event object with caret position and button information
      * @param {Object} editor - The TinyMCE editor instance

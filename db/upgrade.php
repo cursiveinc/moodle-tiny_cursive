@@ -196,6 +196,27 @@ function xmldb_tiny_cursive_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026013002, 'tiny', 'cursive');
     }
 
+    if ($oldversion < 2026042300) {
+        $table = new xmldb_table('tiny_cursive_user_writing');
+
+        $field = new xmldb_field('user_agent', XMLDB_TYPE_TEXT, null, null, null, null, null, 'score');
+
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // 3. Drop old column
+        // $oldfield = new xmldb_field('quality_access');
+
+        // if ($dbman->field_exists($table, $oldfield)) {
+        //     $dbman->drop_field($table, $oldfield);
+        // }
+
+        // Savepoint
+        upgrade_plugin_savepoint(true, 2026042300, 'tiny', 'cursive');
+    }
+
+
     if ($oldversion < 2026052200) {
         // Define table tiny_cursive_quality_metrics to be dropped if it exists.
         $table = new xmldb_table('tiny_cursive_quality_metrics');
@@ -210,5 +231,6 @@ function xmldb_tiny_cursive_upgrade($oldversion) {
     }
 
     \core\task\manager::queue_adhoc_task(new post_upgrade_task(), true);
+
     return true;
 }
