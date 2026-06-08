@@ -47,7 +47,7 @@ class constants {
      * Array of supported activity module names.
      * const array NAMES List of module names where cursive can be used
      */
-    public const NAMES = ["assign", "forum", "quiz", "lesson", 'pdfannotator']; // Excluded oublog.
+    public const NAMES = ["assign", "forum", "quiz", "lesson", 'pdfannotator', 'workshop']; // Excluded oublog.`
     /**
      * Array mapping module names to their corresponding rubric areas.
      * Used to identify the correct rubric area for different module types.
@@ -72,6 +72,8 @@ class constants {
             'page-course-view-participants' => ['append_participants_table', 'course'],
             'page-mod-lesson-essay'         => ['append_lesson_grade_table', 'lesson'],
             'page-mod-pdfannotator-view'    => ['append_pdfannotator', 'pdfannotator'],
+            'page-mod-workshop-submission'  => ['append_workshop', 'init'],
+            'page-mod-workshop-view'  => ['append_workshop', 'init'],
         ];
     /**
      * Array mapping page body IDs to their corresponding handler functions and module types.
@@ -85,6 +87,7 @@ class constants {
             'page-mod-quiz-review'         => ['analytics_student_view', 'quizView'],
             'page-mod-forum-discuss'       => ['analytics_student_view', 'forumView'],
             'page-mod-lesson-view'         => ['analytics_student_view', 'lessonView'],
+            'page-mod-workshop-view'       => ['append_workshop', 'init'],
     ];
 
     /**

@@ -918,7 +918,7 @@ function sentMobileInput(key) {
                 courseid: courseid};
             // Document mode, other modules single editor instances
             if (isFullScreen && (modulename === 'assign' || modulename === 'forum'
-                || modulename === 'lesson')) {
+                || modulename === 'lesson' || modulename === 'workshop')) {
                 let existsElement = document.querySelector('.tox-menubar[class*="cursive-menu-"] > div');
                 if (existsElement) {
                     existsElement.remove();
@@ -1057,6 +1057,7 @@ function sentMobileInput(key) {
                 getString('discussion', 'tiny_cursive'),
                 getString('pluginname', 'mod_quiz'),
                 getString('pluginname', 'mod_lesson'),
+                getString('pluginname', 'mod_workshop'),
                 getString('description', 'tiny_cursive'),
             ]).then(function(strings) {
                 return localStorage.setItem('sbTitle', JSON.stringify(strings));

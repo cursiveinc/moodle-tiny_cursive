@@ -37,6 +37,7 @@ export default class DocumentView {
 
     normalMode() {
         let id = this.editor?.id + "_ifr";
+
         if (this.module === 'assign') {
             this.normalizePage(id);
         } else if (this.module === 'quiz') {
@@ -46,6 +47,8 @@ export default class DocumentView {
         } else if (this.module === 'lesson') {
             this.normalizePage(id);
         } else if (this.module === 'pdfannotator') {
+            this.normalizePage(id);
+        } else if (this.module === 'workshop') {
             this.normalizePage(id);
         }
     }
@@ -66,6 +69,9 @@ export default class DocumentView {
             this.fullPageModule(this.editor?.id);
         } else if (this.module === 'pdfannotator') {
             this.moduleIcon = Icons.pdfannotator;
+            this.fullPageModule(this.editor?.id);
+        } else if (this.module === 'workshop') {
+            this.moduleIcon = Icons.workshop;
             this.fullPageModule(this.editor?.id);
         }
     }
@@ -234,6 +240,7 @@ export default class DocumentView {
                 })
             );
         }
+
         if (this.module === 'assign') {
             content.append(
                 this.createBox({
@@ -246,9 +253,30 @@ export default class DocumentView {
             );
         }
 
+        if (this.module === 'workshop') {
+            this.extendWorkshopModule(content);
+        }
+
         container.append(btnWrapper, header, content);
         return container;
 
+    }
+
+    extendWorkshopModule(content) {
+        let instructionTitle = document.querySelector('#workshop-viewlet-instructauthors_caption');
+        let instruction = document.querySelector('.generalbox.instructions');
+
+        if (instructionTitle && instruction) {
+            content.append(
+                this.createBox({
+                    bg: 'bg-info',
+                    titleColor: 'text-info',
+                    icon: this.moduleIcon,
+                    title: ` ${instructionTitle.textContent}`,
+                    bodyHTML: instruction.textContent
+                })
+            );
+        }
     }
 
     extendQuizModule(content) {
@@ -809,7 +837,7 @@ export default class DocumentView {
     }
 
     getSidebarTitle() {
-        const [assign, discus, quiz, lesson] = this.getText('sbTitle');
+        const [assign, discus, quiz, lesson, workshop] = this.getText('sbTitle');
         switch (this.module) {
             case 'assign':
                 return {title: assign, icon: Icons.assignment};
@@ -820,7 +848,9 @@ export default class DocumentView {
             case 'quiz':
                 return {title: quiz, icon: Icons.quiz};
             case 'pdfannotator':
-                return {title: 'PDF Annotation', icon: Icons.pdfannotator};
+                return {title: 'PDF Annotator', icon: Icons.pdfannotator};
+            case 'workshop':
+                return {title: workshop, icon: Icons.pdfannotator};
             default:
                 return {title: 'Page', icon: Icons.quiz};
         }
