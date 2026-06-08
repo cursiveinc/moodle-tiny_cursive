@@ -1173,7 +1173,7 @@ class cursive_json_func_data extends external_api {
             'backspace_percent' => new external_value(PARAM_FLOAT, 'backspace_percent', VALUE_REQUIRED),
             'copy_behavior' => new external_value(PARAM_FLOAT, 'copy_behavior', VALUE_REQUIRED),
             'score' => new external_value(PARAM_FLOAT, 'score', VALUE_DEFAULT, 0),
-            'useragent' => new external_value(PARAM_TEXT, 'user_agent', VALUE_OPTIONAL, 'default'),
+            'user_agent' => new external_value(PARAM_TEXT, 'user_agent', VALUE_OPTIONAL, 'default'),
         ];
     }
     /**
