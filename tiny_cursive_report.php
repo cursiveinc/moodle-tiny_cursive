@@ -164,6 +164,7 @@ echo html_writer::div(
 );
 echo html_writer::start_div('cursive-card-body p-0');
 
+/** @var tiny_cursive_renderer $renderer */
 $renderer = $PAGE->get_renderer('tiny_cursive');
 
 if ($formdata = $mform->get_data()) {

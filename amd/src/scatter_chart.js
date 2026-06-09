@@ -17,7 +17,7 @@
  * Scatter chart AMD module for the tiny_cursive authorship analytics report.
  *
  * Responsibilities:
- *  - Renders a Chart.js scatter plot of student writing data.
+ *  - Renders a Chart.js scatter plot of submission writing data.
  *  - Accepts xaxis / yaxis parameters from PHP (4th and 5th AMD init args).
  *  - Restores the user's last axis choice from localStorage on page load
  *    (localStorage value takes precedence over the PHP-supplied default).
@@ -154,9 +154,12 @@ const buildChartTitle = (caption, xkey, ykey, datasets, strings) => {
 
     const xLabel = getAxisLabel(xkey, strings);
     const yLabel = getAxisLabel(ykey, strings);
-    const studentLabel = totalPoints === 1 ? '1 student' : `${totalPoints} students`;
 
-    return `${caption}: ${xLabel} vs ${yLabel} (${studentLabel})`;
+    const submissionLabel = totalPoints === 1
+        ? `1 ${strings.submission_singular}`
+        : `${totalPoints} ${strings.submissions}`;
+
+    return `${caption}: ${xLabel} vs ${yLabel} (${submissionLabel})`;
 };
 
 
@@ -277,6 +280,8 @@ export const init = async(hasdata, apikey, caption, xaxis = 'time', yaxis = 'eff
         strWpm,
         strEffortScore,
         strTimespent,
+        strSubmissionSingular,
+        strSubmissionsPlural,
     ] = await getStrings([
         {key: 'apply_filter',  component: 'tiny_cursive'},
         {key: 'no_submission', component: 'tiny_cursive'},
@@ -288,6 +293,8 @@ export const init = async(hasdata, apikey, caption, xaxis = 'time', yaxis = 'eff
         {key: 'wpm',           component: 'tiny_cursive'},
         {key: 'effort_score',  component: 'tiny_cursive'},
         {key: 'timespent',     component: 'tiny_cursive'},
+        {key: 'submission_singular', component: 'tiny_cursive'},
+        {key: 'submissions',         component: 'tiny_cursive'},
     ]);
 
     const strings = {
@@ -301,6 +308,8 @@ export const init = async(hasdata, apikey, caption, xaxis = 'time', yaxis = 'eff
         wpm:          strWpm,
         effortscore:  strEffortScore,
         timespent:    strTimespent,
+        submission_singular: strSubmissionSingular,
+        submissions:         strSubmissionsPlural,
     };
 
     // -----------------------------------------------------------------------
@@ -412,10 +421,10 @@ export const init = async(hasdata, apikey, caption, xaxis = 'time', yaxis = 'eff
                     displayColors:   false,
                     callbacks: {
                         /**
-                         * Returns the student name as the tooltip title.
+                         * Returns the submission label as the tooltip title.
                          *
                          * @param {object[]} context - Chart.js tooltip context array.
-                         * @returns {string} Student name.
+                         * @returns {string} Submission label.
                          */
                         title: context => context[0].raw.label,
                         /**
