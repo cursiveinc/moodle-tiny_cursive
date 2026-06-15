@@ -73,7 +73,7 @@ class constants {
             'page-mod-lesson-essay'         => ['append_lesson_grade_table', 'lesson'],
             'page-mod-pdfannotator-view'    => ['append_pdfannotator', 'pdfannotator'],
             'page-mod-workshop-submission'  => ['append_workshop', 'init'],
-            'page-mod-workshop-view'  => ['append_workshop', 'init'],
+            'page-mod-workshop-view'        => ['append_workshop', 'init'],
         ];
     /**
      * Array mapping page body IDs to their corresponding handler functions and module types.
@@ -88,6 +88,7 @@ class constants {
             'page-mod-forum-discuss'       => ['analytics_student_view', 'forumView'],
             'page-mod-lesson-view'         => ['analytics_student_view', 'lessonView'],
             'page-mod-workshop-view'       => ['append_workshop', 'init'],
+            'page-mod-workshop-submission' => ['analytics_student_view', 'workshopView'],
     ];
 
     /**

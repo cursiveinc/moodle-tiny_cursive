@@ -102,7 +102,13 @@ export const lessonView = (scoreSetting, hasApiKey, userid) => {
             setStudentView(studentData, hasApiKey, userid, scoreSetting, lessonForm, "", "lesson");
     }
 };
-
+export const workshopView = (scoreSetting, hasApiKey, userid) => {
+    let cmid = M.cfg.contextInstanceId;
+    let args = {id: userid, modulename: "workshop", cmid: cmid};
+    let studentData = getStudentData('cursive_get_lesson_submission_data', args);
+    let target = document.querySelector('div[role="main"]');
+    setStudentView(studentData, hasApiKey, userid, scoreSetting, target, "", "workshop");
+}
 /**
  * Retrieves student data by making an AJAX call to a Moodle web service.
  *
@@ -143,14 +149,22 @@ function setStudentView(data, hasApiKey, userid, scoreSetting, target, questioni
             container.className = 'mt-2';
         } else if (module === "lesson") {
             container.className = 'ms-2 text-center';
+        } else if (module === "workshop") {
+            container.className = 'box py-3 me-1 inline';
         } else {
             container.className = 'mt-2 text-center';
         }
+
         if (!hasApiKey) {
             container.appendChild(replayButton(userid + questionid));
         } else {
             container.appendChild(analyticButton(analytics.effort_ratio, userid, questionid));
         }
+        
+        $(container).find('#analytics'+userid).css('vertical-align', 'middle');
+        $(container).find('#analytics' + userid + ' .tiny_cursive-analytics-left').css('padding', '4px 14px');
+        $(container).find('#analytics' + userid + ' .tiny_cursive-replay-left').css('padding', '4px 14px');
+
         if (module === "forum") {
             target.prepend(container);
         } else {
