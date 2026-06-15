@@ -230,7 +230,9 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
             return;
         }
         const keys = ['Shift', 'Control', 'Alt', 'Meta', 'Delete', 'Backspace', 'Enter'];
-        if (editor.key.length > 1 && !keys.includes(editor.key)) {return}
+        if (editor.key.length > 1 && !keys.includes(editor.key)) {
+            return
+        }
         lastKeyFingerprint = fingerprint;
         lastKeyTimestamp   = now;
 
@@ -238,7 +240,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
         if (editor.key === 'Unidentified') {
             return;
         }
-        console.log(editor);
+
         if (localStorage.getItem(filename)) {
             let data = JSON.parse(localStorage.getItem(filename));
             data.push({

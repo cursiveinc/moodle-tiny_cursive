@@ -34,7 +34,8 @@ export default new Promise((resolve, reject) => {
         'page-mod-forum-post',
         'page-mod-lesson-view',
         'page-mod-pdfannotator-view',
-        'page-mod-workshop-submission']; // 'page-mod-oublog-editpost' excluded
+        'page-mod-workshop-submission',
+        'page-mod-workshop-assessment']; // 'page-mod-oublog-editpost' excluded
 
     Promise.all([
         getTinyMCE(),

@@ -59,12 +59,13 @@ export const init = (scoreSetting, showcomment, hasApiKey) => {
     if(document.body.id === 'page-mod-workshop-submission') {
         const submission = $('#page-mod-workshop-submission div.author > div.fullname > a')?.attr('href');
         const authorid = submission ? new URL(submission, window.location.origin).searchParams.get('id') : 0;
-        const buttonBox = $('#region-main div.box:has(.singlebutton)');
+        const buttonBox = $('div[role="main"]');
 
         if (authorid) {
             analytics(authorid, cmid, buttonBox);
         }
     }   else {
+
         assessments.each(function() {
 
                 const assCard = $(this);
@@ -122,11 +123,14 @@ export const init = (scoreSetting, showcomment, hasApiKey) => {
             }
 
             analyticButtonDiv.dataset.region = "analytic-div" + userid;
-            analyticButtonDiv.classList.add('mx-2');
 
-            assessmentButton.addClass('d-flex align-items-center');
-            assessmentButton.find('.singlebutton').addClass('mx-0');
+            $(analyticButtonDiv).addClass('box py-3 me-1 inline');
+            $(analyticButtonDiv).find('#analytics'+userid).css('vertical-align', 'middle');
+            $(analyticButtonDiv).find('#analytics' + userid + ' .tiny_cursive-analytics-left').css('padding', '4px 14px');
+            $(analyticButtonDiv).find('#analytics' + userid + ' .tiny_cursive-replay-left').css('padding', '4px 14px');
+
             $(analyticButtonDiv).find('.tiny_cursive-analytics-left').css('padding', '4px 14px');
+            $(analyticButtonDiv).find('.tiny_cursive-replay-left').css('padding', '4px 14px');
 
 
             assessmentButton.append(analyticButtonDiv);

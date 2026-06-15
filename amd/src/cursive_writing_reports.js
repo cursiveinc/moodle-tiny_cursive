@@ -306,7 +306,7 @@ export const init = (page, hasApiKey, csvOption) => {
             ]);
             promise2[0].done(function(json) {
                 var data = JSON.parse(json);
-                console.log(data);
+
                 var context = {
                     tabledata: data,
                     page: page,
