@@ -85,7 +85,7 @@ class cursive_json_func_data extends external_api {
         );
 
         // Get course context.
-        $cm = $DB->get_record('course_modules', ['course' => $params['courseid']], '*', MUST_EXIST);
+        $cm = $DB->get_record('course_modules', ['course' => $params['courseid']], '*', IGNORE_MULTIPLE);
         $context = context_module::instance($cm->id);
         self::validate_context($context);
         require_capability('tiny/cursive:view', $context);
@@ -145,7 +145,7 @@ class cursive_json_func_data extends external_api {
         );
 
         // Get course context.
-        $cm = $DB->get_record('course_modules', ['course' => $params['courseid']], '*', MUST_EXIST);
+        $cm = $DB->get_record('course_modules', ['course' => $params['courseid']], '*', IGNORE_MULTIPLE);
         $context = context_module::instance($cm->id);
         self::validate_context($context);
         require_capability('tiny/cursive:view', $context);

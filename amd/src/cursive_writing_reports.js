@@ -268,8 +268,9 @@ export const init = (page, hasApiKey, csvOption) => {
      * @param {string} page - The current page identifier used for context in templates
      */
     function getusers(page) {
-        $("#id_coursename").change(function() {
+        $("#id_courseid").on('change', function() {
             var courseid = $(this).val();
+
             var promise1 = AJAX.call([
                 {
                     methodname: "cursive_get_user_list",
@@ -305,6 +306,7 @@ export const init = (page, hasApiKey, csvOption) => {
             ]);
             promise2[0].done(function(json) {
                 var data = JSON.parse(json);
+                console.log(data);
                 var context = {
                     tabledata: data,
                     page: page,
@@ -314,7 +316,7 @@ export const init = (page, hasApiKey, csvOption) => {
                     .render("tiny_cursive/module_list", context)
                     .then(function(html) {
 
-                        var filteredUser = $("#id_modulename");
+                        var filteredUser = $("#id_moduleid");
                         filteredUser.html(html);
                         return true;
                     });
@@ -345,4 +347,5 @@ export const init = (page, hasApiKey, csvOption) => {
             new DashboardChart(dataType, chartType, null, dataset, toggle);
         }
     }
+
 };

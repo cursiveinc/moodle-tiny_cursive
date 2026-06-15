@@ -47,8 +47,15 @@ class user_report_form extends moodleform {
         $attributes = ['style' => 'width: 90%;'];
         $courseid = $this->_customdata['courseid'];
         $users = self::get_user($courseid);
+        $userid = $this->_customdata['userid'] ?? 0;
         $modules = self::get_modules($courseid);
         $options = ['multiple' => false, 'includefrontpage' => false];
+        $module = $this->_customdata['moduleid'] ?? 0;
+        $orderby = $this->_customdata['orderby'] ?? 'id';
+
+        if ($module) {
+            $options['modid'] = $module;
+        }
 
         $courses = [];
         $courselist = get_courses();
@@ -78,8 +85,18 @@ class user_report_form extends moodleform {
         $mform->addRule('courseid', null, 'required', null, 'client');
         $mform->addElement('select', 'moduleid', get_string('module_name', 'tiny_cursive'), $modules, $attributes);
         $mform->setType('moduleid', PARAM_TEXT);
+
+        if ($module) {
+            $mform->setDefault('moduleid', $module);
+        }
+
         $mform->addElement('select', 'userid', get_string('userename', 'tiny_cursive'), $users, $attributes);
         $mform->setType('userid', PARAM_TEXT);
+
+        if ($userid) {
+            $mform->setDefault('userid', $userid);
+        }
+
         $options = [
             'id'    => get_string('uid', 'tiny_cursive'),
             'name'  => get_string('name', "tiny_cursive"),
@@ -88,6 +105,11 @@ class user_report_form extends moodleform {
         ];
         $mform->addElement('select', 'orderby', get_string('orderby', 'tiny_cursive'), $options, $attributes);
         $mform->setType('orderby', PARAM_TEXT);
+
+        if ($orderby) {
+            $mform->setDefault('orderby', $orderby);
+        }
+
         $this->add_action_buttons(false, get_string('submit'));
 
         if (!is_siteadmin()) {

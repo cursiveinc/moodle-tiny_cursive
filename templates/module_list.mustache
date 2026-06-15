@@ -38,6 +38,6 @@
 <select>
     <option value="">{{#str}}selectmodule, tiny_cursive{{/str}}</option>
     {{#tabledata.userlist}}
-        <option class="user_class" value="{{id}}">{{name}}</option>
+        <option class="user_class" value="{{id}}" {{#selected}}selected{{/selected}}>{{name}}</option>
     {{/tabledata.userlist}}
 </select>
