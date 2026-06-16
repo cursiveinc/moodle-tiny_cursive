@@ -108,7 +108,23 @@ export const workshopView = (scoreSetting, hasApiKey, userid) => {
     let studentData = getStudentData('cursive_get_lesson_submission_data', args);
     let target = document.querySelector('div[role="main"]');
     setStudentView(studentData, hasApiKey, userid, scoreSetting, target, "", "workshop");
-}
+    workshopAssessmentView(scoreSetting, hasApiKey);
+};
+
+export const workshopAssessmentView = (scoreSetting, hasApiKey) => {
+    let cmid = M.cfg.contextInstanceId;
+    let assessmentId = $('#page-mod-workshop-submission div.assessment-full div.actions form input[name="asid"]')?.attr('value');
+
+    if (!assessmentId) {
+        assessmentId = $('#page-mod-workshop-submission div.assessment-full div.title a')?.attr('href');
+        assessmentId = assessmentId ? new URL(assessmentId, window.location.origin).searchParams.get('asid') : 0;
+    }
+    let args = {id: assessmentId, modulename: "workshop", cmid: cmid};
+    let studentData = getStudentData('cursive_get_forum_comment_link', args);
+
+    let target = document.querySelector('div[role="main"]');
+    setStudentView(studentData, hasApiKey, assessmentId, scoreSetting, target, "", "workshopassessment");
+};
 /**
  * Retrieves student data by making an AJAX call to a Moodle web service.
  *
@@ -149,8 +165,8 @@ function setStudentView(data, hasApiKey, userid, scoreSetting, target, questioni
             container.className = 'mt-2';
         } else if (module === "lesson") {
             container.className = 'ms-2 text-center';
-        } else if (module === "workshop") {
-            container.className = 'box py-3 me-1 inline';
+        } else if (module === "workshop" || module === "workshopassessment") {
+            container.className = 'box me-1 inline';
         } else {
             container.className = 'mt-2 text-center';
         }
@@ -160,13 +176,16 @@ function setStudentView(data, hasApiKey, userid, scoreSetting, target, questioni
         } else {
             container.appendChild(analyticButton(analytics.effort_ratio, userid, questionid));
         }
-        
-        $(container).find('#analytics'+userid).css('vertical-align', 'middle');
+
+        $('div[role="main"] .assessment-full').addClass('mt-3');
+        $(container).find('#analytics' + userid).css({'vertical-align': 'middle'});
         $(container).find('#analytics' + userid + ' .tiny_cursive-analytics-left').css('padding', '4px 14px');
         $(container).find('#analytics' + userid + ' .tiny_cursive-replay-left').css('padding', '4px 14px');
 
         if (module === "forum") {
             target.prepend(container);
+        } else if (module === "workshop") {
+            $(target).find('.submission-full').after(container);
         } else {
             target.appendChild(container);
         }

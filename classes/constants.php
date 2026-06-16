@@ -18,7 +18,6 @@ namespace tiny_cursive;
 
 use question_engine;
 defined('MOODLE_INTERNAL') || die();
-require_once($CFG->libdir . '/externallib.php');
 require_once($CFG->dirroot . '/grade/grading/lib.php');
 require_once($CFG->dirroot . '/grade/grading/form/rubric/lib.php');
 

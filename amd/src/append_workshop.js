@@ -28,6 +28,7 @@ import templates from 'core/templates';
 import AnalyticEvents from './analytic_events';
 import analyticButton from './analytic_button';
 import replayButton from './replay_button';
+import {workshopAssessmentView} from 'tiny_cursive/analytics_student_view';
 
 export const init = (scoreSetting, showcomment, hasApiKey) => {
     const replayInstances = {};
@@ -64,6 +65,8 @@ export const init = (scoreSetting, showcomment, hasApiKey) => {
         if (authorid) {
             analytics(authorid, cmid, buttonBox);
         }
+        workshopAssessmentView(scoreSetting, hasApiKey);
+
     }   else {
 
         assessments.each(function() {
@@ -125,7 +128,7 @@ export const init = (scoreSetting, showcomment, hasApiKey) => {
             analyticButtonDiv.dataset.region = "analytic-div" + userid;
 
             $(analyticButtonDiv).addClass('box py-3 me-1 inline');
-            $(analyticButtonDiv).find('#analytics'+userid).css('vertical-align', 'middle');
+            $(analyticButtonDiv).find('#analytics' + userid).css('vertical-align', 'middle');
             $(analyticButtonDiv).find('#analytics' + userid + ' .tiny_cursive-analytics-left').css('padding', '4px 14px');
             $(analyticButtonDiv).find('#analytics' + userid + ' .tiny_cursive-replay-left').css('padding', '4px 14px');
 
@@ -133,7 +136,7 @@ export const init = (scoreSetting, showcomment, hasApiKey) => {
             $(analyticButtonDiv).find('.tiny_cursive-replay-left').css('padding', '4px 14px');
 
 
-            assessmentButton.append(analyticButtonDiv);
+            $(assessmentButton).find('.submission-full').after(analyticButtonDiv);
 
             let myEvents = new AnalyticEvents();
             var context = {

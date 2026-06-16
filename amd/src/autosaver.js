@@ -226,12 +226,12 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
         const fingerprint = event + '_' + editor.key + '_' + ed.caretPosition;
 
         if (fingerprint === lastKeyFingerprint && (now - lastKeyTimestamp) < 100) {
-            console.warn('Duplicate blocked:', fingerprint);
+            window.console.warn('Duplicate blocked:', fingerprint);
             return;
         }
         const keys = ['Shift', 'Control', 'Alt', 'Meta', 'Delete', 'Backspace', 'Enter'];
         if (editor.key.length > 1 && !keys.includes(editor.key)) {
-            return
+            return;
         }
         lastKeyFingerprint = fingerprint;
         lastKeyTimestamp   = now;
@@ -549,7 +549,9 @@ editor.on('compositionend', function() {
 });
 
 editor.on('input', function(e) {
-    if (isComposing) return;
+    if (isComposing) { 
+        return;
+    }
 
     // Block whole words from autocomplete/swipe keyboard
     if (e.data && e.data.length > 1 && e.inputType === 'insertText') {
@@ -1022,6 +1024,10 @@ function sentMobileInput(key) {
             resourceId = parm.searchParams.get('edit');
         } else {
             resourceId = parm.searchParams.get('attempt');
+        }
+
+        if (ur.includes("workshop") && ur.includes("assessment")) {
+            resourceId = parm.searchParams.get('asid');
         }
 
         if (resourceId === null) {
