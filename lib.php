@@ -476,3 +476,23 @@ function cursive_approve_token() {
 
     return $result;
 }
+
+/**
+ * Register user preferences owned by tiny_cursive so they can be saved via AJAX.
+ *
+ * Whitelisting the preference here is what allows the analytics guidance toggle
+ * to persist through core's set_user_preferences web service without a bespoke
+ * write endpoint. The permission callback restricts writes to the owning user.
+ *
+ * @return array Preference definitions keyed by preference name.
+ */
+function tiny_cursive_user_preferences() {
+    return [
+        'tiny_cursive_showguidance' => [
+            'type' => PARAM_BOOL,
+            'null' => NULL_NOT_ALLOWED,
+            'default' => 0,
+            'permissioncallback' => [core_user::class, 'is_current_user'],
+        ],
+    ];
+}
