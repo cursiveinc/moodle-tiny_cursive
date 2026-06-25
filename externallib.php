@@ -1715,6 +1715,58 @@ class cursive_json_func_data extends external_api {
     }
 
     /**
+     * Returns the parameters for the get_guidance_state function.
+     *
+     * @return external_function_parameters Parameters definition for the external function
+     */
+    public static function get_guidance_state_parameters() {
+        return new external_function_parameters([
+            'contextid' => new external_value(PARAM_INT, 'Context id of the page requesting the state', VALUE_DEFAULT, 0),
+        ]);
+    }
+
+    /**
+     * Resolve, for the calling user, whether the analytics guidance may be shown and
+     * whether they currently have it toggled on.
+     *
+     * The capability is the source of truth for visibility (students never receive a
+     * truthy flag), while the saved toggle is only meaningful for users who can view.
+     *
+     * @param int $contextid Context id of the requesting page; falls back to system context
+     * @return array{canviewguidance: bool, showguidance: bool}
+     */
+    public static function get_guidance_state($contextid) {
+        $params = self::validate_parameters(
+            self::get_guidance_state_parameters(),
+            ['contextid' => $contextid]
+        );
+
+        $context = $params['contextid']
+            ? context::instance_by_id($params['contextid'])
+            : context_system::instance();
+        self::validate_context($context);
+
+        $canview = has_capability('tiny/cursive:viewguidance', $context);
+
+        return [
+            'canviewguidance' => $canview,
+            'showguidance'    => $canview ? (bool) get_user_preferences('tiny_cursive_showguidance', 0) : false,
+        ];
+    }
+
+    /**
+     * Returns description of method result value for get_guidance_state.
+     *
+     * @return external_single_structure Structure describing the guidance visibility flags
+     */
+    public static function get_guidance_state_returns() {
+        return new external_single_structure([
+            'canviewguidance' => new external_value(PARAM_BOOL, 'Whether the user may see analytics guidance'),
+            'showguidance' => new external_value(PARAM_BOOL, 'Whether guidance is currently toggled on for this user'),
+        ]);
+    }
+
+    /**
      * Returns the parameters for the get_lesson_submission_data function
      *
      * @return external_function_parameters The parameters structure containing:
