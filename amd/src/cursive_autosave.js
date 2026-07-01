@@ -78,6 +78,10 @@ export default class CursiveAutosave {
     }
 
     destroy() {
+        const el = this.module?.modulename === 'quiz'
+            ? document.querySelector(`#tiny_cursive_savingState${this.module.questionid}`)
+            : document.querySelector('#tiny_cursive_savingState');
+        el?.remove();
         CursiveAutosave.instance = null;
     }
 
@@ -133,7 +137,7 @@ export default class CursiveAutosave {
      */
     static updateSavingState(state) {
         const instance = this.instance;
-        if (!instance?.savingState) {
+        if (!instance) {
             return;
         }
         instance.savingState = state;
