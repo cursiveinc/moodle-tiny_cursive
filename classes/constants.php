@@ -88,6 +88,7 @@ class constants {
             'page-mod-lesson-view'         => ['analytics_student_view', 'lessonView'],
             'page-mod-workshop-view'       => ['append_workshop', 'init'],
             'page-mod-workshop-submission' => ['analytics_student_view', 'workshopView'],
+            'page-mod-diary-view'          => ['analytics_student_view', 'diaryView'],
     ];
 
     /**
