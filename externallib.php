@@ -1523,10 +1523,12 @@ class cursive_json_func_data extends external_api {
 
         if (
             $params['resourceId'] == 0 && $params['modulename'] !== 'forum' && $params['modulename'] !== 'oublog' &&
-            $params['modulename'] !== 'pdfannotator'
+            $params['modulename'] !== 'pdfannotator' && $params['modulename'] !== 'diary'
         ) {
             $params['resourceId'] = $params['cmid'];
             // For Quiz and Assignment there is no resourceid that's why cmid is resourceid.
+            // Diary is excluded like forum: a new entry has no id yet, so it is captured under
+            // resourceid 0 and the entry_created observer reassigns it to the real diary_entries id.
         }
 
         $courseid = 0;

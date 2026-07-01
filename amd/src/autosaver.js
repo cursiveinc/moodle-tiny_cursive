@@ -119,6 +119,22 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
         localStorage.removeItem('lastCopyCutContent');
     });
 
+    // Diary's "Save and continue editing" button posts and reloads the editor on the same
+    // entry; flush captured keystrokes before it navigates, matching the main submit button.
+    let diarySaveContinue = $('#id_saveandcontinue');
+    diarySaveContinue.on('click', async function(e) {
+        e.preventDefault();
+        if (filename) {
+            // eslint-disable-next-line
+            syncData().then(() => {
+                diarySaveContinue.off('click').click();
+            });
+        } else {
+            diarySaveContinue.off('click').click();
+        }
+        localStorage.removeItem('lastCopyCutContent');
+    });
+
     quizSubmit.on('click', async function(e) {
         e.preventDefault();
         if (filename) {
@@ -1041,6 +1057,14 @@ function sentMobileInput(key) {
                     resourceId = cmid;
                 } else if (module === "oublog") {
                     resourceId = 0;
+                } else if (module === "diary") {
+                    // Diary stores multiple entries per (cmid, userid); key capture on the
+                    // diary_entries id. The edit form exposes it as a hidden "entryid" field
+                    // (populated when editing/continuing an existing entry). A brand-new entry
+                    // has no id yet, so capture under 0 and let the entry_created observer
+                    // reattribute the records to the real entry id on save.
+                    const entryField = document.querySelector('input[name="entryid"]');
+                    resourceId = entryField && entryField.value ? parseInt(entryField.value, 10) : 0;
                 }
                 break;
             }

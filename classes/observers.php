@@ -182,6 +182,44 @@ class observers {
     }
 
     /**
+     * Tiny cursive plugin diary entry created observer.
+     *
+     * Reattributes the keystroke/comment records captured for a brand-new diary entry
+     * (stored under resourceid 0 while the entry had no id) to the real diary_entries id
+     * once the entry is saved. Reuses the generic forum reassignment helpers; the event's
+     * objectid is the diary_entries id and its component resolves to "diary".
+     *
+     * The parameter is type-hinted against \core\event\base (always available) so this
+     * file never references any \mod_diary class - tiny_cursive has no dependency on
+     * mod_diary and the observer only runs when mod_diary itself raises the event.
+     *
+     * @param \core\event\base $event
+     * @return void
+     * @throws \dml_exception
+     */
+    public static function entry_created(\core\event\base $event) {
+        self::update_comment($event);
+        self::update_cursive_files($event);
+    }
+
+    /**
+     * Tiny cursive plugin diary entry updated observer.
+     *
+     * Handles re-edits of an existing diary entry. Edits are already captured under the
+     * real entry id (the editor reads the hidden entryid field), so the resourceid 0
+     * reassignment is a no-op and never clobbers the original record; new entries created
+     * via "Save and continue editing" are reattributed here.
+     *
+     * @param \core\event\base $event
+     * @return void
+     * @throws \dml_exception
+     */
+    public static function entry_updated(\core\event\base $event) {
+        self::update_comment($event);
+        self::update_cursive_files($event);
+    }
+
+    /**
      * Reset tracking data.
      *
      * @param \core\event\course_reset_ended $event

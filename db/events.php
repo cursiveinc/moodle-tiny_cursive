@@ -45,6 +45,21 @@ $observers = [
         'priority' => 9999,
     ],
     [
+        // Registered by event name only. If mod_diary is not installed the event is never
+        // raised, so this observer simply never fires - tiny_cursive has no hard dependency
+        // on mod_diary and never looks it up.
+        'eventname' => '\mod_diary\event\entry_created',
+        'callback' => '\tiny_cursive\observers::entry_created',
+        'internal' => true,
+        'priority' => 9999,
+    ],
+    [
+        'eventname' => '\mod_diary\event\entry_updated',
+        'callback' => '\tiny_cursive\observers::entry_updated',
+        'internal' => true,
+        'priority' => 9999,
+    ],
+    [
         'eventname' => '\core\event\course_reset_ended',
         'callback' => '\tiny_cursive\observers::reset_tracking_data',
         'internal' => true,
