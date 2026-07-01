@@ -28,14 +28,10 @@ import {get_string as getString} from 'core/str';
 
 export default class CursiveAutosave {
 
-    static instance = null;
+    static instances = new Map();
 
 
     constructor(editor, rightWrapper, modules, isFullScreen) {
-        if (CursiveAutosave.instance) {
-            return CursiveAutosave.instance;
-        }
-
         this.editor = editor;
         this.module = modules;
         this.savingState = '';
@@ -45,23 +41,37 @@ export default class CursiveAutosave {
         this.fetchSavedContent = this.fetchSavedContent.bind(this);
         this.handleEscapeKey = this.handleEscapeKey.bind(this);
         this._savingTimer = null;
-        CursiveAutosave.instance = this;
         this.fetchStrings();
     }
 
+    static _key(modules) {
+        return modules.modulename === 'quiz'
+            ? `quiz_${modules.questionid}`
+            : 'default';
+    }
+
     static getInstance(editor, rightWrapper, modules, isFullScreen) {
-        if (!this.instance) {
-            this.instance = new CursiveAutosave(editor, rightWrapper, modules, isFullScreen);
+        const key = this._key(modules);
+        let instance = this.instances.get(key);
+
+        if (!instance) {
+            instance = new CursiveAutosave(editor, rightWrapper, modules, isFullScreen);
+            this.instances.set(key, instance);
+        } else {
+            instance.editor = editor;
+            instance.rightWrapper = rightWrapper;
+            instance.module = modules;
         }
-        this.instance.isFullScreen = isFullScreen;
+        instance.isFullScreen = isFullScreen;
+
         const hasState = modules.modulename === 'quiz'
             ? document.querySelector(`#tiny_cursive_savingState${modules.questionid}`)
             : document.querySelector('#tiny_cursive_savingState');
         if (!hasState) {
-            this.instance.init();
+            instance.init();
         }
 
-        return this.instance;
+        return instance;
     }
 
     init() {
@@ -78,13 +88,21 @@ export default class CursiveAutosave {
     }
 
     destroy() {
-        CursiveAutosave.instance = null;
+        const el = this.module?.modulename === 'quiz'
+            ? document.querySelector(`#tiny_cursive_savingState${this.module.questionid}`)
+            : document.querySelector('#tiny_cursive_savingState');
+        el?.remove();
+        CursiveAutosave.instances.delete(CursiveAutosave._key(this.module));
     }
 
-    static destroyInstance() {
-        if (this.instance) {
-            this.instance.destroy();
-            this.instance = null;
+    static destroyInstance(modules) {
+        if (!modules) {
+            return;
+        }
+        const key = this._key(modules);
+        const instance = this.instances.get(key);
+        if (instance) {
+            instance.destroy();
         }
     }
 
@@ -131,9 +149,10 @@ export default class CursiveAutosave {
      * @param {string} state - The state to update to ('saving', 'saved', or 'offline')
      * @description Updates the global saving state and modifies the UI elements to reflect the new state
      */
-    static updateSavingState(state) {
-        const instance = this.instance;
-        if (!instance?.savingState) {
+    static updateSavingState(state, modules) {
+        const key = modules ? this._key(modules) : 'default';
+        const instance = this.instances.get(key);
+        if (!instance) {
             return;
         }
         instance.savingState = state;
@@ -183,7 +202,15 @@ export default class CursiveAutosave {
      * @description Returns appropriate text label based on the current saving state
      */
     getStateText(state) {
-        const [saving, saved, offline] = this.getText('state');
+        const strings = this.getText('state');
+
+        if (!strings || !Array.isArray(strings) || strings.length < 3) {
+            window.console.error('tiny_cursive: state strings missing/invalid — check core_get_string on this env', strings);
+            this.fetchStrings();
+            return '';
+        }
+
+        const [saving, saved, offline] = strings;
         switch (state) {
             case 'saving': return saving;
             case 'saved': return saved;
@@ -404,10 +431,11 @@ export default class CursiveAutosave {
                 getString('offline', 'tiny_cursive')
             ]).then(function(strings) {
                return localStorage.setItem('state', JSON.stringify(strings));
-            }).catch(error => window.console.error(error));
+            }).catch(error => {
+                window.console.error('tiny_cursive: fetchStrings failed ', error);
+            });
         }
     }
-
     throwWarning(str, editor) {
         getString(str, 'tiny_cursive').then(str => {
             return editor.windowManager.alert(str);
@@ -415,7 +443,13 @@ export default class CursiveAutosave {
     }
 
     getText(key) {
-        return JSON.parse(localStorage.getItem(key));
+        try {
+            const raw = localStorage.getItem(key);
+            return raw ? JSON.parse(raw) : null;
+        } catch (e) {
+            window.console.error('tiny_cursive: failed to parse cached strings for key', key, e);
+            return null;
+        }
     }
 
     /**

@@ -45,10 +45,12 @@ export default new Promise((resolve, reject) => {
             tinyMCE.PluginManager.add(pluginName, (editor) => {
                 if (page.includes(document.body.id)) {
 
-                    getConfig.call([{
+                   const requests = getConfig.call([{
                         methodname: "cursive_get_config",
                         args: { courseid: M.cfg.courseId, cmid: M.cfg.contextInstanceId }
-                    }])[0].done((data) => {
+                    }]);
+
+                    requests[0].done((data) => {
                         if (data.status && data.mod_state) {
                             M.userAgent = data.useragent;
                             Autosaver.register(
