@@ -782,6 +782,12 @@ function sentMobileInput(key) {
      */
     function customTooltip() {
         try {
+            // The indicator only needs to be built once per editor. customTooltip runs on
+            // every keystroke, so bail out if it already exists; otherwise it would be torn
+            // down and rebuilt empty, making the saved icon flicker/disappear while typing.
+            if (document.querySelector('#tiny_cursive_StateIcon0')) {
+                return;
+            }
             const tooltipText = getTooltipText();
             const menubarDiv = document.querySelectorAll('div[role="menubar"].tox-menubar');
             let classArray = [];
