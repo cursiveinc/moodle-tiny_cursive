@@ -111,7 +111,7 @@ export const workshopView = (scoreSetting, hasApiKey, userid) => {
     workshopAssessmentView(scoreSetting, hasApiKey);
 };
 
-export const diaryView = (scoreSetting, hasApiKey, userid) => {
+export const diaryView = (scoreSetting, hasApiKey) => {
     // Diary holds multiple entries per student, each with its own authorship record keyed on
     // the diary_entries id. On the student view page every entry heading is rendered as
     // "<h5>Entry: ID-{entryid}, ...</h5>", and the student only ever sees their own entries,

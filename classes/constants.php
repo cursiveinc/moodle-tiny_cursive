@@ -46,7 +46,7 @@ class constants {
      * Array of supported activity module names.
      * const array NAMES List of module names where cursive can be used
      */
-    public const NAMES = ["assign", "forum", "quiz", "lesson", 'pdfannotator', 'workshop', 'diary']; // Excluded oublog.`
+    public const NAMES = ["assign", "forum", "quiz", "lesson", 'pdfannotator', 'workshop', 'diary']; // Excluded oublog.
     /**
      * Array mapping module names to their corresponding rubric areas.
      * Used to identify the correct rubric area for different module types.

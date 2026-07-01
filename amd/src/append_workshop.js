@@ -57,7 +57,7 @@ export const init = (scoreSetting, showcomment, hasApiKey) => {
     var cmid = M.cfg.contextInstanceId;
     var assessments = $('#workshop-viewlet-assignedassessments_inner > .generalbox.assessment-summary');
 
-    if(document.body.id === 'page-mod-workshop-submission') {
+    if (document.body.id === 'page-mod-workshop-submission') {
         const submission = $('#page-mod-workshop-submission div.author > div.fullname > a')?.attr('href');
         const authorid = submission ? new URL(submission, window.location.origin).searchParams.get('id') : 0;
         const buttonBox = $('div[role="main"]');
@@ -67,7 +67,7 @@ export const init = (scoreSetting, showcomment, hasApiKey) => {
         }
         workshopAssessmentView(scoreSetting, hasApiKey);
 
-    }   else {
+    } else {
 
         assessments.each(function() {
 

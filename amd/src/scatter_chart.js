@@ -163,7 +163,6 @@ const buildChartTitle = (caption, xkey, ykey, datasets, strings) => {
 };
 
 
-
 /**
  * Formats a raw seconds value as a mm:ss string.
  *
@@ -195,10 +194,10 @@ const formatTick = (value, axiskey) => (axiskey === 'time' ? formatTime(value) :
 const drawMessage = (text, chart) => {
     const {ctx: canvasCtx, chartArea: {left, right, top, bottom}} = chart;
     canvasCtx.save();
-    canvasCtx.textAlign    = 'center';
+    canvasCtx.textAlign = 'center';
     canvasCtx.textBaseline = 'middle';
-    canvasCtx.font         = 'bold 16px "Segoe UI", Arial';
-    canvasCtx.fillStyle    = '#666';
+    canvasCtx.font = 'bold 16px "Segoe UI", Arial';
+    canvasCtx.fillStyle = '#666';
     canvasCtx.fillText(text, (left + right) / 2, (top + bottom) / 2);
     canvasCtx.restore();
 };
@@ -283,18 +282,18 @@ export const init = async(hasdata, apikey, caption, xaxis = 'time', yaxis = 'eff
         strSubmissionSingular,
         strSubmissionsPlural,
     ] = await getStrings([
-        {key: 'apply_filter',  component: 'tiny_cursive'},
+        {key: 'apply_filter', component: 'tiny_cursive'},
         {key: 'no_submission', component: 'tiny_cursive'},
-        {key: 'nopaylod',      component: 'tiny_cursive'},
-        {key: 'freemium',      component: 'tiny_cursive'},
-        {key: 'time',          component: 'tiny_cursive'},
-        {key: 'words',         component: 'tiny_cursive'},
-        {key: 'effort_ratio',  component: 'tiny_cursive'},
-        {key: 'wpm',           component: 'tiny_cursive'},
-        {key: 'effort_score',  component: 'tiny_cursive'},
-        {key: 'timespent',     component: 'tiny_cursive'},
+        {key: 'nopaylod', component: 'tiny_cursive'},
+        {key: 'freemium', component: 'tiny_cursive'},
+        {key: 'time', component: 'tiny_cursive'},
+        {key: 'words', component: 'tiny_cursive'},
+        {key: 'effort_ratio', component: 'tiny_cursive'},
+        {key: 'wpm', component: 'tiny_cursive'},
+        {key: 'effort_score', component: 'tiny_cursive'},
+        {key: 'timespent', component: 'tiny_cursive'},
         {key: 'submission_singular', component: 'tiny_cursive'},
-        {key: 'submissions',         component: 'tiny_cursive'},
+        {key: 'submissions', component: 'tiny_cursive'},
     ]);
 
     const strings = {
@@ -308,6 +307,7 @@ export const init = async(hasdata, apikey, caption, xaxis = 'time', yaxis = 'eff
         wpm:          strWpm,
         effortscore:  strEffortScore,
         timespent:    strTimespent,
+        // eslint-disable-next-line camelcase
         submission_singular: strSubmissionSingular,
         submissions:         strSubmissionsPlural,
     };
@@ -324,8 +324,8 @@ export const init = async(hasdata, apikey, caption, xaxis = 'time', yaxis = 'eff
     // -----------------------------------------------------------------------
     // Wire axis <select> elements and Submit button
     // -----------------------------------------------------------------------
-    const xselect   = document.getElementById('cursive-xaxis');
-    const yselect   = document.getElementById('cursive-yaxis');
+    const xselect = document.getElementById('cursive-xaxis');
+    const yselect = document.getElementById('cursive-yaxis');
     const submitBtn = document.getElementById('cursive-axis-submit');
 
     if (xselect && yselect) {
@@ -342,10 +342,10 @@ export const init = async(hasdata, apikey, caption, xaxis = 'time', yaxis = 'eff
     // -----------------------------------------------------------------------
     let showTitle = true;
     let hasPoints = false;
-    let datasets  = [];
+    let datasets = [];
 
     if (Array.isArray(data) && !data.state && apikey) {
-        datasets  = data;
+        datasets = data;
         hasPoints = datasets.some(ds =>
             Array.isArray(ds.data) &&
             ds.data.some(p => p && typeof p === 'object' && Object.keys(p).length > 0)

@@ -205,14 +205,7 @@ function xmldb_tiny_cursive_upgrade($oldversion) {
             $dbman->add_field($table, $field);
         }
 
-        // 3. Drop old column
-        // $oldfield = new xmldb_field('quality_access');
-
-        // if ($dbman->field_exists($table, $oldfield)) {
-        // $dbman->drop_field($table, $oldfield);
-        // }
-
-        // Savepoint
+        // Savepoint.
         upgrade_plugin_savepoint(true, 2026042300, 'tiny', 'cursive');
     }
 
