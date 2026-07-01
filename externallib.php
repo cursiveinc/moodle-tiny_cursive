@@ -545,7 +545,9 @@ class cursive_json_func_data extends external_api {
         self::validate_context($context);
         require_capability('tiny/cursive:writingreport', $context);
 
-        $conditions = ["resourceid" => $params['id'], 'modulename' => "forum"];
+        // Use the caller's modulename (forum/workshop/diary) rather than hardcoding "forum",
+        // so cite-source citations resolve for every module that shares this endpoint.
+        $conditions = ["resourceid" => $params['id'], 'modulename' => $params['modulename']];
         $recs = $DB->get_records('tiny_cursive_comments', $conditions);
 
         $attempts = "SELECT uw.total_time_seconds, uw.word_count, uw.words_per_minute, uf.uploaded,
@@ -581,17 +583,23 @@ class cursive_json_func_data extends external_api {
                 ['resourceid' => $params['id'], 'cmid' => $params['cmid'], 'modulename' => $params['modulename']],
             );
 
-            $data['filename'] = $filename->filename;
-            $data['file_id'] = $filename->file_id;
-            $data['resubmit'] = constants::is_resubmitable($data, $filename->file_id);
-            $data['cmid'] = $params['cmid'];
+            // A resource with no capture record (e.g. a diary entry written before Cursive was
+            // enabled, or a teacher-created entry) yields no file row. Guard the access so the
+            // endpoint returns data without a filename instead of erroring; callers already treat
+            // a missing filename as "no indicator".
+            if ($filename) {
+                $data['filename'] = $filename->filename;
+                $data['file_id'] = $filename->file_id;
+                $data['resubmit'] = constants::is_resubmitable($data, $filename->file_id);
+                $data['cmid'] = $params['cmid'];
 
-            $sql = 'SELECT *
-                      FROM {tiny_cursive_files}
-                     WHERE userid = :userid ORDER BY id ASC LIMIT 1';
-            $firstfile = $DB->get_record_sql($sql, ['userid' => $filename->userid]);
-            if ($firstfile->id == $filename->file_id) {
-                $data['first_file'] = 1;
+                $sql = 'SELECT *
+                          FROM {tiny_cursive_files}
+                         WHERE userid = :userid ORDER BY id ASC LIMIT 1';
+                $firstfile = $DB->get_record_sql($sql, ['userid' => $filename->userid]);
+                if ($firstfile->id == $filename->file_id) {
+                    $data['first_file'] = 1;
+                }
             }
         }
 

@@ -938,7 +938,7 @@ function sentMobileInput(key) {
                 courseid: courseid};
             // Document mode, other modules single editor instances
             if (isFullScreen && (modulename === 'assign' || modulename === 'forum'
-                || modulename === 'lesson' || modulename === 'workshop')) {
+                || modulename === 'lesson' || modulename === 'workshop' || modulename === 'diary')) {
                 let existsElement = document.querySelector('.tox-menubar[class*="cursive-menu-"] > div');
                 if (existsElement) {
                     existsElement.remove();

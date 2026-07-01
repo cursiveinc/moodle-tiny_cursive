@@ -73,6 +73,8 @@ class constants {
             'page-mod-pdfannotator-view'    => ['append_pdfannotator', 'pdfannotator'],
             'page-mod-workshop-submission'  => ['append_workshop', 'init'],
             'page-mod-workshop-view'        => ['append_workshop', 'init'],
+            'page-mod-diary-report'         => ['append_diary_report', 'diary'],
+            'page-mod-diary-reportsingle'   => ['append_diary_report', 'diary'],
         ];
     /**
      * Array mapping page body IDs to their corresponding handler functions and module types.
