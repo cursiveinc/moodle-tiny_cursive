@@ -65,7 +65,7 @@ export const init = (scoreSetting, showcomment, hasApiKey) => {
         if (authorid) {
             analytics(authorid, cmid, buttonBox);
         }
-        workshopAssessmentView(scoreSetting, hasApiKey);
+        workshopAssessmentView(scoreSetting, hasApiKey, null);
 
     }   else {
 
@@ -105,16 +105,16 @@ export const init = (scoreSetting, showcomment, hasApiKey) => {
      */
     function analytics(userid, cmid, assessmentButton) {
 
-        let args = {id: userid, modulename: "workshop", cmid: cmid};
-        let methodname = 'cursive_get_lesson_submission_data';
+        let args = {resourceid: cmid, userid: userid, modulename: "workshop", cmid: cmid};
+        let methodname = 'cursive_get_workshop_submission';
         let com = getData([{methodname, args}]);
         com[0].done(function(json) {
 
             var data = JSON.parse(json);
             var filepath = '';
 
-            if (data.res.filename) {
-                filepath = data.res.filename;
+            if (data.data.filename) {
+                filepath = data.data.filename;
             }
 
             let analyticButtonDiv = document.createElement('div');
@@ -122,7 +122,7 @@ export const init = (scoreSetting, showcomment, hasApiKey) => {
             if (!hasApiKey) {
                 $(analyticButtonDiv).html(replayButton(userid));
             } else {
-                analyticButtonDiv.append(analyticButton(data.res.effort_ratio, userid));
+                analyticButtonDiv.append(analyticButton(data.data.effort_ratio, userid));
             }
 
             analyticButtonDiv.dataset.region = "analytic-div" + userid;
@@ -140,17 +140,17 @@ export const init = (scoreSetting, showcomment, hasApiKey) => {
 
             let myEvents = new AnalyticEvents();
             var context = {
-                tabledata: data.res,
-                formattime: myEvents.formatedTime(data.res),
+                tabledata: data.data,
+                formattime: myEvents.formatedTime(data.data),
                 page: scoreSetting,
                 userid: userid,
                 apikey: hasApiKey
             };
 
-            let authIcon = myEvents.authorshipStatus(data.res.first_file, data.res.score, scoreSetting);
+            let authIcon = myEvents.authorshipStatus(data.data.first_file, data.data.score, scoreSetting);
             myEvents.createModal(userid, context, '', replayInstances, authIcon);
             myEvents.analytics(userid, templates, context, '', replayInstances, authIcon);
-            myEvents.checkDiff(userid, data.res.file_id, '', replayInstances, filepath);
+            myEvents.checkDiff(userid, data.data.file_id, '', replayInstances, filepath);
             myEvents.replyWriting(userid, filepath, '', replayInstances);
 
         });
