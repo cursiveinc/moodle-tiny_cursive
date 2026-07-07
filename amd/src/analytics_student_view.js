@@ -104,23 +104,36 @@ export const lessonView = (scoreSetting, hasApiKey, userid) => {
 };
 export const workshopView = (scoreSetting, hasApiKey, userid) => {
     let cmid = M.cfg.contextInstanceId;
-    let args = {id: userid, modulename: "workshop", cmid: cmid};
-    let studentData = getStudentData('cursive_get_lesson_submission_data', args);
-    let target = document.querySelector('div[role="main"]');
-    setStudentView(studentData, hasApiKey, userid, scoreSetting, target, "", "workshop");
-    workshopAssessmentView(scoreSetting, hasApiKey);
+    const submission = $('#page-mod-workshop-submission div.author > div.fullname > a')?.attr('href');
+    let byUserid = submission ? new URL(submission, window.location.origin).searchParams.get('id') : 0;
+    
+    if (!userid) {
+        userid = byUserid;
+    }
+    if (userid == byUserid || document.querySelector('#body')?.classList.contains('teacher_admin')) {
+        let args = {resourceid: cmid, userid: userid, modulename: "workshop", cmid: cmid};
+        let studentData = getStudentData('cursive_get_workshop_submission', args);
+        let target = document.querySelector('div[role="main"]');
+
+        setStudentView(studentData, hasApiKey, userid, scoreSetting, target, "", "workshop");
+    }
+    workshopAssessmentView(scoreSetting, hasApiKey, userid);
 };
 
-export const workshopAssessmentView = (scoreSetting, hasApiKey) => {
+export const workshopAssessmentView = (scoreSetting, hasApiKey, userid) => {
     let cmid = M.cfg.contextInstanceId;
-    let assessmentId = $('#page-mod-workshop-submission div.assessment-full div.actions form input[name="asid"]')?.attr('value');
 
+    let assessmentId = $('#page-mod-workshop-submission div.assessment-full div.actions form input[name="asid"]')?.attr('value');
     if (!assessmentId) {
         assessmentId = $('#page-mod-workshop-submission div.assessment-full div.title a')?.attr('href');
         assessmentId = assessmentId ? new URL(assessmentId, window.location.origin).searchParams.get('asid') : 0;
     }
-    let args = {id: assessmentId, modulename: "workshop", cmid: cmid};
-    let studentData = getStudentData('cursive_get_forum_comment_link', args);
+
+    let reviewerId = $('#page-mod-workshop-submission div.assessment-full div.fullname a')?.attr('href');
+    reviewerId = reviewerId ? new URL(reviewerId, window.location.origin).searchParams.get('id') : 0;
+
+    let args = {resourceid: assessmentId, userid: reviewerId, modulename: "workshop", cmid: cmid};
+    let studentData = getStudentData('cursive_get_workshop_submission', args);
 
     let target = document.querySelector('div[role="main"]');
     setStudentView(studentData, hasApiKey, assessmentId, scoreSetting, target, "", "workshopassessment");
@@ -186,6 +199,9 @@ function setStudentView(data, hasApiKey, userid, scoreSetting, target, questioni
             target.prepend(container);
         } else if (module === "workshop") {
             $(target).find('.submission-full').after(container);
+        } else if (module === "workshopassessment") {
+            $(container).find('#analytics' + userid).css({'vertical-align': 'middle', 'margin-bottom': '1rem'});
+            $(target).find('.assessment-full').after(container);
         } else {
             target.appendChild(container);
         }
