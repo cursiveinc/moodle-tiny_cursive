@@ -86,12 +86,12 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
                     localStorage.removeItem(filename);
                 }
                 setTimeout(() => {
-                    Autosave.updateSavingState('saved', {modulename: modulename, questionid: questionid});
+                    Autosave.updateSavingState('saved');
                 }, 1000);
             }
             return response;
         } catch (error) {
-            Autosave.updateSavingState('offline', {modulename: modulename, questionid: questionid});
+            Autosave.updateSavingState('offline');
             window.console.error('Error in postOne:', error);
             throw error;
         }
@@ -549,7 +549,7 @@ editor.on('compositionend', function() {
 });
 
 editor.on('input', function(e) {
-    if (isComposing) {
+    if (isComposing) { 
         return;
     }
 
@@ -767,7 +767,7 @@ function sentMobileInput(key) {
 
         if (!data || data.length === 0 || !navigator.onLine) {
             if (!navigator.onLine) {
-                Autosave.updateSavingState('offline', {modulename: modulename, questionid: questionid});
+                Autosave.updateSavingState('offline');
             }
             return;
         } else {
@@ -776,7 +776,7 @@ function sentMobileInput(key) {
                 originalText = getRawText(editor);
             }
             try {
-                Autosave.updateSavingState('saving', {modulename: modulename, questionid: questionid});
+                Autosave.updateSavingState('saving');
                 // eslint-disable-next-line
                 return await postOne('cursive_write_local_to_json', {
                     key: ed.key,
@@ -933,7 +933,7 @@ function sentMobileInput(key) {
                     document.querySelector('#tiny_cursive-fullpage-right-wrapper').prepend(rightWrapper);
                 }
 
-                Autosave.destroyInstance(moduleIds);
+                Autosave.destroyInstance();
                 Autosave.getInstance(editor, rightWrapper, moduleIds, isFullScreen);
             } else if (isFullScreen && modulename === 'quiz') { // Document mode, quiz multiple editor instances
                 let existingElement = editor.container?.childNodes[1]?.childNodes[0]?.childNodes[0]?.childNodes[7];
@@ -951,19 +951,20 @@ function sentMobileInput(key) {
             } else { // Regular view
                 let menubar = editor?.container?.children[0]?.childNodes[0]?.childNodes[0];
 
-                if (!targetMenu) {
-                    window.console.error('tiny_cursive: targetMenu not found for class', classArray[index],
-                        '— autosave icon cannot attach to page.');
-                } else if (!targetMenu.querySelector(`#${elementId}`)) {
+                if (targetMenu && !targetMenu.querySelector(`#${elementId}`)) {
                     targetMenu.appendChild(rightWrapper);
                 }
-
                 // Regular view, multiple editor instances
-                if (targetMenu) {
+                if (modulename === 'quiz' && menubar) {
+                    let wrapper = menubar.querySelector('span[id*="tiny_cursive_StateIcon"]');
+
+                    if (wrapper) {
+                        Autosave.destroyInstance();
+                        Autosave.getInstance(editor, wrapper?.parentElement, moduleIds, isFullScreen);
+                    }
+                } else {
                     Autosave.destroyInstance();
                     Autosave.getInstance(editor, rightWrapper, moduleIds, isFullScreen);
-                } else {
-                    window.console.error('tiny_cursive: targetMenu not found, autosave icon skipped for module', modulename);
                 }
             }
         }
