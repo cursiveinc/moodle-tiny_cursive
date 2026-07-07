@@ -133,7 +133,7 @@ export default class CursiveAutosave {
      */
     static updateSavingState(state) {
         const instance = this.instance;
-        if (!instance?.savingState) {
+        if (!instance) {
             return;
         }
         instance.savingState = state;

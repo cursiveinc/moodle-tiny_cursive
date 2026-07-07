@@ -226,7 +226,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
         const fingerprint = event + '_' + editor.key + '_' + ed.caretPosition;
 
         if (fingerprint === lastKeyFingerprint && (now - lastKeyTimestamp) < 100) {
-            window.console.warn('Duplicate blocked:', fingerprint);
+            // window.console.warn('Duplicate blocked:', fingerprint);
             return;
         }
         const keys = ['Shift', 'Control', 'Alt', 'Meta', 'Delete', 'Backspace', 'Enter'];
