@@ -142,6 +142,7 @@ $string['generate'] = 'Generate';
 $string['gradenot'] = 'Not graded';
 $string['gradings'] = 'Grading Status';
 $string['host_domain'] = 'Your Host domain.';
+$string['httperror'] = 'HTTP request failed.';
 $string['importantdates'] = 'Important Dates';
 $string['invalidjson'] = 'Invalid JSON content in file.';
 $string['invalidparameters'] = 'Invalid parameters have been given.';
