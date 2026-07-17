@@ -76,4 +76,13 @@ $capabilities = [
         ],
         'clonepermission' => 'tiny/cursive:view',
     ],
+    'tiny/cursive:bypasspastecontrols' => [
+        'captype' => 'read',
+        'contextlevel' => CONTEXT_MODULE,
+        'archetypes' => [
+            'editingteacher' => CAP_ALLOW,
+            'teacher' => CAP_ALLOW,
+            'manager' => CAP_ALLOW,
+        ],
+    ],
 ];

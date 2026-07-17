@@ -31,10 +31,11 @@ import DocumentView from 'tiny_cursive/document_view';
 import {call as getUser} from "core/ajax";
 import InputMutationDetector from 'tiny_cursive/input_mutation_detector';
 
-export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, submission, quizInfo, pasteSetting) => {
+export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, submission, quizInfo, pasteSetting, canBypassPaste, intervention) => {
 
-    var isStudent = !($('#body').hasClass('teacher_admin'));
-    var intervention = $('#body').hasClass('intervention');
+    canBypassPaste = !!canBypassPaste;
+    intervention = !!intervention;
+    var host = M.cfg.wwwroot;
     var host = M.cfg.wwwroot;
     var userid = userId;
     var courseid = M.cfg.courseId;
@@ -298,7 +299,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
         const lastCopyCutContent = localStorage.getItem('lastCopyCutContent');
         const isFromOwnEditor = lastCopyCutContent && trimmedPastedContent === lastCopyCutContent;
 
-        if (isStudent && intervention) {
+        if (!canBypassPaste && intervention) {
 
             if (PASTE_SETTING === 'block') {
                 if (!isFromOwnEditor) {
@@ -336,7 +337,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
     });
     editor.on('Redo', async(e) => {
         customTooltip();
-        if (isStudent && intervention) {
+        if (!canBypassPaste && intervention) {
             getModal(e);
         }
     });
@@ -344,7 +345,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
         customTooltip();
         const isPasteAttempt = (editor.key === 'v' || editor.key === 'V') &&
         (editor.ctrlKey || editor.metaKey);
-        if (isPasteAttempt && isStudent && intervention && PASTE_SETTING === 'block' && !isPasteAllowed) {
+        if (isPasteAttempt && !canBypassPaste && intervention && PASTE_SETTING === 'block' && !isPasteAllowed) {
             setTimeout(() => {
                 isPasteAllowed = true;
             }, 100);
@@ -423,6 +424,15 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
             if (isPaste) {
                 if (shouldBlockPaste) {
                     shouldBlockPaste = false;
+                    sendKeyEvent("Paste", {
+                        key: "v",
+                        keyCode: 86,
+                        caretPosition: editor.caretPosition,
+                        rePosition: editor.rePosition,
+                        pastedContent: pastedText,
+                        blocked: true,
+                        srcElement: {baseURI: window.location.href}
+                    });
                     e.preventDefault();
                     editor.undoManager.undo();
                     return;
@@ -430,8 +440,17 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
                 const lastCopyCutContent = localStorage.getItem('lastCopyCutContent');
                 const isFromOwnEditor = lastCopyCutContent && pastedText.trim() === lastCopyCutContent;
 
-                if (isStudent && intervention && PASTE_SETTING === 'block' && !isFromOwnEditor) {
+                if (!canBypassPaste && intervention && PASTE_SETTING === 'block' && !isFromOwnEditor) {
                     isPasteAllowed = false;
+                    sendKeyEvent("Paste", {
+                        key: "v",
+                        keyCode: 86,
+                        caretPosition: editor.caretPosition,
+                        rePosition: editor.rePosition,
+                        pastedContent: pastedText,
+                        blocked: true,
+                        srcElement: {baseURI: window.location.href}
+                    });
                     editor.undoManager.undo();
                     return;
                 }
@@ -549,7 +568,7 @@ editor.on('compositionend', function() {
 });
 
 editor.on('input', function(e) {
-    if (isComposing) { 
+    if (isComposing) {
         return;
     }
 
