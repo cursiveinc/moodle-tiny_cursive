@@ -1658,6 +1658,9 @@ class cursive_json_func_data extends external_api {
         $cm           = get_coursemodule_from_id('', $params['cmid'], $params['courseid'], false, MUST_EXIST);
         $rubrics      = constants::get_rubrics("mod_{$cm->modname}", $context, $cm->modname);
 
+        $canbypasspaste = has_capability('tiny/cursive:bypasspastecontrols', $context);
+        $intervention    = (bool) constants::show_comments();
+
         $submissiondata = new stdClass();
         if ($cm->modname === 'assign') {
             $assign     = new assign($context, null, null);
@@ -1689,6 +1692,8 @@ class cursive_json_func_data extends external_api {
             'quizinfo'      => json_encode($quizdata),
             'pastesetting'  => $pastesetting,
             'useragent'     => core_useragent::get_device_type(),
+            'canbypasspaste' => $canbypasspaste,
+            'intervention'   => $intervention,
         ];
         return $data;
     }
@@ -1711,6 +1716,8 @@ class cursive_json_func_data extends external_api {
             'quizinfo' => new external_value(PARAM_TEXT, 'quiz info'),
             'pastesetting'  => new external_value(PARAM_TEXT, 'Paste setting'),
             'useragent'  => new external_value(PARAM_TEXT, 'User agent'),
+            'canbypasspaste' => new external_value(PARAM_BOOL, 'Whether the user may bypass paste controls'),
+            'intervention' => new external_value(PARAM_BOOL, 'Whether intervention mode is active for this activity'),
         ]);
     }
 
