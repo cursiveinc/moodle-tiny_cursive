@@ -33,7 +33,12 @@ function xmldb_tiny_cursive_install() {
 
     tiny_cursive_enable_webservice();
     tiny_cursive_enable_webservice_protocol();
-    \core\task\manager::queue_adhoc_task(new post_upgrade_task(), true);
+    // Do not queue the telemetry task under PHPUnit: it makes an outbound HTTP
+    // call that fails in the test environment and leaks its adhoc task lock,
+    // aborting phpunit_util::install_site().
+    if (!PHPUNIT_TEST) {
+        \core\task\manager::queue_adhoc_task(new post_upgrade_task(), true);
+    }
 }
 /**
  * Enable web services in Moodle
