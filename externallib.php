@@ -453,7 +453,7 @@ class cursive_json_func_data extends external_api {
             $table = 'tiny_cursive_comments';
             $recs = $DB->get_records($table, $conditions);
 
-            $attempts = "SELECT  uw.total_time_seconds ,uw.word_count ,uw.words_per_minute,
+            $attempts = "SELECT  uw.total_time_seconds ,uw.word_count ,uw.words_per_minute, uw.user_agent,
                                  uw.backspace_percent,uw.score,uw.copy_behavior,uf.resourceid,
                                  uf.modulename,uf.userid, uf.filename, uf.uploaded,
                            FROM {tiny_cursive_user_writing} uw
