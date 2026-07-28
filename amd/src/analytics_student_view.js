@@ -106,7 +106,7 @@ export const workshopView = (scoreSetting, hasApiKey, userid) => {
     let cmid = M.cfg.contextInstanceId;
     const submission = $('#page-mod-workshop-submission div.author > div.fullname > a')?.attr('href');
     let byUserid = submission ? new URL(submission, window.location.origin).searchParams.get('id') : 0;
-    
+
     if (!userid) {
         userid = byUserid;
     }
