@@ -147,7 +147,7 @@ export const init = (scoreSetting, showcomment, hasApiKey) => {
                 apikey: hasApiKey
             };
 
-            let authIcon = myEvents.authorshipStatus(data.data.first_file, data.data.score, scoreSetting);
+            let authIcon = myEvents.authorshipStatus(data.data?.user_agent, data.data.first_file, data.data.score, scoreSetting);
             myEvents.createModal(userid, context, '', replayInstances, authIcon);
             myEvents.analytics(userid, templates, context, '', replayInstances, authIcon);
             myEvents.checkDiff(userid, data.data.file_id, '', replayInstances, filepath);

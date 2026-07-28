@@ -263,7 +263,7 @@ function initEvents(data, hasApiKey, userid, scoreSetting, questionid = "") {
         apikey: hasApiKey
     };
 
-    let authIcon = events.authorshipStatus(data.first_file, data.score, scoreSetting);
+    let authIcon = events.authorshipStatus('default', data.first_file, data.score, scoreSetting);
     events.createModal(userid, context, questionid, replayInstances, authIcon);
     events.analytics(userid, templates, context, questionid, replayInstances, authIcon);
     events.checkDiff(userid, data.file_id, questionid, replayInstances, data.filename);

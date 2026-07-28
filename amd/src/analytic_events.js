@@ -397,8 +397,8 @@ export default class AnalyticEvents {
             color = 'font-size:32px;color:green';
         }
         if (agent === 'mobile' || agent === 'tablet') {
-            const icon = 'fas fa-mobile-alt';
-            const color = 'font-size:42px; color: black;';
+            icon = 'fas fa-mobile-alt';
+            color = 'font-size:42px; color: black;';
 
             const $container = $('<span>').addClass('d-flex align-items-center');
             const $icon = $('<i>').addClass(icon).attr('style', color);
