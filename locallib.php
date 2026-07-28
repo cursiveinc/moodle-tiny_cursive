@@ -62,7 +62,8 @@ function tiny_cursive_get_user_attempts_data(
                    uw.characters_per_minute AS characters_per_minute,
                    uw.word_count AS word_count, uw.words_per_minute AS words_per_minute,
                    uw.backspace_percent AS backspace_percent, uw.score AS score,
-                   uw.copy_behavior AS copy_behavior, wd.meta as effort
+                   uw.copy_behavior AS copy_behavior, wd.meta as effort,
+                   uw.user_agent
               FROM {tiny_cursive_files} uf
               JOIN {user} u ON uf.userid = u.id
               JOIN {course} c ON c.id = uf.courseid AND c.visible = 1
@@ -165,7 +166,8 @@ function tiny_cursive_get_user_writing_data(
                       uw.words_per_minute AS words_per_minute,
                       uw.backspace_percent AS backspace_percent,
                       uw.score AS score,
-                      uw.copy_behavior AS copy_behavior
+                      uw.copy_behavior AS copy_behavior,
+                      uw.user_agent
                 FROM {tiny_cursive_files} uf
                 JOIN {user} u ON uf.userid = u.id
            LEFT JOIN {tiny_cursive_user_writing} uw ON uw.file_id = uf.id
@@ -245,7 +247,7 @@ function tiny_cursive_get_user_submissions_data($userid, $modulename, $cmid, $co
     require_once($CFG->dirroot . "/lib/editor/tiny/plugins/cursive/lib.php");
 
     $cm = get_coursemodule_from_id($modulename, $cmid);
-    $sql = "SELECT uw.total_time_seconds, uw.word_count, uw.words_per_minute,
+    $sql = "SELECT uw.total_time_seconds, uw.word_count, uw.words_per_minute, uw.user_agent,
                    uw.backspace_percent, uw.score, uw.copy_behavior, uf.resourceid,
                    uf.modulename, uf.userid, uw.file_id, uf.filename, uf.uploaded, uf.courseid,
                    diff.meta AS effort_ratio

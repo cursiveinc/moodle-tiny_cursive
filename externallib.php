@@ -551,7 +551,7 @@ class cursive_json_func_data extends external_api {
         $conditions = ["resourceid" => $params['id'], 'modulename' => $params['modulename']];
         $recs = $DB->get_records('tiny_cursive_comments', $conditions);
 
-        $attempts = "SELECT uw.total_time_seconds, uw.word_count, uw.words_per_minute, uf.uploaded,
+        $attempts = "SELECT uw.total_time_seconds, uw.word_count, uw.words_per_minute, uf.uploaded, uw.user_agent,
                             uw.backspace_percent, uw.score, uw.copy_behavior, uf.resourceid,
                             uf.modulename, uf.userid, uf.filename, uw.file_id,
                             diff.meta AS effort_ratio
@@ -750,7 +750,7 @@ class cursive_json_func_data extends external_api {
         $table = 'tiny_cursive_comments';
         $recs = $DB->get_records($table, $conditions);
 
-        $attempts = "SELECT uw.total_time_seconds, uw.word_count, uw.words_per_minute,
+        $attempts = "SELECT uw.total_time_seconds, uw.word_count, uw.words_per_minute, uw.user_agent,
                             uw.backspace_percent, uw.score, uw.copy_behavior, uf.resourceid,
                             uf.modulename, uf.userid, uw.file_id, uf.filename, uf.uploaded,
                             diff.meta AS effort_ratio
@@ -920,9 +920,9 @@ class cursive_json_func_data extends external_api {
         self::validate_context($context);
         require_capability('tiny/cursive:view', $context);
 
-        $attempts = "SELECT qa.resourceid AS attemptid,qa.timemodified,uw.score,uw.copy_behavior, u.id AS userid,
-                            u.firstname, u.lastname, u.email,  qa.cmid AS cmid ,qa.courseid,qa.filename,uw.word_count,
-                            uw.words_per_minute , uw.total_time_seconds ,uw.backspace_percent
+        $attempts = "SELECT qa.resourceid AS attemptid, qa.timemodified, uw.score, uw.copy_behavior, u.id AS userid,
+                            u.firstname, u.lastname, u.email,  qa.cmid AS cmid, qa.courseid,qa.filename, uw.word_count,
+                            uw.words_per_minute, uw.total_time_seconds, uw.backspace_percent, uw.user_agent,
                        FROM {user} u
                        JOIN {tiny_cursive_files} qa ON u.id = qa.userid
                   LEFT JOIN {tiny_cursive_user_writing} uw ON qa.id = uw.file_id
@@ -2275,7 +2275,7 @@ class cursive_json_func_data extends external_api {
 
         $attempts = "SELECT uw.total_time_seconds, uw.word_count, uw.words_per_minute, uf.uploaded,
                             uw.backspace_percent, uw.score, uw.copy_behavior, uf.resourceid,
-                            uf.modulename, uf.userid, uf.filename, uw.file_id,
+                            uf.modulename, uf.userid, uf.filename, uw.file_id, uw.user_agent,
                             diff.meta AS effort_ratio
                         FROM {tiny_cursive_files} uf
                         LEFT JOIN {tiny_cursive_user_writing} uw ON uw.file_id = uf.id
