@@ -256,6 +256,15 @@ $functions = [
         'ajax' => true,
         'capabilities' => 'tiny/cursive:view',
     ],
+        'cursive_get_workshop_submission' => [
+        'classname' => 'cursive_json_func_data',
+        'methodname' => 'get_workshop_submission',
+        'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
+        'description' => 'get workshop submission data',
+        'type' => 'read',
+        'ajax' => true,
+        'capabilities' => 'tiny/cursive:view',
+    ],
 ];
 
 // We define the services to install as pre-build services.

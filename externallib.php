@@ -1668,6 +1668,9 @@ class cursive_json_func_data extends external_api {
         $cm           = get_coursemodule_from_id('', $params['cmid'], $params['courseid'], false, MUST_EXIST);
         $rubrics      = constants::get_rubrics("mod_{$cm->modname}", $context, $cm->modname);
 
+        $canbypasspaste = has_capability('tiny/cursive:bypasspastecontrols', $context);
+        $intervention    = (bool) constants::show_comments();
+
         $submissiondata = new stdClass();
         if ($cm->modname === 'assign') {
             $assign     = new assign($context, null, null);
@@ -1699,6 +1702,8 @@ class cursive_json_func_data extends external_api {
             'quizinfo'      => json_encode($quizdata),
             'pastesetting'  => $pastesetting,
             'useragent'     => core_useragent::get_device_type(),
+            'canbypasspaste' => $canbypasspaste,
+            'intervention'   => $intervention,
         ];
         return $data;
     }
@@ -1721,6 +1726,8 @@ class cursive_json_func_data extends external_api {
             'quizinfo' => new external_value(PARAM_TEXT, 'quiz info'),
             'pastesetting'  => new external_value(PARAM_TEXT, 'Paste setting'),
             'useragent'  => new external_value(PARAM_TEXT, 'User agent'),
+            'canbypasspaste' => new external_value(PARAM_BOOL, 'Whether the user may bypass paste controls'),
+            'intervention' => new external_value(PARAM_BOOL, 'Whether intervention mode is active for this activity'),
         ]);
     }
 
@@ -2218,5 +2225,122 @@ class cursive_json_func_data extends external_api {
      */
     public static function remove_student_submission_returns() {
         return new external_value(PARAM_BOOL, 'remove student submission');
+    }
+
+    /**
+     * Returns parameters for remove_student_submission method
+     *
+     * @return external_function_parameters Parameters definition for removing student submission
+     */
+    public static function get_workshop_submission_parameters() {
+        return new external_function_parameters(
+            [
+                'resourceid' => new external_value(PARAM_INT, 'resource id'),
+                'userid' => new external_value(PARAM_INT, 'user id', VALUE_OPTIONAL, null),
+                'modulename' => new external_value(PARAM_TEXT, 'module name'),
+                'cmid' => new external_value(PARAM_INT, 'course module id'),
+            ]
+        );
+    }
+
+    /**
+     * Gets workshop submission data
+     *
+     * @param int $userid The ID of the user
+     * @param int $cmid The course module ID
+     * @return bool True if the submission was successfully retrieved
+     * @throws coding_exception
+     * @throws dml_exception
+     * @throws invalid_parameter_exception
+     * @throws moodle_exception
+     * @throws required_capability_exception
+     */
+    public static function get_workshop_submission($resourceid, $userid, $modulename, $cmid) {
+        global $DB;
+
+        $params = self::validate_parameters(
+            self::get_workshop_submission_parameters(),
+            [
+                'resourceid' => $resourceid,
+                'userid' => $userid,
+                'modulename' => $modulename,
+                'cmid' => $cmid,
+            ]
+        );
+
+        $context = context_module::instance($params['cmid']);
+        self::validate_context($context);
+        require_capability("tiny/cursive:write", $context);
+
+        $attempts = "SELECT uw.total_time_seconds, uw.word_count, uw.words_per_minute, uf.uploaded,
+                            uw.backspace_percent, uw.score, uw.copy_behavior, uf.resourceid,
+                            uf.modulename, uf.userid, uf.filename, uw.file_id,
+                            diff.meta AS effort_ratio
+                        FROM {tiny_cursive_files} uf
+                        LEFT JOIN {tiny_cursive_user_writing} uw ON uw.file_id = uf.id
+                LEFT JOIN {tiny_cursive_writing_diff} diff ON uf.id = diff.file_id
+                     WHERE uf.resourceid = :resourceid
+                           AND uf.cmid = :cmid
+                           AND uf.modulename = :modulename";
+
+        if ($params['userid']) {
+            $attempts .= " AND uf.userid = :userid";
+        }
+
+        $data =
+            $DB->get_record_sql(
+                $attempts,
+                ['resourceid' => $params['resourceid'], 'userid' => $params['userid'], 'cmid' => $params['cmid'], 'modulename' => $params['modulename']],
+            );
+        if (isset($data->effort_ratio)) {
+            $data->effort_ratio = intval(floatval($data->effort_ratio) * 100);
+        }
+        $data = (array) $data;
+        $data['first_file'] = 0;
+
+        if (!isset($data['filename'])) {
+            $sql = 'SELECT id as file_id, filename,userid, content
+                      FROM {tiny_cursive_files}
+                     WHERE resourceid = :resourceid
+                            AND cmid = :cmid
+                            AND modulename = :modulename';
+            $filename = $DB->get_record_sql(
+                $sql,
+                ['resourceid' => $params['resourceid'], 'cmid' => $params['cmid'], 'modulename' => $params['modulename']],
+            );
+
+            $data['filename'] = $filename->filename;
+            $data['file_id'] = $filename->file_id;
+            $data['resubmit'] = constants::is_resubmitable($data, $filename->file_id);
+            $data['cmid'] = $params['cmid'];
+
+            $sql = 'SELECT *
+                      FROM {tiny_cursive_files}
+                     WHERE userid = :userid ORDER BY id ASC LIMIT 1';
+            $firstfile = $DB->get_record_sql($sql, ['userid' => $filename->userid]);
+            if ($firstfile->id == $filename->file_id) {
+                $data['first_file'] = 1;
+            }
+        }
+
+        $sql = 'SELECT *
+                  FROM {tiny_cursive_files}
+                 WHERE userid = :userid ORDER BY id ASC LIMIT 1';
+        $firstfile = $DB->get_record_sql($sql, ['userid' => $data['userid'] ?? '']);
+        $fileid = $firstfile->id ?? null;
+        if (isset($firstfile) && isset($filename) && $fileid == $filename->file_id) {
+            $data['first_file'] = 1;
+        }
+
+        return json_encode(['data' => $data]);
+    }
+
+    /**
+     * Returns description of get_workshop_submission return value
+     *
+     * @return external_value Returns a boolean parameter indicating if the submission was successfully retrieved
+     */
+    public static function get_workshop_submission_returns() {
+        return new external_value(PARAM_TEXT, 'submission data');
     }
 }
