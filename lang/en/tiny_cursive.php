@@ -72,6 +72,7 @@ $string['courseid'] = 'Course ID';
 $string['coursename'] = 'Course name';
 $string['ctype'] = "Chart Type";
 $string['curlerror'] = 'Curl error';
+$string['cursive:bypasspastecontrols'] = 'Bypass paste controls';
 $string['cursive:dis:fail'] = 'Failed to disable Cursive.';
 $string['cursive:dis:succ'] = 'Cursive disabled successfully.';
 $string['cursive:editsettings'] = 'Access plugin settings';

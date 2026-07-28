@@ -231,7 +231,7 @@ class visualization {
 
             if ($hasmetrics) {
                 $point         = new stdClass();
-                // x / y use the PHP-supplied defaults; scatter_chart.js remaps them
+                // X / y use the PHP-supplied defaults; scatter_chart.js remaps them
                 // client-side when the user changes the axis selectors.
                 $point->x      = (int) $analytic->total_time_seconds;
                 $point->y      = is_numeric($analytic->effort) ? (float) $analytic->effort : 0.0;

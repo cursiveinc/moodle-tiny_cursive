@@ -24,10 +24,10 @@
  */
 
 import myModal from "./analytic_modal";
-import { call as getContent } from "core/ajax";
+import {call as getContent} from "core/ajax";
 import $ from 'jquery';
-import { get_string as getString } from 'core/str';
-import { get_strings as getStrings } from 'core/str';
+import {get_string as getString} from 'core/str';
+import {get_strings as getStrings} from 'core/str';
 import template from 'core/templates';
 import {setUserPreference} from 'core_user/repository';
 
@@ -70,7 +70,7 @@ export default class AnalyticEvents {
         // Persist + apply the guidance toggle. Delegated and namespaced so it binds
         // once across every analytics instance and survives table re-renders.
         $('body').off('change.tinycursiveguidance')
-            .on('change.tinycursiveguidance', '.tiny_cursive-guidance-switch', function () {
+            .on('change.tinycursiveguidance', '.tiny_cursive-guidance-switch', function() {
                 const on = $(this).is(':checked');
                 if (guidanceState) {
                     guidanceState.showguidance = on;
@@ -85,7 +85,7 @@ export default class AnalyticEvents {
 
     createModal(userid, context, questionid = '', replayInstances = null, authIcon) {
         const self = this;
-        $('#analytics' + userid + questionid).on('click', function (e) {
+        $('#analytics' + userid + questionid).on('click', function(e) {
             e.preventDefault();
 
             const isReplayButton = $(this).find('.tiny_cursive-replay-button').length > 0;
@@ -94,7 +94,8 @@ export default class AnalyticEvents {
             getGuidanceState().then(state => {
                 context.canviewguidance = state.canviewguidance;
                 context.showguidance = state.showguidance;
-                return myModal.create({ templateContext: context }).then(modal => {
+                // eslint-disable-next-line promise/no-nesting
+                return myModal.create({templateContext: context}).then(modal => {
                 $('#content' + userid + ' .tiny_cursive_table  tbody tr:first-child td:nth-child(2)').html(authIcon);
                 modal.show();
 
@@ -123,7 +124,7 @@ export default class AnalyticEvents {
                         'background-color': 'rgba(168, 168, 168, 0.133)',
                         'cursor': 'not-allowed'
                     });
-                    moreBtn.on('click', function (e) {
+                    moreBtn.on('click', function(e) {
                         e.preventDefault();
                         self.learnMore($(this), context, userid, questionid, replayInstances);
                     });
@@ -140,11 +141,11 @@ export default class AnalyticEvents {
 
     analytics(userid, templates, context, questionid = '', replayInstances = null, authIcon) {
 
-        $('body').on('click', '#analytic' + userid + questionid, function (e) {
+        $('body').on('click', '#analytic' + userid + questionid, function(e) {
             $('#rep' + userid + questionid).prop('disabled', false);
             $('#quality' + userid + questionid).prop('disabled', false);
             $('#content' + userid).attr('data-label', 'analytics');
-            $('#player_' + userid + questionid).css({ 'display': 'none' });
+            $('#player_' + userid + questionid).css({'display': 'none'});
             $('#content' + userid).removeClass('tiny_cursive_outputElement')
                 .addClass('tiny_cursive').attr('data-label', 'analytics');
             e.preventDefault();
@@ -156,15 +157,16 @@ export default class AnalyticEvents {
             $('.tiny_cursive-nav-tab').find('.active').removeClass('active');
             $(this).addClass('active'); // Add 'active' class to the clicked element
 
-            getGuidanceState().then(function (state) {
+            getGuidanceState().then(function(state) {
                 context.canviewguidance = state.canviewguidance;
                 context.showguidance = state.showguidance;
-                return templates.render('tiny_cursive/analytics_table', context).then(function (html) {
+                // eslint-disable-next-line promise/no-nesting
+                return templates.render('tiny_cursive/analytics_table', context).then(function(html) {
                     $('#content' + userid).html(html);
                     $('#content' + userid + ' .tiny_cursive_table  tbody tr:first-child td:nth-child(2)').html(authIcon);
                     return true;
                 });
-            }).catch(function (error) {
+            }).catch(function(error) {
                 window.console.error("Failed to render template:", error);
             });
         });
@@ -177,7 +179,7 @@ export default class AnalyticEvents {
             nodata.textContent = str;
             return true;
         }).catch(error => window.console.log(error));
-        $('body').on('click', '#diff' + userid + questionid, function (e) {
+        $('body').on('click', '#diff' + userid + questionid, function(e) {
             $('#rep' + userid + questionid).prop('disabled', false);
             $('#quality' + userid + questionid).prop('disabled', false);
             $('#content' + userid).attr('data-label', 'diff');
@@ -199,7 +201,7 @@ export default class AnalyticEvents {
             }
             getContent([{
                 methodname: 'cursive_get_writing_differences',
-                args: { fileid: fileid },
+                args: {fileid: fileid},
             }])[0].done(response => {
                 let responsedata = JSON.parse(response.data);
                 if (responsedata) {
@@ -209,7 +211,7 @@ export default class AnalyticEvents {
                         if (filepath) {
                             return getContent([{
                                 methodname: 'cursive_get_reply_json',
-                                args: { filepath: filepath }
+                                args: {filepath: filepath}
                             }])[0].then(replayResponse => {
 
                                 let pasteCount = 0;
@@ -245,10 +247,10 @@ export default class AnalyticEvents {
                     return getPasteCount().then(pasteCount => {
                         // eslint-disable-next-line
                         return getStrings([
-                            { key: 'original_text', component: 'tiny_cursive' },
-                            { key: 'editspastesai', component: 'tiny_cursive' },
-                            { key: 'pastecount', component: 'tiny_cursive' },
-                            { key: 'comments', component: 'tiny_cursive' }
+                            {key: 'original_text', component: 'tiny_cursive'},
+                            {key: 'editspastesai', component: 'tiny_cursive'},
+                            {key: 'pastecount', component: 'tiny_cursive'},
+                            {key: 'comments', component: 'tiny_cursive'}
                         ]).done(strings => {
                             const originalTextString = strings[0];
                             const editsPastesAIString = strings[1];
@@ -282,14 +284,14 @@ export default class AnalyticEvents {
                             const $legend = $('<div class="d-flex p-2 border rounded mb-2">');
 
                             // Create the first legend item
-                            const $attributedItem = $('<div>', { "class": "tiny_cursive-legend-item" });
-                            const $attributedBox = $('<div>', { "class": "tiny_cursive-box attributed" });
+                            const $attributedItem = $('<div>', {"class": "tiny_cursive-legend-item"});
+                            const $attributedBox = $('<div>', {"class": "tiny_cursive-box attributed"});
                             const $attributedText = $('<span>').text(originalTextString);
                             $attributedItem.append($attributedBox).append($attributedText);
 
                             // Create the second legend item
-                            const $unattributedItem = $('<div>', { "class": 'tiny_cursive-legend-item' });
-                            const $unattributedBox = $('<div>', { "class": 'tiny_cursive-box tiny_cursive_added' });
+                            const $unattributedItem = $('<div>', {"class": 'tiny_cursive-legend-item'});
+                            const $unattributedBox = $('<div>', {"class": 'tiny_cursive-box tiny_cursive_added'});
                             const $unattributedText = $('<span>').text(editsPastesAIString);
                             $unattributedItem.append($unattributedBox).append($unattributedText);
 
@@ -320,7 +322,7 @@ export default class AnalyticEvents {
     }
 
     replyWriting(userid, filepath, questionid = '', replayInstances = null) {
-        $('body').on('click', '#rep' + userid + questionid, function (e) {
+        $('body').on('click', '#rep' + userid + questionid, function(e) {
 
             if (filepath) {
                 $('#replayControls_' + userid + questionid).removeClass('d-none');
@@ -361,10 +363,10 @@ export default class AnalyticEvents {
         }
         $('#content' + userid + questionid).removeClass('tiny_cursive_outputElement');
         $('#replayControls_' + userid + questionid).addClass('d-none');
-        template.render('tiny_cursive/learn_more', context).then(function (html) {
+        template.render('tiny_cursive/learn_more', context).then(function(html) {
             $('#content' + userid + questionid).html(html);
             return true;
-        }).fail(function (error) {
+        }).fail(function(error) {
             window.console.error("Failed to render template:", error);
         });
     }
@@ -405,12 +407,12 @@ export default class AnalyticEvents {
             $container.append($icon).append($text);
 
             // Load string asynchronously
-            getStrings([{ key: 'submittedbtmobile', component: 'tiny_cursive' }])
-                .done(function (string) {
+            getStrings([{key: 'submittedbtmobile', component: 'tiny_cursive'}])
+                .done(function(string) {
                     $text.text(string[0]); // ✅ update AFTER loaded
                 })
-                .fail(function () {
-                    $text.text('Submitted by mobile'); // fallback
+                .fail(function() {
+                    $text.text('Submitted by mobile'); // Fallback
                 });
 
             return $container;

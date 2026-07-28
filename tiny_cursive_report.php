@@ -38,7 +38,7 @@ global $DB, $PAGE, $OUTPUT;
 
 require_login();
 
-// ── Parameters (unchanged from v1) ──────────────────────────────────────────
+// Parameters (unchanged from v1).
 $courseid = required_param('courseid', PARAM_INT);
 $userid   = optional_param('userid', 0, PARAM_INT);
 $moduleid = optional_param('moduleid', 0, PARAM_INT);
@@ -148,7 +148,7 @@ $topgrid = html_writer::div(
 
 echo html_writer::div($topgrid, 'cursive-report-v2');
 
-// ── Table section ─────────────────────────────────────────────────────────────
+// Table section.
 // Rendered inside its own card wrapper; the actual table + download button
 // come from tiny_cursive_render_user_table() and visualization->render()
 // which echo directly, so we open the card shell around them.
@@ -190,8 +190,8 @@ if ($formdata = $mform->get_data()) {
     $chart->render($xaxis, $yaxis);
 }
 
-echo html_writer::end_div(); // .cursive-card-body
-echo html_writer::end_div(); // .cursive-card
-echo html_writer::end_div(); // .cursive-report-v2
+echo html_writer::end_div(); // End .cursive-card-body.
+echo html_writer::end_div(); // End .cursive-card.
+echo html_writer::end_div(); // End .cursive-report-v2.
 
 echo $OUTPUT->footer();
