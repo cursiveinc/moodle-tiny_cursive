@@ -432,6 +432,7 @@ class cursive_json_func_data extends external_api {
                         $data['characters_per_minute'] = $report->characters_per_minute;
                         $data['keys_per_minute'] = $report->keys_per_minute;
                         $data['effort_ratio'] = $report->effort_ratio ?? 0;
+                        $data['user_agent'] = $report->user_agent;
                         $data['uploaded'] = $filename->uploade;
                     }
                 }
