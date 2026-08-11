@@ -142,7 +142,7 @@ class helper {
             return;
         }
 
-        [$curl, $url, $options] = self::get_curl(constants::BASE_URL . constants::API_END);
+        [$curl, $url, $options] = self::get_curl(constants::base_url() . constants::API_END);
         $json = json_encode($data);
 
         if ($json === false) {

@@ -34,7 +34,7 @@ class constants {
      * Base URL for the Cursive Technology API
      * @var string The API base endpoint URL
      */
-    public const BASE_URL = 'https://staging.api.cursivetechnology.net/api';
+    public const BASE_URL = 'https://api.cursivetechnology.net/api';
 
     /**
      * API endpoint path for Moodle integration installs
@@ -101,6 +101,22 @@ class constants {
     public static function confidence_threshold() {
         $value = get_config('tiny_cursive', 'confidence_threshold');
         return !empty($value) ? floatval($value) : 0.65;
+    }
+
+    /**
+    * Get the active base URL for the Cursive Technology API.
+    * Reads from the tiny_cursive/python_server admin setting so the same
+    * value used for the ML server (upload/verify-token) is reused for the
+    * install-reporting endpoint too. Falls back to BASE_URL if not set.
+    *
+    * @return string
+    */
+    public static function base_url(): string {
+        $configured = get_config('tiny_cursive', 'python_server');
+        if (!empty($configured)) {
+            return rtrim($configured, '/');
+        }
+        return self::BASE_URL;
     }
 
     /**
