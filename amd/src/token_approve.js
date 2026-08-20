@@ -31,7 +31,7 @@ define(["jquery", "core/ajax", "core/str"], function($, AJAX, str) {
         });
     },
     getToken: function() {
-      $("#approve_token").click(function() {
+      $("#cursive_approve_token").click(function() {
         var token = $("#id_s_tiny_cursive_secretkey").val();
         var promise1 = AJAX.call([
           {
@@ -47,7 +47,7 @@ define(["jquery", "core/ajax", "core/str"], function($, AJAX, str) {
           if (data.status == true) {
             messageAlert =
               "<span class='alert alert-success' role='alert'>" +
-              data.message +
+              "Connected" +
               "</span>";
           } else {
             messageAlert =
@@ -55,7 +55,7 @@ define(["jquery", "core/ajax", "core/str"], function($, AJAX, str) {
               data.message +
               "</span>";
           }
-          $("#token_message").html(messageAlert);
+          $("#cursive_token_message").html(messageAlert);
         });
       });
     },

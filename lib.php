@@ -314,6 +314,14 @@ function tiny_cursive_upload_multipart_record($filerecord, $filenamewithfullpath
         $token      = get_config('tiny_cursive', 'secretkey');
         $remoteurl  = get_config('tiny_cursive', 'python_server') . "/upload_file";
 
+        $tempfilepath = make_temp_directory('tiny_cursive') . '/' . uniqid('upload_', true);
+
+        // Guard against empty/null content to prevent json_decode() deprecation warnings in PHP 8.1+.
+        if (empty($filerecord->content)) {
+            echo "Skipping. Empty content in file record: " . $filerecord->id . "\n";
+            return false;
+        }
+
         $jsoncontent = json_decode($filerecord->content, true);
 
         // A payload that cannot be decoded will never succeed, so treat it as permanent.
@@ -322,11 +330,10 @@ function tiny_cursive_upload_multipart_record($filerecord, $filenamewithfullpath
             return 'permanent_failure';
         }
 
-        $tempfilepath = make_temp_directory('tiny_cursive') . '/' . uniqid('upload_', true);
         file_put_contents($tempfilepath, json_encode($jsoncontent));
         $filetosend = new CURLFILE($tempfilepath, 'application/json', 'uploaded.json');
 
-        // A file over the size limit will always be rejected, so treat it as permanent.
+        // Ensure the temporary file does not exceed the size limit.
         if (filesize($tempfilepath) > 16 * 1024 * 1024) {
             mtrace("[tiny_cursive] Upload permanent failure for record {$filerecord->id}: payload exceeds 16MB.");
             return 'permanent_failure';
@@ -339,6 +346,7 @@ function tiny_cursive_upload_multipart_record($filerecord, $filenamewithfullpath
             'person_id' => $filerecord->userid,
             'ws_token' => $wstoken,
             'originalsubmission' => $answertext,
+            'user_agent' => true,
         ];
 
         $headers = [
@@ -489,4 +497,24 @@ function cursive_approve_token() {
     }
 
     return $result;
+}
+
+/**
+ * Register user preferences owned by tiny_cursive so they can be saved via AJAX.
+ *
+ * Whitelisting the preference here is what allows the analytics guidance toggle
+ * to persist through core's set_user_preferences web service without a bespoke
+ * write endpoint. The permission callback restricts writes to the owning user.
+ *
+ * @return array Preference definitions keyed by preference name.
+ */
+function tiny_cursive_user_preferences() {
+    return [
+        'tiny_cursive_showguidance' => [
+            'type' => PARAM_BOOL,
+            'null' => NULL_NOT_ALLOWED,
+            'default' => 0,
+            'permissioncallback' => [core_user::class, 'is_current_user'],
+        ],
+    ];
 }

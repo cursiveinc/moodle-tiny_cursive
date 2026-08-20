@@ -106,6 +106,21 @@ class upload_student_json_cron extends scheduled_task {
             $filerecord->content = $DB->get_field($table, 'content', ['id' => $filerecord->id]);
             $answer = (string) $DB->get_field($table, 'original_content', ['id' => $filerecord->id]);
 
+            // Skip records with empty content to prevent json_decode() errors.
+            if (empty($filerecord->content)) {
+                mtrace("Skipping record {$filerecord->id}: content is empty.");
+                continue;
+            }
+
+            // Skip records where the course module no longer exists (activity was deleted).
+            if (!empty($filerecord->cmid)) {
+                $module = get_coursemodule_from_id('', $filerecord->cmid);
+                if (!$module) {
+                    mtrace("Skipping record {$filerecord->id}: cmid {$filerecord->cmid} no longer exists.");
+                    continue;
+                }
+            }
+
             $status = tiny_cursive_upload_multipart_record($filerecord, $filerecord->filename, $wstoken, $answer);
             if ($status === 'success') {
                 // Update only the timestamp column to avoid rewriting the large content blob.
