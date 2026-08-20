@@ -2289,10 +2289,15 @@ class cursive_json_func_data extends external_api {
         }
 
         $data =
-            $DB->get_record_sql(
-                $attempts,
-                ['resourceid' => $params['resourceid'], 'userid' => $params['userid'], 'cmid' => $params['cmid'], 'modulename' => $params['modulename']],
-            );
+        $DB->get_record_sql(
+            $attempts,
+            [
+                'resourceid' => $params['resourceid'],
+                'userid' => $params['userid'],
+                'cmid' => $params['cmid'],
+                'modulename' => $params['modulename'],
+            ],
+        );
         if (isset($data->effort_ratio)) {
             $data->effort_ratio = intval(floatval($data->effort_ratio) * 100);
         }

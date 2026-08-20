@@ -104,13 +104,13 @@ class constants {
     }
 
     /**
-    * Get the active base URL for the Cursive Technology API.
-    * Reads from the tiny_cursive/python_server admin setting so the same
-    * value used for the ML server (upload/verify-token) is reused for the
-    * install-reporting endpoint too. Falls back to BASE_URL if not set.
-    *
-    * @return string
-    */
+     * Get the active base URL for the Cursive Technology API.
+     * Reads from the tiny_cursive/python_server admin setting so the same
+     * value used for the ML server (upload/verify-token) is reused for the
+     * install-reporting endpoint too. Falls back to BASE_URL if not set.
+     *
+     * @return string
+     */
     public static function base_url(): string {
         $configured = get_config('tiny_cursive', 'python_server');
         if (!empty($configured)) {

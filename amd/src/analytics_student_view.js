@@ -117,7 +117,7 @@ export const workshopView = (scoreSetting, hasApiKey, userid) => {
 
         setStudentView(studentData, hasApiKey, userid, scoreSetting, target, "", "workshop");
     }
-    workshopAssessmentView(scoreSetting, hasApiKey, userid);
+    workshopAssessmentView(scoreSetting, hasApiKey);
 };
 
 export const diaryView = (scoreSetting, hasApiKey) => {
@@ -143,7 +143,7 @@ export const diaryView = (scoreSetting, hasApiKey) => {
     });
 };
 
-export const workshopAssessmentView = (scoreSetting, hasApiKey, userid) => {
+export const workshopAssessmentView = (scoreSetting, hasApiKey) => {
     let cmid = M.cfg.contextInstanceId;
 
     let assessmentId = $('#page-mod-workshop-submission div.assessment-full div.actions form input[name="asid"]')?.attr('value');
