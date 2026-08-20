@@ -300,7 +300,7 @@ function tiny_cursive_myprofile_navigation(core_user\output\myprofile\tree $tree
  * @param string $filenamewithfullpath Full path to the file to upload
  * @param string $wstoken Web service token for authentication
  * @param string $answertext Original submission text
- * @return bool|string Returns response from server or false on failure
+ * @return string One of: success, transient_failure, permanent_failure
  * @throws dml_exception
  */
 function tiny_cursive_upload_multipart_record($filerecord, $filenamewithfullpath, $wstoken, $answertext) {
@@ -308,12 +308,11 @@ function tiny_cursive_upload_multipart_record($filerecord, $filenamewithfullpath
     require_once($CFG->dirroot . '/lib/filelib.php');
 
     $moodleurl = get_config('tiny_cursive', 'host_url');
-    $result    = '';
+    $tempfilepath = null;
 
     try {
         $token      = get_config('tiny_cursive', 'secretkey');
         $remoteurl  = get_config('tiny_cursive', 'python_server') . "/upload_file";
-        $filetosend = '';
 
         $tempfilepath = make_temp_directory('tiny_cursive') . '/' . uniqid('upload_', true);
 
@@ -325,8 +324,10 @@ function tiny_cursive_upload_multipart_record($filerecord, $filenamewithfullpath
 
         $jsoncontent = json_decode($filerecord->content, true);
 
+        // A payload that cannot be decoded will never succeed, so treat it as permanent.
         if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new moodle_exception('invalidjson', 'tiny_cursive');
+            mtrace("[tiny_cursive] Upload permanent failure for record {$filerecord->id}: invalid JSON payload.");
+            return 'permanent_failure';
         }
 
         file_put_contents($tempfilepath, json_encode($jsoncontent));
@@ -334,11 +335,9 @@ function tiny_cursive_upload_multipart_record($filerecord, $filenamewithfullpath
 
         // Ensure the temporary file does not exceed the size limit.
         if (filesize($tempfilepath) > 16 * 1024 * 1024) {
-            unlink($tempfilepath);
-            throw new moodle_exception('filesizelimit', 'tiny_cursive');
+            mtrace("[tiny_cursive] Upload permanent failure for record {$filerecord->id}: payload exceeds 16MB.");
+            return 'permanent_failure';
         }
-
-        echo $remoteurl;
 
         $curl     = new curl();
         $postdata = [
@@ -361,26 +360,41 @@ function tiny_cursive_upload_multipart_record($filerecord, $filenamewithfullpath
             'CURLOPT_RETURNTRANSFER' => true,
         ]);
 
-        $httpcode = $curl->get_info()['http_code'];
+        $httpcode = (int) ($curl->get_info()['http_code'] ?? 0);
 
+        // A transport-level failure may recover on a later run.
         if ($result === false) {
-            echo "File not found: " . $filenamewithfullpath . "\n";
-            echo "cURL Error: " . $curl->error . "\n";
-        } else {
-            echo "\nHTTP Status Code: " . $httpcode . "\n";
-            echo "File Id: " . $filerecord->id . "\n";
-            echo "response: " . $result . "\n";
+            mtrace("[tiny_cursive] Upload transient failure for record {$filerecord->id}: cURL error {$curl->error}.");
+            return 'transient_failure';
         }
 
-        // Remove the temporary file if it was created.
-        if (isset($tempfilepath) && file_exists($tempfilepath)) {
+        if ($httpcode >= 200 && $httpcode < 300) {
+            mtrace("[tiny_cursive] Upload success for record {$filerecord->id} (HTTP {$httpcode}).");
+            return 'success';
+        }
+
+        // Rate limiting and server errors are worth retrying later.
+        if ($httpcode === 429 || $httpcode >= 500 || $httpcode === 0) {
+            mtrace("[tiny_cursive] Upload transient failure for record {$filerecord->id} (HTTP {$httpcode}).");
+            return 'transient_failure';
+        }
+
+        // Other 4xx responses indicate the request itself is bad and will not recover.
+        if ($httpcode >= 400) {
+            mtrace("[tiny_cursive] Upload permanent failure for record {$filerecord->id} (HTTP {$httpcode}).");
+            return 'permanent_failure';
+        }
+
+        mtrace("[tiny_cursive] Upload transient failure for record {$filerecord->id}: unexpected HTTP {$httpcode}.");
+        return 'transient_failure';
+    } catch (moodle_exception $e) {
+        mtrace("[tiny_cursive] Upload permanent failure for record {$filerecord->id}: {$e->getMessage()}");
+        return 'permanent_failure';
+    } finally {
+        if ($tempfilepath !== null && file_exists($tempfilepath)) {
             unlink($tempfilepath);
         }
-    } catch (moodle_exception $e) {
-        echo $e->getMessage();
     }
-
-    return $result;
 }
 
 /**
