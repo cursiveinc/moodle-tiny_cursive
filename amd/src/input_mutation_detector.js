@@ -62,7 +62,7 @@ export default class InputMutationDetector {
 
         // Backspace
         if (e.inputType === 'deleteContentBackward') {
-            return curr; // will be handled by next mutation
+            return curr; // Will be handled by next mutation
         }
 
         // Fallback — assume empty before first input
@@ -105,7 +105,7 @@ export default class InputMutationDetector {
             return;
         }
 
-        const { added, removed } = this._getDiff(prev, curr);
+        const {added, removed} = this._getDiff(prev, curr);
 
         if (removed && !added) {
             for (let i = 0; i < removed.length; i++) {

@@ -28,6 +28,7 @@ import templates from 'core/templates';
 import AnalyticEvents from './analytic_events';
 import analyticButton from './analytic_button';
 import replayButton from './replay_button';
+import {workshopAssessmentView} from 'tiny_cursive/analytics_student_view';
 
 export const init = (scoreSetting, showcomment, hasApiKey) => {
     const replayInstances = {};
@@ -56,15 +57,18 @@ export const init = (scoreSetting, showcomment, hasApiKey) => {
     var cmid = M.cfg.contextInstanceId;
     var assessments = $('#workshop-viewlet-assignedassessments_inner > .generalbox.assessment-summary');
 
-    if(document.body.id === 'page-mod-workshop-submission') {
+    if (document.body.id === 'page-mod-workshop-submission') {
         const submission = $('#page-mod-workshop-submission div.author > div.fullname > a')?.attr('href');
         const authorid = submission ? new URL(submission, window.location.origin).searchParams.get('id') : 0;
-        const buttonBox = $('#region-main div.box:has(.singlebutton)');
+        const buttonBox = $('div[role="main"]');
 
         if (authorid) {
             analytics(authorid, cmid, buttonBox);
         }
-    }   else {
+        workshopAssessmentView(scoreSetting, hasApiKey, null);
+
+    } else {
+
         assessments.each(function() {
 
                 const assCard = $(this);
@@ -101,16 +105,16 @@ export const init = (scoreSetting, showcomment, hasApiKey) => {
      */
     function analytics(userid, cmid, assessmentButton) {
 
-        let args = {id: userid, modulename: "workshop", cmid: cmid};
-        let methodname = 'cursive_get_lesson_submission_data';
+        let args = {resourceid: cmid, userid: userid, modulename: "workshop", cmid: cmid};
+        let methodname = 'cursive_get_workshop_submission';
         let com = getData([{methodname, args}]);
         com[0].done(function(json) {
 
             var data = JSON.parse(json);
             var filepath = '';
 
-            if (data.res.filename) {
-                filepath = data.res.filename;
+            if (data.data.filename) {
+                filepath = data.data.filename;
             }
 
             let analyticButtonDiv = document.createElement('div');
@@ -118,32 +122,35 @@ export const init = (scoreSetting, showcomment, hasApiKey) => {
             if (!hasApiKey) {
                 $(analyticButtonDiv).html(replayButton(userid));
             } else {
-                analyticButtonDiv.append(analyticButton(data.res.effort_ratio, userid));
+                analyticButtonDiv.append(analyticButton(data.data.effort_ratio, userid));
             }
 
             analyticButtonDiv.dataset.region = "analytic-div" + userid;
-            analyticButtonDiv.classList.add('mx-2');
 
-            assessmentButton.addClass('d-flex align-items-center');
-            assessmentButton.find('.singlebutton').addClass('mx-0');
+            $(analyticButtonDiv).addClass('box py-3 me-1 inline');
+            $(analyticButtonDiv).find('#analytics' + userid).css('vertical-align', 'middle');
+            $(analyticButtonDiv).find('#analytics' + userid + ' .tiny_cursive-analytics-left').css('padding', '4px 14px');
+            $(analyticButtonDiv).find('#analytics' + userid + ' .tiny_cursive-replay-left').css('padding', '4px 14px');
+
             $(analyticButtonDiv).find('.tiny_cursive-analytics-left').css('padding', '4px 14px');
+            $(analyticButtonDiv).find('.tiny_cursive-replay-left').css('padding', '4px 14px');
 
 
-            assessmentButton.append(analyticButtonDiv);
+            $(assessmentButton).find('.submission-full').after(analyticButtonDiv);
 
             let myEvents = new AnalyticEvents();
             var context = {
-                tabledata: data.res,
-                formattime: myEvents.formatedTime(data.res),
+                tabledata: data.data,
+                formattime: myEvents.formatedTime(data.data),
                 page: scoreSetting,
                 userid: userid,
                 apikey: hasApiKey
             };
 
-            let authIcon = myEvents.authorshipStatus(data.res.first_file, data.res.score, scoreSetting);
+            let authIcon = myEvents.authorshipStatus(data.data?.user_agent, data.data.first_file, data.data.score, scoreSetting);
             myEvents.createModal(userid, context, '', replayInstances, authIcon);
             myEvents.analytics(userid, templates, context, '', replayInstances, authIcon);
-            myEvents.checkDiff(userid, data.res.file_id, '', replayInstances, filepath);
+            myEvents.checkDiff(userid, data.data.file_id, '', replayInstances, filepath);
             myEvents.replyWriting(userid, filepath, '', replayInstances);
 
         });

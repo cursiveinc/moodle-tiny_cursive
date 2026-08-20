@@ -29,12 +29,13 @@ import {iconUrl, iconGrayUrl, tooltipCss} from 'tiny_cursive/common';
 import Autosave from 'tiny_cursive/cursive_autosave';
 import DocumentView from 'tiny_cursive/document_view';
 import {call as getUser} from "core/ajax";
-import InputMutationDetector from 'tiny_cursive/input_mutation_detector';
 
-export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, submission, quizInfo, pasteSetting) => {
+export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics,
+    submission, quizInfo, pasteSetting, canBypassPaste, intervention) => {
 
-    var isStudent = !($('#body').hasClass('teacher_admin'));
-    var intervention = $('#body').hasClass('intervention');
+    canBypassPaste = !!canBypassPaste;
+    intervention = !!intervention;
+    var host = M.cfg.wwwroot;
     var host = M.cfg.wwwroot;
     var userid = userId;
     var courseid = M.cfg.courseId;
@@ -115,6 +116,22 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
             });
         } else {
             assignSubmit.off('click').click();
+        }
+        localStorage.removeItem('lastCopyCutContent');
+    });
+
+    // Diary's "Save and continue editing" button posts and reloads the editor on the same
+    // entry; flush captured keystrokes before it navigates, matching the main submit button.
+    let diarySaveContinue = $('#id_saveandcontinue');
+    diarySaveContinue.on('click', async function(e) {
+        e.preventDefault();
+        if (filename) {
+            // eslint-disable-next-line
+            syncData().then(() => {
+                diarySaveContinue.off('click').click();
+            });
+        } else {
+            diarySaveContinue.off('click').click();
         }
         localStorage.removeItem('lastCopyCutContent');
     });
@@ -226,19 +243,21 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
         const fingerprint = event + '_' + editor.key + '_' + ed.caretPosition;
 
         if (fingerprint === lastKeyFingerprint && (now - lastKeyTimestamp) < 100) {
-            console.warn('Duplicate blocked:', fingerprint);
+            // window.console.warn('Duplicate blocked:', fingerprint);
             return;
         }
         const keys = ['Shift', 'Control', 'Alt', 'Meta', 'Delete', 'Backspace', 'Enter'];
-        if (editor.key.length > 1 && !keys.includes(editor.key)) {return}
+        if (editor.key.length > 1 && !keys.includes(editor.key)) {
+            return;
+        }
         lastKeyFingerprint = fingerprint;
-        lastKeyTimestamp   = now;
+        lastKeyTimestamp = now;
 
         // Unidentified key guard
         if (editor.key === 'Unidentified') {
             return;
         }
-        console.log(editor);
+
         if (localStorage.getItem(filename)) {
             let data = JSON.parse(localStorage.getItem(filename));
             data.push({
@@ -282,7 +301,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
         let position = getCaretPosition(false);
         editor.caretPosition = position.caretPosition;
         editor.rePosition = position.rePosition;
-        // console.log('KeyUp: ', editor.key);
+        // Console.log('KeyUp: ', editor.key);
         sendKeyEvent("keyUp", editor);
     });
     editor.on('Paste', async(e) => {
@@ -296,7 +315,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
         const lastCopyCutContent = localStorage.getItem('lastCopyCutContent');
         const isFromOwnEditor = lastCopyCutContent && trimmedPastedContent === lastCopyCutContent;
 
-        if (isStudent && intervention) {
+        if (!canBypassPaste && intervention) {
 
             if (PASTE_SETTING === 'block') {
                 if (!isFromOwnEditor) {
@@ -334,7 +353,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
     });
     editor.on('Redo', async(e) => {
         customTooltip();
-        if (isStudent && intervention) {
+        if (!canBypassPaste && intervention) {
             getModal(e);
         }
     });
@@ -342,7 +361,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
         customTooltip();
         const isPasteAttempt = (editor.key === 'v' || editor.key === 'V') &&
         (editor.ctrlKey || editor.metaKey);
-        if (isPasteAttempt && isStudent && intervention && PASTE_SETTING === 'block' && !isPasteAllowed) {
+        if (isPasteAttempt && !canBypassPaste && intervention && PASTE_SETTING === 'block' && !isPasteAllowed) {
             setTimeout(() => {
                 isPasteAllowed = true;
             }, 100);
@@ -351,7 +370,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
         let position = getCaretPosition();
         editor.caretPosition = position.caretPosition;
         editor.rePosition = position.rePosition;
-        // console.log('KeyDown: ', editor.key);
+        // Console.log('KeyDown: ', editor.key);
         sendKeyEvent("keyDown", editor);
     });
     editor.on('Cut', () => {
@@ -421,6 +440,15 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
             if (isPaste) {
                 if (shouldBlockPaste) {
                     shouldBlockPaste = false;
+                    sendKeyEvent("Paste", {
+                        key: "v",
+                        keyCode: 86,
+                        caretPosition: editor.caretPosition,
+                        rePosition: editor.rePosition,
+                        pastedContent: pastedText,
+                        blocked: true,
+                        srcElement: {baseURI: window.location.href}
+                    });
                     e.preventDefault();
                     editor.undoManager.undo();
                     return;
@@ -428,8 +456,17 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
                 const lastCopyCutContent = localStorage.getItem('lastCopyCutContent');
                 const isFromOwnEditor = lastCopyCutContent && pastedText.trim() === lastCopyCutContent;
 
-                if (isStudent && intervention && PASTE_SETTING === 'block' && !isFromOwnEditor) {
+                if (!canBypassPaste && intervention && PASTE_SETTING === 'block' && !isFromOwnEditor) {
                     isPasteAllowed = false;
+                    sendKeyEvent("Paste", {
+                        key: "v",
+                        keyCode: 86,
+                        caretPosition: editor.caretPosition,
+                        rePosition: editor.rePosition,
+                        pastedContent: pastedText,
+                        blocked: true,
+                        srcElement: {baseURI: window.location.href}
+                    });
                     editor.undoManager.undo();
                     return;
                 }
@@ -457,7 +494,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
         }
     });
 
-    // editor.on('input', function(e) {
+    // Editor.on('input', function(e) {
     //     let position = getCaretPosition(true);
     //     let aiContent = e.data;
     //     if (!editor.inputMutationDetector) {
@@ -484,40 +521,6 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
 
 let isComposing = false;
 let previousContent = '';
-let lastKeyFingerprint2 = null;
-let lastKeyTimestamp2 = 0;
-
-function sentMobileInput(key) {
-    const now = Date.now();
-    const fingerprint = key;
-
-    // Block duplicate calls within 50ms
-    if (fingerprint === lastKeyFingerprint2 && (now - lastKeyTimestamp2) < 50) {
-        return;
-    }
-
-    lastKeyFingerprint2 = fingerprint;
-    lastKeyTimestamp2   = now;
-
-    const keyCode = key === 'Backspace' ? 8
-                  : key === 'Delete'    ? 46
-                  : key === 'Enter'     ? 13
-                  : key === ' '         ? 32
-                  : key.charCodeAt(0);
-
-    const event = {
-        key:     key,
-        keyCode: keyCode,
-        data:    key,
-    };
-
-    let position = getCaretPosition(true);
-    event.caretPosition = position.caretPosition;
-    event.rePosition    = position.rePosition;
-
-    sendKeyEvent("keyDown", event);
-    sendKeyEvent("keyUp", event);
-}
 
 editor.on('compositionstart', function() {
     isComposing = true;
@@ -529,7 +532,7 @@ editor.on('compositionupdate', function(e) {
     const prev = previousContent;
 
     if (current.length > prev.length) {
-        // only send the NEW character added
+        // Only send the NEW character added
         const newChar = current.slice(prev.length);
         sentMobileInput(newChar);
 
@@ -547,11 +550,13 @@ editor.on('compositionend', function() {
 });
 
 editor.on('input', function(e) {
-    if (isComposing) return;
+    if (isComposing) {
+        return;
+    }
 
     // Block whole words from autocomplete/swipe keyboard
     if (e.data && e.data.length > 1 && e.inputType === 'insertText') {
-        // word was autocompleted — send each char individually
+        // Word was autocompleted — send each char individually
         for (const char of e.data) {
             sentMobileInput(char);
         }
@@ -572,15 +577,13 @@ editor.on('input', function(e) {
     }
 });
 
-    /**
-     * Constructs a mouse event object with caret position and button information
-     * @param {Object} e - The TinyMCE editor instance
-     * @function sentMobileInput
-     * @description Capture Mobile device input
-     */
 let lastKey = null;
 let lastKeyTime = 0;
 
+/**
+ * Capture mobile device input and emit synthetic key events.
+ * @param {string} key - The character or named key produced by the mobile input.
+ */
 function sentMobileInput(key) {
     const now = Date.now();
 
@@ -592,11 +595,8 @@ function sentMobileInput(key) {
     lastKey = key;
     lastKeyTime = now;
 
-    const keyCode = key === 'Backspace' ? 8
-                  : key === 'Delete'    ? 46
-                  : key === 'Enter'     ? 13
-                  : key === ' '         ? 32
-                  : key.charCodeAt(0);
+    const keyCodeMap = {Backspace: 8, Delete: 46, Enter: 13, ' ': 32};
+    const keyCode = key in keyCodeMap ? keyCodeMap[key] : key.charCodeAt(0);
 
     const event = {
         key:     key,
@@ -606,29 +606,11 @@ function sentMobileInput(key) {
 
     let position = getCaretPosition(true);
     event.caretPosition = position.caretPosition;
-    event.rePosition    = position.rePosition;
+    event.rePosition = position.rePosition;
 
     sendKeyEvent("keyDown", event);
     sendKeyEvent("keyUp", event);
 }
-
-    function sentMobileInputUsingMutationDetector(editor) {
-
-        editor.inputMutationDetector = new InputMutationDetector(editor, (key) => {
-            event = {
-                key: key,
-                keyCode: key.charCodeAt(0),
-                data: key,
-            };
-
-            let position = getCaretPosition(true);
-            event.caretPosition = position.caretPosition;
-            event.rePosition = position.rePosition;
-            sendKeyEvent("keyDown", event);
-            sendKeyEvent("keyUp", event);
-
-            });
-    }
 
     editor.on('remove', () => {
         if (editor.inputMutationDetector) {
@@ -820,6 +802,12 @@ function sentMobileInput(key) {
      */
     function customTooltip() {
         try {
+            // The indicator only needs to be built once per editor. customTooltip runs on
+            // every keystroke, so bail out if it already exists; otherwise it would be torn
+            // down and rebuilt empty, making the saved icon flicker/disappear while typing.
+            if (document.querySelector('#tiny_cursive_StateIcon0')) {
+                return;
+            }
             const tooltipText = getTooltipText();
             const menubarDiv = document.querySelectorAll('div[role="menubar"].tox-menubar');
             let classArray = [];
@@ -917,8 +905,7 @@ function sentMobileInput(key) {
                 userid: userid,
                 courseid: courseid};
             // Document mode, other modules single editor instances
-            if (isFullScreen && (modulename === 'assign' || modulename === 'forum'
-                || modulename === 'lesson' || modulename === 'workshop')) {
+            if (isFullScreen && ['assign', 'forum', 'lesson', 'workshop', 'diary'].includes(modulename)) {
                 let existsElement = document.querySelector('.tox-menubar[class*="cursive-menu-"] > div');
                 if (existsElement) {
                     existsElement.remove();
@@ -1022,6 +1009,10 @@ function sentMobileInput(key) {
             resourceId = parm.searchParams.get('attempt');
         }
 
+        if (ur.includes("workshop") && ur.includes("assessment")) {
+            resourceId = parm.searchParams.get('asid');
+        }
+
         if (resourceId === null) {
             resourceId = 0;
         }
@@ -1033,6 +1024,14 @@ function sentMobileInput(key) {
                     resourceId = cmid;
                 } else if (module === "oublog") {
                     resourceId = 0;
+                } else if (module === "diary") {
+                    // Diary stores multiple entries per (cmid, userid); key capture on the
+                    // diary_entries id. The edit form exposes it as a hidden "entryid" field
+                    // (populated when editing/continuing an existing entry). A brand-new entry
+                    // has no id yet, so capture under 0 and let the entry_created observer
+                    // reattribute the records to the real entry id on save.
+                    const entryField = document.querySelector('input[name="entryid"]');
+                    resourceId = entryField && entryField.value ? parseInt(entryField.value, 10) : 0;
                 }
                 break;
             }

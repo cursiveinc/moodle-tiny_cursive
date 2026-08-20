@@ -20,9 +20,9 @@
  * @author     Brain Station 23 <sales@brainstation-23.com>
  */
 
-import { getTinyMCE } from 'editor_tiny/loader';
-import { getPluginMetadata } from 'editor_tiny/utils';
-import { component, pluginName } from './common';
+import {getTinyMCE} from 'editor_tiny/loader';
+import {getPluginMetadata} from 'editor_tiny/utils';
+import {component, pluginName} from './common';
 import * as Autosaver from './autosaver';
 import getConfig from 'core/ajax';
 
@@ -34,7 +34,9 @@ export default new Promise((resolve, reject) => {
         'page-mod-forum-post',
         'page-mod-lesson-view',
         'page-mod-pdfannotator-view',
-        'page-mod-workshop-submission']; // 'page-mod-oublog-editpost' excluded
+        'page-mod-workshop-submission',
+        'page-mod-workshop-assessment',
+        'page-mod-diary-edit']; // 'page-mod-oublog-editpost' excluded
 
     Promise.all([
         getTinyMCE(),
@@ -46,7 +48,7 @@ export default new Promise((resolve, reject) => {
 
                     getConfig.call([{
                         methodname: "cursive_get_config",
-                        args: { courseid: M.cfg.courseId, cmid: M.cfg.contextInstanceId }
+                        args: {courseid: M.cfg.courseId, cmid: M.cfg.contextInstanceId}
                     }])[0].done((data) => {
                         if (data.status && data.mod_state) {
                             M.userAgent = data.useragent;
@@ -59,7 +61,9 @@ export default new Promise((resolve, reject) => {
                                 JSON.parse(data.rubrics),
                                 JSON.parse(data.submission),
                                 JSON.parse(data.quizinfo),
-                                data.pastesetting
+                                data.pastesetting,
+                                data.canbypasspaste,
+                                data.intervention
                             );
                         }
                     }).fail((error) => {

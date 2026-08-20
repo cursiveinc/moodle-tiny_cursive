@@ -102,6 +102,65 @@ export const lessonView = (scoreSetting, hasApiKey, userid) => {
             setStudentView(studentData, hasApiKey, userid, scoreSetting, lessonForm, "", "lesson");
     }
 };
+export const workshopView = (scoreSetting, hasApiKey, userid) => {
+    let cmid = M.cfg.contextInstanceId;
+    const submission = $('#page-mod-workshop-submission div.author > div.fullname > a')?.attr('href');
+    let byUserid = submission ? new URL(submission, window.location.origin).searchParams.get('id') : 0;
+
+    if (!userid) {
+        userid = byUserid;
+    }
+    if (userid == byUserid || document.querySelector('#body')?.classList.contains('teacher_admin')) {
+        let args = {resourceid: cmid, userid: userid, modulename: "workshop", cmid: cmid};
+        let studentData = getStudentData('cursive_get_workshop_submission', args);
+        let target = document.querySelector('div[role="main"]');
+
+        setStudentView(studentData, hasApiKey, userid, scoreSetting, target, "", "workshop");
+    }
+    workshopAssessmentView(scoreSetting, hasApiKey, userid);
+};
+
+export const diaryView = (scoreSetting, hasApiKey) => {
+    // Diary holds multiple entries per student, each with its own authorship record keyed on
+    // the diary_entries id. On the student view page every entry heading is rendered as
+    // "<h5>Entry: ID-{entryid}, ...</h5>", and the student only ever sees their own entries,
+    // so we anchor one indicator per entry off that heading.
+    let cmid = M.cfg.contextInstanceId;
+    let headings = Array.from(document.querySelectorAll('[role="main"] h5'))
+        .filter(h5 => /ID-\d+/.test(h5.textContent));
+
+    headings.forEach(h5 => {
+        let match = h5.textContent.match(/ID-(\d+)/);
+        if (!match) {
+            return;
+        }
+        let entryId = parseInt(match[1], 10);
+        let args = {id: entryId, modulename: "diary", cmid: cmid};
+        let studentData = getStudentData('cursive_get_forum_comment_link', args);
+        // Pass the entry id as the per-item identifier (like forum passes the post id) so each
+        // entry gets its own button/modal, and use the heading as the placement anchor.
+        setStudentView(studentData, hasApiKey, entryId, scoreSetting, h5, "", "diary");
+    });
+};
+
+export const workshopAssessmentView = (scoreSetting, hasApiKey, userid) => {
+    let cmid = M.cfg.contextInstanceId;
+
+    let assessmentId = $('#page-mod-workshop-submission div.assessment-full div.actions form input[name="asid"]')?.attr('value');
+    if (!assessmentId) {
+        assessmentId = $('#page-mod-workshop-submission div.assessment-full div.title a')?.attr('href');
+        assessmentId = assessmentId ? new URL(assessmentId, window.location.origin).searchParams.get('asid') : 0;
+    }
+
+    let reviewerId = $('#page-mod-workshop-submission div.assessment-full div.fullname a')?.attr('href');
+    reviewerId = reviewerId ? new URL(reviewerId, window.location.origin).searchParams.get('id') : 0;
+
+    let args = {resourceid: assessmentId, userid: reviewerId, modulename: "workshop", cmid: cmid};
+    let studentData = getStudentData('cursive_get_workshop_submission', args);
+
+    let target = document.querySelector('div[role="main"]');
+    setStudentView(studentData, hasApiKey, assessmentId, scoreSetting, target, "", "workshopassessment");
+};
 
 /**
  * Retrieves student data by making an AJAX call to a Moodle web service.
@@ -143,16 +202,35 @@ function setStudentView(data, hasApiKey, userid, scoreSetting, target, questioni
             container.className = 'mt-2';
         } else if (module === "lesson") {
             container.className = 'ms-2 text-center';
+        } else if (module === "workshop" || module === "workshopassessment") {
+            container.className = 'box me-1 inline';
+        } else if (module === "diary") {
+            container.className = 'mt-2 mb-2';
         } else {
             container.className = 'mt-2 text-center';
         }
+
         if (!hasApiKey) {
             container.appendChild(replayButton(userid + questionid));
         } else {
             container.appendChild(analyticButton(analytics.effort_ratio, userid, questionid));
         }
+
+        $('div[role="main"] .assessment-full').addClass('mt-3');
+        $(container).find('#analytics' + userid).css({'vertical-align': 'middle'});
+        $(container).find('#analytics' + userid + ' .tiny_cursive-analytics-left').css('padding', '4px 14px');
+        $(container).find('#analytics' + userid + ' .tiny_cursive-replay-left').css('padding', '4px 14px');
+
         if (module === "forum") {
             target.prepend(container);
+        } else if (module === "workshop") {
+            $(target).find('.submission-full').after(container);
+        } else if (module === "workshopassessment") {
+            $(container).find('#analytics' + userid).css({'vertical-align': 'middle', 'margin-bottom': '1rem'});
+            $(target).find('.assessment-full').after(container);
+        } else if (module === "diary") {
+            // Insert the indicator as a sibling right below the entry heading (h5).
+            target.after(container);
         } else {
             target.appendChild(container);
         }
@@ -185,7 +263,7 @@ function initEvents(data, hasApiKey, userid, scoreSetting, questionid = "") {
         apikey: hasApiKey
     };
 
-    let authIcon = events.authorshipStatus(data.first_file, data.score, scoreSetting);
+    let authIcon = events.authorshipStatus('default', data.first_file, data.score, scoreSetting);
     events.createModal(userid, context, questionid, replayInstances, authIcon);
     events.analytics(userid, templates, context, questionid, replayInstances, authIcon);
     events.checkDiff(userid, data.file_id, questionid, replayInstances, data.filename);
