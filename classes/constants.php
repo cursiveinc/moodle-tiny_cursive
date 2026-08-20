@@ -18,7 +18,6 @@ namespace tiny_cursive;
 
 use question_engine;
 defined('MOODLE_INTERNAL') || die();
-require_once($CFG->libdir . '/externallib.php');
 require_once($CFG->dirroot . '/grade/grading/lib.php');
 require_once($CFG->dirroot . '/grade/grading/form/rubric/lib.php');
 
@@ -35,7 +34,7 @@ class constants {
      * Base URL for the Cursive Technology API
      * @var string The API base endpoint URL
      */
-    public const BASE_URL = 'https://staging.api.cursivetechnology.net/api';
+    public const BASE_URL = 'https://api.cursivetechnology.net/api';
 
     /**
      * API endpoint path for Moodle integration installs
@@ -47,7 +46,7 @@ class constants {
      * Array of supported activity module names.
      * const array NAMES List of module names where cursive can be used
      */
-    public const NAMES = ["assign", "forum", "quiz", "lesson", 'pdfannotator']; // Excluded oublog.
+    public const NAMES = ["assign", "forum", "quiz", "lesson", 'pdfannotator', 'workshop', 'diary']; // Excluded oublog.
     /**
      * Array mapping module names to their corresponding rubric areas.
      * Used to identify the correct rubric area for different module types.
@@ -72,6 +71,10 @@ class constants {
             'page-course-view-participants' => ['append_participants_table', 'course'],
             'page-mod-lesson-essay'         => ['append_lesson_grade_table', 'lesson'],
             'page-mod-pdfannotator-view'    => ['append_pdfannotator', 'pdfannotator'],
+            'page-mod-workshop-submission'  => ['append_workshop', 'init'],
+            'page-mod-workshop-view'        => ['append_workshop', 'init'],
+            'page-mod-diary-report'         => ['append_diary_report', 'diary'],
+            'page-mod-diary-reportsingle'   => ['append_diary_report', 'diary'],
         ];
     /**
      * Array mapping page body IDs to their corresponding handler functions and module types.
@@ -85,6 +88,9 @@ class constants {
             'page-mod-quiz-review'         => ['analytics_student_view', 'quizView'],
             'page-mod-forum-discuss'       => ['analytics_student_view', 'forumView'],
             'page-mod-lesson-view'         => ['analytics_student_view', 'lessonView'],
+            'page-mod-workshop-view'       => ['append_workshop', 'init'],
+            'page-mod-workshop-submission' => ['analytics_student_view', 'workshopView'],
+            'page-mod-diary-view'          => ['analytics_student_view', 'diaryView'],
     ];
 
     /**
@@ -95,6 +101,22 @@ class constants {
     public static function confidence_threshold() {
         $value = get_config('tiny_cursive', 'confidence_threshold');
         return !empty($value) ? floatval($value) : 0.65;
+    }
+
+    /**
+     * Get the active base URL for the Cursive Technology API.
+     * Reads from the tiny_cursive/python_server admin setting so the same
+     * value used for the ML server (upload/verify-token) is reused for the
+     * install-reporting endpoint too. Falls back to BASE_URL if not set.
+     *
+     * @return string
+     */
+    public static function base_url(): string {
+        $configured = get_config('tiny_cursive', 'python_server');
+        if (!empty($configured)) {
+            return rtrim($configured, '/');
+        }
+        return self::BASE_URL;
     }
 
     /**
