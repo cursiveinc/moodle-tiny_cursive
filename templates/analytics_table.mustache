@@ -33,6 +33,14 @@
     }
 }}
 
+{{#tabledata.total_time_seconds}}{{#canviewguidance}}
+<div class="tiny_cursive-guidance-toggle d-flex justify-content-end px-3 pt-2">
+    <label class="mb-0 small text-muted d-flex align-items-center" style="cursor: pointer; gap: 6px;">
+        <input type="checkbox" class="tiny_cursive-guidance-switch" {{#showguidance}}checked{{/showguidance}}>
+        {{#str}}showguidance, tiny_cursive{{/str}}
+    </label>
+</div>
+{{/canviewguidance}}{{/tabledata.total_time_seconds}}
 <table class="tiny_cursive_table table tiny_cursive_table-borderless  table-responsive">
     {{#tabledata.total_time_seconds}}
     <tbody>
@@ -48,6 +56,12 @@
                             fill="black" />
                     </svg></div>
                 <div>{{#str}}authorship, tiny_cursive {{/str}} <p>{{#str}}authorship_desc, tiny_cursive {{/str}}</p>
+                    {{#canviewguidance}}
+                    <div class="small p-2 rounded mt-1 tiny_cursive-guidance {{^showguidance}}d-none{{/showguidance}}" style="background-color: #f1f3f5; border-left: 4px solid #007bff;">
+                        <span style="color: #1d2125; font-weight: 700;">{{#str}}analytics_guidance_label, tiny_cursive{{/str}}:</span>
+                        <span style="color: #343a40; font-style: italic;" class="ml-1">{{#str}}authorship_guidance, tiny_cursive{{/str}}</span>
+                    </div>
+                    {{/canviewguidance}}
                 </div>
             </td>
             <td><svg width="30" height="30" viewBox="0 0 30 30" fill="none"
@@ -66,6 +80,12 @@
                             fill="black" />
                     </svg></div>
                 <div> {{#str}}effort_ratio, tiny_cursive {{/str}} <p>{{#str}}effort_ratio_desc, tiny_cursive {{/str}}</p>
+                    {{#canviewguidance}}
+                    <div class="small p-2 rounded mt-1 tiny_cursive-guidance {{^showguidance}}d-none{{/showguidance}}" style="background-color: #f1f3f5; border-left: 4px solid #007bff;">
+                        <span style="color: #1d2125; font-weight: 700;">{{#str}}analytics_guidance_label, tiny_cursive{{/str}}:</span>
+                        <span style="color: #343a40; font-style: italic;" class="ml-1">{{#str}}effort_ratio_guidance, tiny_cursive{{/str}}</span>
+                    </div>
+                    {{/canviewguidance}}
                 </div>
             </td>
             <td>{{tabledata.effort_ratio}}{{#tabledata.effort_ratio}}%{{/tabledata.effort_ratio}}</td>
@@ -79,6 +99,12 @@
                             fill="black" />
                     </svg></div>
                 <div>{{#str}}time_writing, tiny_cursive {{/str}} <p>{{#str}}time_writing_desc, tiny_cursive {{/str}} </p>
+                    {{#canviewguidance}}
+                    <div class="small p-2 rounded mt-1 tiny_cursive-guidance {{^showguidance}}d-none{{/showguidance}}" style="background-color: #f1f3f5; border-left: 4px solid #007bff;">
+                        <span style="color: #1d2125; font-weight: 700;">{{#str}}analytics_guidance_label, tiny_cursive{{/str}}:</span>
+                        <span style="color: #343a40; font-style: italic;" class="ml-1">{{#str}}time_writing_guidance, tiny_cursive{{/str}}</span>
+                    </div>
+                    {{/canviewguidance}}
                 </div>
             </td>
             <td>{{formattime}}</td>
@@ -95,6 +121,12 @@
                             fill="black" />
                     </svg></div>
                 <div>{{#str}}words_per_minute, tiny_cursive {{/str}} <p>{{#str}}words_per_minute_desc, tiny_cursive {{/str}}</p>
+                    {{#canviewguidance}}
+                    <div class="small p-2 rounded mt-1 tiny_cursive-guidance {{^showguidance}}d-none{{/showguidance}}" style="background-color: #f1f3f5; border-left: 4px solid #007bff;">
+                        <span style="color: #1d2125; font-weight: 700;">{{#str}}analytics_guidance_label, tiny_cursive{{/str}}:</span>
+                        <span style="color: #343a40; font-style: italic;" class="ml-1">{{#str}}words_per_minute_guidance, tiny_cursive{{/str}}</span>
+                    </div>
+                    {{/canviewguidance}}
                 </div>
             </td>
             <td> {{tabledata.words_per_minute}} {{#tabledata.words_per_minute}}WPM{{/tabledata.words_per_minute}}</td>
@@ -108,6 +140,12 @@
                             fill="black" />
                     </svg></div>
                 <div>{{#str}}total_words, tiny_cursive {{/str}} <p>{{#str}}total_words_desc, tiny_cursive {{/str}}</p>
+                    {{#canviewguidance}}
+                    <div class="small p-2 rounded mt-1 tiny_cursive-guidance {{^showguidance}}d-none{{/showguidance}}" style="background-color: #f1f3f5; border-left: 4px solid #007bff;">
+                        <span style="color: #1d2125; font-weight: 700;">{{#str}}analytics_guidance_label, tiny_cursive{{/str}}:</span>
+                        <span style="color: #343a40; font-style: italic;" class="ml-1">{{#str}}total_words_guidance, tiny_cursive{{/str}}</span>
+                    </div>
+                    {{/canviewguidance}}
                 </div>
             </td>
             <td>{{tabledata.word_count}}</td>
@@ -124,6 +162,12 @@
                             fill="black" />
                     </svg></div>
                 <div> {{#str}}backspace, tiny_cursive {{/str}} <p>{{#str}}backspace_desc, tiny_cursive {{/str}}</p>
+                    {{#canviewguidance}}
+                    <div class="small p-2 rounded mt-1 tiny_cursive-guidance {{^showguidance}}d-none{{/showguidance}}" style="background-color: #f1f3f5; border-left: 4px solid #007bff;">
+                        <span style="color: #1d2125; font-weight: 700;">{{#str}}analytics_guidance_label, tiny_cursive{{/str}}:</span>
+                        <span style="color: #343a40; font-style: italic;" class="ml-1">{{#str}}backspace_guidance, tiny_cursive{{/str}}</span>
+                    </div>
+                    {{/canviewguidance}}
                 </div>
             </td>
             <td>{{tabledata.backspace_percent}}%</td>

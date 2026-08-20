@@ -29,6 +29,35 @@ import $ from 'jquery';
 import {get_string as getString} from 'core/str';
 import {get_strings as getStrings} from 'core/str';
 import template from 'core/templates';
+import {setUserPreference} from 'core_user/repository';
+
+// Memoised per-page guidance state shared by every analytics modal instance.
+let guidanceState = null;
+let guidanceStateRequest = null;
+
+/**
+ * Resolve, once per page, whether the viewer may see analytics guidance and
+ * whether they currently have it toggled on. The result is cached so the many
+ * analytics entry points share a single web service round trip, and is mutated
+ * in place when the user flips the toggle so later re-renders stay in sync.
+ *
+ * @returns {Promise<{canviewguidance: boolean, showguidance: boolean}>}
+ */
+function getGuidanceState() {
+    if (!guidanceStateRequest) {
+        const contextid = (window.M && M.cfg && M.cfg.contextid) ? M.cfg.contextid : 0;
+        guidanceStateRequest = Promise.resolve(
+            getContent([{methodname: 'cursive_get_guidance_state', args: {contextid}}])[0]
+        ).then(state => {
+            guidanceState = state;
+            return state;
+        }).catch(() => {
+            guidanceState = {canviewguidance: false, showguidance: false};
+            return guidanceState;
+        });
+    }
+    return guidanceStateRequest.then(() => guidanceState);
+}
 
 export default class AnalyticEvents {
 
@@ -37,6 +66,21 @@ export default class AnalyticEvents {
             localStorage.setItem('notenoughtinfo', str);
             return str;
         }).catch(error => window.console.log(error));
+
+        // Persist + apply the guidance toggle. Delegated and namespaced so it binds
+        // once across every analytics instance and survives table re-renders.
+        $('body').off('change.tinycursiveguidance')
+            .on('change.tinycursiveguidance', '.tiny_cursive-guidance-switch', function() {
+                const on = $(this).is(':checked');
+                if (guidanceState) {
+                    guidanceState.showguidance = on;
+                }
+                $('.tiny_cursive-guidance').toggleClass('d-none', !on);
+                $('.tiny_cursive-guidance-switch').prop('checked', on);
+                setUserPreference('tiny_cursive_showguidance', on ? 1 : 0).catch(error => {
+                    window.console.error('Failed to save guidance preference:', error);
+                });
+            });
     }
 
     createModal(userid, context, questionid = '', replayInstances = null, authIcon) {
@@ -45,8 +89,13 @@ export default class AnalyticEvents {
             e.preventDefault();
 
             const isReplayButton = $(this).find('.tiny_cursive-replay-button').length > 0;
-            // Create Moodle modal
-            myModal.create({templateContext: context}).then(modal => {
+            // Create the modal once guidance flags are known, so the inline analytics
+            // table in the modal template is gated to staff and reflects the saved toggle.
+            getGuidanceState().then(state => {
+                context.canviewguidance = state.canviewguidance;
+                context.showguidance = state.showguidance;
+                // eslint-disable-next-line promise/no-nesting
+                return myModal.create({templateContext: context}).then(modal => {
                 $('#content' + userid + ' .tiny_cursive_table  tbody tr:first-child td:nth-child(2)').html(authIcon);
                 modal.show();
 
@@ -81,7 +130,8 @@ export default class AnalyticEvents {
                     });
                 }
 
-                return true;
+                    return true;
+                });
             }).catch(error => {
                 window.console.error("Failed to create modal:", error);
             });
@@ -107,11 +157,16 @@ export default class AnalyticEvents {
             $('.tiny_cursive-nav-tab').find('.active').removeClass('active');
             $(this).addClass('active'); // Add 'active' class to the clicked element
 
-            templates.render('tiny_cursive/analytics_table', context).then(function(html) {
-                $('#content' + userid).html(html);
-                $('#content' + userid + ' .tiny_cursive_table  tbody tr:first-child td:nth-child(2)').html(authIcon);
-                return true;
-            }).fail(function(error) {
+            getGuidanceState().then(function(state) {
+                context.canviewguidance = state.canviewguidance;
+                context.showguidance = state.showguidance;
+                // eslint-disable-next-line promise/no-nesting
+                return templates.render('tiny_cursive/analytics_table', context).then(function(html) {
+                    $('#content' + userid).html(html);
+                    $('#content' + userid + ' .tiny_cursive_table  tbody tr:first-child td:nth-child(2)').html(authIcon);
+                    return true;
+                });
+            }).catch(function(error) {
                 window.console.error("Failed to render template:", error);
             });
         });
@@ -328,7 +383,8 @@ export default class AnalyticEvents {
         }
     }
 
-    authorshipStatus(firstFile, score, scoreSetting) {
+    authorshipStatus(agent, firstFile, score, scoreSetting) {
+
         var icon = 'fa fa-circle-o';
         var color = 'font-size:32px;color:black';
         score = parseFloat(score);
@@ -339,6 +395,27 @@ export default class AnalyticEvents {
         } else if (score >= scoreSetting) {
             icon = 'fa fa-check-circle';
             color = 'font-size:32px;color:green';
+        }
+        if (agent === 'mobile' || agent === 'tablet') {
+            icon = 'fas fa-mobile-alt';
+            color = 'font-size:42px; color: black;';
+
+            const $container = $('<span>').addClass('d-flex align-items-center');
+            const $icon = $('<i>').addClass(icon).attr('style', color);
+            const $text = $('<span>').addClass('ms-2 text-start').css('line-height', '1.2');
+
+            $container.append($icon).append($text);
+
+            // Load string asynchronously
+            getStrings([{key: 'submittedbtmobile', component: 'tiny_cursive'}])
+                .done(function(string) {
+                    $text.text(string[0]); // ✅ update AFTER loaded
+                })
+                .fail(function() {
+                    $text.text('Submitted by mobile'); // Fallback
+                });
+
+            return $container;
         }
         if (score < scoreSetting) {
             icon = 'fa fa-question-circle';

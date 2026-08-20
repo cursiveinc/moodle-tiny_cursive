@@ -36,12 +36,6 @@ define(["jquery", "core/str"], function(
     },
     getToken: function(showcomments, userRole) {
       $(function() {
-        var html = "<div id='body' class='body'>";
-        $("body").append(html);
-        $('#body').prop("class", userRole);
-        if (showcomments == 1) {
-          $('#body').prop("class", 'intervention ' + userRole);
-        }
       });
 
       $('#page-mod-forum-discuss').find("article").get().forEach(function() {
@@ -49,7 +43,7 @@ define(["jquery", "core/str"], function(
           if (replyButton.length > 0) {
               replyButton.on('click', function(event) {
 
-                  var isTeacher = $('#body').hasClass('teacher_admin');
+                  var isTeacher = (userRole === 'teacher_admin');
                   if (!isTeacher) {
                       event.preventDefault();
                       var url = $(this).attr('href');
