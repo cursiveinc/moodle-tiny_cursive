@@ -33,7 +33,10 @@ export default new Promise((resolve, reject) => {
         'page-mod-forum-view',
         'page-mod-forum-post',
         'page-mod-lesson-view',
-        'page-mod-pdfannotator-view']; // 'page-mod-oublog-editpost' excluded
+        'page-mod-pdfannotator-view',
+        'page-mod-workshop-submission',
+        'page-mod-workshop-assessment',
+        'page-mod-diary-edit']; // 'page-mod-oublog-editpost' excluded
 
     Promise.all([
         getTinyMCE(),
@@ -48,7 +51,7 @@ export default new Promise((resolve, reject) => {
                         args: {courseid: M.cfg.courseId, cmid: M.cfg.contextInstanceId}
                     }])[0].done((data) => {
                         if (data.status && data.mod_state) {
-
+                            M.userAgent = data.useragent;
                             Autosaver.register(
                                 editor,
                                 data.sync_interval,
@@ -58,14 +61,15 @@ export default new Promise((resolve, reject) => {
                                 JSON.parse(data.rubrics),
                                 JSON.parse(data.submission),
                                 JSON.parse(data.quizinfo),
-                                data.pastesetting
+                                data.pastesetting,
+                                data.canbypasspaste,
+                                data.intervention
                             );
                         }
                     }).fail((error) => {
                         window.console.error('Error getting cursive config:', error);
                     });
                 }
-
                 return pluginMetadata;
             });
             return resolve(pluginName);
