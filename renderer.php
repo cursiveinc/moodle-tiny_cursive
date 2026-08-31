@@ -348,5 +348,34 @@ class tiny_cursive_renderer extends plugin_renderer_base {
                 $module->name .= " / {$data[0]->title}";
             }
         }
+
+        if ($cm->modname === 'diary') {
+            // Diary keeps multiple entries per activity, each keyed on the diary_entries id
+            // (stored as the file resourceid), so the bare activity name repeats on every row.
+            // Append the entry title to distinguish them, falling back to the entry creation
+            // date when the (optional) title is empty. This branch only runs for an existing
+            // diary course module, so it never queries diary tables when mod_diary is absent.
+            $sql = "SELECT cp.resourceid, e.title, e.timecreated
+                      FROM {tiny_cursive_files} cp
+                 LEFT JOIN {diary_entries} e ON cp.resourceid = e.id
+                     WHERE cp.id = :fileid";
+
+            $data = array_values($DB->get_records_sql($sql, ['fileid' => $user->fileid]));
+
+            if ($data && !empty($data[0])) {
+                $entry = $data[0];
+                if (isset($entry->title) && trim((string)$entry->title) !== '') {
+                    $subtitle = format_string($entry->title);
+                } else if (!empty($entry->timecreated)) {
+                    $subtitle = userdate($entry->timecreated);
+                } else {
+                    $subtitle = '';
+                }
+
+                if ($subtitle !== '') {
+                    $module->name .= " - {$subtitle}";
+                }
+            }
+        }
     }
 }
