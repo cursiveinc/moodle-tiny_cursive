@@ -188,6 +188,14 @@ $functions = [
         'type' => 'write',
         'ajax' => true,
         'capabilities' => 'tiny/cursive:writingreport',
+    ], 'cursive_get_guidance_state' => [
+        'classname' => 'cursive_json_func_data',
+        'methodname' => 'get_guidance_state',
+        'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
+        'description' => 'Whether the viewer may see analytics guidance and their saved toggle state',
+        'type' => 'read',
+        'ajax' => true,
+        'capabilities' => '',
     ], 'cursive_get_lesson_submission_data' => [
         'classname' => 'cursive_json_func_data',
         'methodname' => 'get_lesson_submission_data',
@@ -248,6 +256,15 @@ $functions = [
         'ajax' => true,
         'capabilities' => 'tiny/cursive:view',
     ],
+        'cursive_get_workshop_submission' => [
+        'classname' => 'cursive_json_func_data',
+        'methodname' => 'get_workshop_submission',
+        'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
+        'description' => 'get workshop submission data',
+        'type' => 'read',
+        'ajax' => true,
+        'capabilities' => 'tiny/cursive:view',
+    ],
 ];
 
 // We define the services to install as pre-build services.
@@ -256,7 +273,6 @@ $functions = [
 $services = [
     'Cursive Json Service' => [
         'functions' => [
-            'cursive_get_quizlist',
             'cursive_get_module_list',
             'cursive_user_comments',
             'cursive_get_comment_link',
@@ -274,8 +290,6 @@ $services = [
             'cursive_generate_webtoken',
             'cursive_write_local_to_json',
             'cursive_get_config',
-            'cursive_store_quality_metrics',
-            'cursive_get_quality_metrics',
         ],
         'shortname' => 'cursive_json_service',
         'downloadfiles' => 1, // Allow file downloads.

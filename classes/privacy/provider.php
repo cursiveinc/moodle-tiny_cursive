@@ -135,9 +135,9 @@ class provider implements core_userlist_provider, meta_provider, plugin_provider
         [$contextsql, $contextparams] = $DB->get_in_or_equal($contextlist->get_contextids(), SQL_PARAMS_NAMED);
         $contextparams['userid'] = $user->id;
 
-        $sql = "SELECT *
-                  FROM {tiny_cursive_files}
-                 WHERE userid = :userid AND contextid {$contextsql}";
+        $sql = "SELECT eas.*, eas.cmid AS contextid
+                FROM {tiny_cursive_files} eas
+                WHERE eas.userid = :userid AND eas.cmid {$contextsql}";
 
         $userfiledata = $DB->get_recordset_sql($sql, $contextparams);
         self::export_autosaves($user, $userfiledata);

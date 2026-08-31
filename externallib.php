@@ -85,7 +85,7 @@ class cursive_json_func_data extends external_api {
         );
 
         // Get course context.
-        $cm = $DB->get_record('course_modules', ['course' => $params['courseid']], '*', MUST_EXIST);
+        $cm = $DB->get_record('course_modules', ['course' => $params['courseid']], '*', IGNORE_MULTIPLE);
         $context = context_module::instance($cm->id);
         self::validate_context($context);
         require_capability('tiny/cursive:view', $context);
@@ -137,7 +137,7 @@ class cursive_json_func_data extends external_api {
 
         // Validate parameters.
         $params = self::validate_parameters(
-            self::get_user_list_parameters(), // This should probably be self::get_module_list_parameters() if it exists.
+            self::get_module_list_parameters(),
             [
                 'page' => $page,
                 'courseid' => $courseid,
@@ -145,7 +145,7 @@ class cursive_json_func_data extends external_api {
         );
 
         // Get course context.
-        $cm = $DB->get_record('course_modules', ['course' => $params['courseid']], '*', MUST_EXIST);
+        $cm = $DB->get_record('course_modules', ['course' => $params['courseid']], '*', IGNORE_MULTIPLE);
         $context = context_module::instance($cm->id);
         self::validate_context($context);
         require_capability('tiny/cursive:view', $context);
@@ -432,6 +432,7 @@ class cursive_json_func_data extends external_api {
                         $data['characters_per_minute'] = $report->characters_per_minute;
                         $data['keys_per_minute'] = $report->keys_per_minute;
                         $data['effort_ratio'] = $report->effort_ratio ?? 0;
+                        $data['user_agent'] = $report->user_agent;
                         $data['uploaded'] = $filename->uploade;
                     }
                 }
@@ -453,7 +454,7 @@ class cursive_json_func_data extends external_api {
             $table = 'tiny_cursive_comments';
             $recs = $DB->get_records($table, $conditions);
 
-            $attempts = "SELECT  uw.total_time_seconds ,uw.word_count ,uw.words_per_minute,
+            $attempts = "SELECT  uw.total_time_seconds ,uw.word_count ,uw.words_per_minute, uw.user_agent,
                                  uw.backspace_percent,uw.score,uw.copy_behavior,uf.resourceid,
                                  uf.modulename,uf.userid, uf.filename, uf.uploaded,
                            FROM {tiny_cursive_user_writing} uw
@@ -545,16 +546,18 @@ class cursive_json_func_data extends external_api {
         self::validate_context($context);
         require_capability('tiny/cursive:writingreport', $context);
 
-        $conditions = ["resourceid" => $params['id'], 'modulename' => "forum"];
+        // Use the caller's modulename (forum/workshop/diary) rather than hardcoding "forum",
+        // so cite-source citations resolve for every module that shares this endpoint.
+        $conditions = ["resourceid" => $params['id'], 'modulename' => $params['modulename']];
         $recs = $DB->get_records('tiny_cursive_comments', $conditions);
 
-        $attempts = "SELECT uw.total_time_seconds, uw.word_count, uw.words_per_minute, uf.uploaded,
+        $attempts = "SELECT uw.total_time_seconds, uw.word_count, uw.words_per_minute, uf.uploaded, uw.user_agent,
                             uw.backspace_percent, uw.score, uw.copy_behavior, uf.resourceid,
                             uf.modulename, uf.userid, uf.filename, uw.file_id,
                             diff.meta AS effort_ratio
-                      FROM {tiny_cursive_user_writing} uw
-                      JOIN {tiny_cursive_files} uf ON uw.file_id = uf.id
-                 LEFT JOIN {tiny_cursive_writing_diff} diff ON uw.file_id = diff.file_id
+                        FROM {tiny_cursive_files} uf
+                        LEFT JOIN {tiny_cursive_user_writing} uw ON uw.file_id = uf.id
+                LEFT JOIN {tiny_cursive_writing_diff} diff ON uf.id = diff.file_id
                      WHERE uf.resourceid = :id
                            AND uf.cmid = :cmid
                            AND uf.modulename = :modulename";
@@ -581,17 +584,23 @@ class cursive_json_func_data extends external_api {
                 ['resourceid' => $params['id'], 'cmid' => $params['cmid'], 'modulename' => $params['modulename']],
             );
 
-            $data['filename'] = $filename->filename;
-            $data['file_id'] = $filename->file_id;
-            $data['resubmit'] = constants::is_resubmitable($data, $filename->file_id);
-            $data['cmid'] = $params['cmid'];
+            // A resource with no capture record (e.g. a diary entry written before Cursive was
+            // enabled, or a teacher-created entry) yields no file row. Guard the access so the
+            // endpoint returns data without a filename instead of erroring; callers already treat
+            // a missing filename as "no indicator".
+            if ($filename) {
+                $data['filename'] = $filename->filename;
+                $data['file_id'] = $filename->file_id;
+                $data['resubmit'] = constants::is_resubmitable($data, $filename->file_id);
+                $data['cmid'] = $params['cmid'];
 
-            $sql = 'SELECT *
-                      FROM {tiny_cursive_files}
-                     WHERE userid = :userid ORDER BY id ASC LIMIT 1';
-            $firstfile = $DB->get_record_sql($sql, ['userid' => $filename->userid]);
-            if ($firstfile->id == $filename->file_id) {
-                $data['first_file'] = 1;
+                $sql = 'SELECT *
+                          FROM {tiny_cursive_files}
+                         WHERE userid = :userid ORDER BY id ASC LIMIT 1';
+                $firstfile = $DB->get_record_sql($sql, ['userid' => $filename->userid]);
+                if ($firstfile->id == $filename->file_id) {
+                    $data['first_file'] = 1;
+                }
             }
         }
 
@@ -622,141 +631,6 @@ class cursive_json_func_data extends external_api {
      * @return external_value The return value definition for forum comment link response
      */
     public static function get_forum_comment_link_returns() {
-        return new external_value(PARAM_TEXT, 'Comment Link');
-    }
-
-    /**
-     * Returns description of get_quiz_comment_link() parameters
-     *
-     * @return external_function_parameters Parameters definition for quiz comment link
-     */
-    public static function get_quiz_comment_link_parameters() {
-        return new external_function_parameters(
-            [
-                'id' => new external_value(PARAM_INT, 'id', VALUE_DEFAULT, null),
-                'modulename' => new external_value(PARAM_TEXT, 'modulename', VALUE_DEFAULT, ''),
-                'cmid' => new external_value(PARAM_INT, 'cmid', VALUE_DEFAULT, null),
-                'questionid' => new external_value(PARAM_INT, 'questionid', VALUE_DEFAULT, null),
-            ],
-        );
-    }
-
-    /**
-     * Get quiz comment link data including user comments and writing analytics
-     *
-     * @param int $id The resource ID
-     * @param string $modulename The module name (e.g. 'quiz')
-     * @param int|null $cmid The course module ID
-     * @param int|null $questionid The question ID for quiz questions
-     * @return string JSON encoded array containing user comments and analytics data
-     * @throws coding_exception
-     * @throws dml_exception
-     * @throws invalid_parameter_exception
-     * @throws moodle_exception
-     */
-    public static function get_quiz_comment_link(
-        $id,
-        $modulename,
-        $cmid = null,
-        $questionid = null,
-    ) {
-        global $DB, $CFG;
-        require_once($CFG->dirroot . '/lib/accesslib.php');
-        require_once($CFG->dirroot . '/question/lib.php');
-        $params = self::validate_parameters(
-            self::get_comment_link_parameters(),
-            [
-                'id' => $id,
-                'modulename' => $modulename,
-                'cmid' => $cmid,
-                'questionid' => $questionid,
-            ],
-        );
-
-        $context = context_module::instance($params['cmid']);
-        self::validate_context($context);
-        require_capability('tiny/cursive:view', $context);
-
-        if ($modulename == 'quiz') {
-            $conditions = ["resourceid" => $params['id'], "cmid" => $params['cmid'], "questionid" => $params['questionid']];
-            $table = 'tiny_cursive_comments';
-            $recs = $DB->get_records($table, $conditions);
-
-            $attempts = "SELECT uw.total_time_seconds ,uw.word_count ,uw.words_per_minute,
-                                uw.backspace_percent,uw.score,uw.copy_behavior,uf.resourceid ,
-                                uf.modulename,uf.userid, uf.filename
-                           FROM {tiny_cursive_user_writing} uw
-                           JOIN {tiny_cursive_files} uf ON uw.file_id =uf.id
-                          WHERE uf.resourceid = :id
-                                AND uf.cmid = :cmid
-                                AND uf.modulename = :modulename";
-            $data = $DB->get_record_sql(
-                $attempts,
-                ['id' => $params['id'], 'cmid' => $params['cmid'], 'modulename' => $params['modulename']],
-            );
-
-            if (!isset($data->filename)) {
-                $sql = 'SELECT filename
-                          FROM {tiny_cursive_files}
-                         WHERE resourceid = :resourceid
-                               AND cmid = :cmid
-                               AND modulename = :modulename';
-                $filename = $DB->get_record_sql(
-                    $sql,
-                    ['resourceid' => $params['id'], 'cmid' => $params['cmid'], 'modulename' => $params['modulename']],
-                );
-
-                $data['filename'] = $filename->filename;
-            }
-        } else {
-            $conditions = ["resourceid" => $params['id']];
-            $table = 'tiny_cursive_comments';
-            $recs = $DB->get_records($table, $conditions);
-
-            $attempts = "SELECT uw.total_time_seconds ,uw.word_count ,uw.words_per_minute,
-                                uw.backspace_percent,uw.score,uw.copy_behavior,uf.resourceid ,
-                                uf.modulename,uf.userid, uf.filename
-                           FROM {tiny_cursive_user_writing} uw
-                           JOIN {tiny_cursive_files} uf ON uw.file_id =uf.id
-                          WHERE uf.resourceid = :id
-                                AND uf.cmid = :cmid
-                                AND uf.modulename = :modulename ";
-            $data = $DB->get_record_sql(
-                $attempts,
-                ['id' => $params['id'], 'cmid' => $params['cmid'], 'modulename' => $params['modulename']],
-            );
-
-            if (!isset($data->filename)) {
-                $sql = 'SELECT filename
-                          FROM {tiny_cursive_files}
-                         WHERE resourceid = :resourceid
-                               AND cmid = :cmid
-                               AND modulename = :modulename';
-                $filename = $DB->get_record_sql(
-                    $sql,
-                    ['resourceid' => $params['id'], 'cmid' => $params['cmid'], 'modulename' => $params['modulename']],
-                );
-
-                $data['filename'] = $filename->filename;
-            }
-        }
-        $usercomment = [];
-        if ($recs) {
-            foreach ($recs as $key => $rec) {
-                array_push($usercomment, $rec);
-            }
-            return json_encode(['usercomment' => $usercomment, 'data' => $data]);
-        } else {
-            return json_encode(['usercomment' => 'comments', 'data' => $data]);
-        }
-    }
-
-    /**
-     * Returns description of get_quiz_comment_link() result value
-     *
-     * @return external_value The return value definition for quiz comment link response
-     */
-    public static function get_quiz_comment_link_returns() {
         return new external_value(PARAM_TEXT, 'Comment Link');
     }
 
@@ -876,7 +750,7 @@ class cursive_json_func_data extends external_api {
         $table = 'tiny_cursive_comments';
         $recs = $DB->get_records($table, $conditions);
 
-        $attempts = "SELECT uw.total_time_seconds, uw.word_count, uw.words_per_minute,
+        $attempts = "SELECT uw.total_time_seconds, uw.word_count, uw.words_per_minute, uw.user_agent,
                             uw.backspace_percent, uw.score, uw.copy_behavior, uf.resourceid,
                             uf.modulename, uf.userid, uw.file_id, uf.filename, uf.uploaded,
                             diff.meta AS effort_ratio
@@ -1046,9 +920,9 @@ class cursive_json_func_data extends external_api {
         self::validate_context($context);
         require_capability('tiny/cursive:view', $context);
 
-        $attempts = "SELECT qa.resourceid AS attemptid,qa.timemodified,uw.score,uw.copy_behavior, u.id AS userid,
-                            u.firstname, u.lastname, u.email,  qa.cmid AS cmid ,qa.courseid,qa.filename,uw.word_count,
-                            uw.words_per_minute , uw.total_time_seconds ,uw.backspace_percent
+        $attempts = "SELECT qa.resourceid AS attemptid, qa.timemodified, uw.score, uw.copy_behavior, u.id AS userid,
+                            u.firstname, u.lastname, u.email,  qa.cmid AS cmid, qa.courseid,qa.filename, uw.word_count,
+                            uw.words_per_minute, uw.total_time_seconds, uw.backspace_percent, uw.user_agent,
                        FROM {user} u
                        JOIN {tiny_cursive_files} qa ON u.id = qa.userid
                   LEFT JOIN {tiny_cursive_user_writing} uw ON qa.id = uw.file_id
@@ -1107,7 +981,7 @@ class cursive_json_func_data extends external_api {
      * @param float $backspacepercent Percentage of backspace usage
      * @param string $copybehavior Copy/paste behavior flag
      * @param float $score Writing score
-     * @param  int $qualityaccess Quality access flag
+     * @param string $useragent User agent flag ex. mobile, tablet.
      * @return array Array containing status and message
      */
     public static function store_user_writing(
@@ -1123,7 +997,7 @@ class cursive_json_func_data extends external_api {
         $backspacepercent,
         $copybehavior,
         $score,
-        $qualityaccess,
+        $useragent,
     ) {
         global $DB;
 
@@ -1142,7 +1016,7 @@ class cursive_json_func_data extends external_api {
                 'backspace_percent' => $backspacepercent,
                 'copy_behavior' => $copybehavior,
                 'score' => $score,
-                'quality_access' => $qualityaccess,
+                'user_agent' => $useragent,
             ],
         );
 
@@ -1172,7 +1046,7 @@ class cursive_json_func_data extends external_api {
             $data->backspace_percent = $params['backspace_percent'];
             $data->score = $params['score'];
             $data->copy_behavior = $params['copy_behavior'];
-            $data->quality_access = $params['quality_access'];
+            $data->user_agent = $params['user_agent'];
 
             // Update or insert the record.
             if ($recordexists) {
@@ -1308,7 +1182,7 @@ class cursive_json_func_data extends external_api {
             'backspace_percent' => new external_value(PARAM_FLOAT, 'backspace_percent', VALUE_REQUIRED),
             'copy_behavior' => new external_value(PARAM_FLOAT, 'copy_behavior', VALUE_REQUIRED),
             'score' => new external_value(PARAM_FLOAT, 'score', VALUE_DEFAULT, 0),
-            'quality_access' => new external_value(PARAM_INT, 'quality_access', VALUE_DEFAULT, 0),
+            'user_agent' => new external_value(PARAM_TEXT, 'user_agent', VALUE_OPTIONAL, 'default'),
         ];
     }
     /**
@@ -1658,10 +1532,12 @@ class cursive_json_func_data extends external_api {
 
         if (
             $params['resourceId'] == 0 && $params['modulename'] !== 'forum' && $params['modulename'] !== 'oublog' &&
-            $params['modulename'] !== 'pdfannotator'
+            $params['modulename'] !== 'pdfannotator' && $params['modulename'] !== 'diary'
         ) {
             $params['resourceId'] = $params['cmid'];
             // For Quiz and Assignment there is no resourceid that's why cmid is resourceid.
+            // Diary is excluded like forum: a new entry has no id yet, so it is captured under
+            // resourceid 0 and the entry_created observer reassigns it to the real diary_entries id.
         }
 
         $courseid = 0;
@@ -1793,6 +1669,9 @@ class cursive_json_func_data extends external_api {
         $cm           = get_coursemodule_from_id('', $params['cmid'], $params['courseid'], false, MUST_EXIST);
         $rubrics      = constants::get_rubrics("mod_{$cm->modname}", $context, $cm->modname);
 
+        $canbypasspaste = has_capability('tiny/cursive:bypasspastecontrols', $context);
+        $intervention    = (bool) constants::show_comments();
+
         $submissiondata = new stdClass();
         if ($cm->modname === 'assign') {
             $assign     = new assign($context, null, null);
@@ -1823,6 +1702,9 @@ class cursive_json_func_data extends external_api {
             'submission'    => json_encode($submissiondata),
             'quizinfo'      => json_encode($quizdata),
             'pastesetting'  => $pastesetting,
+            'useragent'     => core_useragent::get_device_type(),
+            'canbypasspaste' => $canbypasspaste,
+            'intervention'   => $intervention,
         ];
         return $data;
     }
@@ -1844,6 +1726,61 @@ class cursive_json_func_data extends external_api {
             'submission' => new external_value(PARAM_TEXT, "Submission status"),
             'quizinfo' => new external_value(PARAM_TEXT, 'quiz info'),
             'pastesetting'  => new external_value(PARAM_TEXT, 'Paste setting'),
+            'useragent'  => new external_value(PARAM_TEXT, 'User agent'),
+            'canbypasspaste' => new external_value(PARAM_BOOL, 'Whether the user may bypass paste controls'),
+            'intervention' => new external_value(PARAM_BOOL, 'Whether intervention mode is active for this activity'),
+        ]);
+    }
+
+    /**
+     * Returns the parameters for the get_guidance_state function.
+     *
+     * @return external_function_parameters Parameters definition for the external function
+     */
+    public static function get_guidance_state_parameters() {
+        return new external_function_parameters([
+            'contextid' => new external_value(PARAM_INT, 'Context id of the page requesting the state', VALUE_DEFAULT, 0),
+        ]);
+    }
+
+    /**
+     * Resolve, for the calling user, whether the analytics guidance may be shown and
+     * whether they currently have it toggled on.
+     *
+     * The capability is the source of truth for visibility (students never receive a
+     * truthy flag), while the saved toggle is only meaningful for users who can view.
+     *
+     * @param int $contextid Context id of the requesting page; falls back to system context
+     * @return array{canviewguidance: bool, showguidance: bool}
+     */
+    public static function get_guidance_state($contextid) {
+        $params = self::validate_parameters(
+            self::get_guidance_state_parameters(),
+            ['contextid' => $contextid]
+        );
+
+        $context = $params['contextid']
+            ? context::instance_by_id($params['contextid'])
+            : context_system::instance();
+        self::validate_context($context);
+
+        $canview = has_capability('tiny/cursive:viewguidance', $context);
+
+        return [
+            'canviewguidance' => $canview,
+            'showguidance'    => $canview ? (bool) get_user_preferences('tiny_cursive_showguidance', 0) : false,
+        ];
+    }
+
+    /**
+     * Returns description of method result value for get_guidance_state.
+     *
+     * @return external_single_structure Structure describing the guidance visibility flags
+     */
+    public static function get_guidance_state_returns() {
+        return new external_single_structure([
+            'canviewguidance' => new external_value(PARAM_BOOL, 'Whether the user may see analytics guidance'),
+            'showguidance' => new external_value(PARAM_BOOL, 'Whether guidance is currently toggled on for this user'),
         ]);
     }
 
@@ -2289,5 +2226,127 @@ class cursive_json_func_data extends external_api {
      */
     public static function remove_student_submission_returns() {
         return new external_value(PARAM_BOOL, 'remove student submission');
+    }
+
+    /**
+     * Returns parameters for remove_student_submission method
+     *
+     * @return external_function_parameters Parameters definition for removing student submission
+     */
+    public static function get_workshop_submission_parameters() {
+        return new external_function_parameters(
+            [
+                'resourceid' => new external_value(PARAM_INT, 'resource id'),
+                'userid' => new external_value(PARAM_INT, 'user id', VALUE_OPTIONAL, null),
+                'modulename' => new external_value(PARAM_TEXT, 'module name'),
+                'cmid' => new external_value(PARAM_INT, 'course module id'),
+            ]
+        );
+    }
+
+    /**
+     * Gets workshop submission data
+     *
+     * @param int $userid The ID of the user
+     * @param int $cmid The course module ID
+     * @return bool True if the submission was successfully retrieved
+     * @throws coding_exception
+     * @throws dml_exception
+     * @throws invalid_parameter_exception
+     * @throws moodle_exception
+     * @throws required_capability_exception
+     */
+    public static function get_workshop_submission($resourceid, $userid, $modulename, $cmid) {
+        global $DB;
+
+        $params = self::validate_parameters(
+            self::get_workshop_submission_parameters(),
+            [
+                'resourceid' => $resourceid,
+                'userid' => $userid,
+                'modulename' => $modulename,
+                'cmid' => $cmid,
+            ]
+        );
+
+        $context = context_module::instance($params['cmid']);
+        self::validate_context($context);
+        require_capability("tiny/cursive:write", $context);
+
+        $attempts = "SELECT uw.total_time_seconds, uw.word_count, uw.words_per_minute, uf.uploaded,
+                            uw.backspace_percent, uw.score, uw.copy_behavior, uf.resourceid,
+                            uf.modulename, uf.userid, uf.filename, uw.file_id, uw.user_agent,
+                            diff.meta AS effort_ratio
+                        FROM {tiny_cursive_files} uf
+                        LEFT JOIN {tiny_cursive_user_writing} uw ON uw.file_id = uf.id
+                LEFT JOIN {tiny_cursive_writing_diff} diff ON uf.id = diff.file_id
+                     WHERE uf.resourceid = :resourceid
+                           AND uf.cmid = :cmid
+                           AND uf.modulename = :modulename";
+
+        if ($params['userid']) {
+            $attempts .= " AND uf.userid = :userid";
+        }
+
+        $data =
+        $DB->get_record_sql(
+            $attempts,
+            [
+                'resourceid' => $params['resourceid'],
+                'userid' => $params['userid'],
+                'cmid' => $params['cmid'],
+                'modulename' => $params['modulename'],
+            ],
+        );
+        if (isset($data->effort_ratio)) {
+            $data->effort_ratio = intval(floatval($data->effort_ratio) * 100);
+        }
+        $data = (array) $data;
+        $data['first_file'] = 0;
+
+        if (!isset($data['filename'])) {
+            $sql = 'SELECT id as file_id, filename,userid, content
+                      FROM {tiny_cursive_files}
+                     WHERE resourceid = :resourceid
+                            AND cmid = :cmid
+                            AND modulename = :modulename';
+            $filename = $DB->get_record_sql(
+                $sql,
+                ['resourceid' => $params['resourceid'], 'cmid' => $params['cmid'], 'modulename' => $params['modulename']],
+            );
+
+            $data['filename'] = $filename->filename;
+            $data['file_id'] = $filename->file_id;
+            $data['resubmit'] = constants::is_resubmitable($data, $filename->file_id);
+            $data['cmid'] = $params['cmid'];
+
+            $sql = 'SELECT *
+                      FROM {tiny_cursive_files}
+                     WHERE userid = :userid ORDER BY id ASC LIMIT 1';
+            $firstfile = $DB->get_record_sql($sql, ['userid' => $filename->userid]);
+            if ($firstfile->id == $filename->file_id) {
+                $data['first_file'] = 1;
+            }
+        }
+
+        $sql = 'SELECT *
+                  FROM {tiny_cursive_files}
+                 WHERE userid = :userid ORDER BY id ASC LIMIT 1';
+        $firstfile = $DB->get_record_sql($sql, ['userid' => $data['userid'] ?? '']);
+        $fileid = $firstfile->id ?? null;
+        if (isset($firstfile) && isset($filename) && $fileid == $filename->file_id) {
+            $data['first_file'] = 1;
+        }
+
+        return json_encode(['data' => $data]);
+    }
+
+    /**
+     * Returns description of get_workshop_submission return value
+     *
+     * @return external_value Returns a boolean parameter indicating if the submission was successfully retrieved
+     */
+    public static function get_workshop_submission_returns() {
+        return new external_value(PARAM_TEXT, 'submission data');
     }
 }
