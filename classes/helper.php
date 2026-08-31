@@ -138,18 +138,15 @@ class helper {
      */
     public static function perform_data_sent($data) {
         if (empty($data)) {
-            mtrace("\nInvalid form data", DEBUG_DEVELOPER);
+            mtrace('Invalid form data — nothing to send.');
             return;
         }
 
-        [$curl, $url, $options] = self::get_curl(constants::BASE_URL . constants::API_END);
+        [$curl, $url, $options] = self::get_curl(constants::base_url() . constants::API_END);
         $json = json_encode($data);
 
         if ($json === false) {
-            mtrace(
-                "\nFailed to encode data: " . json_last_error_msg(),
-                DEBUG_DEVELOPER
-            );
+            mtrace('tiny_cursive: failed to JSON-encode payload: ' . json_last_error_msg());
             return;
         }
 
@@ -158,18 +155,15 @@ class helper {
             $decoded = self::check_request_response($curl, $response);
 
             if (empty($decoded['message'])) {
-                mtrace(
-                    "\nRemote platform rejected data: " . json_encode($decoded),
-                    DEBUG_DEVELOPER
-                );
+                mtrace('tiny_cursive: remote platform returned no message. Response: '
+                    . substr((string) json_encode($decoded), 0, 500));
+                return;
             }
 
-            mtrace("Response from remote: " . json_encode($decoded['message'] . "\n"), DEBUG_DEVELOPER);
+            mtrace('tiny_cursive: remote response — ' . $decoded['message']);
         } catch (moodle_exception $e) {
-            mtrace(
-                'Error sending data: ' . $e->getMessage(),
-                DEBUG_DEVELOPER
-            );
+            // Re-throw so the ad-hoc task is marked failed and cron retries it.
+            throw $e;
         }
     }
 
@@ -181,12 +175,11 @@ class helper {
      * @return array|null The decoded JSON response or null if there were errors
      */
     private static function check_request_response($curl, $response) {
-        // Curl-level error.
+        // Curl-level error (network / DNS / TLS failure).
         if ($curl->get_errno()) {
-            mtrace(
-                'Curl error: ' . $curl->error,
-                DEBUG_DEVELOPER
-            );
+            $errmsg = 'tiny_cursive: curl error (' . $curl->get_errno() . '): ' . $curl->error;
+            mtrace($errmsg);
+            throw new moodle_exception('curlerror', 'tiny_cursive', '', $errmsg);
         }
 
         // HTTP status validation.
@@ -194,21 +187,20 @@ class helper {
         $httpcode = $info['http_code'] ?? 0;
 
         if ($httpcode < 200 || $httpcode >= 300) {
-            mtrace(
-                "\nHTTP request failed. Code: " . $httpcode,
-                ' Response: ' . $response,
-                DEBUG_DEVELOPER
-            );
+            $errmsg = 'tiny_cursive: HTTP request failed. Code: ' . $httpcode
+                . ' Response: ' . substr((string) $response, 0, 500);
+            mtrace($errmsg);
+            throw new moodle_exception('httperror', 'tiny_cursive', '', $errmsg);
         }
 
         // Decode JSON safely.
         $decoded = json_decode($response, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
-            mtrace(
-                "\nInvalid JSON response: " . json_last_error_msg() . " \nResponse: " . $response,
-                DEBUG_DEVELOPER
-            );
+            $errmsg = 'tiny_cursive: invalid JSON response: ' . json_last_error_msg()
+                . ' — Response: ' . substr((string) $response, 0, 500);
+            mtrace($errmsg);
+            throw new moodle_exception('invalidjson', 'tiny_cursive', '', $errmsg);
         }
 
         return $decoded;
@@ -226,10 +218,7 @@ class helper {
         $secret = get_config('tiny_cursive', 'secret');
 
         if (empty($apiend)) {
-            mtrace(
-                "\nEndpoint URL is not configured.",
-                DEBUG_DEVELOPER
-            );
+            mtrace('tiny_cursive: endpoint URL is not configured — skipping remote call.');
             return false;
         }
 
