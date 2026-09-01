@@ -19,7 +19,7 @@
  *
  * @package tiny_cursive
  * @copyright  CTI <info@cursivetechnology.com>
- * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
+ * @author Joseph Thibault and team <joe@cursivetechnology.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -43,7 +43,7 @@ $string['assignment'] = "Assignment";
 $string['attemptid'] = 'Attempt id';
 $string['authorship'] = 'Authorship Confidence ';
 $string['authorship_desc'] = 'TypeID verification status';
-$string['authorship_guidance'] = 'Look for verified authorship across a student\'s sessions with 100 or more words. A low word count, the first submission, or a rare mis-match is not proof of dishonesty.';
+$string['authorship_guidance'] = 'Look for verified authorship across a student\'s sessions of 100 or more words. A low word count, the first submission, or a rare mis-match is not proof of dishonesty.';
 $string['average'] = "Average";
 $string['average_min'] = 'Average words per minute:';
 $string['awt'] = "active writing time";
@@ -52,7 +52,7 @@ $string['axis_time']   = 'Time';
 $string['axis_words']  = 'Words';
 $string['backspace'] = 'Revision %';
 $string['backspace_desc'] = 'Percentage of backspace and delete usage';
-$string['backspace_guidance'] = 'Rates below 3%. "Perfect" first drafts with almost no edits are often signs of manual copying.';
+$string['backspace_guidance'] = 'Rates below 3% reflect superficial edits only or uneditd stream of consciousness. "Perfect" first drafts with almost no edits can be a sign of manual copying.';
 $string['backspace_percent'] = 'Backspace percent';
 $string['character_count'] = 'Character count';
 $string['character_verify'] = "Character verification";
@@ -114,7 +114,7 @@ $string['eem'] = "Effort & Engagement Metrics";
 $string['eem_sub'] = "Measuring engagement and effort levels during writing sessions";
 $string['effort_ratio'] = 'Effort';
 $string['effort_ratio_desc'] = 'Total characters from verified effort / total characters in submission';
-$string['effort_ratio_guidance'] = 'Values below 100% may indicate that the student pasted content from an external source.';
+$string['effort_ratio_guidance'] = 'A number below 100% indicates that pasted or inserted content is present but was not typed. The higher above 100% the more editing and revisions are present. ';
 $string['effort_score'] = "Effort Score";
 $string['email'] = 'Email';
 $string['enable'] = 'Enable';
@@ -321,7 +321,7 @@ $string['word_len_mean_des'] = 'Average word length is calculated by dividing th
 $string['words'] = "Words";
 $string['words_per_minute'] = 'Writing speed';
 $string['words_per_minute_desc'] = 'Words per minute';
-$string['words_per_minute_guidance'] = 'Consistent speeds above 100 WPM (or well above a student\'s previous average writing speed), transcription of existing text is often 40-60% faster than original writing.';
+$string['words_per_minute_guidance'] = 'Consistent speeds above 80 WPM (or well above a student\'s previous average writing speed) suggests copying. Transcription of existing text is often 40-60% faster than original writing.';
 $string['wpm'] = "WPM";
 $string['wpot'] = "Writing Progress Over Time";
 $string['wractivityreport'] = 'Writing activity report';
