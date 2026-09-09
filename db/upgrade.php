@@ -222,6 +222,29 @@ function xmldb_tiny_cursive_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026052200, 'tiny', 'cursive');
     }
 
+    if ($oldversion < 2026082001) {
+        $table = new xmldb_table('tiny_cursive_user_writing');
+
+        // Re-apply the 2026042300 step. Its savepoint is unreachable for sites that
+        // installed or upgraded at 2026052100-2026052200, where user_agent was absent
+        // from both install.xml and upgrade.php: their recorded version is already
+        // above 2026042300, so that block can never run for them again.
+        $field = new xmldb_field('user_agent', XMLDB_TYPE_TEXT, null, null, null, null, null, 'score');
+
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $oldfield = new xmldb_field('quality_access');
+
+        if ($dbman->field_exists($table, $oldfield)) {
+            $dbman->drop_field($table, $oldfield);
+        }
+
+        // Savepoint reached.
+        upgrade_plugin_savepoint(true, 2026082001, 'tiny', 'cursive');
+    }
+
     // Do not queue the telemetry task under PHPUnit: it makes an outbound HTTP
     // call that fails in the test environment and leaks its adhoc task lock,
     // aborting phpunit_util::install_site().
