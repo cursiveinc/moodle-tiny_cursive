@@ -26,11 +26,21 @@
 defined('MOODLE_INTERNAL') || die;
 
 require_once(__DIR__ . '/locallib.php');
-global $CFG, $PAGE;
+global $CFG, $PAGE, $OUTPUT;
 
 $PAGE->requires->js_call_amd('tiny_cursive/token_approve', 'init', [1]);
 
 $ADMIN->add('editortiny', new admin_category('tiny_cursive', new lang_string('pluginname', 'tiny_cursive')));
+
+$noticereporturl = new moodle_url('/lib/editor/tiny/plugins/cursive/notice_report.php');
+if (!during_initial_install()) {
+    $ADMIN->add('reports', new admin_externalpage(
+        'tiny_cursive_notice_report',
+        new lang_string('notice_report', 'tiny_cursive'),
+        $noticereporturl,
+        'tiny/cursive:viewnoticereport'
+    ));
+}
 
 if ($ADMIN->fulltree) {
     $information = html_writer::tag(
@@ -148,6 +158,65 @@ if ($ADMIN->fulltree) {
             get_string('enable', 'tiny_cursive') . "
             </a><br><span id='cursivedisable_'></span><br>" .
             get_string('cursivedisable_des', 'tiny_cursive'),
+        )
+    );
+
+    // Data transparency notice (acknowledgement gate).
+    $noticelinks = new stdClass();
+    $noticelinks->reporturl = $noticereporturl->out(false);
+    $noticelinks->manageurl = (new moodle_url('/admin/settings.php', ['section' => 'manageeditors']))->out(false);
+
+    $settings->add(
+        new admin_setting_heading(
+            'tiny_cursive/notice_heading',
+            get_string('notice_heading', 'tiny_cursive'),
+            get_string('notice_heading_desc', 'tiny_cursive')
+        )
+    );
+
+    // Gating with no alternative editor makes written submission impossible for anyone
+    // who does not acknowledge. That may be intended, but it must be a knowing choice.
+    if (get_config('tiny_cursive', 'notice_enabled') && count(editors_get_enabled()) <= 1) {
+        $nofallback = new \core\output\notification(
+            get_string('notice_nofallback_warning', 'tiny_cursive', $noticelinks),
+            \core\output\notification::NOTIFY_WARNING
+        );
+        $nofallback->set_show_closebutton(false);
+        $settings->add(
+            new admin_setting_heading(
+                'tiny_cursive/notice_nofallback',
+                '',
+                $OUTPUT->render($nofallback)
+            )
+        );
+    }
+
+    $settings->add(
+        new admin_setting_configcheckbox(
+            'tiny_cursive/notice_enabled',
+            get_string('notice_enabled', 'tiny_cursive'),
+            get_string('notice_enabled_desc', 'tiny_cursive', $noticelinks),
+            0
+        )
+    );
+
+    $settings->add(
+        new admin_setting_configtext(
+            'tiny_cursive/notice_privacyurl',
+            get_string('notice_privacyurl', 'tiny_cursive'),
+            get_string('notice_privacyurl_desc', 'tiny_cursive'),
+            '',
+            PARAM_URL
+        )
+    );
+
+    $settings->add(
+        new admin_setting_configduration(
+            'tiny_cursive/notice_retentionperiod',
+            get_string('notice_retentionperiod', 'tiny_cursive'),
+            get_string('notice_retentionperiod_desc', 'tiny_cursive'),
+            0,
+            DAYSECS
         )
     );
 

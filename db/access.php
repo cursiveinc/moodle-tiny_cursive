@@ -85,4 +85,12 @@ $capabilities = [
             'manager' => CAP_ALLOW,
         ],
     ],
+    'tiny/cursive:viewnoticereport' => [
+        'riskbitmask' => RISK_PERSONAL,
+        'captype' => 'read',
+        'contextlevel' => CONTEXT_SYSTEM,
+        'archetypes' => [
+            'manager' => CAP_ALLOW,
+        ],
+    ],
 ];

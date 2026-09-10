@@ -1,0 +1,57 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template tiny_cursive/notice_gate
+
+    In-place data transparency notice rendered where a Cursive-enabled editor would
+    otherwise appear. Ordinary page content in document order: no dialog role, no focus
+    containment. The region is labelled by its heading, the confirm control is a real
+    button, and the only other route (a different editor) is a real link.
+
+    Example context (json):
+    {
+        "editorid": "id_onlinetext_editor",
+        "noticetext": "<p>Cursive collects data about your writing style.</p>",
+        "noticeversion": 1,
+        "preferencesurl": "https://example.com/user/editor.php",
+        "hascontent": true,
+        "content": "<p>My draft so far.</p>"
+    }
+}}
+<section class="tiny_cursive-notice-gate border rounded p-3 mb-3"
+         id="tiny_cursive-notice-gate-{{editorid}}"
+         aria-labelledby="tiny_cursive-notice-gate-heading-{{editorid}}"
+         data-region="tiny_cursive-notice-gate"
+         data-noticeversion="{{noticeversion}}">
+    <h3 class="h5" id="tiny_cursive-notice-gate-heading-{{editorid}}">{{#str}}notice_gate_heading, tiny_cursive{{/str}}</h3>
+    <div class="tiny_cursive-notice-gate-text" data-region="notice-text">
+        {{{noticetext}}}
+    </div>
+    {{#hascontent}}
+    <div class="tiny_cursive-notice-gate-content mb-3">
+        <h4 class="h6">{{#str}}notice_existingcontent, tiny_cursive{{/str}}</h4>
+        <div class="border rounded p-2 bg-light" data-region="existing-content">{{{content}}}</div>
+    </div>
+    {{/hascontent}}
+    <div class="alert alert-danger" role="alert" data-region="error" hidden></div>
+    <div class="d-flex flex-wrap align-items-center">
+        <button type="button" class="btn btn-primary mr-3 me-3 mb-2" data-action="acknowledge">
+            {{#str}}notice_consent_button, tiny_cursive{{/str}}
+        </button>
+        <a href="{{preferencesurl}}" class="mb-2" data-action="preferences">{{#str}}notice_preferences_link, tiny_cursive{{/str}}</a>
+    </div>
+</section>

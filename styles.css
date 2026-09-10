@@ -2405,3 +2405,18 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
 .cursive-report-v2 .cursive-table-card .generaltable tbody tr:hover {
     background: #f5f8ff;
 }
+
+/* Data transparency notice gate, rendered in place of a Cursive-enabled editor. */
+.tiny_cursive-notice-gate {
+    background: #fff;
+    max-width: 100%;
+}
+
+.tiny_cursive-notice-gate .tiny_cursive-notice-gate-text p:last-child {
+    margin-bottom: 1rem;
+}
+
+.tiny_cursive-notice-gate [data-region="existing-content"] {
+    max-height: 20rem;
+    overflow: auto;
+}
