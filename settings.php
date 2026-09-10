@@ -29,6 +29,7 @@ require_once(__DIR__ . '/locallib.php');
 global $CFG, $PAGE, $OUTPUT;
 
 $PAGE->requires->js_call_amd('tiny_cursive/token_approve', 'init', [1]);
+$PAGE->requires->js_call_amd('tiny_cursive/settings_collapse', 'init');
 
 $ADMIN->add('editortiny', new admin_category('tiny_cursive', new lang_string('pluginname', 'tiny_cursive')));
 
@@ -211,7 +212,7 @@ if ($ADMIN->fulltree) {
     );
 
     $settings->add(
-        new admin_setting_configduration(
+        new \tiny_cursive\local\admin\setting_retentionperiod(
             'tiny_cursive/notice_retentionperiod',
             get_string('notice_retentionperiod', 'tiny_cursive'),
             get_string('notice_retentionperiod_desc', 'tiny_cursive'),
