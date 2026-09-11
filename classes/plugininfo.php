@@ -54,7 +54,6 @@ class plugininfo extends plugin implements plugin_with_configuration {
         if ($required) {
             $config['noticetext'] = notice::format_text_for_display(notice::get_text());
             $config['noticeversion'] = notice::VERSION;
-            $config['preferencesurl'] = notice::get_editor_preferences_url()->out(false);
         }
 
         return $config;

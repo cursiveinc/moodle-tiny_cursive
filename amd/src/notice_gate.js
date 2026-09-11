@@ -37,7 +37,6 @@ import {add as addToast} from 'core/toast';
 const requiredName = getPluginOptionName(pluginName, 'noticerequired');
 const textName = getPluginOptionName(pluginName, 'noticetext');
 const versionName = getPluginOptionName(pluginName, 'noticeversion');
-const preferencesUrlName = getPluginOptionName(pluginName, 'preferencesurl');
 
 /** @type {Set<Object>} Gates currently displayed on this page. */
 const gates = new Set();
@@ -56,7 +55,6 @@ export const register = (editor) => {
     registerOption(requiredName, {processor: 'boolean', "default": false});
     registerOption(textName, {processor: 'string', "default": ''});
     registerOption(versionName, {processor: 'number', "default": 0});
-    registerOption(preferencesUrlName, {processor: 'string', "default": ''});
 };
 
 /**
@@ -130,7 +128,6 @@ const renderGate = async(entry) => {
         editorid: editor.id,
         noticetext: editor.options.get(textName),
         noticeversion: editor.options.get(versionName),
-        preferencesurl: editor.options.get(preferencesUrlName),
         hascontent: content !== '',
         content,
     });

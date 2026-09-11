@@ -19,15 +19,14 @@
 
     In-place data transparency notice rendered where a Cursive-enabled editor would
     otherwise appear. Ordinary page content in document order: no dialog role, no focus
-    containment. The region is labelled by its heading, the confirm control is a real
-    button, and the only other route (a different editor) is a real link.
+    containment. The region is labelled by its heading and the confirm control is a real
+    button.
 
     Example context (json):
     {
         "editorid": "id_onlinetext_editor",
         "noticetext": "<p>Cursive collects data about your writing style.</p>",
         "noticeversion": 1,
-        "preferencesurl": "https://example.com/user/editor.php",
         "hascontent": true,
         "content": "<p>My draft so far.</p>"
     }
@@ -48,10 +47,9 @@
     </div>
     {{/hascontent}}
     <div class="alert alert-danger" role="alert" data-region="error" hidden></div>
-    <div class="d-flex flex-wrap align-items-center">
-        <button type="button" class="btn btn-primary mr-3 me-3 mb-2" data-action="acknowledge">
+    <div>
+        <button type="button" class="btn btn-primary" data-action="acknowledge">
             {{#str}}notice_consent_button, tiny_cursive{{/str}}
         </button>
-        <a href="{{preferencesurl}}" class="mb-2" data-action="preferences">{{#str}}notice_preferences_link, tiny_cursive{{/str}}</a>
     </div>
 </section>

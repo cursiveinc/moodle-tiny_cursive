@@ -185,7 +185,6 @@ $string['notice_nofallback_warning'] = 'Cursive is the only enabled text editor 
 $string['notice_para1'] = 'Cursive collects data about your writing style and about how you plan and draft your written work. This data may include biometric data (including keystroke analysis information) which is used by your educational institution to verify that the work you submit has been drafted by you.';
 $string['notice_para2'] = 'Select <strong>{$a->button}</strong> to confirm that you consent to your educational institution processing your biometric data for this purpose.';
 $string['notice_para3'] = 'Further information about the processing of your personal data can be found in <a href="{$a->privacyurl}">your institution\'s privacy notice</a>.';
-$string['notice_preferences_link'] = 'Choose a different text editor in your editor preferences instead';
 $string['notice_privacyurl'] = 'Privacy notice URL';
 $string['notice_privacyurl_desc'] = 'Your institution\'s privacy notice. Linked from the notice when set; the sentence is left out when empty.';
 $string['notice_recorded'] = 'Your acknowledgement has been recorded. Cursive is now active in this editor.';

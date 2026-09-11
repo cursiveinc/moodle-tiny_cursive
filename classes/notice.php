@@ -20,7 +20,6 @@ use context_system;
 use dml_write_exception;
 use html_writer;
 use moodle_exception;
-use moodle_url;
 use stdClass;
 
 /**
@@ -137,15 +136,6 @@ class notice {
             'context' => context_system::instance(),
             'filter' => false,
         ]);
-    }
-
-    /**
-     * URL of the page where a user can switch their preferred text editor.
-     *
-     * @return moodle_url
-     */
-    public static function get_editor_preferences_url(): moodle_url {
-        return new moodle_url('/user/editor.php');
     }
 
     /**
