@@ -22,8 +22,6 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
-
 use tiny_cursive\constants;
 /**
  * Given an array with a file path, it returns the itemid and the filepath for the defined filearea.

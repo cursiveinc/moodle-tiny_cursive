@@ -32,7 +32,6 @@ use required_capability_exception;
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class externallib_test extends advanced_testcase {
-
     /**
      * Set up tests.
      */

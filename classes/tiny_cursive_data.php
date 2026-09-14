@@ -17,10 +17,6 @@
 namespace tiny_cursive;
 
 use context_course;
-
-defined('MOODLE_INTERNAL') || die();
-
-
 use stdClass;
 
 /**

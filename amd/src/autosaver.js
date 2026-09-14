@@ -36,7 +36,6 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics,
     canBypassPaste = !!canBypassPaste;
     intervention = !!intervention;
     var host = M.cfg.wwwroot;
-    var host = M.cfg.wwwroot;
     var userid = userId;
     var courseid = M.cfg.courseId;
     var editorid = editor?.id;
@@ -243,7 +242,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics,
         const fingerprint = event + '_' + editor.key + '_' + ed.caretPosition;
 
         if (fingerprint === lastKeyFingerprint && (now - lastKeyTimestamp) < 100) {
-            // window.console.warn('Duplicate blocked:', fingerprint);
+            // Window.console.warn('Duplicate blocked:', fingerprint);
             return;
         }
         const keys = ['Shift', 'Control', 'Alt', 'Meta', 'Delete', 'Backspace', 'Enter'];
@@ -493,31 +492,6 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics,
             }
         }
     });
-
-    // Editor.on('input', function(e) {
-    //     let position = getCaretPosition(true);
-    //     let aiContent = e.data;
-    //     if (!editor.inputMutationDetector) {
-    //         sentMobileInputUsingMutationDetector(editor);
-    //     }
-    //     editor.caretPosition = position.caretPosition;
-    //     editor.rePosition = position.rePosition;
-
-    //     if (e.inputType === 'insertReplacementText' || (e.inputType === 'insertText' && aiContent && aiContent.length > 1)) {
-
-    //         aiContents.push(aiContent);
-    //         e.key = "ai";
-    //         e.keyCode = 0;
-    //         e.caretPosition = position.caretPosition;
-    //         e.rePosition = position.rePosition;
-    //         e.aiContent = aiContent;
-
-    //         sendKeyEvent("aiInsert", e);
-    //     }
-    //     // console.log('Input: ', e);
-    //     sentMobileInput(e);
-
-    // });
 
 let isComposing = false;
 let previousContent = '';

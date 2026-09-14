@@ -35,9 +35,6 @@ define(["jquery", "core/str"], function(
         });
     },
     getToken: function(showcomments, userRole) {
-      $(function() {
-      });
-
       $('#page-mod-forum-discuss').find("article").get().forEach(function() {
           var replyButton = $('a[data-region="post-action"][title="Reply"]');
           if (replyButton.length > 0) {
