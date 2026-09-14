@@ -21,6 +21,9 @@
  * @copyright 2024, CTI <info@cursivetechnology.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+defined('MOODLE_INTERNAL') || die();
+
 use tiny_cursive\constants;
 /**
  * Given an array with a file path, it returns the itemid and the filepath for the defined filearea.
@@ -51,15 +54,33 @@ function tiny_cursive_get_path_from_pluginfile(array $args): array {
  * This function handles file serving requests for files stored in the tiny_cursive
  * plugin's file area. It retrieves and sends the requested file to the user.
  *
- * @param stdClass $context The context object for file access permissions
+ * @param stdClass $course The course object
+ * @param stdClass $cm The course module object
+ * @param context $context The context object for file access permissions
  * @param string $filearea The file area identifier within tiny_cursive
  * @param array $args Array of path segments identifying the file
  * @param bool $forcedownload If true, forces file download rather than display
  * @param array $options Additional options for file serving (e.g. caching, filters)
  * @return void|bool Returns false if file not found, void otherwise
  */
-function tiny_cursive_pluginfile($context, $filearea, $args, $forcedownload, array $options = []) {
-    $itemid = array_shift($args);
+function tiny_cursive_pluginfile(
+    $course,
+    $cm,
+    context $context,
+    string $filearea,
+    array $args,
+    bool $forcedownload,
+    array $options = []
+) {
+    global $DB, $USER;
+
+    if ($context->contextlevel != CONTEXT_MODULE && $context->contextlevel != CONTEXT_SYSTEM) {
+        return false;
+    }
+
+    require_login($course, false, $cm);
+
+    $itemid = (int) array_shift($args);
     $filename = array_pop($args);
 
     if (!$args) {
@@ -68,7 +89,13 @@ function tiny_cursive_pluginfile($context, $filearea, $args, $forcedownload, arr
         $filepath = '/' . implode('/', $args) . '/';
     }
 
-    $fs   = get_file_storage();
+    // Verify access to the requested file.
+    $record = $DB->get_record('tiny_cursive_files', ['id' => $itemid]);
+    if (!$record || ((int)$USER->id !== (int)$record->userid && !has_capability('tiny/cursive:view', $context))) {
+        return false;
+    }
+
+    $fs = get_file_storage();
 
     $file = $fs->get_file($context->id, 'tiny_cursive', $filearea, $itemid, $filepath, $filename);
     if (!$file) {

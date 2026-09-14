@@ -300,7 +300,9 @@ export default class AnalyticEvents {
 
                             let contents = $('<div>').addClass('tiny_cursive-comparison-content');
                             let textBlock2 = $('<div>').addClass('tiny_cursive-text-block').append(
-                                $('<div>').attr('id', 'tiny_cursive-reconstructed_text').html(JSON.parse(submittedText))
+                                $('<div>').attr('id', 'tiny_cursive-reconstructed_text')
+                                    .css('white-space', 'pre-wrap')
+                                    .text(JSON.parse(submittedText))
                             );
 
                             contents.append(commentBox, $legend, textBlock2);

@@ -105,7 +105,6 @@ class tiny_cursive_renderer extends plugin_renderer_base {
             $row['download']   = html_writer::div(
                 html_writer::link(
                     new moodle_url('/lib/editor/tiny/plugins/cursive/download_json.php', [
-                        'sesskey' => sesskey(),
                         'fname'   => $user->filename,
                         'user_id' => $user->usrid,
                         'cmid'    => $user->cmid,
@@ -117,7 +116,6 @@ class tiny_cursive_renderer extends plugin_renderer_base {
                         'aria-describedby' => get_string('download_attempt_json', 'tiny_cursive'),
                         'role'  => 'button',
                         'data-link' => constants::has_api_key() ? new moodle_url('/lib/editor/tiny/plugins/cursive/pdfexport.php', [
-                            'sesskey' => sesskey(),
                             'id'      => $user->usrid,
                             'file'    => $user->fileid,
                             'cmid'    => $user->cmid,
@@ -273,7 +271,6 @@ class tiny_cursive_renderer extends plugin_renderer_base {
             );
             $row['download']    = html_writer::link(
                 new moodle_url('/lib/editor/tiny/plugins/cursive/download_json.php', [
-                    'sesskey' => sesskey(),
                     'fname'   => $user->filename,
                     'user_id' => $user->usrid,
                     'cmid'    => $user->cmid,
@@ -285,7 +282,6 @@ class tiny_cursive_renderer extends plugin_renderer_base {
                     'aria-describedby' => get_string('download_attempt_json', 'tiny_cursive'),
                     'role'  => 'button',
                     'data-link' => constants::has_api_key() ? new moodle_url('/lib/editor/tiny/plugins/cursive/pdfexport.php', [
-                        'sesskey' => sesskey(),
                         'id'      => $user->usrid,
                         'file'    => $user->fileid,
                         'cmid'    => $user->cmid,
@@ -345,7 +341,7 @@ class tiny_cursive_renderer extends plugin_renderer_base {
             $data = array_values($DB->get_records_sql($sql, $params));
 
             if ($data && !empty($data[0]->title)) {
-                $module->name .= " / {$data[0]->title}";
+                $module->name .= " / " . format_string($data[0]->title);
             }
         }
 

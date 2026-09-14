@@ -65,7 +65,6 @@ $limit   = 5;
 $perpage = $page * $limit;
 
 $params = [
-    'sesskey'             => sesskey(),
     '_qf__userreportform' => 1,
     'courseid'            => $courseid,
     'moduleid'            => $moduleid,
@@ -126,7 +125,7 @@ $filterheader = html_writer::div(
 );
 $filterbody = html_writer::div($mform->render(), 'cursive-card-body');
 $filtercard = html_writer::div(
-    $filterheader . $filterbody . $requirednote,
+    $filterheader . $filterbody,
     'cursive-card'
 );
 

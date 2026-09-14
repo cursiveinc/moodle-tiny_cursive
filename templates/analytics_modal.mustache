@@ -313,7 +313,9 @@
             return;
         }
 
-        let msgName = "{{tabledata.file_id}}" + "{{tabledata.cmid}}" + "cursive";
+        let fileid = parseInt("{{tabledata.file_id}}", 10) || 0;
+        let cmid = parseInt("{{tabledata.cmid}}", 10) || 0;
+        let msgName = String(fileid) + String(cmid) + "cursive";
         let modalBody = getModalBody(msgName, "{{#str}}resubmit, tiny_cursive{{/str}}", true);
 
         let tableData = Number({{^tabledata.resubmit}}0{{/tabledata.resubmit}}{{#tabledata.resubmit}}{{tabledata.resubmit}}{{/tabledata.resubmit}}) || 0;
@@ -350,9 +352,6 @@
             const toastBody = document.getElementById('cursive-toast-body');
             const toastText = document.getElementById("ToastTextContent");
             const toastOverlay = document.getElementById("toastOverlay");
-
-            let fileid = "{{tabledata.file_id}}" ?? 0;
-            let cmid = "{{tabledata.cmid}}" ?? 0;
 
             AJAX.call([{
                     methodname: "cursive_resubmit_payload_data",

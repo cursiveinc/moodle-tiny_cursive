@@ -120,13 +120,17 @@ class helper {
     private static function update_records($recs, $table, $id, $name = null) {
         global $DB;
 
-        foreach ($recs as $rec) {
-            $rec->resourceid = $id;
-            if ($name) {
-                $rec->filename = $name;
-            }
-            $DB->update_record($table, $rec, true);
+        if (empty($recs)) {
+            return;
         }
+        [$insql, $inparams] = $DB->get_in_or_equal(array_keys($recs), SQL_PARAMS_NAMED);
+        $set = "resourceid = :newresourceid";
+        $params = ['newresourceid' => $id] + $inparams;
+        if ($name) {
+            $set .= ", filename = :newfilename";
+            $params['newfilename'] = $name;
+        }
+        $DB->execute("UPDATE {{$table}} SET {$set} WHERE id {$insql}", $params);
     }
 
     /**

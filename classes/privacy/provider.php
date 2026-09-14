@@ -109,9 +109,12 @@ class provider implements core_userlist_provider, meta_provider, plugin_provider
      */
     public static function get_users_in_context(userlist $userlist) {
         $context = $userlist->get_context();
+        if (!$context instanceof \context_module) {
+            return;
+        }
 
         $params = [
-            'cmid' => $context->id,
+            'cmid' => $context->instanceid,
         ];
 
         $sql = "SELECT userid
@@ -202,12 +205,32 @@ class provider implements core_userlist_provider, meta_provider, plugin_provider
         global $DB;
 
         $context = $userlist->get_context();
+        if (!$context instanceof \context_module) {
+            return;
+        }
         $userids = $userlist->get_userids();
+        if (empty($userids)) {
+            return;
+        }
 
         [$useridsql, $useridsqlparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED);
-        $params = ['cmid' => $context->id] + $useridsqlparams;
+        $params = ['cmid' => $context->instanceid] + $useridsqlparams;
 
-        $DB->delete_records_select('tiny_autosave', "cmid = :contextid AND userid {$useridsql}", $params);
+        $files = $DB->get_records_select(
+            'tiny_cursive_files',
+            "cmid = :cmid AND userid {$useridsql}",
+            $params,
+            '',
+            'id'
+        );
+        if (!empty($files)) {
+            [$fileidsql, $fileidparams] = $DB->get_in_or_equal(array_keys($files), SQL_PARAMS_NAMED);
+            $DB->delete_records_select('tiny_cursive_user_writing', "file_id {$fileidsql}", $fileidparams);
+            $DB->delete_records_select('tiny_cursive_writing_diff', "file_id {$fileidsql}", $fileidparams);
+        }
+
+        $DB->delete_records_select('tiny_cursive_comments', "cmid = :cmid AND userid {$useridsql}", $params);
+        $DB->delete_records_select('tiny_cursive_files', "cmid = :cmid AND userid {$useridsql}", $params);
     }
 
     /**

@@ -28,7 +28,6 @@ require_once(__DIR__ . '/locallib.php');
 use tiny_cursive\constants;
 global $DB, $USER;
 require_login();
-require_sesskey();
 
 $resourceid = optional_param('resourceid', 0, PARAM_INT);
 $userid     = optional_param('user_id', 0, PARAM_INT);
@@ -45,7 +44,11 @@ if (intval($USER->id) !== $userid && !constants::is_teacher_admin(context_course
 $context    = context_module::instance($cmid);
 require_capability('tiny/cursive:writingreport', $context);
 
-$filerow    = $DB->get_record('tiny_cursive_files', ['filename' => $fname]);
+$filerow    = $DB->get_record('tiny_cursive_files', [
+    'filename' => $fname,
+    'userid'   => $userid,
+    'cmid'     => $cmid,
+]);
 if (!$fname || !$filerow || !$filerow->content) {
     redirect(get_local_referer(false), get_string('filenotfound', 'tiny_cursive'));
 }

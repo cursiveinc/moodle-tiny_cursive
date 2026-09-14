@@ -40,7 +40,7 @@ if (\core\session\manager::is_loggedinas()) {
     redirect(new moodle_url('/user/index.php'));
 }
 
-$orderby  = optional_param('orderby', 'id', PARAM_TEXT);
+$orderby  = optional_param('orderby', 'id', PARAM_ALPHA);
 $page     = optional_param('page', 0, PARAM_INT);
 $courseid = optional_param('courseid', 0, PARAM_INT);
 $userid   = optional_param('userid', 0, PARAM_INT);
@@ -55,7 +55,7 @@ if ($uidparam) {
     $userid   = $uidparam;
 }
 
-if ($cparam && !is_siteadmin($USER->id) && $useridparam !== $USER->id) {
+if ($cparam && !is_siteadmin($USER->id) && $userid !== $USER->id) {
     $courseid = $cparam;
 }
 
