@@ -170,7 +170,7 @@ const acknowledge = (entry) => {
             gates.forEach(release);
             gates.clear();
             entry.editor.focus();
-            addToast(await getString('notice_recorded', 'tiny_cursive'), {type: 'success'});
+            addToast(await getString('notice_recorded', 'tiny_cursive'), {type: 'success', delay: 5000});
             return;
         })
         .catch(async(exception) => {
