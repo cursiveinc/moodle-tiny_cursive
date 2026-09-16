@@ -75,7 +75,7 @@ $capabilities = [
             'editingteacher' => CAP_ALLOW,
             'manager' => CAP_ALLOW,
         ],
-        'clonepermission' => 'tiny/cursive:view',
+        'clonepermissionsfrom' => 'tiny/cursive:view',
     ],
     'tiny/cursive:bypasspastecontrols' => [
         'captype' => 'read',

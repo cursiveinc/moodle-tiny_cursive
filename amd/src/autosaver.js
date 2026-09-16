@@ -196,7 +196,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics,
                             }
                         }
 
-                        postOne('cursive_user_comments', {
+                        postOne('tiny_cursive_user_comments', {
                             modulename: modulename,
                             cmid: cmid,
                             resourceid: resourceId,
@@ -730,7 +730,7 @@ function sentMobileInput(key) {
             try {
                 Autosave.updateSavingState('saving');
                 // eslint-disable-next-line
-                return await postOne('cursive_write_local_to_json', {
+                return await postOne('tiny_cursive_write_local_to_json', {
                     key: ed.key,
                     event: event,
                     keyCode: ed.keyCode,

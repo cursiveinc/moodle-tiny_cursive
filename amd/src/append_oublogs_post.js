@@ -66,7 +66,7 @@ export const init = (scoreSetting, comments, hasApiKey) => {
 
         if (userid && resourceId) {
             let args = {id: userid, resourceid: resourceId, modulename: "oublog", cmid: cmid};
-            let methodname = 'cursive_get_oublog_submission_data';
+            let methodname = 'tiny_cursive_get_oublog_submission_data';
             let com = getData([{methodname, args}]);
             com[0].done(function(json) {
                 var data = JSON.parse(json);

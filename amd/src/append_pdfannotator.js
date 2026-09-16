@@ -198,7 +198,7 @@ export const init = (scoreSetting, comments, hasApiKey, userid) => {
                 modulename: moduleName,
                 resourceid: resourceId
             };
-            updateEntries('cursive_update_pdf_annote_id', args);
+            updateEntries('tiny_cursive_update_pdf_annote_id', args);
         }
     }
 
@@ -216,7 +216,7 @@ export const init = (scoreSetting, comments, hasApiKey, userid) => {
      */
     function getCursiveAnalytics(userid, resourceid, cmid, place) {
         let args = {id: resourceid, modulename: "pdfannotator", cmid: cmid};
-        let methodname = 'cursive_get_forum_comment_link';
+        let methodname = 'tiny_cursive_get_forum_comment_link';
         let com = call([{methodname, args}]);
         com[0].done(function(json) {
             var data = JSON.parse(json);

@@ -81,7 +81,7 @@ define([
                 const entryId = parseInt(match[1], 10);
                 const args = {id: entryId, modulename: "diary", cmid: cmid};
 
-                AJAX.call([{methodname: 'cursive_get_forum_comment_link', args}])[0].done(function(json) {
+                AJAX.call([{methodname: 'tiny_cursive_get_forum_comment_link', args}])[0].done(function(json) {
                     const parsed = JSON.parse(json);
                     const data = parsed.data;
 

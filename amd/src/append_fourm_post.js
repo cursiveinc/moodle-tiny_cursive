@@ -70,7 +70,7 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
                 var cmid = M.cfg.contextInstanceId;
 
                 let args = {id: ids, modulename: "forum", cmid: cmid};
-                let methodname = 'cursive_get_forum_comment_link';
+                let methodname = 'tiny_cursive_get_forum_comment_link';
                 let com = AJAX.call([{methodname, args}]);
                 com[0].done(function(json) {
                     var data = JSON.parse(json);

@@ -47,7 +47,7 @@ export default new Promise((resolve, reject) => {
                 if (page.includes(document.body.id)) {
 
                     getConfig.call([{
-                        methodname: "cursive_get_config",
+                        methodname: "tiny_cursive_get_config",
                         args: {courseid: M.cfg.courseId, cmid: M.cfg.contextInstanceId}
                     }])[0].done((data) => {
                         if (data.status && data.mod_state) {
