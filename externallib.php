@@ -2285,7 +2285,9 @@ class cursive_json_func_data extends external_api {
     /**
      * Gets workshop submission data
      *
-     * @param int $userid The ID of the user
+     * @param int $resourceid The resource ID
+     * @param int|null $userid The ID of the user
+     * @param string $modulename The module name
      * @param int $cmid The course module ID
      * @return bool True if the submission was successfully retrieved
      * @throws coding_exception
