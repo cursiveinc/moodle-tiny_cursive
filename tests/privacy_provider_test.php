@@ -51,7 +51,6 @@ final class privacy_provider_test extends provider_testcase {
         $assign = $this->getDataGenerator()->create_module('assign', ['course' => $course->id]);
         $context = context_module::instance((int) $assign->cmid);
         $user1 = $this->getDataGenerator()->create_user();
-        $user2 = $this->getDataGenerator()->create_user();
 
         // Insert records keyed by cmid.
         $DB->insert_record('tiny_cursive_files', (object) [
@@ -118,5 +117,125 @@ final class privacy_provider_test extends provider_testcase {
         $this->assertFalse($DB->record_exists('tiny_cursive_files', ['id' => $fileid]));
         $this->assertFalse($DB->record_exists('tiny_cursive_comments', ['userid' => $user->id, 'cmid' => (int) $assign->cmid]));
         $this->assertFalse($DB->record_exists('tiny_cursive_user_writing', ['file_id' => $fileid]));
+    }
+
+    /**
+     * Test get_metadata returns collection with tables and external location.
+     */
+    public function test_get_metadata(): void {
+        $collection = new \core_privacy\local\metadata\collection('tiny_cursive');
+        $result = provider::get_metadata($collection);
+        $this->assertInstanceOf(\core_privacy\local\metadata\collection::class, $result);
+        $this->assertNotEmpty($result->get_collection());
+    }
+
+    /**
+     * Test get_contexts_for_userid returns contexts where user has cursive files.
+     */
+    public function test_get_contexts_for_userid(): void {
+        global $DB;
+
+        $course = $this->getDataGenerator()->create_course();
+        $assign = $this->getDataGenerator()->create_module('assign', ['course' => $course->id]);
+        $context = context_module::instance((int) $assign->cmid);
+        $user = $this->getDataGenerator()->create_user();
+
+        $DB->insert_record('tiny_cursive_files', (object) [
+            'userid' => $user->id,
+            'cmid' => (int) $context->id,
+            'modulename' => 'assign',
+            'resourceid' => (int) $assign->cmid,
+            'courseid' => $course->id,
+            'filename' => 'user.json',
+            'timemodified' => time(),
+            'uploaded' => 1,
+        ]);
+
+        $contextlist = provider::get_contexts_for_userid((int) $user->id);
+        $this->assertNotEmpty($contextlist->get_contextids());
+        $this->assertTrue(in_array((int) $context->id, array_map('intval', $contextlist->get_contextids())));
+    }
+
+    /**
+     * Test delete_data_for_all_users_in_context purges all user data for the context.
+     */
+    public function test_delete_data_for_all_users_in_context(): void {
+        global $DB;
+
+        $course = $this->getDataGenerator()->create_course();
+        $assign = $this->getDataGenerator()->create_module('assign', ['course' => $course->id]);
+        $context = context_module::instance((int) $assign->cmid);
+        $user1 = $this->getDataGenerator()->create_user();
+        $user2 = $this->getDataGenerator()->create_user();
+
+        $fileid1 = $DB->insert_record('tiny_cursive_files', (object) [
+            'userid' => $user1->id,
+            'cmid' => (int) $assign->cmid,
+            'modulename' => 'assign',
+            'resourceid' => (int) $assign->cmid,
+            'courseid' => $course->id,
+            'filename' => 'user1.json',
+            'timemodified' => time(),
+            'uploaded' => 1,
+        ]);
+
+        $fileid2 = $DB->insert_record('tiny_cursive_files', (object) [
+            'userid' => $user2->id,
+            'cmid' => (int) $assign->cmid,
+            'modulename' => 'assign',
+            'resourceid' => (int) $assign->cmid,
+            'courseid' => $course->id,
+            'filename' => 'user2.json',
+            'timemodified' => time(),
+            'uploaded' => 1,
+        ]);
+
+        $DB->insert_record('tiny_cursive_comments', (object) [
+            'userid' => $user1->id,
+            'cmid' => (int) $assign->cmid,
+            'modulename' => 'assign',
+            'resourceid' => (int) $assign->cmid,
+            'courseid' => $course->id,
+            'usercomment' => 'test comment 1',
+            'timemodified' => time(),
+        ]);
+
+        provider::delete_data_for_all_users_in_context($context);
+
+        $this->assertFalse($DB->record_exists('tiny_cursive_files', ['cmid' => (int) $assign->cmid]));
+        $this->assertFalse($DB->record_exists('tiny_cursive_comments', ['cmid' => (int) $assign->cmid]));
+        $this->assertFalse($DB->record_exists('tiny_cursive_user_writing', ['file_id' => $fileid1]));
+        $this->assertFalse($DB->record_exists('tiny_cursive_user_writing', ['file_id' => $fileid2]));
+    }
+
+    /**
+     * Test export_user_data exports telemetry without error.
+     */
+    public function test_export_user_data(): void {
+        global $DB;
+
+        $course = $this->getDataGenerator()->create_course();
+        $assign = $this->getDataGenerator()->create_module('assign', ['course' => $course->id]);
+        $context = context_module::instance((int) $assign->cmid);
+        $user = $this->getDataGenerator()->create_user();
+
+        $DB->insert_record('tiny_cursive_files', (object) [
+            'userid' => $user->id,
+            'cmid' => (int) $context->id,
+            'modulename' => 'assign',
+            'resourceid' => (int) $assign->cmid,
+            'courseid' => $course->id,
+            'filename' => 'user_export.json',
+            'content' => json_encode(['keystrokes' => []]),
+            'original_content' => 'Sample text',
+            'timemodified' => time(),
+            'uploaded' => 1,
+        ]);
+
+        $approvedcontextlist = new \core_privacy\local\request\approved_contextlist($user, 'tiny_cursive', [$context->id]);
+        provider::export_user_data($approvedcontextlist);
+
+        $writer = \core_privacy\local\request\writer::with_context($context);
+        $this->assertTrue($writer->has_any_data());
     }
 }

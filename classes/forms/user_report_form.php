@@ -149,7 +149,7 @@ class user_report_form extends moodleform {
      * @param integer $courseid
      * @return array
      */
-    public function get_modules($courseid) {
+    public static function get_modules($courseid) {
         // Default option: All modules.
         $mdetail = [0 => get_string('allmodule', 'tiny_cursive')];
 
@@ -188,7 +188,7 @@ class user_report_form extends moodleform {
      * @param integer $courseid
      * @return array
      */
-    public function get_user($courseid) {
+    public static function get_user($courseid) {
 
         $udetail = [];
 
