@@ -24,52 +24,85 @@ import {getTinyMCE} from 'editor_tiny/loader';
 import {getPluginMetadata} from 'editor_tiny/utils';
 import {component, pluginName} from './common';
 import * as Autosaver from './autosaver';
+import * as NoticeGate from './notice_gate';
 import getConfig from 'core/ajax';
 
-export default new Promise((resolve, reject) => {
-    const page = [
-        'page-mod-assign-editsubmission',
-        'page-mod-quiz-attempt',
-        'page-mod-forum-view',
-        'page-mod-forum-post',
-        'page-mod-lesson-view',
-        'page-mod-pdfannotator-view',
-        'page-mod-workshop-submission',
-        'page-mod-workshop-assessment',
-        'page-mod-diary-edit']; // 'page-mod-oublog-editpost' excluded
+// Keep in step with \tiny_cursive\constants::EDITOR_PAGES.
+const page = [
+    'page-mod-assign-editsubmission',
+    'page-mod-quiz-attempt',
+    'page-mod-forum-view',
+    'page-mod-forum-post',
+    'page-mod-lesson-view',
+    'page-mod-pdfannotator-view',
+    'page-mod-workshop-submission',
+    'page-mod-workshop-assessment',
+    'page-mod-diary-edit']; // 'page-mod-oublog-editpost' excluded
 
+/**
+ * Fetch the runtime configuration and start keystroke capture on the editor.
+ *
+ * @param {TinyMCE} editor
+ */
+const startCapture = (editor) => {
+    if (!page.includes(document.body.id)) {
+        return;
+    }
+
+    getConfig.call([{
+        methodname: "cursive_get_config",
+        args: {courseid: M.cfg.courseId, cmid: M.cfg.contextInstanceId}
+    }])[0].done((data) => {
+        if (data.status && data.mod_state) {
+            M.userAgent = data.useragent;
+            Autosaver.register(
+                editor,
+                data.sync_interval,
+                data.userid,
+                data.apikey_status,
+                JSON.parse(data.plugins),
+                JSON.parse(data.rubrics),
+                JSON.parse(data.submission),
+                JSON.parse(data.quizinfo),
+                data.pastesetting,
+                data.canbypasspaste,
+                data.intervention
+            );
+        }
+    }).fail((error) => {
+        window.console.error('Error getting cursive config:', error);
+    });
+};
+
+/**
+ * Set up Cursive on a new editor instance, gating it behind the notice when required.
+ *
+ * @param {TinyMCE} editor
+ */
+const setupEditor = (editor) => {
+    NoticeGate.register(editor);
+
+    if (!NoticeGate.isRequired(editor)) {
+        startCapture(editor);
+        return;
+    }
+
+    // Capture never runs before an acknowledgement is on record.
+    NoticeGate.gate(editor)
+        .then(() => startCapture(editor))
+        .catch((error) => {
+            window.console.error('Error rendering the cursive notice gate:', error);
+        });
+};
+
+export default new Promise((resolve, reject) => {
     Promise.all([
         getTinyMCE(),
         getPluginMetadata(component, pluginName),
     ])
         .then(([tinyMCE, pluginMetadata]) => {
             tinyMCE.PluginManager.add(pluginName, (editor) => {
-                if (page.includes(document.body.id)) {
-
-                    getConfig.call([{
-                        methodname: "cursive_get_config",
-                        args: {courseid: M.cfg.courseId, cmid: M.cfg.contextInstanceId}
-                    }])[0].done((data) => {
-                        if (data.status && data.mod_state) {
-                            M.userAgent = data.useragent;
-                            Autosaver.register(
-                                editor,
-                                data.sync_interval,
-                                data.userid,
-                                data.apikey_status,
-                                JSON.parse(data.plugins),
-                                JSON.parse(data.rubrics),
-                                JSON.parse(data.submission),
-                                JSON.parse(data.quizinfo),
-                                data.pastesetting,
-                                data.canbypasspaste,
-                                data.intervention
-                            );
-                        }
-                    }).fail((error) => {
-                        window.console.error('Error getting cursive config:', error);
-                    });
-                }
+                setupEditor(editor);
                 return pluginMetadata;
             });
             return resolve(pluginName);

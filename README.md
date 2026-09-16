@@ -53,6 +53,24 @@ There are several configuration options for the plugin. The free version allows 
 
 By entering an agreement with Cursive, an API URL and key will be provided to manage the premium ML features. A custom threshold for API-generated values of identify verification is also available to tune the threshold for displaying a green check verification. 
 
+## Data transparency notice (acknowledgement gate)
+
+Institutions processing keystroke-dynamics data need a defensible record that each user was informed before capture began. The plugin can require every user to acknowledge a fixed notice, in their own language, the first time they meet a Cursive-enabled editor. Until they do, the notice panel is rendered in place of the editor and no keystroke data is captured. The notice is a transparency notice, not consent capture: consent itself is obtained by the institution outside Moodle, and requests to withdraw it, or to object to processing, are for the institution to handle.
+
+Settings under `Site Administration -> Plugins -> Text editors -> TinyMCE editor -> Cursive`:
+
+| Setting | Default | Meaning |
+|---|---|---|
+| Require notice acknowledgement | Off | Master switch. When on, users must acknowledge before the Cursive editor loads. There is no decline control; a user who will not acknowledge can switch to another text editor in their preferences, so keep at least one other editor enabled. The settings page warns you when Cursive is the only one. |
+| Privacy notice URL | empty | Your institution's own privacy notice. When set, the notice links to it. |
+| Acknowledgement retention period | 0 (keep indefinitely) | How long acknowledgement records are kept. When set, a daily scheduled task permanently deletes older records. |
+
+Each acknowledgement is written to an append-only log (`tiny_cursive_notice`) with the user, a server timestamp, the notice version and a SHA-256 of the exact wording shown. The wording itself is stored once per distinct hash (`tiny_cursive_notice_text`), so every record stays resolvable to the text the user read even after the language strings change. The wording is shipped as language strings and versioned in code; it is not editable by administrators. A material change to the wording ships as a new version and re-prompts every user; a translation fix produces a new snapshot without re-prompting anyone.
+
+The report at `Site administration -> Reports -> Cursive notice acknowledgements` (capability `tiny/cursive:viewnoticereport`, managers by default) lists acknowledgements with sorting, date, version and language filters, CSV/Excel/ODS download, links to the stored wording flagged where it has since been superseded, and a "not yet acknowledged" view scoped to a course or cohort.
+
+**Retention on erasure.** GDPR data exports include the user's acknowledgements with the full wording they saw. Erasure requests clear every other Cursive table but deliberately leave the acknowledgement log and its wording snapshots in place: the record is the institution's evidence that a specific person was shown a specific wording on a specific date, which is exactly what it needs if that person later disputes the processing. GDPR Art. 17(3)(b) and (e) provide for retention where necessary to comply with a legal obligation or to establish, exercise or defend legal claims. Records are kept indefinitely unless you configure the retention period above, in which case the institution's own retention schedule applies.
+
 ## Supported Activity Modules
 
 Our plugin is designed to work with activities where students provide **written text responses**.  

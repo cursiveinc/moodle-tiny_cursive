@@ -516,5 +516,13 @@ function tiny_cursive_user_preferences() {
             'default' => 0,
             'permissioncallback' => [core_user::class, 'is_current_user'],
         ],
+        // Cache of the acknowledged notice version. The table is the source of truth and
+        // this is only ever written server-side, so no user may set it through the API.
+        \tiny_cursive\notice::PREFERENCE => [
+            'type' => PARAM_INT,
+            'null' => NULL_NOT_ALLOWED,
+            'default' => 0,
+            'permissioncallback' => fn(): bool => false,
+        ],
     ];
 }

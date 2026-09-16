@@ -32,19 +32,34 @@ use core_privacy\local\request\approved_userlist;
 use core_privacy\local\metadata\provider as meta_provider;
 use core_privacy\local\request\core_userlist_provider;
 use core_privacy\local\request\plugin\provider as plugin_provider;
+use core_privacy\local\request\user_preference_provider;
 use stdClass;
 use core_privacy\local\request\transform;
 use context;
+use context_system;
+use tiny_cursive\notice;
 
 
 /**
  * Privacy Subsystem implementation for tiny_cursive.
  *
+ * Retention note. The notice acknowledgement log (tiny_cursive_notice, with its wording
+ * snapshots in tiny_cursive_notice_text) is deliberately NOT removed by any of the delete
+ * methods below. Each row is the institution's evidence that a specific person was shown a
+ * specific wording on a specific date before biometric processing began. Removing it on an
+ * erasure request would destroy the only proof that the processing was properly notified,
+ * which is precisely what the institution needs if that person later disputes it. GDPR
+ * Art. 17(3)(b) and (e) provide for retention where processing is necessary for compliance
+ * with a legal obligation or for the establishment, exercise or defence of legal claims;
+ * that is the ground relied on. Records are kept indefinitely unless the administrator sets
+ * tiny_cursive/notice_retentionperiod, in which case the purge_old_records task removes
+ * them once they are older than that period. Every other tiny_cursive table is cleared.
+ *
  * @copyright  Cursive Technology, Inc. <info@cursivetechnology.com>
  * @author     Brain Station 23 <sales@brainstation-23.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class provider implements core_userlist_provider, meta_provider, plugin_provider {
+class provider implements core_userlist_provider, meta_provider, plugin_provider, user_preference_provider {
     /**
      * Returns information about how tiny_cursive stores its data.
      *
@@ -65,6 +80,39 @@ class provider implements core_userlist_provider, meta_provider, plugin_provider
             'usercomment' => 'privacy:metadata:database:tiny_cursive_comments:commenttext',
             'timemodified' => 'privacy:metadata:database:tiny_cursive_comments:timemodified',
         ], 'privacy:metadata:database:tiny_cursive_comments');
+
+        $collection->add_database_table('tiny_cursive_user_writing', [
+            'file_id' => 'privacy:metadata:database:tiny_cursive_user_writing:file_id',
+            'total_time_seconds' => 'privacy:metadata:database:tiny_cursive_user_writing:total_time_seconds',
+            'word_count' => 'privacy:metadata:database:tiny_cursive_user_writing:word_count',
+            'score' => 'privacy:metadata:database:tiny_cursive_user_writing:score',
+            'user_agent' => 'privacy:metadata:database:tiny_cursive_user_writing:user_agent',
+        ], 'privacy:metadata:database:tiny_cursive_user_writing');
+
+        $collection->add_database_table('tiny_cursive_writing_diff', [
+            'file_id' => 'privacy:metadata:database:tiny_cursive_writing_diff:file_id',
+            'reconstructed_text' => 'privacy:metadata:database:tiny_cursive_writing_diff:reconstructed_text',
+            'submitted_text' => 'privacy:metadata:database:tiny_cursive_writing_diff:submitted_text',
+        ], 'privacy:metadata:database:tiny_cursive_writing_diff');
+
+        // Retained on erasure; see the class docblock and the summary string.
+        $collection->add_database_table('tiny_cursive_notice', [
+            'userid' => 'privacy:metadata:database:tiny_cursive_notice:userid',
+            'noticeversion' => 'privacy:metadata:database:tiny_cursive_notice:noticeversion',
+            'noticetexthash' => 'privacy:metadata:database:tiny_cursive_notice:noticetexthash',
+            'timecreated' => 'privacy:metadata:database:tiny_cursive_notice:timecreated',
+        ], 'privacy:metadata:database:tiny_cursive_notice');
+
+        $collection->add_database_table('tiny_cursive_notice_text', [
+            'noticetexthash' => 'privacy:metadata:database:tiny_cursive_notice_text:noticetexthash',
+            'noticetext' => 'privacy:metadata:database:tiny_cursive_notice_text:noticetext',
+            'lang' => 'privacy:metadata:database:tiny_cursive_notice_text:lang',
+            'noticeversion' => 'privacy:metadata:database:tiny_cursive_notice_text:noticeversion',
+            'timecreated' => 'privacy:metadata:database:tiny_cursive_notice_text:timecreated',
+        ], 'privacy:metadata:database:tiny_cursive_notice_text');
+
+        $collection->add_user_preference(notice::PREFERENCE, 'privacy:metadata:preference:tiny_cursive_noticeversion');
+        $collection->add_user_preference('tiny_cursive_showguidance', 'privacy:metadata:preference:tiny_cursive_showguidance');
 
         $collection->add_external_location_link('api.cursivetechnology.net', [
             'userid' => 'privacy:metadata:database:tiny_cursive:userid',
@@ -99,6 +147,13 @@ class provider implements core_userlist_provider, meta_provider, plugin_provider
                  WHERE userid = :userid";
         $contextlist->add_from_sql($sql, ['userid' => $userid]);
 
+        // Notice acknowledgements live in the system context.
+        $sql = "SELECT c.id
+                  FROM {tiny_cursive_notice} n
+                  JOIN {context} c ON c.contextlevel = :contextsystem
+                 WHERE n.userid = :userid";
+        $contextlist->add_from_sql($sql, ['contextsystem' => CONTEXT_SYSTEM, 'userid' => $userid]);
+
         return $contextlist;
     }
 
@@ -109,6 +164,10 @@ class provider implements core_userlist_provider, meta_provider, plugin_provider
      */
     public static function get_users_in_context(userlist $userlist) {
         $context = $userlist->get_context();
+
+        if ($context->contextlevel == CONTEXT_SYSTEM) {
+            $userlist->add_from_sql('userid', "SELECT userid FROM {tiny_cursive_notice}", []);
+        }
 
         $params = [
             'cmid' => $context->id,
@@ -164,25 +223,94 @@ class provider implements core_userlist_provider, meta_provider, plugin_provider
 
         $writingdata = $DB->get_recordset_sql($sql, $contextparams);
         self::export_autosaves($user, $writingdata);
+
+        // Notice acknowledgements, with the full wording the user was shown.
+        $systemcontext = context_system::instance();
+        if (in_array($systemcontext->id, $contextlist->get_contextids())) {
+            self::export_notice_acknowledgements((int) $user->id, $systemcontext);
+        }
+    }
+
+    /**
+     * Export the user's notice acknowledgements under the system context.
+     *
+     * @param int $userid
+     * @param context $context The system context.
+     */
+    protected static function export_notice_acknowledgements(int $userid, context $context): void {
+        global $DB;
+
+        $sql = "SELECT n.id, n.noticeversion, n.noticetexthash, n.timecreated, t.lang, t.noticetext
+                  FROM {tiny_cursive_notice} n
+             LEFT JOIN {tiny_cursive_notice_text} t ON t.noticetexthash = n.noticetexthash
+                 WHERE n.userid = :userid
+              ORDER BY n.timecreated ASC";
+        $records = $DB->get_records_sql($sql, ['userid' => $userid]);
+        if (!$records) {
+            return;
+        }
+
+        $data = [];
+        foreach ($records as $record) {
+            $data[] = (object) [
+                'noticeversion' => (int) $record->noticeversion,
+                'lang' => $record->lang,
+                'noticetext' => $record->noticetext,
+                'noticetexthash' => $record->noticetexthash,
+                'timecreated' => transform::datetime($record->timecreated),
+            ];
+        }
+
+        writer::with_context($context)->export_data([
+            get_string('pluginname', 'tiny_cursive'),
+            get_string('privacy:noticeacknowledgements', 'tiny_cursive'),
+        ], (object) ['acknowledgements' => $data]);
+    }
+
+    /**
+     * Export the user's preferences held by this plugin.
+     *
+     * @param int $userid
+     */
+    public static function export_user_preferences(int $userid) {
+        $noticeversion = get_user_preferences(notice::PREFERENCE, null, $userid);
+        if ($noticeversion !== null) {
+            writer::export_user_preference(
+                'tiny_cursive',
+                notice::PREFERENCE,
+                $noticeversion,
+                get_string('privacy:metadata:preference:tiny_cursive_noticeversion', 'tiny_cursive')
+            );
+        }
+
+        $showguidance = get_user_preferences('tiny_cursive_showguidance', null, $userid);
+        if ($showguidance !== null) {
+            writer::export_user_preference(
+                'tiny_cursive',
+                'tiny_cursive_showguidance',
+                transform::yesno($showguidance),
+                get_string('privacy:metadata:preference:tiny_cursive_showguidance', 'tiny_cursive')
+            );
+        }
     }
 
     /**
      * Delete all data for all users in the specified context.
+     *
+     * Notice acknowledgements (tiny_cursive_notice / tiny_cursive_notice_text) are retained
+     * on purpose; see the class docblock for the rationale.
      *
      * @param \context $context The specific context to delete data for.
      */
     public static function delete_data_for_all_users_in_context(context $context) {
         global $DB;
 
-        $filesrecords = $DB->get_records('tiny_cursive_files', ['cmid' => $context->instanceid]);
+        $filesrecords = $DB->get_records('tiny_cursive_files', ['cmid' => $context->instanceid], '', 'id');
 
-        foreach ($filesrecords as $record) {
-            $DB->delete_records('tiny_cursive_user_writing', [
-                'file_id' => $record->id,
-            ]);
-            $DB->delete_records('tiny_cursive_writing_diff', [
-                'file_id' => $record->id,
-            ]);
+        if ($filesrecords) {
+            $fileids = array_keys($filesrecords);
+            $DB->delete_records_list('tiny_cursive_user_writing', 'file_id', $fileids);
+            $DB->delete_records_list('tiny_cursive_writing_diff', 'file_id', $fileids);
         }
 
         $DB->delete_records('tiny_cursive_comments', [
@@ -196,6 +324,9 @@ class provider implements core_userlist_provider, meta_provider, plugin_provider
     /**
      * Delete multiple users within a single context.
      *
+     * Notice acknowledgements (tiny_cursive_notice / tiny_cursive_notice_text) are retained
+     * on purpose; see the class docblock for the rationale.
+     *
      * @param approved_userlist $userlist The approved context and user information to delete information for.
      */
     public static function delete_data_for_users(approved_userlist $userlist) {
@@ -203,15 +334,31 @@ class provider implements core_userlist_provider, meta_provider, plugin_provider
 
         $context = $userlist->get_context();
         $userids = $userlist->get_userids();
+        if (!$userids) {
+            return;
+        }
 
         [$useridsql, $useridsqlparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED);
         $params = ['cmid' => $context->id] + $useridsqlparams;
+        $select = "cmid = :cmid AND userid {$useridsql}";
 
-        $DB->delete_records_select('tiny_autosave', "cmid = :contextid AND userid {$useridsql}", $params);
+        $filerecords = $DB->get_records_select('tiny_cursive_files', $select, $params, '', 'id');
+        if ($filerecords) {
+            $fileids = array_keys($filerecords);
+            $DB->delete_records_list('tiny_cursive_user_writing', 'file_id', $fileids);
+            $DB->delete_records_list('tiny_cursive_writing_diff', 'file_id', $fileids);
+        }
+
+        $DB->delete_records_select('tiny_cursive_files', $select, $params);
+        $DB->delete_records_select('tiny_cursive_comments', $select, $params);
     }
 
     /**
      * Delete all user data for the specified user, in the specified contexts.
+     *
+     * Notice acknowledgements (tiny_cursive_notice / tiny_cursive_notice_text) are retained
+     * on purpose; see the class docblock for the rationale. The user preference caching the
+     * acknowledged version is likewise left in place, since it mirrors the retained record.
      *
      * @param approved_contextlist $contextlist The approved contexts and user information to delete information for.
      */

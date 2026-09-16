@@ -245,6 +245,43 @@ function xmldb_tiny_cursive_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026082001, 'tiny', 'cursive');
     }
 
+    if ($oldversion < 2026091500) {
+        // Define table tiny_cursive_notice: the append-only acknowledgement log.
+        $table = new xmldb_table('tiny_cursive_notice');
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('userid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('noticeversion', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('noticetexthash', XMLDB_TYPE_CHAR, '64', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('userid', XMLDB_KEY_FOREIGN, ['userid'], 'user', ['id']);
+        $table->add_index('idx_notice_user_version', XMLDB_INDEX_UNIQUE, ['userid', 'noticeversion']);
+        $table->add_index('idx_notice_timecreated', XMLDB_INDEX_NOTUNIQUE, ['timecreated']);
+        $table->add_index('idx_notice_texthash', XMLDB_INDEX_NOTUNIQUE, ['noticetexthash']);
+
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // Define table tiny_cursive_notice_text: one row per distinct wording ever shown.
+        $table = new xmldb_table('tiny_cursive_notice_text');
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('noticetexthash', XMLDB_TYPE_CHAR, '64', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('noticetext', XMLDB_TYPE_TEXT, null, null, XMLDB_NOTNULL, null, null);
+        $table->add_field('lang', XMLDB_TYPE_CHAR, '30', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('noticeversion', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_index('idx_notice_text_hash', XMLDB_INDEX_UNIQUE, ['noticetexthash']);
+
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // Cursive savepoint reached.
+        upgrade_plugin_savepoint(true, 2026091500, 'tiny', 'cursive');
+    }
+
     // Do not queue the telemetry task under PHPUnit: it makes an outbound HTTP
     // call that fails in the test environment and leaks its adhoc task lock,
     // aborting phpunit_util::install_site().

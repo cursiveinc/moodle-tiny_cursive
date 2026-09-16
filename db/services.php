@@ -265,6 +265,14 @@ $functions = [
         'ajax' => true,
         'capabilities' => 'tiny/cursive:view',
     ],
+    'tiny_cursive_record_acknowledgement' => [
+        'classname' => 'tiny_cursive\external\record_acknowledgement',
+        'methodname' => 'execute',
+        'description' => 'Record that the calling user acknowledged the data transparency notice',
+        'type' => 'write',
+        'ajax' => true,
+        'capabilities' => '',
+    ],
 ];
 
 // We define the services to install as pre-build services.
