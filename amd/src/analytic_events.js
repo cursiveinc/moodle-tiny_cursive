@@ -47,7 +47,7 @@ function getGuidanceState() {
     if (!guidanceStateRequest) {
         const contextid = (window.M && M.cfg && M.cfg.contextid) ? M.cfg.contextid : 0;
         guidanceStateRequest = Promise.resolve(
-            getContent([{methodname: 'cursive_get_guidance_state', args: {contextid}}])[0]
+            getContent([{methodname: 'tiny_cursive_get_guidance_state', args: {contextid}}])[0]
         ).then(state => {
             guidanceState = state;
             return state;
@@ -200,7 +200,7 @@ export default class AnalyticEvents {
                 throw new Error('Missing file id or Difference Content not received yet');
             }
             getContent([{
-                methodname: 'cursive_get_writing_differences',
+                methodname: 'tiny_cursive_get_writing_differences',
                 args: {fileid: fileid},
             }])[0].done(response => {
                 let responsedata = JSON.parse(response.data);
@@ -210,7 +210,7 @@ export default class AnalyticEvents {
                     const getPasteCount = () => {
                         if (filepath) {
                             return getContent([{
-                                methodname: 'cursive_get_reply_json',
+                                methodname: 'tiny_cursive_get_reply_json',
                                 args: {filepath: filepath}
                             }])[0].then(replayResponse => {
 
@@ -300,7 +300,9 @@ export default class AnalyticEvents {
 
                             let contents = $('<div>').addClass('tiny_cursive-comparison-content');
                             let textBlock2 = $('<div>').addClass('tiny_cursive-text-block').append(
-                                $('<div>').attr('id', 'tiny_cursive-reconstructed_text').html(JSON.parse(submittedText))
+                                $('<div>').attr('id', 'tiny_cursive-reconstructed_text')
+                                    .css('white-space', 'pre-wrap')
+                                    .text(JSON.parse(submittedText))
                             );
 
                             contents.append(commentBox, $legend, textBlock2);

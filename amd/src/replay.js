@@ -643,7 +643,7 @@ export default class Replay {
 
     loadJSON(filePath) {
         return fetchJson([{
-            methodname: 'cursive_get_reply_json',
+            methodname: 'tiny_cursive_get_reply_json',
             args: {filepath: filePath}
         }])[0].done(response => response).fail(error => {
             throw new Error(`Error loading JSON file: ${error.message}`);

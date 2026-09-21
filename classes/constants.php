@@ -208,7 +208,7 @@ class constants {
         $nextsync     = strtotime('+5 minutes');
 
         if (empty($secret)) {
-            if ($apikey !== false || $apikey !== "0") {
+            if (!empty($apikey)) {
                 set_config('apiKey', false, 'tiny_cursive');
             }
             if ($syncinterval < $now) {

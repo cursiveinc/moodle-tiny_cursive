@@ -94,7 +94,7 @@ export const init = (page, hasApiKey, csvOption) => {
             let cmid = $(this).data("cmid");
 
             AJAX.call([{
-                methodname: 'cursive_get_writing_statistics',
+                methodname: 'tiny_cursive_get_writing_statistics',
                 args: {
                     cmid: cmid,
                     fileid: mid,
@@ -273,7 +273,7 @@ export const init = (page, hasApiKey, csvOption) => {
 
             var promise1 = AJAX.call([
                 {
-                    methodname: "cursive_get_user_list",
+                    methodname: "tiny_cursive_get_user_list",
                     args: {
                         courseid: courseid,
                     },
@@ -298,7 +298,7 @@ export const init = (page, hasApiKey, csvOption) => {
 
             var promise2 = AJAX.call([
                 {
-                    methodname: "cursive_get_module_list",
+                    methodname: "tiny_cursive_get_module_list",
                     args: {
                         courseid: courseid,
                     },

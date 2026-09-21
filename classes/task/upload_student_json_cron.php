@@ -90,7 +90,7 @@ class upload_student_json_cron extends scheduled_task {
         // content/original_content blobs are loaded per record, just before upload,
         // to avoid materialising up to $batchsize multi-megabyte rows at once.
         $batchsize = 200;
-        $sql = "SELECT tcf.id, tcf.userid, tcf.filename, tcf.timemodified, tcf.uploaded
+        $sql = "SELECT tcf.id, tcf.userid, tcf.cmid, tcf.filename, tcf.timemodified, tcf.uploaded
                 FROM {tiny_cursive_files} tcf
                 WHERE tcf.timemodified > tcf.uploaded
                 ORDER BY tcf.timemodified ASC";
@@ -101,10 +101,15 @@ class upload_student_json_cron extends scheduled_task {
         $transientfailurecount = 0;
         $permanentfailurecount = 0;
 
+        $contentrecords = [];
+        if (!empty($filerecords)) {
+            $contentrecords = $DB->get_records_list($table, 'id', array_keys($filerecords), '', 'id, content, original_content');
+        }
+
         foreach ($filerecords as $filerecord) {
-            // Load the heavy columns only for the record about to be processed.
-            $filerecord->content = $DB->get_field($table, 'content', ['id' => $filerecord->id]);
-            $answer = (string) $DB->get_field($table, 'original_content', ['id' => $filerecord->id]);
+            // Load the heavy columns from the pre-fetched batch.
+            $filerecord->content = $contentrecords[$filerecord->id]->content ?? null;
+            $answer = (string) ($contentrecords[$filerecord->id]->original_content ?? '');
 
             // Skip records with empty content to prevent json_decode() errors.
             if (empty($filerecord->content)) {

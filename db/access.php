@@ -26,13 +26,14 @@
 defined('MOODLE_INTERNAL') || die();
 $capabilities = [
     'tiny/cursive:editsettings' => [
+        'riskbitmask' => RISK_CONFIG,
         'captype' => 'write',
         'contextlevel' => CONTEXT_SYSTEM,
         'archetypes' => [
             'manager' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
         ],
-        'clonepermission' => 'moodle/site:configwrite',
+        'clonepermissionsfrom' => 'moodle/site:configwrite',
     ],
     'tiny/cursive:view' => [
         'captype' => 'read',
@@ -74,7 +75,7 @@ $capabilities = [
             'editingteacher' => CAP_ALLOW,
             'manager' => CAP_ALLOW,
         ],
-        'clonepermission' => 'tiny/cursive:view',
+        'clonepermissionsfrom' => 'tiny/cursive:view',
     ],
     'tiny/cursive:bypasspastecontrols' => [
         'captype' => 'read',

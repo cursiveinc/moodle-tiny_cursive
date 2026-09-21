@@ -246,7 +246,7 @@ export default class CursiveAutosave {
         };
 
         call([{
-            methodname: "cursive_get_autosave_content",
+            methodname: "tiny_cursive_get_autosave_content",
             args: args
         }])[0].done((data) => {
             let context = {comments: JSON.parse(data)};

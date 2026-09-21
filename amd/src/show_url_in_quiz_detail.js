@@ -90,7 +90,7 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
                 }
 
                 let args = {id: attemptId, modulename: "quiz", "cmid": cmid, "questionid": questionid, "userid": userid};
-                let methodname = 'cursive_get_comment_link';
+                let methodname = 'tiny_cursive_get_comment_link';
                 let com = AJAX.call([{methodname, args}]);
                 com[0].done(function(json) {
                     var data = JSON.parse(json);

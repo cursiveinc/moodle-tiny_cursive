@@ -15,21 +15,21 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * File for handling PDF export functionality in the Cursive plugin
+ * Uninstallation cleanup script for tiny_cursive plugin.
  *
  * @package    tiny_cursive
- * @copyright  2025 Cursive Technology, Inc. <info@cursivetechnology.com>
+ * @copyright  2026 CTI <info@cursivetechnology.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require('../../../../../config.php');
+/**
+ * Custom uninstall procedure for the tiny_cursive plugin.
+ *
+ * @return bool True on success.
+ */
+function xmldb_tiny_cursive_uninstall(): bool {
+    // Delete all plugin config settings.
+    unset_all_config_for_plugin('tiny_cursive');
 
-require_login();
-
-$id     = required_param('id', PARAM_INT);
-$file   = required_param('file', PARAM_INT);
-$cmid   = required_param('cmid', PARAM_INT);
-$course = required_param('course', PARAM_INT);
-$qid    = optional_param('qid', 0, PARAM_INT);
-$page   = new \tiny_cursive\local\page\pdfexport($course, $cmid, $id, $qid, $file);
-$page->download();
+    return true;
+}

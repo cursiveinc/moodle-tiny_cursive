@@ -35,7 +35,7 @@ define(["jquery", "core/ajax", "core/str"], function($, AJAX, str) {
         var token = $("#id_s_tiny_cursive_secretkey").val();
         var promise1 = AJAX.call([
           {
-            methodname: "cursive_approve_token",
+            methodname: "tiny_cursive_approve_token",
             args: {
               token: token,
             },
@@ -69,7 +69,7 @@ define(["jquery", "core/ajax", "core/str"], function($, AJAX, str) {
         e.preventDefault();
         var promise1 = AJAX.call([
           {
-            methodname: "cursive_generate_webtoken",
+            methodname: "tiny_cursive_generate_webtoken",
             args: [],
           },
         ]);
@@ -115,7 +115,7 @@ define(["jquery", "core/ajax", "core/str"], function($, AJAX, str) {
 
         var promise1 = AJAX.call([
           {
-            methodname: "cursive_disable_all_course",
+            methodname: "tiny_cursive_disable_all_course",
             args: {
               disable: true,
             },
@@ -161,7 +161,7 @@ define(["jquery", "core/ajax", "core/str"], function($, AJAX, str) {
 
         var promise1 = AJAX.call([
           {
-            methodname: "cursive_disable_all_course",
+            methodname: "tiny_cursive_disable_all_course",
             args: {
               disable: false,
             },

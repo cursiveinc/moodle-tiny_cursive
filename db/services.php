@@ -26,7 +26,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $functions = [
-    'cursive_get_user_list' => [
+    'tiny_cursive_get_user_list' => [
         'classname' => 'cursive_json_func_data',
         'methodname' => 'get_user_list',
         'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
@@ -35,7 +35,7 @@ $functions = [
         'ajax' => true,
         'capabilities' => 'tiny/cursive:view',
     ],
-    'cursive_get_module_list' => [
+    'tiny_cursive_get_module_list' => [
         'classname' => 'cursive_json_func_data',
         'methodname' => 'get_module_list',
         'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
@@ -44,7 +44,7 @@ $functions = [
         'ajax' => true,
         'capabilities' => 'tiny/cursive:view',
     ],
-    'cursive_approve_token' => [
+    'tiny_cursive_approve_token' => [
         'classname' => 'cursive_json_func_data',
         'methodname' => 'cursive_approve_token_func',
         'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
@@ -53,7 +53,7 @@ $functions = [
         'ajax' => true,
         'capabilities' => 'tiny/cursive:editsettings',
     ],
-    'cursive_user_comments' => [
+    'tiny_cursive_user_comments' => [
         'classname' => 'cursive_json_func_data',
         'methodname' => 'cursive_user_comments_func',
         'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
@@ -62,7 +62,7 @@ $functions = [
         'ajax' => true,
         'capabilities' => 'tiny/cursive:write',
     ],
-    'cursive_get_comment_link' => [
+    'tiny_cursive_get_comment_link' => [
         'classname' => 'cursive_json_func_data',
         'methodname' => 'get_comment_link',
         'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
@@ -71,7 +71,7 @@ $functions = [
         'ajax' => true,
         'capabilities' => 'tiny/cursive:view',
     ],
-    'cursive_get_assign_comment_link' => [
+    'tiny_cursive_get_assign_comment_link' => [
         'classname' => 'cursive_json_func_data',
         'methodname' => 'get_assign_comment_link',
         'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
@@ -80,7 +80,7 @@ $functions = [
         'ajax' => true,
         'capabilities' => 'tiny/cursive:view',
     ],
-    'cursive_get_forum_comment_link' => [
+    'tiny_cursive_get_forum_comment_link' => [
         'classname' => 'cursive_json_func_data',
         'methodname' => 'get_forum_comment_link',
         'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
@@ -89,7 +89,7 @@ $functions = [
         'ajax' => true,
         'capabilities' => 'tiny/cursive:view',
     ],
-    'cursive_get_assign_grade_comment' => [
+    'tiny_cursive_get_assign_grade_comment' => [
         'classname' => 'cursive_json_func_data',
         'methodname' => 'get_assign_grade_comment',
         'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
@@ -98,7 +98,7 @@ $functions = [
         'ajax' => true,
         'capabilities' => 'tiny/cursive:view',
     ],
-    'cursive_user_list_submission_stats' => [
+    'tiny_cursive_user_list_submission_stats' => [
         'classname' => 'cursive_json_func_data',
         'methodname' => 'get_user_list_submission_stats',
         'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
@@ -108,7 +108,7 @@ $functions = [
         'capabilities' => 'tiny/cursive:view',
     ],
 
-    'cursive_filtered_writing' => [
+    'tiny_cursive_filtered_writing' => [
         'classname' => 'cursive_json_func_data',
         'methodname' => 'cursive_filtered_writing_func',
         'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
@@ -117,7 +117,7 @@ $functions = [
         'ajax' => true,
         'capabilities' => 'tiny/cursive:view',
     ],
-    'cursive_store_user_writing' => [
+    'tiny_cursive_store_user_writing' => [
         'classname' => 'cursive_json_func_data',
         'methodname' => 'store_user_writing',
         'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
@@ -126,7 +126,7 @@ $functions = [
         'ajax' => true,
         'capabilities' => 'tiny/cursive:write',
     ],
-    'cursive_get_reply_json' => [
+    'tiny_cursive_get_reply_json' => [
         'classname' => 'cursive_json_func_data',
         'methodname' => 'cursive_get_reply_json',
         'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
@@ -135,7 +135,7 @@ $functions = [
         'ajax' => true,
         'capabilities' => 'tiny/cursive:view',
     ],
-    'cursive_get_writing_statistics' => [
+    'tiny_cursive_get_writing_statistics' => [
         'classname' => 'cursive_json_func_data',
         'methodname' => 'cursive_get_analytics',
         'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
@@ -144,7 +144,7 @@ $functions = [
         'ajax' => true,
         'capabilities' => 'tiny/cursive:view',
     ],
-    'cursive_store_writing_differences' => [
+    'tiny_cursive_store_writing_differences' => [
         'classname' => 'cursive_json_func_data',
         'methodname' => 'cursive_store_writing_differencs',
         'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
@@ -153,7 +153,7 @@ $functions = [
         'ajax' => true,
         'capabilities' => 'tiny/cursive:write',
     ],
-    'cursive_get_writing_differences' => [
+    'tiny_cursive_get_writing_differences' => [
         'classname' => 'cursive_json_func_data',
         'methodname' => 'cursive_get_writing_differencs',
         'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
@@ -162,7 +162,7 @@ $functions = [
         'ajax' => true,
         'capabilities' => 'tiny/cursive:view',
     ],
-    'cursive_generate_webtoken' => [
+    'tiny_cursive_generate_webtoken' => [
         'classname' => 'cursive_json_func_data',
         'methodname' => 'generate_webtoken',
         'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
@@ -171,7 +171,7 @@ $functions = [
         'ajax' => true,
         'capabilities' => 'tiny/cursive:view',
     ],
-    'cursive_write_local_to_json' => [
+    'tiny_cursive_write_local_to_json' => [
         'classname' => 'cursive_json_func_data',
         'methodname' => 'write_local_to_json',
         'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
@@ -180,7 +180,7 @@ $functions = [
         'ajax' => true,
         'capabilities' => 'tiny/cursive:view',
     ],
-    'cursive_get_config' => [
+    'tiny_cursive_get_config' => [
         'classname' => 'cursive_json_func_data',
         'methodname' => 'cursive_get_config',
         'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
@@ -188,7 +188,8 @@ $functions = [
         'type' => 'write',
         'ajax' => true,
         'capabilities' => 'tiny/cursive:writingreport',
-    ], 'cursive_get_guidance_state' => [
+    ],
+    'tiny_cursive_get_guidance_state' => [
         'classname' => 'cursive_json_func_data',
         'methodname' => 'get_guidance_state',
         'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
@@ -196,7 +197,8 @@ $functions = [
         'type' => 'read',
         'ajax' => true,
         'capabilities' => '',
-    ], 'cursive_get_lesson_submission_data' => [
+    ],
+    'tiny_cursive_get_lesson_submission_data' => [
         'classname' => 'cursive_json_func_data',
         'methodname' => 'get_lesson_submission_data',
         'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
@@ -204,15 +206,17 @@ $functions = [
         'type' => 'read',
         'ajax' => true,
         'capabilities' => 'tiny/cursive:view',
-    ], 'cursive_disable_all_course' => [
+    ],
+    'tiny_cursive_disable_all_course' => [
         'classname' => 'cursive_json_func_data',
         'methodname' => 'disable_cursive',
         'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
         'description' => 'disable cursive for all courses',
-        'type' => 'read',
+        'type' => 'write',
         'ajax' => true,
-        'capabilities' => 'tiny/cursive:view',
-    ], 'cursive_get_oublog_submission_data' => [
+        'capabilities' => 'tiny/cursive:editsettings',
+    ],
+    'tiny_cursive_get_oublog_submission_data' => [
         'classname' => 'cursive_json_func_data',
         'methodname' => 'get_oublog_submission_data',
         'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
@@ -220,7 +224,8 @@ $functions = [
         'type' => 'read',
         'ajax' => true,
         'capabilities' => 'tiny/cursive:view',
-    ], 'cursive_resubmit_payload_data' => [
+    ],
+    'tiny_cursive_resubmit_payload_data' => [
         'classname' => 'cursive_json_func_data',
         'methodname' => 'resubmit_payload_data',
         'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
@@ -229,7 +234,7 @@ $functions = [
         'ajax' => true,
         'capabilities' => 'tiny/cursive:view',
     ],
-    'cursive_get_autosave_content' => [
+    'tiny_cursive_get_autosave_content' => [
         'classname' => 'cursive_json_func_data',
         'methodname' => 'get_autosave_content',
         'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
@@ -238,7 +243,7 @@ $functions = [
         'ajax' => true,
         'capabilities' => 'tiny/cursive:view',
     ],
-    'cursive_update_pdf_annote_id' => [
+    'tiny_cursive_update_pdf_annote_id' => [
         'classname' => 'cursive_json_func_data',
         'methodname' => 'update_pdf_annote_id',
         'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
@@ -247,7 +252,7 @@ $functions = [
         'ajax' => true,
         'capabilities' => 'tiny/cursive:view',
     ],
-        'cursive_remove_submission' => [
+    'tiny_cursive_remove_submission' => [
         'classname' => 'cursive_json_func_data',
         'methodname' => 'remove_student_submission',
         'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
@@ -256,7 +261,7 @@ $functions = [
         'ajax' => true,
         'capabilities' => 'tiny/cursive:view',
     ],
-        'cursive_get_workshop_submission' => [
+    'tiny_cursive_get_workshop_submission' => [
         'classname' => 'cursive_json_func_data',
         'methodname' => 'get_workshop_submission',
         'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
@@ -281,23 +286,23 @@ $functions = [
 $services = [
     'Cursive Json Service' => [
         'functions' => [
-            'cursive_get_module_list',
-            'cursive_user_comments',
-            'cursive_get_comment_link',
-            'cursive_user_list_submission_stats',
-            'cursive_approve_token',
-            'cursive_get_assign_comment_link',
-            'cursive_get_forum_comment_link',
-            'cursive_get_assign_grade_comment',
-            'cursive_store_user_writing',
-            'cursive_get_reply_json',
-            'cursive_filtered_writing',
-            'cursive_get_writing_statistics',
-            'cursive_store_writing_differences',
-            'cursive_get_writing_differences',
-            'cursive_generate_webtoken',
-            'cursive_write_local_to_json',
-            'cursive_get_config',
+            'tiny_cursive_get_module_list',
+            'tiny_cursive_user_comments',
+            'tiny_cursive_get_comment_link',
+            'tiny_cursive_user_list_submission_stats',
+            'tiny_cursive_approve_token',
+            'tiny_cursive_get_assign_comment_link',
+            'tiny_cursive_get_forum_comment_link',
+            'tiny_cursive_get_assign_grade_comment',
+            'tiny_cursive_store_user_writing',
+            'tiny_cursive_get_reply_json',
+            'tiny_cursive_filtered_writing',
+            'tiny_cursive_get_writing_statistics',
+            'tiny_cursive_store_writing_differences',
+            'tiny_cursive_get_writing_differences',
+            'tiny_cursive_generate_webtoken',
+            'tiny_cursive_write_local_to_json',
+            'tiny_cursive_get_config',
         ],
         'shortname' => 'cursive_json_service',
         'downloadfiles' => 1, // Allow file downloads.

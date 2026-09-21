@@ -54,7 +54,7 @@ export const assignView = (scoreSetting, hasApiKey, userid) => {
         .find(th => th.textContent.trim().includes('Online text'));
     let cmid = M.cfg.contextInstanceId;
     let args = {id: userid, modulename: 'assign', cmid: cmid};
-    let studentData = getStudentData('cursive_user_list_submission_stats', args);
+    let studentData = getStudentData('tiny_cursive_user_list_submission_stats', args);
     setStudentView(studentData, hasApiKey, userid, scoreSetting, target, "", "assign");
 
 };
@@ -68,7 +68,7 @@ export const quizView = (scoreSetting, hasApiKey, userid) => {
             let cmid = M.cfg.contextInstanceId;
             let attemptId = new URLSearchParams(window.location.search).get('attempt');
             let args = {id: attemptId, modulename: "quiz", cmid: cmid, questionid: questionid, userid: userid};
-            let studentData = getStudentData('cursive_get_comment_link', args);
+            let studentData = getStudentData('tiny_cursive_get_comment_link', args);
             let target = queObject.querySelector('.content .qtext');
             setStudentView(studentData, hasApiKey, userid, scoreSetting, target, questionid, "quiz");
 
@@ -85,7 +85,7 @@ export const forumView = (scoreSetting, hasApiKey, userid) => {
                 let postId = post.dataset.postId;
                 let cmid = M.cfg.contextInstanceId;
                 let args = {id: postId, modulename: "forum", cmid: cmid};
-                let studentData = getStudentData('cursive_get_forum_comment_link', args);
+                let studentData = getStudentData('tiny_cursive_get_forum_comment_link', args);
                 let target = post.querySelector('#post-content-' + postId);
                 setStudentView(studentData, hasApiKey, postId, scoreSetting, target, "", "forum");
             }
@@ -98,7 +98,7 @@ export const lessonView = (scoreSetting, hasApiKey, userid) => {
     if (lessonForm) {
             let cmid = M.cfg.contextInstanceId;
             let args = {id: userid, modulename: "lesson", cmid: cmid};
-            let studentData = getStudentData('cursive_get_lesson_submission_data', args);
+            let studentData = getStudentData('tiny_cursive_get_lesson_submission_data', args);
             setStudentView(studentData, hasApiKey, userid, scoreSetting, lessonForm, "", "lesson");
     }
 };
@@ -112,7 +112,7 @@ export const workshopView = (scoreSetting, hasApiKey, userid) => {
     }
     if (userid == byUserid || document.querySelector('#body')?.classList.contains('teacher_admin')) {
         let args = {resourceid: cmid, userid: userid, modulename: "workshop", cmid: cmid};
-        let studentData = getStudentData('cursive_get_workshop_submission', args);
+        let studentData = getStudentData('tiny_cursive_get_workshop_submission', args);
         let target = document.querySelector('div[role="main"]');
 
         setStudentView(studentData, hasApiKey, userid, scoreSetting, target, "", "workshop");
@@ -136,7 +136,7 @@ export const diaryView = (scoreSetting, hasApiKey) => {
         }
         let entryId = parseInt(match[1], 10);
         let args = {id: entryId, modulename: "diary", cmid: cmid};
-        let studentData = getStudentData('cursive_get_forum_comment_link', args);
+        let studentData = getStudentData('tiny_cursive_get_forum_comment_link', args);
         // Pass the entry id as the per-item identifier (like forum passes the post id) so each
         // entry gets its own button/modal, and use the heading as the placement anchor.
         setStudentView(studentData, hasApiKey, entryId, scoreSetting, h5, "", "diary");
@@ -156,7 +156,7 @@ export const workshopAssessmentView = (scoreSetting, hasApiKey) => {
     reviewerId = reviewerId ? new URL(reviewerId, window.location.origin).searchParams.get('id') : 0;
 
     let args = {resourceid: assessmentId, userid: reviewerId, modulename: "workshop", cmid: cmid};
-    let studentData = getStudentData('cursive_get_workshop_submission', args);
+    let studentData = getStudentData('tiny_cursive_get_workshop_submission', args);
 
     let target = document.querySelector('div[role="main"]');
     setStudentView(studentData, hasApiKey, assessmentId, scoreSetting, target, "", "workshopassessment");

@@ -77,7 +77,7 @@ if ($ADMIN->fulltree) {
             'tiny_cursive/secretkey',
             get_string('secretkey', 'tiny_cursive'),
             get_string('secretkey_desc', 'tiny_cursive') . '' .
-            "<br/><a id='cursive_approve_token' href='#' class='btn btn-primary'>  " .
+            "<br/><a id='tiny_cursive_approve_token' href='#' class='btn btn-primary'>  " .
             get_string('test_token', 'tiny_cursive') . " </a><span id='cursive_token_message'></span>",
             "",
             PARAM_TEXT
