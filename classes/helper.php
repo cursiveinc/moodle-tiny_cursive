@@ -28,6 +28,32 @@ use moodle_exception;
  */
 class helper {
     /**
+     * Validate access to a stored writing JSON download.
+     *
+     * The course is always derived from the course module so a caller cannot combine a privileged
+     * course ID with an unrelated module ID.
+     *
+     * @param int $cmid Course module ID.
+     * @param int $userid Owner of the requested writing data.
+     * @return \stdClass The course record derived from the course module.
+     */
+    public static function require_json_download_access(int $cmid, int $userid): \stdClass {
+        global $USER;
+
+        $cm = get_coursemodule_from_id(null, $cmid, 0, false, MUST_EXIST);
+        $course = get_course($cm->course);
+        require_login($course, false, $cm);
+
+        $context = \context_module::instance($cmid);
+        require_capability('tiny/cursive:writingreport', $context);
+        if ((int) $USER->id !== $userid) {
+            require_capability('tiny/cursive:view', $context);
+        }
+
+        return $course;
+    }
+
+    /**
      * Updates resource IDs for both comments and cursive files
      *
      * @param array $data Array containing userid, modulename, courseid, cmid and resourceid

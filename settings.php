@@ -115,6 +115,14 @@ if ($ADMIN->fulltree) {
             1
         )
     );
+    $settings->add(
+        new admin_setting_configcheckbox(
+            'tiny_cursive/sendtelemetry',
+            get_string('sendtelemetry', 'tiny_cursive'),
+            get_string('sendtelemetry_desc', 'tiny_cursive'),
+            1
+        )
+    );
 
     $settings->add(
         new admin_setting_configtext(

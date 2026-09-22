@@ -71,6 +71,9 @@ class provider implements core_userlist_provider, meta_provider, plugin_provider
             'content' => 'privacy:metadata:database:tiny_cursive:content',
             'original_content' => 'privacy:metadata:database:tiny_cursive:original_content',
             'timemodified' => 'privacy:metadata:database:tiny_cursive:timemodified',
+            'domain' => 'privacy:metadata:external:domain',
+            'plugin_version' => 'privacy:metadata:external:pluginversion',
+            'moodle_version' => 'privacy:metadata:external:moodleversion',
         ], 'privacy:metadata:database:tiny_cursive');
 
         return $collection;

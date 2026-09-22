@@ -52,6 +52,15 @@ $capabilities = [
             'editingteacher' => CAP_ALLOW,
         ],
     ],
+    'tiny/cursive:deletesubmission' => [
+        'riskbitmask' => RISK_DATALOSS,
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_MODULE,
+        'archetypes' => [
+            'manager' => CAP_ALLOW,
+            'editingteacher' => CAP_ALLOW,
+        ],
+    ],
     'tiny/cursive:writingreport' => [
         'captype' => 'read',
         'contextlevel' => CONTEXT_MODULE,

@@ -41,7 +41,7 @@ class tiny_cursive_renderer extends plugin_renderer_base {
      * @throws moodle_exception
      */
     public function timer_report($users, $courseid, $page = 0, $limit = 5, $baseurl = '') {
-        global $DB, $CFG;
+        global $CFG;
         require_once($CFG->dirroot . "/lib/editor/tiny/plugins/cursive/lib.php");
 
         $totalcount = $users['count'];
@@ -50,6 +50,18 @@ class tiny_cursive_renderer extends plugin_renderer_base {
         $configs = array_filter((array)$configs, fn($key) => str_starts_with($key, 'CUR'), ARRAY_FILTER_USE_KEY);
         $modinfo  = get_fast_modinfo($courseid);
         $cms = $modinfo->get_cms(); // Course modules.
+        $titleids = ['forum' => [], 'diary' => []];
+        foreach ($data as $user) {
+            $cm = $cms[$user->cmid] ?? null;
+            if ($cm && isset($titleids[$cm->modname])) {
+                $titleids[$cm->modname][] = $user->fileid;
+            }
+        }
+        $customtitles = [
+            'forum' => $this->get_custom_titles($titleids['forum'], 'forum'),
+            'diary' => $this->get_custom_titles($titleids['diary'], 'diary'),
+        ];
+        $questions = $this->get_report_questions($data, $cms);
 
         $dwnldicon = $this->output->pix_icon(
             'download',
@@ -78,13 +90,13 @@ class tiny_cursive_renderer extends plugin_renderer_base {
                 continue;
             }
 
-            $module   = get_coursemodule_from_id($cm?->modname, $user->cmid, 0, false, MUST_EXIST);
+            $module = (object) ['name' => $cm->name];
+            if (isset($customtitles[$cm->modname][$user->fileid])) {
+                $module->name .= $customtitles[$cm->modname][$user->fileid];
+            }
 
-            $this->generate_custom_title($cm, $user, $DB, $module);
-
-            if ($cm->modname === 'quiz' && $user) {
-                $question = question_bank::load_question($user->questionid);
-                $module->name = $module->name . " / " . $question->name;
+            if ($cm->modname === 'quiz' && !empty($user->questionid) && isset($questions[$user->questionid])) {
+                $module->name .= ' / ' . format_string($questions[$user->questionid]->name);
             }
 
             $row               = [];
@@ -219,6 +231,31 @@ class tiny_cursive_renderer extends plugin_renderer_base {
         $totalcount = $users['count'];
         $data       = $users['data'];
 
+        $modinfos = [];
+        foreach (array_unique(array_column($data, 'courseid')) as $datacourseid) {
+            if ($datacourseid) {
+                $modinfos[$datacourseid] = get_fast_modinfo($datacourseid);
+            }
+        }
+        $rowcms = [];
+        $titleids = ['forum' => [], 'diary' => []];
+        foreach ($data as $user) {
+            $cm = $modinfos[$user->courseid]->cms[$user->cmid] ?? null;
+            $rowcms[$user->fileid] = $cm;
+            if ($cm && isset($titleids[$cm->modname])) {
+                $titleids[$cm->modname][] = $user->fileid;
+            }
+        }
+        $customtitles = [
+            'forum' => $this->get_custom_titles($titleids['forum'], 'forum'),
+            'diary' => $this->get_custom_titles($titleids['diary'], 'diary'),
+        ];
+        $allcms = [];
+        foreach ($modinfos as $modinfo) {
+            $allcms += $modinfo->get_cms();
+        }
+        $questions = $this->get_report_questions($data, $allcms);
+
         $coursename = $courses[$courseid]->fullname ?? get_string('allcourses', 'tiny_cursive');
         $userdata = [];
         $lastupdate = 0;
@@ -230,29 +267,19 @@ class tiny_cursive_renderer extends plugin_renderer_base {
                 continue;
             }
 
-            $cm = null;
-            if ($courseid) {
-                $modinfo = get_fast_modinfo($courseid);
-                if ($modinfo && isset($modinfo->cms[$user->cmid])) {
-                    $cm = $modinfo->get_cm($user->cmid);
-                    $user->title = $cm->name;
-                    $user->cshortname = $courses[$courseid]->shortname;
-                }
+            $cm = $rowcms[$user->fileid] ?? null;
+            if (!$cm) {
+                continue;
             }
-
-            $module = $cm ? get_coursemodule_from_id(
-                $cm->modname,
-                $user->cmid,
-                0,
-                false,
-                MUST_EXIST
-            ) : null;
-
-            $this->generate_custom_title($cm, $user, $DB, $module);
+            $user->title = $cm->name;
+            $user->cshortname = $courses[$courseid]->shortname ?? '';
+            $module = (object) ['name' => $cm->name];
+            if (isset($customtitles[$cm->modname][$user->fileid])) {
+                $module->name .= $customtitles[$cm->modname][$user->fileid];
+            }
             $filepath = $user->filename;
-            if ($cm->modname === 'quiz' && $user) {
-                $question = question_bank::load_question($user->questionid);
-                $module->name = $module->name . " / " . $question->name;
+            if ($cm->modname === 'quiz' && !empty($user->questionid) && isset($questions[$user->questionid])) {
+                $module->name .= ' / ' . format_string($questions[$user->questionid]->name);
             }
             $row      = [];
             $row['modulename']   = $module ? $module->name : '';
@@ -317,61 +344,78 @@ class tiny_cursive_renderer extends plugin_renderer_base {
     }
 
     /**
-     * Generates a custom title for forum modules by appending post and reply subjects
+     * Batch-load formatted per-submission titles for report rows.
      *
-     * @param object $cm Course module object
-     * @param object $user User object containing file information
-     * @param moodle_database $DB Database instance
-     * @param object $module Module object to modify with custom title
-     * @return void
+     * @param array $fileids Cursive file ids.
+     * @param string $modname Activity module name.
+     * @return array Title suffixes keyed by Cursive file id.
      */
-    public function generate_custom_title($cm, $user, $DB, &$module) {
-        if ($cm->modname === 'forum') {
-            $sql = "SELECT cp.resourceid, p.parent,
-                           CASE
-                                WHEN p.parent = 0 THEN p.subject
-                                ELSE CONCAT(pp.subject, ' / ', p.subject)
-                           END AS title
+    private function get_custom_titles(array $fileids, string $modname): array {
+        global $DB;
+
+        if (!$fileids || !in_array($modname, ['forum', 'diary'], true)) {
+            return [];
+        }
+        if ($modname === 'diary' && !core_component::get_plugin_directory('mod', 'diary')) {
+            return [];
+        }
+
+        [$insql, $params] = $DB->get_in_or_equal(array_unique($fileids), SQL_PARAMS_NAMED);
+        if ($modname === 'forum') {
+            $sql = "SELECT cp.id AS fileid,
+                           CASE WHEN p.parent = 0 THEN p.subject
+                                ELSE " . $DB->sql_concat('pp.subject', "' / '", 'p.subject') . "
+                            END AS title
                       FROM {tiny_cursive_files} cp
                  LEFT JOIN {forum_posts} p ON cp.resourceid = p.id
                  LEFT JOIN {forum_posts} pp ON p.parent = pp.id
-                           WHERE cp.id = :fileid";
-
-            $params['fileid'] = $user->fileid;
-            $data = array_values($DB->get_records_sql($sql, $params));
-
-            if ($data && !empty($data[0]->title)) {
-                $module->name .= " / " . format_string($data[0]->title);
-            }
-        }
-
-        if ($cm->modname === 'diary') {
-            // Diary keeps multiple entries per activity, each keyed on the diary_entries id
-            // (stored as the file resourceid), so the bare activity name repeats on every row.
-            // Append the entry title to distinguish them, falling back to the entry creation
-            // date when the (optional) title is empty. This branch only runs for an existing
-            // diary course module, so it never queries diary tables when mod_diary is absent.
-            $sql = "SELECT cp.resourceid, e.title, e.timecreated
+                     WHERE cp.id {$insql}";
+        } else {
+            $sql = "SELECT cp.id AS fileid, e.title, e.timecreated
                       FROM {tiny_cursive_files} cp
                  LEFT JOIN {diary_entries} e ON cp.resourceid = e.id
-                     WHERE cp.id = :fileid";
+                     WHERE cp.id {$insql}";
+        }
 
-            $data = array_values($DB->get_records_sql($sql, ['fileid' => $user->fileid]));
-
-            if ($data && !empty($data[0])) {
-                $entry = $data[0];
-                if (isset($entry->title) && trim((string)$entry->title) !== '') {
-                    $subtitle = format_string($entry->title);
-                } else if (!empty($entry->timecreated)) {
-                    $subtitle = userdate($entry->timecreated);
+        $titles = [];
+        foreach ($DB->get_records_sql($sql, $params) as $fileid => $record) {
+            if ($modname === 'forum' && trim((string) $record->title) !== '') {
+                $titles[$fileid] = ' / ' . format_string($record->title);
+            } else if ($modname === 'diary') {
+                if (trim((string) $record->title) !== '') {
+                    $subtitle = format_string($record->title);
                 } else {
-                    $subtitle = '';
+                    $subtitle = !empty($record->timecreated) ? userdate($record->timecreated) : '';
                 }
-
                 if ($subtitle !== '') {
-                    $module->name .= " - {$subtitle}";
+                    $titles[$fileid] = " - {$subtitle}";
                 }
             }
         }
+
+        return $titles;
+    }
+
+    /**
+     * Load each quiz question required by report rows once.
+     *
+     * @param array $data Report records.
+     * @param array $cms Course modules keyed by id.
+     * @return array Question objects keyed by question id.
+     */
+    private function get_report_questions(array $data, array $cms): array {
+        $questionids = [];
+        foreach ($data as $user) {
+            $cm = $cms[$user->cmid] ?? null;
+            if ($cm && $cm->modname === 'quiz' && !empty($user->questionid)) {
+                $questionids[$user->questionid] = $user->questionid;
+            }
+        }
+
+        $questions = [];
+        foreach ($questionids as $questionid) {
+            $questions[$questionid] = question_bank::load_question($questionid);
+        }
+        return $questions;
     }
 }

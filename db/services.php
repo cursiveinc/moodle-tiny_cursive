@@ -250,7 +250,7 @@ $functions = [
         'description' => 'update resourceid for pdf annote analytics file',
         'type' => 'write',
         'ajax' => true,
-        'capabilities' => 'tiny/cursive:view',
+        'capabilities' => 'tiny/cursive:write',
     ],
     'tiny_cursive_remove_submission' => [
         'classname' => 'cursive_json_func_data',
@@ -259,7 +259,7 @@ $functions = [
         'description' => 'remove cursive submission when student submission is removed.',
         'type' => 'write',
         'ajax' => true,
-        'capabilities' => 'tiny/cursive:view',
+        'capabilities' => 'tiny/cursive:write, tiny/cursive:deletesubmission',
     ],
     'tiny_cursive_get_workshop_submission' => [
         'classname' => 'cursive_json_func_data',

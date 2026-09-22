@@ -45,6 +45,12 @@ class post_upgrade_task extends adhoc_task {
     public function execute() {
         global $CFG;
 
+        $sendtelemetry = get_config('tiny_cursive', 'sendtelemetry');
+        if ($sendtelemetry !== false && !(bool) $sendtelemetry) {
+            mtrace('[tiny_cursive] Site information transmission is disabled.');
+            return;
+        }
+
         $url = new moodle_url('/');
 
         $data = new stdClass();

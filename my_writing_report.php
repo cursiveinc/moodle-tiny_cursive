@@ -55,7 +55,7 @@ if ($uidparam) {
     $userid   = $uidparam;
 }
 
-if ($cparam && !is_siteadmin($USER->id) && $userid !== $USER->id) {
+if ($cparam && !is_siteadmin($USER->id) && $uidparam !== $USER->id) {
     $courseid = $cparam;
 }
 

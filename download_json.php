@@ -23,31 +23,28 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require(__DIR__ . '/../../../../../config.php');
-require_once(__DIR__ . '/locallib.php');
-use tiny_cursive\constants;
-global $DB, $USER;
-require_login();
+use tiny_cursive\helper;
 
-$resourceid = optional_param('resourceid', 0, PARAM_INT);
+require(__DIR__ . '/../../../../../config.php');
+require_login();
+global $DB;
+
 $userid     = optional_param('user_id', 0, PARAM_INT);
 $cmid       = optional_param('cmid', 0, PARAM_INT);
-$courseid   = optional_param('course', 0, PARAM_INT);
 $fname      = clean_param(optional_param('fname', '', PARAM_FILE), PARAM_FILE);
 
 if ($cmid <= 0 || $userid <= 0) {
     throw new moodle_exception('invalidparameters', 'tiny_cursive');
 }
-if (intval($USER->id) !== $userid && !constants::is_teacher_admin(context_course::instance($courseid))) {
-    throw new moodle_exception(get_string('warning', 'tiny_cursive'));
-}
-$context    = context_module::instance($cmid);
-require_capability('tiny/cursive:writingreport', $context);
+
+// The helper derives the course from the course module and performs all authorization checks.
+$course = helper::require_json_download_access($cmid, $userid);
 
 $filerow    = $DB->get_record('tiny_cursive_files', [
     'filename' => $fname,
     'userid'   => $userid,
     'cmid'     => $cmid,
+    'courseid' => $course->id,
 ]);
 if (!$fname || !$filerow || !$filerow->content) {
     redirect(get_local_referer(false), get_string('filenotfound', 'tiny_cursive'));
