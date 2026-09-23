@@ -117,7 +117,7 @@ $functions = [
         'ajax' => true,
         'capabilities' => 'tiny/cursive:view',
     ],
-    'tiny_cursive_store_user_writing' => [
+    'cursive_store_user_writing' => [
         'classname' => 'cursive_json_func_data',
         'methodname' => 'store_user_writing',
         'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
@@ -144,7 +144,7 @@ $functions = [
         'ajax' => true,
         'capabilities' => 'tiny/cursive:view',
     ],
-    'tiny_cursive_store_writing_differences' => [
+    'cursive_store_writing_differences' => [
         'classname' => 'cursive_json_func_data',
         'methodname' => 'cursive_store_writing_differencs',
         'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
@@ -286,11 +286,11 @@ $services = [
             'tiny_cursive_get_assign_comment_link',
             'tiny_cursive_get_forum_comment_link',
             'tiny_cursive_get_assign_grade_comment',
-            'tiny_cursive_store_user_writing',
+            'cursive_store_user_writing',
             'tiny_cursive_get_reply_json',
             'tiny_cursive_filtered_writing',
             'tiny_cursive_get_writing_statistics',
-            'tiny_cursive_store_writing_differences',
+            'cursive_store_writing_differences',
             'tiny_cursive_get_writing_differences',
             'tiny_cursive_generate_webtoken',
             'tiny_cursive_write_local_to_json',
