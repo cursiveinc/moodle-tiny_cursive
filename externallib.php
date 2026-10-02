@@ -406,11 +406,12 @@ class cursive_json_func_data extends external_api {
 
             if ($data['filename']) {
                 $sql = 'SELECT id AS fileid
-                        FROM {tiny_cursive_files}
-                        WHERE userid = :userid ORDER BY id ASC LIMIT 1';
-                $ffile = $DB->get_record_sql($sql, ['userid' => $filename->userid]);
+                          FROM {tiny_cursive_files}
+                         WHERE userid = :userid ORDER BY id ASC';
+                $firstfiles = $DB->get_records_sql($sql, ['userid' => $filename->userid], 0, 1);
+                $ffile = reset($firstfiles);
 
-                if ($ffile->fileid == $filename->file_id) {
+                if ($ffile && $ffile->fileid == $filename->file_id) {
                     $data['first_file'] = 1;
                 } else {
                     $data['first_file'] = 0;
@@ -515,7 +516,11 @@ class cursive_json_func_data extends external_api {
 
         // Use the caller's modulename (forum/workshop/diary) rather than hardcoding "forum",
         // so cite-source citations resolve for every module that shares this endpoint.
-        $conditions = ["resourceid" => $params['id'], 'modulename' => $params['modulename']];
+        $conditions = [
+            'resourceid' => $params['id'],
+            'modulename' => $params['modulename'],
+            'cmid' => $params['cmid'],
+        ];
         if (!has_capability('tiny/cursive:view', $context)) {
             $conditions['userid'] = $USER->id;
         }
@@ -538,7 +543,8 @@ class cursive_json_func_data extends external_api {
             $sqlparams['userid'] = $USER->id;
         }
 
-        $data = $DB->get_record_sql($attempts, $sqlparams);
+        $records = $DB->get_records_sql($attempts, $sqlparams, 0, 1);
+        $data = reset($records);
         if (isset($data->effort_ratio)) {
             $data->effort_ratio = intval(floatval($data->effort_ratio) * 100);
         }
@@ -560,7 +566,8 @@ class cursive_json_func_data extends external_api {
                 $sql .= " AND userid = :userid";
                 $sqlfileparams['userid'] = $USER->id;
             }
-            $filename = $DB->get_record_sql($sql, $sqlfileparams);
+            $filenames = $DB->get_records_sql($sql, $sqlfileparams, 0, 1);
+            $filename = reset($filenames);
 
             // A resource with no capture record (e.g. a diary entry written before Cursive was
             // enabled, or a teacher-created entry) yields no file row. Guard the access so the
@@ -572,23 +579,26 @@ class cursive_json_func_data extends external_api {
                 $data['resubmit'] = constants::is_resubmitable($data, $filename->file_id);
                 $data['cmid'] = $params['cmid'];
 
-                $sql = 'SELECT *
+                $sql = 'SELECT id
                           FROM {tiny_cursive_files}
                          WHERE userid = :userid ORDER BY id ASC';
-                $firstfile = $DB->get_record_sql($sql, ['userid' => $filename->userid]);
+                $firstfiles = $DB->get_records_sql($sql, ['userid' => $filename->userid], 0, 1);
+                $firstfile = reset($firstfiles);
                 if ($firstfile && $firstfile->id == $filename->file_id) {
                     $data['first_file'] = 1;
                 }
             }
         }
 
-        $sql = 'SELECT *
-                  FROM {tiny_cursive_files}
-                 WHERE userid = :userid ORDER BY id ASC LIMIT 1';
-        $firstfile = $DB->get_record_sql($sql, ['userid' => $data['userid'] ?? '']);
-        $fileid = $firstfile->id ?? null;
-        if (isset($firstfile) && isset($filename) && $fileid == $filename->file_id) {
-            $data['first_file'] = 1;
+        if (!empty($data['userid']) && !empty($data['file_id'])) {
+            $sql = 'SELECT id
+                      FROM {tiny_cursive_files}
+                     WHERE userid = :userid ORDER BY id ASC';
+            $firstfiles = $DB->get_records_sql($sql, ['userid' => $data['userid']], 0, 1);
+            $firstfile = reset($firstfiles);
+            if ($firstfile && $firstfile->id == $data['file_id']) {
+                $data['first_file'] = 1;
+            }
         }
 
         $usercomment = [];
@@ -763,17 +773,20 @@ class cursive_json_func_data extends external_api {
                 ['userid' => $params['id'], 'cmid' => $params['cmid'], 'modulename' => $params['modulename']],
             );
 
-            $data['filename'] = $filename->filename;
-            $data['file_id'] = $filename->id;
-            $data['userid'] = $filename->userid;
+            if ($filename) {
+                $data['filename'] = $filename->filename;
+                $data['file_id'] = $filename->id;
+                $data['userid'] = $filename->userid;
+            }
         }
-        if ($data['filename']) {
+        if (!empty($data['filename'])) {
             $sql = 'SELECT id AS fileid
                       FROM {tiny_cursive_files}
-                     WHERE userid = :userid ORDER BY id ASC LIMIT 1';
-            $ffile = $DB->get_record_sql($sql, ['userid' => $data['userid']]);
+                     WHERE userid = :userid ORDER BY id ASC';
+            $firstfiles = $DB->get_records_sql($sql, ['userid' => $data['userid']], 0, 1);
+            $ffile = reset($firstfiles);
 
-            if ($ffile->fileid == $data['file_id']) {
+            if ($ffile && $ffile->fileid == $data['file_id']) {
                 $data['first_file'] = 1;
             } else {
                 $data['first_file'] = 0;
@@ -1068,7 +1081,7 @@ class cursive_json_func_data extends external_api {
      */
     public static function cursive_get_reply_json_parameters() {
         return new external_function_parameters([
-            'filepath' => new external_value(PARAM_TEXT, 'filepath', VALUE_DEFAULT, ''),
+            'filepath' => new external_value(PARAM_FILE, 'filepath', VALUE_DEFAULT, ''),
         ]);
     }
 
@@ -1083,7 +1096,7 @@ class cursive_json_func_data extends external_api {
      * @throws moodle_exception
      */
     public static function cursive_get_reply_json($filepath) {
-        global $DB;
+        global $DB, $USER;
 
         $params = self::validate_parameters(
             self::cursive_get_reply_json_parameters(),
@@ -1092,39 +1105,46 @@ class cursive_json_func_data extends external_api {
             ],
         );
         $parts = explode('_', $params['filepath']);
-        $cmid = $parts[2];
-        $userid = $parts[0];
-        $resourceid = $parts[1];
+        if (count($parts) < 3 || !ctype_digit($parts[0]) || !ctype_digit($parts[1]) || !ctype_digit($parts[2])) {
+            throw new invalid_parameter_exception('Invalid capture filename.');
+        }
+        $userid = (int) $parts[0];
+        $resourceid = (int) $parts[1];
+        $cmid = (int) $parts[2];
 
         $context = context_module::instance($cmid);
         self::validate_context($context);
         require_capability("tiny/cursive:writingreport", $context);
+        if ((int) $USER->id !== $userid) {
+            require_capability('tiny/cursive:view', $context);
+        }
 
-        $conditions = ["userid" => $userid, 'resourceid' => $resourceid, 'cmid' => $cmid];
+        $conditions = [
+            'filename' => $params['filepath'],
+            'userid' => $userid,
+            'resourceid' => $resourceid,
+            'cmid' => $cmid,
+        ];
+        $filedata = $DB->get_record('tiny_cursive_files', $conditions, '*', MUST_EXIST);
 
         $data = new stdClass();
-        try {
-            $filedata        = $DB->get_record('tiny_cursive_files', ['filename' => $params['filepath']]);
-            $content         = $filedata->content ? $filedata->content : $content = false;
-            $originalcontent = $filedata->original_content ? $filedata->original_content : $originalcontent = false;
-            $data->status    = true;
-            $query = $conditions;
-            $query['modulename'] = '%_autosave';
-
-            $where = "userid = :userid AND resourceid = :resourceid AND cmid = :cmid AND modulename NOT LIKE :modulename";
-            $records = $DB->get_records_select('tiny_cursive_comments', $where, $query);
-            $data->comments = json_encode(array_column($records, 'usercomment'));
-
-            if ($content === false) {
-                $data->status = false;
-                $content = get_string('filenotfoundor', 'tiny_cursive');
-            }
-
-            $data->data = $content;
-            $data->original = $originalcontent;
-        } catch (moodle_exception $e) {
-            $data->data = $e->getMessage();
+        $content = $filedata->content ?: false;
+        $data->status = $content !== false;
+        $query = [
+            'userid' => $userid,
+            'resourceid' => $resourceid,
+            'cmid' => $cmid,
+            'modulename' => '%_autosave',
+        ];
+        $where = 'userid = :userid AND resourceid = :resourceid AND cmid = :cmid ' .
+            'AND modulename NOT LIKE :modulename';
+        $records = $DB->get_records_select('tiny_cursive_comments', $where, $query);
+        $data->comments = json_encode(array_column($records, 'usercomment'));
+        if ($content === false) {
+            $content = get_string('filenotfoundor', 'tiny_cursive');
         }
+        $data->data = $content;
+        $data->original = $filedata->original_content ?: false;
         return $data;
     }
 
@@ -1225,13 +1245,14 @@ class cursive_json_func_data extends external_api {
             $rec->effort_ratio = round($rec->effort_ratio * 100, 2);
         }
 
-        $sql = 'SELECT id AS fileid
-                  FROM {tiny_cursive_files}
-                 WHERE userid = :userid ORDER BY id ASC';
-        $ffile = $DB->get_record_sql($sql, ['userid' => $rec->userid ?? null]);
-
         if ($rec) {
-            if ($ffile->fileid == $rec->file_id) {
+            $sql = 'SELECT id AS fileid
+                      FROM {tiny_cursive_files}
+                     WHERE userid = :userid ORDER BY id ASC';
+            $firstfiles = $DB->get_records_sql($sql, ['userid' => $rec->userid], 0, 1);
+            $ffile = reset($firstfiles);
+
+            if ($ffile && $ffile->fileid == $rec->file_id) {
                 $rec->first_file = 1;
             } else {
                 $rec->first_file = 0;
@@ -1686,7 +1707,12 @@ class cursive_json_func_data extends external_api {
         if ($cm->modname === 'quiz') {
             $quiz = quiz_settings::create_for_cmid($params['cmid'], $USER->id);
             $quiz = $quiz->get_quiz();
-            $quizdata->intro = base64_encode($quiz->intro);
+            $intro = format_text(
+                $quiz->intro,
+                $quiz->introformat,
+                ['context' => $context, 'filter' => true]
+            );
+            $quizdata->intro = base64_encode(clean_text($intro, FORMAT_HTML));
             $quizdata->open = $quiz->timeopen;
             $quizdata->close = $quiz->timeclose;
         }
@@ -2176,7 +2202,15 @@ class cursive_json_func_data extends external_api {
 
         $context = context_module::instance($params['cmid']);
         self::validate_context($context);
-        require_capability("tiny/cursive:writingreport", $context);
+        require_capability('tiny/cursive:write', $context);
+
+        $cm = get_coursemodule_from_id(null, $params['cmid'], 0, false, MUST_EXIST);
+        if ($cm->modname !== 'pdfannotator') {
+            throw new invalid_parameter_exception('Course module is not a PDF Annotator activity');
+        }
+        if ((int) $params['courseid'] !== (int) $cm->course || $params['modulename'] !== $cm->modname) {
+            throw new invalid_parameter_exception('Course module does not match the supplied course or module name');
+        }
 
         if (!has_capability('tiny/cursive:view', $context) && (int)$params['userid'] !== (int)$USER->id) {
             throw new required_capability_exception($context, 'tiny/cursive:view', 'nopermissions', '');
@@ -2238,23 +2272,47 @@ class cursive_json_func_data extends external_api {
         $context = context_module::instance($params['cmid']);
         self::validate_context($context);
 
-        // Deleting another user's submission requires teacher-level capability.
-        if ((int)$params['userid'] !== (int)$USER->id) {
-            require_capability('tiny/cursive:view', $context);
-        } else {
+        $cm = get_coursemodule_from_id(null, $params['cmid'], 0, false, MUST_EXIST);
+        if ($cm->modname !== 'assign') {
+            throw new invalid_parameter_exception('Course module is not an assignment');
+        }
+        if ((int) $params['courseid'] !== (int) $cm->course) {
+            throw new invalid_parameter_exception('Course module does not belong to the supplied course');
+        }
+
+        if ((int) $params['userid'] === (int) $USER->id) {
             require_capability('tiny/cursive:write', $context);
+        } else {
+            require_capability('tiny/cursive:deletesubmission', $context);
         }
 
-        $params['resourceid'] = $params['cmid']; // Since in assignment resourceid = cmid.
-        $filedata = $DB->get_record('tiny_cursive_files', $params);
-
-        if ($filedata) {
-            $DB->delete_records('tiny_cursive_user_writing', ['file_id' => $filedata->id]);
-            $DB->delete_records('tiny_cursive_writing_diff', ['file_id' => $filedata->id]);
-            $DB->delete_records('tiny_cursive_comments', $params);
-            return $DB->delete_records('tiny_cursive_files', ['id' => $filedata->id]);
+        $conditions = [
+            'courseid' => $params['courseid'],
+            'userid' => $params['userid'],
+            'cmid' => $params['cmid'],
+            'modulename' => 'assign',
+            'resourceid' => $params['cmid'],
+        ];
+        $fileids = $DB->get_fieldset_select(
+            'tiny_cursive_files',
+            'id',
+            'courseid = :courseid AND userid = :userid AND cmid = :cmid
+                 AND modulename = :modulename AND resourceid = :resourceid',
+            $conditions,
+        );
+        if (!$fileids) {
+            return false;
         }
-        return false;
+
+        $transaction = $DB->start_delegated_transaction();
+        [$insql, $inparams] = $DB->get_in_or_equal($fileids, SQL_PARAMS_NAMED);
+        $DB->delete_records_select('tiny_cursive_user_writing', "file_id $insql", $inparams);
+        $DB->delete_records_select('tiny_cursive_writing_diff', "file_id $insql", $inparams);
+        $DB->delete_records('tiny_cursive_comments', $conditions);
+        $DB->delete_records_select('tiny_cursive_files', "id $insql", $inparams);
+        $transaction->allow_commit();
+
+        return true;
     }
 
     /**
@@ -2355,27 +2413,24 @@ class cursive_json_func_data extends external_api {
                 ['resourceid' => $params['resourceid'], 'cmid' => $params['cmid'], 'modulename' => $params['modulename']],
             );
 
-            $data['filename'] = $filename->filename;
-            $data['file_id'] = $filename->file_id;
-            $data['resubmit'] = constants::is_resubmitable($data, $filename->file_id);
-            $data['cmid'] = $params['cmid'];
-
-            $sql = 'SELECT *
-                      FROM {tiny_cursive_files}
-                     WHERE userid = :userid ORDER BY id ASC LIMIT 1';
-            $firstfile = $DB->get_record_sql($sql, ['userid' => $filename->userid]);
-            if ($firstfile->id == $filename->file_id) {
-                $data['first_file'] = 1;
+            if ($filename) {
+                $data['filename'] = $filename->filename;
+                $data['file_id'] = $filename->file_id;
+                $data['userid'] = $filename->userid;
+                $data['resubmit'] = constants::is_resubmitable($data, $filename->file_id);
+                $data['cmid'] = $params['cmid'];
             }
         }
 
-        $sql = 'SELECT *
-                  FROM {tiny_cursive_files}
-                 WHERE userid = :userid ORDER BY id ASC LIMIT 1';
-        $firstfile = $DB->get_record_sql($sql, ['userid' => $data['userid'] ?? '']);
-        $fileid = $firstfile->id ?? null;
-        if (isset($firstfile) && isset($filename) && $fileid == $filename->file_id) {
-            $data['first_file'] = 1;
+        if (!empty($data['userid']) && !empty($data['file_id'])) {
+            $sql = 'SELECT id
+                      FROM {tiny_cursive_files}
+                     WHERE userid = :userid ORDER BY id ASC';
+            $firstfiles = $DB->get_records_sql($sql, ['userid' => $data['userid']], 0, 1);
+            $firstfile = reset($firstfiles);
+            if ($firstfile && $firstfile->id == $data['file_id']) {
+                $data['first_file'] = 1;
+            }
         }
 
         return json_encode(['data' => $data]);

@@ -419,6 +419,9 @@ export const init = async(hasdata, apikey, caption, xaxis = 'time', yaxis = 'eff
                     borderColor:     '#cccccc',
                     borderWidth:     1,
                     displayColors:   false,
+                    // Coincident submissions can resolve to several active elements.
+                    // Keep the tooltip compact and show the nearest one only.
+                    filter: (tooltipItem, index) => index === 0,
                     callbacks: {
                         /**
                          * Returns the submission label as the tooltip title.
