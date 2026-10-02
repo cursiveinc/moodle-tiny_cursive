@@ -27,7 +27,11 @@ import replayButton from 'tiny_cursive/replay_button';
 import AnalyticEvents from 'tiny_cursive/analytic_events';
 import templates from 'core/templates';
 import Replay from 'tiny_cursive/replay';
-export const init = (scoreSetting, comments, hasApiKey, userid) => {
+export const studentView = (scoreSetting, hasApiKey, userid) => {
+    init(scoreSetting, false, hasApiKey, userid, true);
+};
+
+export const init = (scoreSetting, comments, hasApiKey, userid, studentOnly = false) => {
     const replayInstances = {};
     // eslint-disable-next-line camelcase
     window.video_playback = function(mid, filepath) {
@@ -90,7 +94,10 @@ export const init = (scoreSetting, comments, hasApiKey, userid) => {
      */
     function setReplayButton(overviewTable) {
         const rows = overviewTable.querySelectorAll('tbody > tr');
-        const action = new URL(window.location.href).searchParams.get('action');
+        let action = new URL(window.location.href).searchParams.get('action');
+        if (action === 'overview') {
+            action = 'overviewquestions';
+        }
 
         rows.forEach(row => {
             const cols = {
@@ -133,7 +140,17 @@ export const init = (scoreSetting, comments, hasApiKey, userid) => {
                 }
             }
 
-            getCursiveAnalytics(userId, commentId, cmid, cols.col1);
+            const analyticsColumn = document.createElement('td');
+            if (!cols.col1) {
+                return;
+            }
+            cols.col1.insertAdjacentElement('afterend', analyticsColumn);
+
+            if (studentOnly && userId !== null && String(userId) !== String(userid)) {
+                return;
+            }
+
+            getCursiveAnalytics(userId, commentId, cmid, analyticsColumn, studentOnly);
         });
     }
 
@@ -207,19 +224,29 @@ export const init = (scoreSetting, comments, hasApiKey, userid) => {
      * @param {number} userid - The ID of the user
      * @param {number} resourceid - The ID of the resource to get analytics for
      * @param {number} cmid - The course module ID
-     * @param {HTMLElement} place - The DOM element where analytics should be placed
+     * @param {HTMLTableCellElement} analyticsColumn - The table cell where analytics should be placed
+     * @param {boolean} requireOwnData - Whether to skip rows without current-user Cursive data
      * @description This function:
      * 1. Makes an AJAX call to get forum comment data
      * 2. Creates and inserts analytics/replay buttons
      * 3. Sets up analytics events and modal functionality
      * 4. Handles both API key and non-API key scenarios
      */
-    function getCursiveAnalytics(userid, resourceid, cmid, place) {
+    function getCursiveAnalytics(userid, resourceid, cmid, analyticsColumn, requireOwnData = false) {
+        if (!resourceid || !cmid || !analyticsColumn) {
+            return;
+        }
         let args = {id: resourceid, modulename: "pdfannotator", cmid: cmid};
         let methodname = 'tiny_cursive_get_forum_comment_link';
         let com = call([{methodname, args}]);
         com[0].done(function(json) {
             var data = JSON.parse(json);
+
+            // Student requests are filtered by the external function. Do not render an empty
+            // analytics control for another user's row or a comment without Cursive data.
+            if (requireOwnData && !data.data.filename) {
+                return;
+            }
 
             var filepath = '';
             if (data.data.filename) {
@@ -227,7 +254,6 @@ export const init = (scoreSetting, comments, hasApiKey, userid) => {
             }
 
             let analyticButtonDiv = document.createElement('div');
-            let analyticsColumn = document.createElement('td');
 
             if (!hasApiKey) {
                 analyticButtonDiv.append(replayButton(resourceid));
@@ -237,7 +263,6 @@ export const init = (scoreSetting, comments, hasApiKey, userid) => {
 
             analyticButtonDiv.dataset.region = "analytic-div" + userid;
             analyticsColumn.append(analyticButtonDiv);
-            place.insertAdjacentElement('afterend', analyticsColumn);
 
             let myEvents = new AnalyticEvents();
             var context = {

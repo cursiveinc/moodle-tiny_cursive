@@ -25,7 +25,22 @@ import templates from 'core/templates';
 import $ from 'jquery';
 import * as Str from 'core/str';
 
+/**
+ * Reconstructs captured editor events and renders an interactive writing replay.
+ *
+ * Only the constructor is the external API. The remaining methods implement replay,
+ * diff tracking, navigation, and controller rendering for that instance.
+ */
 export default class Replay {
+    /**
+     * Create and initialise a replay.
+     *
+     * @param {string} elementId Output element id.
+     * @param {string} filePath Capture file path.
+     * @param {number} speed Initial playback speed.
+     * @param {boolean} loop Whether playback repeats.
+     * @param {string} controllerId Controller container id.
+     */
     constructor(elementId, filePath, speed = 1, loop = false, controllerId) {
         // Initialize core properties
         this.controllerId = controllerId || '';
@@ -92,7 +107,12 @@ export default class Replay {
         }
     }
 
-    // Process JSON data and normalize timestamps
+    /**
+     * Process capture data and normalise event timestamps.
+     *
+     * @param {Object} data AJAX capture response.
+     * @returns {void}
+     */
     processData(data) {
         this.logData = JSON.parse(data.data);
         if (data.comments) {
@@ -125,6 +145,11 @@ export default class Replay {
         }
     }
 
+    /**
+     * Render the no-submission state.
+     *
+     * @returns {Promise<*>} Render completion value.
+     */
     async handleNoSubmission() {
         try {
             const [html, str] = await Promise.all([
@@ -139,7 +164,11 @@ export default class Replay {
         }
     }
 
-    // Stop the replay and update play button icon
+    /**
+     * Stop playback and restore the play icon.
+     *
+     * @returns {void}
+     */
     stopReplay() {
         if (this.replayInProgress) {
             clearTimeout(this.replayTimeout);
@@ -152,7 +181,12 @@ export default class Replay {
         }
     }
 
-    // Build the replay control UI (play button, scrubber, speed controls)
+    /**
+     * Build the replay controls.
+     *
+     * @param {string} controllerId Controller container id.
+     * @returns {void}
+     */
     constructController(controllerId) {
         this.replayInProgress = false;
         this.currentPosition = 0;
@@ -179,6 +213,11 @@ export default class Replay {
         controlContainer.querySelector('.tiny_cursive_loading_spinner')?.remove();
     }
 
+    /**
+     * @param {*} controlContainer
+     * @param {*} container
+     * @private
+     */
     buildControllerUI(controlContainer, container) {
         const topRow = document.createElement('div');
         topRow.classList.add('tiny_cursive_top_row');
@@ -206,6 +245,7 @@ export default class Replay {
         container.appendChild(this.pasteEventsPanel);
     }
 
+    /** @private */
     createPlayButton() {
         const playButton = document.createElement('button');
         playButton.classList.add('tiny_cursive_play_button');
@@ -223,6 +263,7 @@ export default class Replay {
         return playButton;
     }
 
+    /** @private */
     createScrubberContainer() {
         const scrubberContainer = document.createElement('div');
         scrubberContainer.classList.add('tiny_cursive_scrubber_container');
@@ -239,6 +280,7 @@ export default class Replay {
         return scrubberContainer;
     }
 
+    /** @private */
     createTimeDisplay() {
         const timeDisplay = document.createElement('div');
         timeDisplay.classList.add('tiny_cursive_time_display');
@@ -246,6 +288,7 @@ export default class Replay {
         return timeDisplay;
     }
 
+    /** @private */
     createSpeedControls() {
         const speedContainer = document.createElement('div');
         speedContainer.classList.add('tiny_cursive_speed_controls', 'speed-controls');
@@ -279,6 +322,10 @@ export default class Replay {
         return speedContainer;
     }
 
+    /**
+     * @param {*} container
+     * @private
+     */
     createPasteEventsToggle(container) {
         const pasteEventsToggle = document.createElement('div');
         pasteEventsToggle.classList.add('tiny_cursive_paste_events_toggle', 'paste-events-toggle');
@@ -319,6 +366,10 @@ export default class Replay {
         return pasteEventsToggle;
     }
 
+    /**
+     * @param {*} container
+     * @private
+     */
     createPasteEventsPanel(container) {
         const existingPanel = container.querySelector('.paste-events-panel');
         if (existingPanel) {
@@ -332,6 +383,7 @@ export default class Replay {
     }
 
     // Detect Ctrl+V paste events and sync with user comments
+    /** @private */
     identifyPasteEvents() {
         this.pasteTimestamps = [];
         let controlPressed = false;
@@ -380,6 +432,7 @@ export default class Replay {
         }
     }
 
+    /** @private */
     matchPasteEventsWithComments() {
         this.pasteTimestamps.forEach((pasteEvent, index) => {
             if (this.usercomments && this.usercomments[index]) {
@@ -390,6 +443,7 @@ export default class Replay {
         });
     }
 
+    /** @private */
     identifyUndoEvents() {
         this.undoTimestamps = [];
         let controlPressed = false;
@@ -423,6 +477,10 @@ export default class Replay {
     }
 
     // Populate the paste events panel with navigation
+    /**
+     * @param {*} panel
+     * @private
+     */
     populatePasteEventsPanel(panel) {
         panel.innerHTML = '';
         panel.classList.add('tiny_cursive_event_panel');
@@ -495,6 +553,10 @@ export default class Replay {
         });
     }
 
+    /**
+     * @param {*} pasteEvent
+     * @private
+     */
     createPasteEventDisplay(pasteEvent) {
         const eventRow = document.createElement('div');
         eventRow.className = 'tiny_cursive_event_row';
@@ -623,6 +685,10 @@ export default class Replay {
     }
 
     // Jump to a specific timestamp in the replay
+    /**
+     * @param {*} timestamp
+     * @private
+     */
     jumpToTimestamp(timestamp) {
         const percentage = this.totalDuration > 0 ? (timestamp / this.totalDuration) * 100 : 0;
         this.skipToTime(percentage);
@@ -631,6 +697,10 @@ export default class Replay {
         }
     }
 
+    /**
+     * @param {*} value
+     * @private
+     */
     setScrubberVal(value) {
         if (this.scrubberElement) {
             this.scrubberElement.value = String(value);
@@ -641,6 +711,12 @@ export default class Replay {
         }
     }
 
+    /**
+     * Load capture JSON through the authorised Moodle external function.
+     *
+     * @param {string} filePath Capture file path.
+     * @returns {Promise<Object>} AJAX response promise.
+     */
     loadJSON(filePath) {
         return fetchJson([{
             methodname: 'tiny_cursive_get_reply_json',
@@ -650,6 +726,12 @@ export default class Replay {
         });
     }
 
+    /**
+     * Format milliseconds as minutes and seconds.
+     *
+     * @param {number} ms Duration in milliseconds.
+     * @returns {string} Formatted duration.
+     */
     formatTime(ms) {
         const seconds = Math.floor(ms / 1000);
         const minutes = Math.floor(seconds / 60);
@@ -657,7 +739,12 @@ export default class Replay {
         return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
     }
 
-    // Start or restart the replay
+    /**
+     * Start or restart playback.
+     *
+     * @param {boolean} reset Whether to reset replay state.
+     * @returns {void}
+     */
     startReplay(reset = true) {
         if (this.replayInProgress) {
             clearTimeout(this.replayTimeout);
@@ -692,6 +779,7 @@ export default class Replay {
     }
 
     // Process events in sequence to simulate typing
+    /** @private */
     replayLog() {
         if (!this.replayInProgress) {
             this.updateDisplayText(this.text, this.cursorPosition, [], []);
@@ -753,6 +841,11 @@ export default class Replay {
         }
     }
 
+    /**
+     * @param {*} text
+     * @param {*} pos
+     * @private
+     */
     getLineAndColumn(text, pos) {
         const before = text.substring(0, pos);
         const lineIndex = before.split('\n').length - 1;
@@ -760,6 +853,14 @@ export default class Replay {
         return {lineIndex, col};
     }
 
+    /**
+     * @param {*} event
+     * @param {*} text
+     * @param {*} cursor
+     * @param {*} highlights
+     * @param {*} deletions
+     * @private
+     */
     processAiInsertEvent(event, text, cursor, highlights, deletions) {
         if (this.aiEvents && this.currentAiIndex < this.aiEvents.length) {
             const aiContent = this.aiEvents[this.currentAiIndex];
@@ -777,6 +878,16 @@ export default class Replay {
         };
     }
 
+    /**
+     * Apply an AI insertion or replacement event.
+     *
+     * @param {string} aiContent Inserted content.
+     * @param {string} text Current text.
+     * @param {number} targetPosition Recorded target position.
+     * @param {number} currentCursor Current cursor position.
+     * @param {Array} deletions Tracked deletions.
+     * @returns {Object} Updated text and cursor.
+     */
     handleAiReplacement(aiContent, text, targetPosition, currentCursor, deletions) {
         const insertText = aiContent || '';
         const aiWords = insertText.trim().split(/\s+/);
@@ -818,6 +929,15 @@ export default class Replay {
         return {text, cursor: newCursor};
     }
 
+    /**
+     * @param {*} text
+     * @param {*} targetPosition
+     * @param {*} currentCursor
+     * @param {*} aiWords
+     * @param {*} isMultiWord
+     * @param {*} isNewLineInsertion
+     * @private
+     */
     findWordToReplace(text, targetPosition, currentCursor, aiWords, isMultiWord, isNewLineInsertion) {
         if (isNewLineInsertion) {
             return {wordStart: currentCursor, wordEnd: currentCursor};
@@ -838,6 +958,11 @@ export default class Replay {
         }
     }
 
+    /**
+     * @param {*} text
+     * @param {*} targetPosition
+     * @private
+     */
     findLineRange(text, targetPosition) {
         let lineStart = 0;
         for (let i = targetPosition - 1; i >= 0; i--) {
@@ -858,6 +983,11 @@ export default class Replay {
         return {lineStart, lineEnd};
     }
 
+    /**
+     * @param {*} lineText
+     * @param {*} lineStart
+     * @private
+     */
     extractWordsFromLine(lineText, lineStart) {
         const words = [];
         let pos = 0;
@@ -889,6 +1019,14 @@ export default class Replay {
         return words;
     }
 
+    /**
+     * Find the best replacement range for multiple generated words.
+     *
+     * @param {Array} words Candidate words with positions.
+     * @param {Array} aiWords Generated words.
+     * @param {number} targetPosition Recorded target position.
+     * @returns {Object} Word start and end positions.
+     */
     findMultiWordMatch(words, aiWords, targetPosition) {
         let bestMatch = {start: -1, end: -1, score: -1, wordCount: 0, similarityScore: 0};
 
@@ -910,6 +1048,13 @@ export default class Replay {
         }
     }
 
+    /**
+     * @param {*} words
+     * @param {*} aiWords
+     * @param {*} startIndex
+     * @param {*} targetPosition
+     * @private
+     */
     evaluateMultiWordSequence(words, aiWords, startIndex, targetPosition) {
         const seqWords = [];
         for (let j = 0; j < aiWords.length && startIndex + j < words.length; j++) {
@@ -933,6 +1078,11 @@ export default class Replay {
         };
     }
 
+    /**
+     * @param {*} aiWords
+     * @param {*} seqWords
+     * @private
+     */
     calculateSequenceSimilarity(aiWords, seqWords) {
         let similarityScore = 0;
         const compareLength = Math.min(seqWords.length, aiWords.length);
@@ -952,6 +1102,11 @@ export default class Replay {
         return similarityScore;
     }
 
+    /**
+     * @param {*} seqWords
+     * @param {*} targetPosition
+     * @private
+     */
     calculatePositionScore(seqWords, targetPosition) {
         let positionScore = 0;
         const seqStart = seqWords[0].start;
@@ -967,6 +1122,12 @@ export default class Replay {
         return positionScore;
     }
 
+    /**
+     * @param {*} words
+     * @param {*} aiWord
+     * @param {*} targetPosition
+     * @private
+     */
     findSingleWordMatch(words, aiWord, targetPosition) {
         const aiWordLower = aiWord.toLowerCase();
         const bestSimilarityMatch = this.findBestSimilarityMatch(words, aiWordLower);
@@ -986,6 +1147,11 @@ export default class Replay {
                                                 targetPosition, this.text);
     }
 
+    /**
+     * @param {*} words
+     * @param {*} aiWordLower
+     * @private
+     */
     findBestSimilarityMatch(words, aiWordLower) {
         let bestMatch = {word: null, score: 0};
 
@@ -1006,6 +1172,12 @@ export default class Replay {
         return bestMatch;
     }
 
+    /**
+     * @param {*} words
+     * @param {*} aiWordLower
+     * @param {*} targetPosition
+     * @private
+     */
     findBestPositionMatch(words, aiWordLower, targetPosition) {
         let bestMatch = {word: null, score: -1};
 
@@ -1020,6 +1192,12 @@ export default class Replay {
         return bestMatch;
     }
 
+    /**
+     * @param {*} word
+     * @param {*} aiWordLower
+     * @param {*} targetPosition
+     * @private
+     */
     calculateWordScore(word, aiWordLower, targetPosition) {
         let score = 0;
 
@@ -1045,6 +1223,13 @@ export default class Replay {
         return score;
     }
 
+    /**
+     * @param {*} lineStart
+     * @param {*} lineEnd
+     * @param {*} targetPosition
+     * @param {*} text
+     * @private
+     */
     findWordBoundaryAtPosition(lineStart, lineEnd, targetPosition, text) {
         let wordStart = targetPosition;
         while (wordStart > lineStart && text[wordStart - 1] !== ' ' && text[wordStart - 1] !== '\n') {
@@ -1057,6 +1242,12 @@ export default class Replay {
         return {wordStart, wordEnd};
     }
 
+    /**
+     * @param {*} wordToReplace
+     * @param {*} wordStart
+     * @param {*} deletions
+     * @private
+     */
     markCharsAsDeleted(wordToReplace, wordStart, deletions) {
         if (wordToReplace.length > 0) {
             for (let i = 0; i < wordToReplace.length; i++) {
@@ -1070,6 +1261,15 @@ export default class Replay {
         }
     }
 
+    /**
+     * @param {*} currentCursor
+     * @param {*} targetPosition
+     * @param {*} wordStart
+     * @param {*} wordEnd
+     * @param {*} insertText
+     * @param {*} isNewLineInsertion
+     * @private
+     */
     calculateNewCursorPosition(currentCursor, targetPosition, wordStart, wordEnd, insertText, isNewLineInsertion) {
         if (isNewLineInsertion) {
             return wordStart + insertText.length;
@@ -1090,6 +1290,13 @@ export default class Replay {
         return currentCursor;
     }
 
+    /**
+     * @param {*} wordStart
+     * @param {*} wordEnd
+     * @param {*} positionDiff
+     * @param {*} insertText
+     * @private
+     */
     updateCharacterIndices(wordStart, wordEnd, positionDiff, insertText) {
         // Update pasted character indices
         this.updatePastedCharIndices(wordStart, wordEnd, positionDiff);
@@ -1101,6 +1308,12 @@ export default class Replay {
         this.updateAiCharIndices(wordStart, wordEnd, positionDiff, insertText);
     }
 
+    /**
+     * @param {*} wordStart
+     * @param {*} wordEnd
+     * @param {*} positionDiff
+     * @private
+     */
     updatePastedCharIndices(wordStart, wordEnd, positionDiff) {
         if (this.pastedChars) {
             this.pastedChars = this.pastedChars.map(p => {
@@ -1114,6 +1327,11 @@ export default class Replay {
         }
     }
 
+    /**
+     * @param {*} wordStart
+     * @param {*} insertText
+     * @private
+     */
     markCharsAsAiInserted(wordStart, insertText) {
         if (!this.aiChars) {
             this.aiChars = [];
@@ -1129,6 +1347,13 @@ export default class Replay {
         }
     }
 
+    /**
+     * @param {*} wordStart
+     * @param {*} wordEnd
+     * @param {*} positionDiff
+     * @param {*} insertText
+     * @private
+     */
     updateAiCharIndices(wordStart, wordEnd, positionDiff, insertText) {
         const justAddedIndices = new Set();
         for (let i = 0; i < insertText.length; i++) {
@@ -1148,6 +1373,13 @@ export default class Replay {
     }
 
     // Calculate similarity between two strings
+    /**
+     * Calculate normalised Levenshtein similarity.
+     *
+     * @param {string} str1 First value.
+     * @param {string} str2 Second value.
+     * @returns {number} Similarity from zero to one.
+     */
     calculateSimilarity(str1, str2) {
         if (str1 === str2) {
             return 1;
@@ -1189,6 +1421,11 @@ export default class Replay {
     }
 
     // Find the word closest to a target position
+    /**
+     * @param {*} words
+     * @param {*} targetPosition
+     * @private
+     */
     findClosestWord(words, targetPosition) {
         if (words.length === 0) {
             return {start: targetPosition, end: targetPosition};
@@ -1219,7 +1456,16 @@ export default class Replay {
         return closest;
     }
 
-    // Handle keydown events (e.g., typing, backspace, Ctrl+V)
+    /**
+     * Apply a captured keydown event to replay state.
+     *
+     * @param {Object} event Captured keyboard event.
+     * @param {string} text Current text.
+     * @param {number} cursor Current cursor position.
+     * @param {Array} highlights Highlight records.
+     * @param {Array} deletions Deletion records.
+     * @returns {Object} Updated replay state.
+     */
     processKeydownEvent(event, text, cursor, highlights, deletions) {
         const key = event.key;
         const charToInsert = this.applyKey(key);
@@ -1256,14 +1502,30 @@ export default class Replay {
         return this.processKeyOperation(key, charToInsert, text, cursor, highlights, deletions, selection);
     }
 
+    /**
+     * @param {*} key
+     * @private
+     */
     isCopyOperation(key) {
         return (key === 'c' || key === 'C') && (this.isControlKeyPressed || this.isMetaKeyPressed);
     }
 
+    /**
+     * @param {*} key
+     * @private
+     */
     isUndoOperation(key) {
         return (key === 'z' || key === 'Z') && (this.isControlKeyPressed || this.isMetaKeyPressed);
     }
 
+    /**
+     * @param {*} event
+     * @param {*} text
+     * @param {*} cursor
+     * @param {*} highlights
+     * @param {*} deletions
+     * @private
+     */
     handleUndoOperation(event, text, cursor, highlights, deletions) {
         const nextEventIndex = this.currentEventIndex + 1;
         if (nextEventIndex < this.logData.length) {
@@ -1295,6 +1557,11 @@ export default class Replay {
         return {text, cursor, updatedHighlights: highlights, updatedDeleted: deletions};
     }
 
+    /**
+     * @param {*} key
+     * @param {*} event
+     * @private
+     */
     isPasteOperation(key, event) {
         if ((key === 'v' || key === 'V') && (this.isControlKeyPressed || this.isMetaKeyPressed)) {
             return (event.pastedContent && event.pastedContent.trim() !== '') ||
@@ -1303,6 +1570,15 @@ export default class Replay {
         return false;
     }
 
+    /**
+     * @param {*} event
+     * @param {*} selection
+     * @param {*} text
+     * @param {*} cursor
+     * @param {*} highlights
+     * @param {*} deletions
+     * @private
+     */
     handlePasteOperation(event, selection, text, cursor, highlights, deletions) {
         const pastedContent = event.pastedContent || this.pastedEvents[this.currentPasteIndex];
 
@@ -1318,16 +1594,32 @@ export default class Replay {
         return {text, cursor, updatedHighlights: highlights, updatedDeleted: deletions};
     }
 
+    /** @private */
     resetModifierStates() {
         this.isControlKeyPressed = false;
         this.isShiftKeyPressed = false;
         this.isMetaKeyPressed = false;
     }
 
+    /**
+     * @param {*} key
+     * @param {*} selection
+     * @private
+     */
     isSelectionDeletion(key, selection) {
         return (key === 'Backspace' || key === 'Delete') && selection && selection.length > 1;
     }
 
+    /**
+     * @param {*} key
+     * @param {*} charToInsert
+     * @param {*} text
+     * @param {*} cursor
+     * @param {*} highlights
+     * @param {*} deletions
+     * @param {*} selection
+     * @private
+     */
     processKeyOperation(key, charToInsert, text, cursor, highlights, deletions, selection) {
         if (this.isCtrlBackspace(key, cursor)) {
             ({text, cursor} = this.handleCtrlBackspace(text, cursor, deletions));
@@ -1355,6 +1647,10 @@ export default class Replay {
         return {text, cursor, updatedHighlights: highlights, updatedDeleted: deletions};
     }
 
+    /**
+     * @param {*} eventIndex
+     * @private
+     */
     detectSelection(eventIndex) {
         const currentEvent = this.logData[eventIndex];
 
@@ -1367,6 +1663,12 @@ export default class Replay {
         return null;
     }
 
+    /**
+     * @param {*} currentPos
+     * @param {*} currentEvent
+     * @param {*} eventIndex
+     * @private
+     */
     processDetection(currentPos, currentEvent, eventIndex) {
         for (let i = eventIndex + 1; i < this.logData.length; i++) {
             const nextEvent = this.logData[i];
@@ -1406,6 +1708,13 @@ export default class Replay {
         return null;
     }
 
+    /**
+     * @param {*} selection
+     * @param {*} text
+     * @param {*} cursor
+     * @param {*} deletions
+     * @private
+     */
     handleSelectionDeletion(selection, text, cursor, deletions) {
         const {start, end, length} = selection;
 
@@ -1428,7 +1737,14 @@ export default class Replay {
         return {text, cursor};
     }
 
-    // Handle Paste events to highlight pasted text
+    /**
+     * Insert pasted content and record its character positions.
+     *
+     * @param {string} pastedContent Pasted content.
+     * @param {string} text Current text.
+     * @param {number} cursor Current cursor position.
+     * @returns {Object} Updated text and cursor.
+     */
     handlePasteInsert(pastedContent, text, cursor) {
         const insertText = pastedContent || '';
         text = text.substring(0, cursor) + insertText + text.substring(cursor);
@@ -1450,6 +1766,11 @@ export default class Replay {
     }
 
     // Adjusts pasted chars indices after deletion to maintain styling for pasted text
+    /**
+     * @param {*} startIndex
+     * @param {*} numDeleted
+     * @private
+     */
     shiftPastedCharsIndices(startIndex, numDeleted) {
         this.pastedChars = this.pastedChars.map(p => {
             if (p.index >= startIndex + numDeleted) {
@@ -1474,6 +1795,10 @@ export default class Replay {
     }
 
     // Update state for modifier keys (Control, paste events)
+    /**
+     * @param {*} key
+     * @private
+     */
     updateModifierStates(key) {
         if (key === 'Control') {
             this.isControlKeyPressed = true;
@@ -1491,44 +1816,94 @@ export default class Replay {
         }
     }
 
+    /**
+     * @param {*} key
+     * @param {*} cursor
+     * @private
+     */
     isCtrlBackspace(key, cursor) {
         return key === 'Backspace' && this.isControlKeyPressed && cursor > 0;
     }
 
+    /**
+     * @param {*} key
+     * @param {*} cursor
+     * @param {*} text
+     * @private
+     */
     isCtrlDelete(key, cursor, text) {
         return key === 'Delete' && this.isControlKeyPressed && cursor < text.length;
     }
 
+    /**
+     * @param {*} key
+     * @private
+     */
     isCtrlArrowMove(key) {
         return this.isControlKeyPressed && (key === 'ArrowLeft' || key === 'ArrowRight');
     }
 
+    /**
+     * @param {*} key
+     * @param {*} cursor
+     * @private
+     */
     isRegularBackspace(key, cursor) {
         return key === 'Backspace' && !this.isPasteEvent && cursor > 0;
     }
 
+    /**
+     * @param {*} key
+     * @param {*} cursor
+     * @param {*} text
+     * @private
+     */
     isRegularDelete(key, cursor, text) {
         return key === 'Delete' && !this.isControlKeyPressed && cursor < text.length;
     }
 
+    /**
+     * @param {*} key
+     * @private
+     */
     isRegularArrowMove(key) {
         return !this.isControlKeyPressed && (key === 'ArrowLeft' || key === 'ArrowRight');
     }
 
+    /**
+     * @param {*} key
+     * @private
+     */
     isArrowUp(key) {
         return key === 'ArrowUp';
     }
 
+    /**
+     * @param {*} key
+     * @private
+     */
     isArrowDown(key) {
         return key === 'ArrowDown';
     }
 
+    /**
+     * @param {*} key
+     * @param {*} text
+     * @param {*} cursor
+     * @private
+     */
     handleCtrlArrowMove(key, text, cursor) {
         return key === 'ArrowLeft'
             ? this.findPreviousWordBoundary(text, cursor)
             : this.findNextWordBoundary(text, cursor);
     }
 
+    /**
+     * @param {*} text
+     * @param {*} cursor
+     * @param {*} deletions
+     * @private
+     */
     handleBackspace(text, cursor, deletions) {
         deletions.push({
             index: cursor - 1,
@@ -1543,6 +1918,12 @@ export default class Replay {
         };
     }
 
+    /**
+     * @param {*} text
+     * @param {*} cursor
+     * @param {*} deletions
+     * @private
+     */
     handleDelete(text, cursor, deletions) {
         deletions.push({
             index: cursor,
@@ -1557,12 +1938,25 @@ export default class Replay {
         };
     }
 
+    /**
+     * @param {*} key
+     * @param {*} text
+     * @param {*} cursor
+     * @private
+     */
     handleArrowMove(key, text, cursor) {
         return key === 'ArrowLeft'
             ? Math.max(0, cursor - 1)
             : Math.min(text.length, cursor + 1);
     }
 
+    /**
+     * @param {*} charToInsert
+     * @param {*} text
+     * @param {*} cursor
+     * @param {*} highlights
+     * @private
+     */
     handleCharacterInsert(charToInsert, text, cursor, highlights) {
         text = text.substring(0, cursor) + charToInsert + text.substring(cursor);
         // Shift pasted chars indices after the insertion point
@@ -1587,6 +1981,12 @@ export default class Replay {
         return {text, cursor: cursor + 1};
     }
 
+    /**
+     * @param {*} text
+     * @param {*} cursor
+     * @param {*} deletions
+     * @private
+     */
     handleCtrlDelete(text, cursor, deletions) {
         const wordEnd = this.findNextWordBoundary(text, cursor);
         const wordToDelete = text.substring(cursor, wordEnd);
@@ -1605,6 +2005,11 @@ export default class Replay {
         };
     }
 
+    /**
+     * @param {*} text
+     * @param {*} cursor
+     * @private
+     */
     handleArrowUp(text, cursor) {
         const lines = text.split('\n');
         const {lineIndex, col} = this.getLineAndColumn(text, cursor);
@@ -1617,6 +2022,11 @@ export default class Replay {
         return cursor;
     }
 
+    /**
+     * @param {*} text
+     * @param {*} cursor
+     * @private
+     */
     handleArrowDown(text, cursor) {
         const lines = text.split('\n');
         const {lineIndex, col} = this.getLineAndColumn(text, cursor);
@@ -1629,6 +2039,12 @@ export default class Replay {
         return cursor;
     }
 
+    /**
+     * @param {*} text
+     * @param {*} cursor
+     * @param {*} deletions
+     * @private
+     */
     handleCtrlBackspace(text, cursor, deletions) {
         let wordStart = cursor;
         while (wordStart > 0 && text[wordStart - 1] === ' ') {
@@ -1651,6 +2067,11 @@ export default class Replay {
     }
 
     // Finds the index of the next word boundary after the cursor position
+    /**
+     * @param {*} text
+     * @param {*} cursor
+     * @private
+     */
     findNextWordBoundary(text, cursor) {
         if (!text || cursor >= text.length) {
             return cursor;
@@ -1675,6 +2096,11 @@ export default class Replay {
     }
 
     // Finds the index of the previous word boundary before the cursor position
+    /**
+     * @param {*} text
+     * @param {*} cursor
+     * @private
+     */
     findPreviousWordBoundary(text, cursor) {
         if (cursor <= 0) {
             return 0;
@@ -1690,6 +2116,11 @@ export default class Replay {
         return pos;
     }
 
+    /**
+     * Move playback to the final event.
+     *
+     * @returns {void}
+     */
     skipToEnd() {
         if (this.replayInProgress) {
             this.replayInProgress = false;
@@ -1704,7 +2135,12 @@ export default class Replay {
         this.setScrubberVal(100);
     }
 
-    // Used by the scrubber to skip to a certain percentage of data
+    /**
+     * Move playback to a percentage of the capture duration.
+     *
+     * @param {number} percentage Target percentage.
+     * @returns {void}
+     */
     skipToTime(percentage) {
         const wasPlaying = this.replayInProgress;
         this.stopReplay();
@@ -1771,7 +2207,15 @@ export default class Replay {
         }
     }
 
-    // Update display with text, cursor, highlights and deletions.
+    /**
+     * Render replay text, cursor, highlights, and deletions.
+     *
+     * @param {string} text Current text.
+     * @param {number} cursorPosition Cursor position.
+     * @param {Array} highlights Highlight records.
+     * @param {Array} deletions Deletion records.
+     * @returns {void}
+     */
     // eslint-disable-next-line complexity
     updateDisplayText(text, cursorPosition, highlights, deletions) {
         let html = '';
@@ -1890,6 +2334,7 @@ export default class Replay {
     }
 
     // Check if cursor is below visible viewport
+    /** @private */
     isCursorBelowViewport() {
         const cursorElement = this.outputElement.querySelector('.tiny_cursive-cursor:last-of-type');
         if (!cursorElement) {
@@ -1902,6 +2347,12 @@ export default class Replay {
         return cursorRect.bottom > outputRect.bottom;
     }
 
+    /**
+     * Escape a value for HTML text output.
+     *
+     * @param {string} unsafe Unescaped text.
+     * @returns {string} Escaped text.
+     */
     escapeHtml(unsafe) {
         return unsafe
             .replace(/&/g, '&amp;')
@@ -1911,7 +2362,12 @@ export default class Replay {
             .replace(/'/g, '&#039;');
     }
 
-    // Used in various places to add a keydown, backspace, etc. to the output
+    /**
+     * Convert a key identifier into inserted text.
+     *
+     * @param {string} key Keyboard key identifier.
+     * @returns {string} Text produced by the key.
+     */
     applyKey(key) {
         switch (key) {
             case 'Enter':

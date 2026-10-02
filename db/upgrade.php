@@ -23,6 +23,8 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+defined('MOODLE_INTERNAL') || die(); // phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalNotNeeded
+
 use tiny_cursive\task\post_upgrade_task;
 /**
  * Run all ClamAV plugin upgrade steps between the current DB version and the current version on disk.

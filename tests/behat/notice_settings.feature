@@ -1,4 +1,4 @@
-@tiny_cursive @javascript
+@tiny @tiny_cursive @javascript
 Feature: Data transparency notice settings
   In order to gate the editor knowingly
   As an administrator

@@ -70,7 +70,7 @@ final class externallib_test extends advanced_testcase {
      * Test remove_student_submission prevents student deleting another user's records.
      */
     public function test_remove_student_submission_idor_prevention(): void {
-        global $CFG;
+        global $CFG, $DB;
         require_once($CFG->dirroot . '/lib/editor/tiny/plugins/cursive/externallib.php');
 
         $course = $this->getDataGenerator()->create_course();
@@ -81,11 +81,102 @@ final class externallib_test extends advanced_testcase {
         $this->getDataGenerator()->enrol_user($student1->id, $course->id, 'student');
         $this->getDataGenerator()->enrol_user($student2->id, $course->id, 'student');
 
+        // Keep this test independent of capabilities cached in a reused PHPUnit database.
+        $studentrole = $DB->get_record('role', ['shortname' => 'student'], '*', MUST_EXIST);
+        unassign_capability('tiny/cursive:deletesubmission', $studentrole->id);
+
         // Log in as student1 and attempt to remove student2's submission.
         $this->setUser($student1);
 
         $this->expectException(required_capability_exception::class);
         cursive_json_func_data::remove_student_submission($course->id, $student2->id, (int) $assign->cmid);
+    }
+
+    /**
+     * Test a student can delete only their own Cursive submission data.
+     */
+    public function test_remove_student_submission_own_data(): void {
+        global $CFG, $DB;
+        require_once($CFG->dirroot . '/lib/editor/tiny/plugins/cursive/externallib.php');
+
+        $course = $this->getDataGenerator()->create_course();
+        $assign = $this->getDataGenerator()->create_module('assign', ['course' => $course->id]);
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id, 'student');
+
+        $fileid = $DB->insert_record('tiny_cursive_files', (object) [
+            'userid' => $student->id,
+            'cmid' => (int) $assign->cmid,
+            'modulename' => 'assign',
+            'resourceid' => (int) $assign->cmid,
+            'courseid' => $course->id,
+            'filename' => "{$student->id}_{$assign->cmid}_{$assign->cmid}_attempt.json",
+            'timemodified' => time(),
+            'uploaded' => 0,
+        ]);
+
+        $this->setUser($student);
+        $this->assertTrue(cursive_json_func_data::remove_student_submission(
+            (int) $course->id,
+            (int) $student->id,
+            (int) $assign->cmid,
+        ));
+        $this->assertFalse($DB->record_exists('tiny_cursive_files', ['id' => $fileid]));
+    }
+
+    /**
+     * Test an editing teacher can delete another user's Cursive submission data.
+     */
+    public function test_remove_student_submission_teacher_can_delete_student_data(): void {
+        global $CFG, $DB;
+        require_once($CFG->dirroot . '/lib/editor/tiny/plugins/cursive/externallib.php');
+
+        $course = $this->getDataGenerator()->create_course();
+        $assign = $this->getDataGenerator()->create_module('assign', ['course' => $course->id]);
+        $teacher = $this->getDataGenerator()->create_user();
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($teacher->id, $course->id, 'editingteacher');
+        $this->getDataGenerator()->enrol_user($student->id, $course->id, 'student');
+
+        $fileids = [];
+        foreach (['first', 'second'] as $suffix) {
+            $fileids[] = $DB->insert_record('tiny_cursive_files', (object) [
+                'userid' => $student->id,
+                'cmid' => (int) $assign->cmid,
+                'modulename' => 'assign',
+                'resourceid' => (int) $assign->cmid,
+                'courseid' => $course->id,
+                'filename' => "{$student->id}_{$assign->cmid}_{$suffix}_attempt.json",
+                'timemodified' => time(),
+                'uploaded' => 0,
+            ]);
+        }
+
+        $this->setUser($teacher);
+        $this->assertTrue(cursive_json_func_data::remove_student_submission(
+            (int) $course->id,
+            (int) $student->id,
+            (int) $assign->cmid,
+        ));
+        foreach ($fileids as $fileid) {
+            $this->assertFalse($DB->record_exists('tiny_cursive_files', ['id' => $fileid]));
+        }
+    }
+
+    /**
+     * Test the destructive capability is not granted to the student archetype.
+     */
+    public function test_delete_submission_capability_assignment(): void {
+        global $CFG;
+
+        $capabilities = [];
+        require($CFG->dirroot . '/lib/editor/tiny/plugins/cursive/db/access.php');
+        $definition = $capabilities['tiny/cursive:deletesubmission'];
+
+        $this->assertSame(RISK_DATALOSS, $definition['riskbitmask']);
+        $this->assertSame('write', $definition['captype']);
+        $this->assertArrayHasKey('editingteacher', $definition['archetypes']);
+        $this->assertArrayNotHasKey('student', $definition['archetypes']);
     }
 
     /**
@@ -119,6 +210,225 @@ final class externallib_test extends advanced_testcase {
         $this->setUser($student1);
         $this->expectException(required_capability_exception::class);
         cursive_json_func_data::cursive_get_analytics((int) $assign->cmid, $fileid);
+    }
+
+    /**
+     * Test a teacher in one course cannot download another user's data from a different course.
+     */
+    public function test_json_download_cross_course_authorization(): void {
+        $teachercourse = $this->getDataGenerator()->create_course();
+        $victimcourse = $this->getDataGenerator()->create_course();
+        $this->getDataGenerator()->create_module('assign', ['course' => $teachercourse->id]);
+        $victimassign = $this->getDataGenerator()->create_module('assign', ['course' => $victimcourse->id]);
+        $attacker = $this->getDataGenerator()->create_user();
+        $victim = $this->getDataGenerator()->create_user();
+
+        $this->getDataGenerator()->enrol_user($attacker->id, $teachercourse->id, 'editingteacher');
+        $this->getDataGenerator()->enrol_user($attacker->id, $victimcourse->id, 'student');
+        $this->getDataGenerator()->enrol_user($victim->id, $victimcourse->id, 'student');
+
+        $this->setUser($attacker);
+        $victimcontext = \context_module::instance((int) $victimassign->cmid);
+        $this->assertTrue(has_capability('tiny/cursive:writingreport', $victimcontext));
+        $this->assertFalse(has_capability('tiny/cursive:view', $victimcontext));
+        $this->expectException(required_capability_exception::class);
+        helper::require_json_download_access((int) $victimassign->cmid, (int) $victim->id);
+    }
+
+    /**
+     * Test replay JSON cannot be read from another student's filename.
+     */
+    public function test_reply_json_idor_prevention(): void {
+        global $CFG, $DB;
+        require_once($CFG->dirroot . '/lib/editor/tiny/plugins/cursive/externallib.php');
+
+        $course = $this->getDataGenerator()->create_course();
+        $assign = $this->getDataGenerator()->create_module('assign', ['course' => $course->id]);
+        $attacker = $this->getDataGenerator()->create_user();
+        $victim = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($attacker->id, $course->id, 'student');
+        $this->getDataGenerator()->enrol_user($victim->id, $course->id, 'student');
+
+        $filename = "{$victim->id}_{$assign->cmid}_{$assign->cmid}_attempt.json";
+        $DB->insert_record('tiny_cursive_files', (object) [
+            'userid' => $victim->id,
+            'cmid' => (int) $assign->cmid,
+            'modulename' => 'assign',
+            'resourceid' => (int) $assign->cmid,
+            'courseid' => $course->id,
+            'filename' => $filename,
+            'content' => '{"payload":[]}',
+            'timemodified' => time(),
+            'uploaded' => 0,
+        ]);
+
+        $this->setUser($attacker);
+        $this->expectException(required_capability_exception::class);
+        cursive_json_func_data::cursive_get_reply_json($filename);
+    }
+
+    /**
+     * Test analytics handles users with multiple files without a multiple-record debugging notice.
+     */
+    public function test_cursive_get_analytics_multiple_files(): void {
+        global $CFG, $DB;
+        require_once($CFG->dirroot . '/lib/editor/tiny/plugins/cursive/externallib.php');
+
+        $course = $this->getDataGenerator()->create_course();
+        $assign = $this->getDataGenerator()->create_module('assign', ['course' => $course->id]);
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id, 'student');
+
+        $firstfileid = $DB->insert_record('tiny_cursive_files', (object) [
+            'userid' => $student->id,
+            'cmid' => (int) $assign->cmid,
+            'modulename' => 'assign',
+            'resourceid' => (int) $assign->cmid,
+            'courseid' => $course->id,
+            'filename' => "{$student->id}_first_attempt.json",
+            'timemodified' => time(),
+            'uploaded' => 0,
+        ]);
+        $secondfileid = $DB->insert_record('tiny_cursive_files', (object) [
+            'userid' => $student->id,
+            'cmid' => (int) $assign->cmid,
+            'modulename' => 'assign',
+            'resourceid' => (int) $assign->cmid + 1,
+            'courseid' => $course->id,
+            'filename' => "{$student->id}_second_attempt.json",
+            'timemodified' => time(),
+            'uploaded' => 0,
+        ]);
+        $DB->insert_record('tiny_cursive_user_writing', (object) [
+            'file_id' => $secondfileid,
+            'total_time_seconds' => 60,
+            'key_count' => 100,
+            'keys_per_minute' => 100,
+            'character_count' => 100,
+            'characters_per_minute' => 100,
+            'word_count' => 20,
+            'words_per_minute' => 20,
+            'backspace_percent' => 1,
+            'score' => 90,
+            'copy_behavior' => 0,
+            'user_agent' => 'phpunit',
+        ]);
+
+        $this->setUser($student);
+        $result = cursive_json_func_data::cursive_get_analytics((int) $assign->cmid, $secondfileid);
+        $data = json_decode($result['data']);
+
+        $this->assertNotEquals($firstfileid, $secondfileid);
+        $this->assertEquals(0, $data->first_file);
+        $this->assertDebuggingNotCalled();
+    }
+
+    /**
+     * Test the forum analytics fallback handles a missing resource without PHP warnings.
+     */
+    public function test_get_forum_comment_link_missing_resource(): void {
+        global $CFG, $DB;
+        require_once($CFG->dirroot . '/lib/editor/tiny/plugins/cursive/externallib.php');
+
+        $course = $this->getDataGenerator()->create_course();
+        $forum = $this->getDataGenerator()->create_module('forum', ['course' => $course->id]);
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id, 'student');
+        $DB->insert_record('tiny_cursive_files', (object) [
+            'userid' => $student->id,
+            'cmid' => (int) $forum->cmid,
+            'modulename' => 'forum',
+            'resourceid' => 1,
+            'courseid' => $course->id,
+            'filename' => "{$student->id}_1_{$forum->cmid}_attempt.json",
+            'timemodified' => time(),
+            'uploaded' => 0,
+        ]);
+
+        $this->setUser($student);
+        $result = cursive_json_func_data::get_forum_comment_link(999999, 'forum', (int) $forum->cmid);
+        $decoded = json_decode($result, true);
+
+        $this->assertSame('comments', $decoded['usercomment']);
+        $this->assertDebuggingNotCalled();
+    }
+
+    /**
+     * Test forum analytics exposes only the current student's comments and files.
+     */
+    public function test_get_forum_comment_link_student_data_isolation(): void {
+        global $CFG, $DB;
+        require_once($CFG->dirroot . '/lib/editor/tiny/plugins/cursive/externallib.php');
+
+        $course = $this->getDataGenerator()->create_course();
+        $forum = $this->getDataGenerator()->create_module('forum', ['course' => $course->id]);
+        $student1 = $this->getDataGenerator()->create_user();
+        $student2 = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student1->id, $course->id, 'student');
+        $this->getDataGenerator()->enrol_user($student2->id, $course->id, 'student');
+        $resourceid = 12345;
+
+        foreach ([$student1, $student2] as $student) {
+            $DB->insert_record('tiny_cursive_files', (object) [
+                'userid' => $student->id,
+                'cmid' => (int) $forum->cmid,
+                'modulename' => 'forum',
+                'resourceid' => $resourceid,
+                'courseid' => $course->id,
+                'filename' => "{$student->id}_{$resourceid}_{$forum->cmid}_attempt.json",
+                'timemodified' => time(),
+                'uploaded' => 0,
+            ]);
+            $DB->insert_record('tiny_cursive_comments', (object) [
+                'userid' => $student->id,
+                'cmid' => (int) $forum->cmid,
+                'modulename' => 'forum',
+                'resourceid' => $resourceid,
+                'courseid' => $course->id,
+                'usercomment' => "comment-{$student->id}",
+                'timemodified' => time(),
+            ]);
+        }
+
+        $this->setUser($student1);
+        $decoded = json_decode(cursive_json_func_data::get_forum_comment_link(
+            $resourceid,
+            'forum',
+            (int) $forum->cmid,
+        ), true);
+
+        $this->assertCount(1, $decoded['usercomment']);
+        $this->assertSame((int) $student1->id, (int) $decoded['usercomment'][0]['userid']);
+        $this->assertSame((int) $student1->id, (int) $decoded['data']['userid']);
+        $this->assertSame("comment-{$student1->id}", $decoded['usercomment'][0]['usercomment']);
+        $this->assertSame(
+            "{$student1->id}_{$resourceid}_{$forum->cmid}_attempt.json",
+            $decoded['data']['filename'],
+        );
+        $this->assertDebuggingNotCalled();
+    }
+
+    /**
+     * Test the PDF annotation update rejects non-PDF activity modules.
+     */
+    public function test_update_pdf_annote_id_rejects_non_pdf_module(): void {
+        global $CFG;
+        require_once($CFG->dirroot . '/lib/editor/tiny/plugins/cursive/externallib.php');
+
+        $course = $this->getDataGenerator()->create_course();
+        $assign = $this->getDataGenerator()->create_module('assign', ['course' => $course->id]);
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id, 'student');
+        $this->setUser($student);
+
+        $this->expectException(invalid_parameter_exception::class);
+        cursive_json_func_data::update_pdf_annote_id(
+            (int) $assign->cmid,
+            (int) $student->id,
+            (int) $course->id,
+            'assign',
+            123,
+        );
     }
 
     /**

@@ -213,6 +213,8 @@ class pdfexport {
             $comments                      = $this->get_comments($analytics);
             $pastecount                    = count($comments);
             $analytics->effort             = ceil($analytics->effort * 100);
+            $submitted = json_decode($analytics->submitted_text);
+            $submitted = is_string($submitted) ? clean_text($submitted, FORMAT_HTML) : '';
             $this->templatecontent = [
                 "analytics"  => $analytics,
                 "modulename" => $modname->name,
@@ -223,7 +225,7 @@ class pdfexport {
                 "reportdate" => $this->format_time(time(), true),
                 "comments"   => $pastecount > 0 ? array_values($comments) : false,
                 "pastecount" => $pastecount,
-                "submitted"  => json_decode($analytics->submitted_text), // Submitted Text.
+                "submitted"  => $submitted,
                 "auth_state" => $this->get_auth_state($analytics->score),
             ];
         } else {
@@ -285,9 +287,10 @@ class pdfexport {
      * @return bool True if score meets or exceeds threshold, false otherwise
      */
     private function get_auth_state($score) {
-        $threshould = floatval(get_config('tiny_cursive', 'confidence_threshold')) ?? 0.65;
+        $configured = get_config('tiny_cursive', 'confidence_threshold');
+        $threshold = ($configured === false || $configured === '') ? 0.65 : (float) $configured;
 
-        if ($score >= $threshould) {
+        if ($score >= $threshold) {
             return true;
         }
         return false;
