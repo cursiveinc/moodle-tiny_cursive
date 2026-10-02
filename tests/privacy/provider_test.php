@@ -198,12 +198,15 @@ final class provider_test extends provider_testcase {
         global $DB;
         $this->resetAfterTest();
 
+        // Writing data is keyed on the course module id, so it is deleted through the module context.
         $user = $this->getDataGenerator()->create_user();
-        $systemcontext = context_system::instance();
-        $this->create_file_record($user->id, $systemcontext->id);
+        $course = $this->getDataGenerator()->create_course();
+        $assign = $this->getDataGenerator()->create_module('assign', ['course' => $course->id]);
+        $cm = get_coursemodule_from_instance('assign', $assign->id);
+        $this->create_file_record($user->id, $cm->id);
         $ack = $this->getDataGenerator()->get_plugin_generator('tiny_cursive')->create_acknowledgement(['userid' => $user->id]);
 
-        $userlist = new approved_userlist($systemcontext, 'tiny_cursive', [$user->id]);
+        $userlist = new approved_userlist(\context_module::instance($cm->id), 'tiny_cursive', [$user->id]);
         provider::delete_data_for_users($userlist);
 
         $this->assertSame(0, $DB->count_records('tiny_cursive_files'));
