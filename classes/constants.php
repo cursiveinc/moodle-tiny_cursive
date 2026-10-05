@@ -47,6 +47,23 @@ class constants {
      * const array NAMES List of module names where cursive can be used
      */
     public const NAMES = ["assign", "forum", "quiz", "lesson", 'pdfannotator', 'workshop', 'diary']; // Excluded oublog.
+
+    /**
+     * Body ids of the pages on which the editor plugin registers keystroke capture.
+     * Must be kept in step with the page list in amd/src/plugin.js.
+     * const array EDITOR_PAGES Page body ids where Cursive capture can run
+     */
+    public const EDITOR_PAGES = [
+        'page-mod-assign-editsubmission',
+        'page-mod-quiz-attempt',
+        'page-mod-forum-view',
+        'page-mod-forum-post',
+        'page-mod-lesson-view',
+        'page-mod-pdfannotator-view',
+        'page-mod-workshop-submission',
+        'page-mod-workshop-assessment',
+        'page-mod-diary-edit',
+    ];
     /**
      * Array mapping module names to their corresponding rubric areas.
      * Used to identify the correct rubric area for different module types.
