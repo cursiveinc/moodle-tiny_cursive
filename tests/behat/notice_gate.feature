@@ -36,7 +36,7 @@ Feature: Data transparency notice gate
     And I press "Add submission"
     Then I should see "Notice about data collection"
     And I should see "Cursive collects data about your writing style"
-    And I should see "your institution's privacy notice"
+    And I should see "your institution's privacy policy"
     And "I consent" "button" should exist
     And "Decline" "button" should not exist in the "[data-region='tiny_cursive-notice-gate']" "css_element"
     And ".tox-tinymce" "css_element" should not be visible

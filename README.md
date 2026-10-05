@@ -76,8 +76,8 @@ Settings under `Site Administration -> Plugins -> Text editors -> TinyMCE editor
 
 | Setting | Default | Meaning |
 |---|---|---|
-| Require notice acknowledgement | Off | Master switch. When on, users must acknowledge before the Cursive editor loads. There is no decline control; a user who will not acknowledge can switch to another text editor in their preferences, so keep at least one other editor enabled. The settings page warns you when Cursive is the only one. |
-| Privacy notice URL | empty | Your institution's own privacy notice. When set, the notice links to it. |
+| Require notice acknowledgement | On | Master switch. When on, users must acknowledge before the Cursive editor loads. There is no decline control; a user who will not acknowledge can switch to another text editor in their preferences, so keep at least one other editor enabled. The settings page warns you when Cursive is the only one. |
+| Privacy policy URL | empty | Your institution's own privacy policy. When set, the notice links to it. |
 | Acknowledgement retention period | 0 (keep indefinitely) | How long acknowledgement records are kept. When set, a daily scheduled task permanently deletes older records. |
 
 Each acknowledgement is written to an append-only log (`tiny_cursive_notice`) with the user, a server timestamp, the notice version and a SHA-256 of the exact wording shown. The wording itself is stored once per distinct hash (`tiny_cursive_notice_text`), so every record stays resolvable to the text the user read even after the language strings change. The wording is shipped as language strings and versioned in code; it is not editable by administrators. A material change to the wording ships as a new version and re-prompts every user; a translation fix produces a new snapshot without re-prompting anyone.
