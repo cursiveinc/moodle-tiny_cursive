@@ -27,7 +27,9 @@ Feature: Data transparency notice acknowledgement report
       | student1 |
 
   Scenario: A manager sees the acknowledgement and the pending user
-    Given I log in as "manager1"
+    Given the following config values are set as admin:
+      | notice_enabled | 0 | tiny_cursive |
+    And I log in as "manager1"
     When I visit "/lib/editor/tiny/plugins/cursive/notice_report.php"
     Then I should see "Cursive notice acknowledgements"
     And I should see "Notice gating is currently disabled"

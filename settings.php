@@ -205,7 +205,7 @@ if ($ADMIN->fulltree) {
             'tiny_cursive/notice_enabled',
             get_string('notice_enabled', 'tiny_cursive'),
             get_string('notice_enabled_desc', 'tiny_cursive', $noticelinks),
-            0
+            1
         )
     );
 
