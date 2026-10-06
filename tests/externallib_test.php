@@ -172,7 +172,9 @@ final class externallib_test extends advanced_testcase {
         $course = $this->getDataGenerator()->create_course();
         $assign = $this->getDataGenerator()->create_module('assign', ['course' => $course->id]);
         $student = $this->getDataGenerator()->create_user();
+        $otherstudent = $this->getDataGenerator()->create_user();
         $this->getDataGenerator()->enrol_user($student->id, $course->id, 'student');
+        $this->getDataGenerator()->enrol_user($otherstudent->id, $course->id, 'student');
 
         $fileid = $DB->insert_record('tiny_cursive_files', (object) [
             'userid' => $student->id,
@@ -185,6 +187,29 @@ final class externallib_test extends advanced_testcase {
             'uploaded' => 0,
         ]);
 
+        foreach (['assign', 'assign_autosave', 'assign_autosave'] as $modulename) {
+            $DB->insert_record('tiny_cursive_comments', (object) [
+                'userid' => $student->id,
+                'cmid' => (int) $assign->cmid,
+                'modulename' => $modulename,
+                'resourceid' => (int) $assign->cmid,
+                'courseid' => $course->id,
+                'usercomment' => 'Target student draft',
+                'questionid' => 0,
+                'timemodified' => time(),
+            ]);
+        }
+        $othercommentid = $DB->insert_record('tiny_cursive_comments', (object) [
+            'userid' => $otherstudent->id,
+            'cmid' => (int) $assign->cmid,
+            'modulename' => 'assign_autosave',
+            'resourceid' => (int) $assign->cmid,
+            'courseid' => $course->id,
+            'usercomment' => 'Other student draft',
+            'questionid' => 0,
+            'timemodified' => time(),
+        ]);
+
         $this->setUser($student);
         $this->assertTrue(cursive_json_func_data::remove_student_submission(
             (int) $course->id,
@@ -192,6 +217,13 @@ final class externallib_test extends advanced_testcase {
             (int) $assign->cmid,
         ));
         $this->assertFalse($DB->record_exists('tiny_cursive_files', ['id' => $fileid]));
+        $this->assertEquals(0, $DB->count_records('tiny_cursive_comments', [
+            'userid' => $student->id,
+            'cmid' => (int) $assign->cmid,
+            'resourceid' => (int) $assign->cmid,
+            'courseid' => $course->id,
+        ]));
+        $this->assertTrue($DB->record_exists('tiny_cursive_comments', ['id' => $othercommentid]));
     }
 
     /**

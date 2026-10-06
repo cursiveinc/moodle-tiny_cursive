@@ -2330,7 +2330,23 @@ class cursive_json_func_data extends external_api {
         [$insql, $inparams] = $DB->get_in_or_equal($fileids, SQL_PARAMS_NAMED);
         $DB->delete_records_select('tiny_cursive_user_writing', "file_id $insql", $inparams);
         $DB->delete_records_select('tiny_cursive_writing_diff', "file_id $insql", $inparams);
-        $DB->delete_records('tiny_cursive_comments', $conditions);
+        [$commentmodulesql, $commentmoduleparams] = $DB->get_in_or_equal(
+            ['assign', 'assign_autosave'],
+            SQL_PARAMS_NAMED,
+            'commentmodule',
+        );
+        $commentconditions = [
+            'courseid' => $params['courseid'],
+            'userid' => $params['userid'],
+            'cmid' => $params['cmid'],
+            'resourceid' => $params['cmid'],
+        ] + $commentmoduleparams;
+        $DB->delete_records_select(
+            'tiny_cursive_comments',
+            "courseid = :courseid AND userid = :userid AND cmid = :cmid
+                 AND resourceid = :resourceid AND modulename $commentmodulesql",
+            $commentconditions,
+        );
         $DB->delete_records_select('tiny_cursive_files', "id $insql", $inparams);
         $transaction->allow_commit();
 
