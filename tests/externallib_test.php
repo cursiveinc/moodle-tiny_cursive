@@ -736,6 +736,7 @@ final class externallib_test extends advanced_testcase {
         require_once($CFG->dirroot . '/lib/editor/tiny/plugins/cursive/externallib.php');
 
         $course = $this->getDataGenerator()->create_course();
+        $this->setAdminUser();
         $lesson = $this->getDataGenerator()->create_module('lesson', ['course' => $course->id]);
         $student1 = $this->getDataGenerator()->create_user();
         $student2 = $this->getDataGenerator()->create_user();
@@ -848,6 +849,7 @@ final class externallib_test extends advanced_testcase {
         require_once($CFG->dirroot . '/lib/editor/tiny/plugins/cursive/externallib.php');
 
         $course = $this->getDataGenerator()->create_course();
+        $this->setAdminUser();
         $workshop = $this->getDataGenerator()->create_module('workshop', ['course' => $course->id]);
         $student1 = $this->getDataGenerator()->create_user();
         $student2 = $this->getDataGenerator()->create_user();

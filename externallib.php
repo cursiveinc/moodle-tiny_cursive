@@ -369,8 +369,10 @@ class cursive_json_func_data extends external_api {
         self::validate_context($context);
         require_capability("tiny/cursive:writingreport", $context);
 
-        if (!has_capability('tiny/cursive:view', $context) &&
-                (int) $params['userid'] !== (int) $USER->id) {
+        if (
+            !has_capability('tiny/cursive:view', $context) &&
+                (int) $params['userid'] !== (int) $USER->id
+        ) {
             throw new required_capability_exception($context, 'tiny/cursive:view', 'nopermissions', '');
         }
 
@@ -862,8 +864,10 @@ class cursive_json_func_data extends external_api {
         self::validate_context($context);
         require_capability("tiny/cursive:writingreport", $context);
 
-        if (!has_capability('tiny/cursive:view', $context) &&
-                (int) $params['id'] !== (int) $USER->id) {
+        if (
+            !has_capability('tiny/cursive:view', $context) &&
+                (int) $params['id'] !== (int) $USER->id
+        ) {
             throw new required_capability_exception($context, 'tiny/cursive:view', 'nopermissions', '');
         }
 
@@ -1868,8 +1872,10 @@ class cursive_json_func_data extends external_api {
         self::validate_context($context);
         require_capability("tiny/cursive:writingreport", $context);
 
-        if (!has_capability('tiny/cursive:view', $context) &&
-                (int) $params['id'] !== (int) $USER->id) {
+        if (
+            !has_capability('tiny/cursive:view', $context) &&
+                (int) $params['id'] !== (int) $USER->id
+        ) {
             throw new required_capability_exception($context, 'tiny/cursive:view', 'nopermissions', '');
         }
 
@@ -2371,7 +2377,7 @@ class cursive_json_func_data extends external_api {
         return new external_function_parameters(
             [
                 'resourceid' => new external_value(PARAM_INT, 'resource id'),
-                'userid' => new external_value(PARAM_INT, 'user id', VALUE_OPTIONAL, null),
+                'userid' => new external_value(PARAM_INT, 'user id', VALUE_DEFAULT, null),
                 'modulename' => new external_value(PARAM_TEXT, 'module name'),
                 'cmid' => new external_value(PARAM_INT, 'course module id'),
             ]
@@ -2422,8 +2428,10 @@ class cursive_json_func_data extends external_api {
             1,
         );
         $file = reset($files);
-        if ($file && !has_capability('tiny/cursive:view', $context) &&
-                (int) $file->userid !== (int) $USER->id) {
+        if (
+            $file && !has_capability('tiny/cursive:view', $context) &&
+                (int) $file->userid !== (int) $USER->id
+        ) {
             throw new required_capability_exception($context, 'tiny/cursive:view', 'nopermissions', '');
         }
 

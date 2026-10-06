@@ -80,9 +80,11 @@ class hook_callbacks {
         $PAGE->requires->js_call_amd('tiny_cursive/settings', 'init', [constants::show_comments(), $userrole]);
         // PDF capture relinking is required for data integrity and must not depend on the
         // optional student analytics view setting.
-        if ($PAGE->bodyid === 'page-mod-pdfannotator-view' &&
+        if (
+            $PAGE->bodyid === 'page-mod-pdfannotator-view' &&
                 $userrole === '' && constants::is_active() &&
-                !intval(get_config('tiny_cursive', "STD$COURSE->id$cmid"))) {
+                !intval(get_config('tiny_cursive', "STD$COURSE->id$cmid"))
+        ) {
             // Use the long-standing init export for compatibility with a stale Moodle JavaScript
             // cache during deployment. The final argument limits the current build to linking only.
             $PAGE->requires->js_call_amd(
@@ -95,8 +97,10 @@ class hook_callbacks {
             $PAGE->requires->js_call_amd('tiny_cursive/remove_submission', 'init', []);
         }
         // For Student Analytics view.
-        if (array_key_exists($PAGE->bodyid, constants::STUDENT_VIEW) &&
-                $userrole === '' && constants::is_active()) {
+        if (
+            array_key_exists($PAGE->bodyid, constants::STUDENT_VIEW) &&
+                $userrole === '' && constants::is_active()
+        ) {
             if (intval(get_config('tiny_cursive', "STD$COURSE->id$cmid"))) {
                 $PAGE->requires->js_call_amd(
                     "tiny_cursive/" . constants::STUDENT_VIEW[$PAGE->bodyid][0],
