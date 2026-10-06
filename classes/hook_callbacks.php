@@ -73,6 +73,12 @@ class hook_callbacks {
             return;
         }
 
+        if ($cmid && $PAGE->bodyid === 'page-mod-pdfannotator-view' && isloggedin() && !isguestuser()) {
+            // Repair a capture whose browser link call never arrived, before the user's next
+            // annotation is appended to it.
+            helper::relink_pending_pdfannotator_captures((int) $USER->id, (int) $cmid);
+        }
+
         $context  = context_course::instance($COURSE->id);
         $userrole = constants::is_teacher_admin($context) ? 'teacher_admin' : '';
 
