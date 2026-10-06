@@ -276,7 +276,7 @@ function tiny_cursive_get_user_submissions_data($userid, $modulename, $cmid, $co
     }
 
     // Execute the SQL query using Moodle's database abstraction layer.
-    $data = $DB->get_record_sql($sql, $params);
+    $data = $DB->get_record_sql($sql, $params) ?: new stdClass();
 
     if (isset($data->effort_ratio)) {
         $data->effort_ratio = intval(floatval($data->effort_ratio) * 100);

@@ -284,6 +284,16 @@ function xmldb_tiny_cursive_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026100601, 'tiny', 'cursive');
     }
 
+    if ($oldversion < 2026100602) {
+        // PDF Annotator captures made by students while student view was off were never linked
+        // to their comment. Link the ones that can be matched and move the rest aside, so a
+        // student's next annotation is not appended to an old capture.
+        \tiny_cursive\helper::relink_pending_pdfannotator_captures(null, null, true);
+
+        // Cursive savepoint reached.
+        upgrade_plugin_savepoint(true, 2026100602, 'tiny', 'cursive');
+    }
+
     // Do not queue the telemetry task under PHPUnit: it makes an outbound HTTP
     // call that fails in the test environment and leaks its adhoc task lock,
     // aborting phpunit_util::install_site().

@@ -65,6 +65,20 @@ class constants {
         'page-mod-diary-edit',
     ];
     /**
+     * How long before a pending PDF Annotator capture was created its comment may have been
+     * saved, in seconds. Keystrokes are sent in batches, so a short comment can be saved first.
+     * @var int
+     */
+    public const PDF_RELINK_BEFORE = 120;
+
+    /**
+     * How long after the last keystroke of a pending PDF Annotator capture its comment may
+     * have been saved, in seconds.
+     * @var int
+     */
+    public const PDF_RELINK_AFTER = 1800;
+
+    /**
      * Array mapping module names to their corresponding rubric areas.
      * Used to identify the correct rubric area for different module types.
      * const array RUBRIC_AREA Mapping of module names to rubric areas
