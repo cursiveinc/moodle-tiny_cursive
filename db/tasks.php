@@ -34,4 +34,13 @@ $tasks = [
         'month' => '*',
         'dayofweek' => '*',
     ],
+    [
+        'classname' => 'tiny_cursive\task\purge_old_records',
+        'blocking' => 0,
+        'minute' => '30',
+        'hour' => '3',
+        'day' => '*',
+        'month' => '*',
+        'dayofweek' => '*',
+    ],
 ];
