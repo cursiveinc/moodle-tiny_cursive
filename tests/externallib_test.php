@@ -227,6 +227,47 @@ final class externallib_test extends advanced_testcase {
     }
 
     /**
+     * Test autosaved drafts are removed even when the student has no capture file.
+     */
+    public function test_remove_student_submission_drafts_without_file(): void {
+        global $CFG, $DB;
+        require_once($CFG->dirroot . '/lib/editor/tiny/plugins/cursive/externallib.php');
+
+        $course = $this->getDataGenerator()->create_course();
+        $assign = $this->getDataGenerator()->create_module('assign', ['course' => $course->id]);
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id, 'student');
+
+        $this->setUser($student);
+        $this->assertFalse(cursive_json_func_data::remove_student_submission(
+            (int) $course->id,
+            (int) $student->id,
+            (int) $assign->cmid,
+        ));
+
+        $DB->insert_record('tiny_cursive_comments', (object) [
+            'userid' => $student->id,
+            'cmid' => (int) $assign->cmid,
+            'modulename' => 'assign_autosave',
+            'resourceid' => (int) $assign->cmid,
+            'courseid' => $course->id,
+            'usercomment' => 'Draft with no capture file',
+            'questionid' => 0,
+            'timemodified' => time(),
+        ]);
+
+        $this->assertTrue(cursive_json_func_data::remove_student_submission(
+            (int) $course->id,
+            (int) $student->id,
+            (int) $assign->cmid,
+        ));
+        $this->assertEquals(0, $DB->count_records('tiny_cursive_comments', [
+            'userid' => $student->id,
+            'cmid' => (int) $assign->cmid,
+        ]));
+    }
+
+    /**
      * Test an editing teacher can delete another user's Cursive submission data.
      */
     public function test_remove_student_submission_teacher_can_delete_student_data(): void {
@@ -507,6 +548,18 @@ final class externallib_test extends advanced_testcase {
             "{$student1->id}_{$resourceid}_{$forum->cmid}_attempt.json",
             $decoded['data']['filename'],
         );
+
+        // A student with no capture for the resource gets a clean, empty data object.
+        $student3 = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student3->id, $course->id, 'student');
+        $this->setUser($student3);
+        $decoded = json_decode(cursive_json_func_data::get_forum_comment_link(
+            $resourceid,
+            'forum',
+            (int) $forum->cmid,
+        ), true);
+        $this->assertSame('comments', $decoded['usercomment']);
+        $this->assertSame(['first_file' => 0], $decoded['data']);
         $this->assertDebuggingNotCalled();
     }
 
