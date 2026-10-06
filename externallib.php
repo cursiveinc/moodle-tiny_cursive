@@ -551,7 +551,7 @@ class cursive_json_func_data extends external_api {
         }
 
         $records = $DB->get_records_sql($attempts, $sqlparams, 0, 1);
-        $data = reset($records);
+        $data = reset($records) ?: new stdClass();
         if (isset($data->effort_ratio)) {
             $data->effort_ratio = intval(floatval($data->effort_ratio) * 100);
         }
@@ -2328,14 +2328,6 @@ class cursive_json_func_data extends external_api {
                  AND modulename = :modulename AND resourceid = :resourceid',
             $conditions,
         );
-        if (!$fileids) {
-            return false;
-        }
-
-        $transaction = $DB->start_delegated_transaction();
-        [$insql, $inparams] = $DB->get_in_or_equal($fileids, SQL_PARAMS_NAMED);
-        $DB->delete_records_select('tiny_cursive_user_writing', "file_id $insql", $inparams);
-        $DB->delete_records_select('tiny_cursive_writing_diff', "file_id $insql", $inparams);
         [$commentmodulesql, $commentmoduleparams] = $DB->get_in_or_equal(
             ['assign', 'assign_autosave'],
             SQL_PARAMS_NAMED,
@@ -2347,13 +2339,23 @@ class cursive_json_func_data extends external_api {
             'cmid' => $params['cmid'],
             'resourceid' => $params['cmid'],
         ] + $commentmoduleparams;
-        $DB->delete_records_select(
-            'tiny_cursive_comments',
-            "courseid = :courseid AND userid = :userid AND cmid = :cmid
-                 AND resourceid = :resourceid AND modulename $commentmodulesql",
-            $commentconditions,
-        );
-        $DB->delete_records_select('tiny_cursive_files', "id $insql", $inparams);
+        $commentselect = "courseid = :courseid AND userid = :userid AND cmid = :cmid
+                 AND resourceid = :resourceid AND modulename $commentmodulesql";
+
+        // Autosaved drafts can exist without a capture file, so they are removed either way.
+        $hascomments = $DB->record_exists_select('tiny_cursive_comments', $commentselect, $commentconditions);
+        if (!$fileids && !$hascomments) {
+            return false;
+        }
+
+        $transaction = $DB->start_delegated_transaction();
+        if ($fileids) {
+            [$insql, $inparams] = $DB->get_in_or_equal($fileids, SQL_PARAMS_NAMED);
+            $DB->delete_records_select('tiny_cursive_user_writing', "file_id $insql", $inparams);
+            $DB->delete_records_select('tiny_cursive_writing_diff', "file_id $insql", $inparams);
+            $DB->delete_records_select('tiny_cursive_files', "id $insql", $inparams);
+        }
+        $DB->delete_records_select('tiny_cursive_comments', $commentselect, $commentconditions);
         $transaction->allow_commit();
 
         return true;
@@ -2463,7 +2465,7 @@ class cursive_json_func_data extends external_api {
         $DB->get_record_sql(
             $attempts,
             $sqlparams,
-        );
+        ) ?: new stdClass();
         if (isset($data->effort_ratio)) {
             $data->effort_ratio = intval(floatval($data->effort_ratio) * 100);
         }
