@@ -41,6 +41,76 @@ final class externallib_test extends advanced_testcase {
     }
 
     /**
+     * Create a Cursive capture with analytics for an external-function test.
+     *
+     * @param int $courseid Course ID.
+     * @param int $cmid Course module ID.
+     * @param int $userid Capture owner ID.
+     * @param string $modulename Module name.
+     * @param int $resourceid Resource or submission ID.
+     * @param int $questionid Optional quiz question ID.
+     * @return int The Cursive file ID.
+     */
+    private function create_analytics_capture(
+        int $courseid,
+        int $cmid,
+        int $userid,
+        string $modulename,
+        int $resourceid,
+        int $questionid = 0,
+    ): int {
+        global $DB;
+
+        $fileid = $DB->insert_record('tiny_cursive_files', (object) [
+            'userid' => $userid,
+            'cmid' => $cmid,
+            'modulename' => $modulename,
+            'resourceid' => $resourceid,
+            'courseid' => $courseid,
+            'filename' => "{$userid}_{$resourceid}_{$cmid}_attempt.json",
+            'timemodified' => time(),
+            'uploaded' => 1,
+            'questionid' => $questionid,
+        ]);
+        $DB->insert_record('tiny_cursive_user_writing', (object) [
+            'file_id' => $fileid,
+            'total_time_seconds' => 120,
+            'key_count' => 100,
+            'keys_per_minute' => 50,
+            'character_count' => 90,
+            'characters_per_minute' => 45,
+            'word_count' => 20,
+            'words_per_minute' => 10,
+            'backspace_percent' => 5.0,
+            'score' => 90.0,
+            'copy_behavior' => 0.0,
+            'user_agent' => 'phpunit',
+        ]);
+        $DB->insert_record('tiny_cursive_writing_diff', (object) [
+            'file_id' => $fileid,
+            'reconstructed_text' => 'Test response',
+            'submitted_text' => 'Test response',
+            'meta' => '0.75',
+        ]);
+
+        return (int) $fileid;
+    }
+
+    /**
+     * Assert that an external-function call is rejected as cross-user access.
+     *
+     * @param callable $callback Function call to execute.
+     */
+    private function assert_cross_user_access_denied(callable $callback): void {
+        try {
+            $callback();
+            $this->fail('Expected required_capability_exception for cross-user analytics access.');
+        } catch (required_capability_exception $exception) {
+            $this->assertNotEmpty($exception->getMessage());
+        }
+    }
+
+    /**
      * Test disable_cursive requires tiny/cursive:editsettings capability.
      */
     public function test_disable_cursive_capability(): void {
@@ -575,6 +645,241 @@ final class externallib_test extends advanced_testcase {
         $this->setUser($teacher);
         $this->expectException(invalid_parameter_exception::class);
         cursive_json_func_data::get_comment_link((int) $assign->cmid, 'assign', (int) $assign->cmid, 0, (int) $teacher->id);
+    }
+
+    /**
+     * Test assignment analytics permit own and teacher access but reject another student.
+     */
+    public function test_get_user_list_submission_stats_ownership(): void {
+        global $CFG;
+        require_once($CFG->dirroot . '/lib/editor/tiny/plugins/cursive/externallib.php');
+
+        $course = $this->getDataGenerator()->create_course();
+        $assign = $this->getDataGenerator()->create_module('assign', ['course' => $course->id]);
+        $student1 = $this->getDataGenerator()->create_user();
+        $student2 = $this->getDataGenerator()->create_user();
+        $teacher = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student1->id, $course->id, 'student');
+        $this->getDataGenerator()->enrol_user($student2->id, $course->id, 'student');
+        $this->getDataGenerator()->enrol_user($teacher->id, $course->id, 'editingteacher');
+        $this->create_analytics_capture(
+            (int) $course->id,
+            (int) $assign->cmid,
+            (int) $student1->id,
+            'assign',
+            (int) $assign->cmid,
+        );
+
+        $this->setUser($student1);
+        $own = json_decode(cursive_json_func_data::get_user_list_submission_stats(
+            (int) $student1->id,
+            'assign',
+            (int) $assign->cmid,
+        ), true);
+        $this->assertSame((int) $student1->id, (int) $own['res']['userid']);
+
+        $this->setUser($student2);
+        $this->assert_cross_user_access_denied(static function () use ($student1, $assign): void {
+            cursive_json_func_data::get_user_list_submission_stats(
+                (int) $student1->id,
+                'assign',
+                (int) $assign->cmid,
+            );
+        });
+
+        $this->setUser($teacher);
+        $teacherresult = json_decode(cursive_json_func_data::get_user_list_submission_stats(
+            (int) $student1->id,
+            'assign',
+            (int) $assign->cmid,
+        ), true);
+        $this->assertSame((int) $student1->id, (int) $teacherresult['res']['userid']);
+    }
+
+    /**
+     * Test lesson analytics permit own and teacher access but reject another student.
+     */
+    public function test_get_lesson_submission_data_ownership(): void {
+        global $CFG;
+        require_once($CFG->dirroot . '/lib/editor/tiny/plugins/cursive/externallib.php');
+
+        $course = $this->getDataGenerator()->create_course();
+        $lesson = $this->getDataGenerator()->create_module('lesson', ['course' => $course->id]);
+        $student1 = $this->getDataGenerator()->create_user();
+        $student2 = $this->getDataGenerator()->create_user();
+        $teacher = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student1->id, $course->id, 'student');
+        $this->getDataGenerator()->enrol_user($student2->id, $course->id, 'student');
+        $this->getDataGenerator()->enrol_user($teacher->id, $course->id, 'editingteacher');
+        $this->create_analytics_capture(
+            (int) $course->id,
+            (int) $lesson->cmid,
+            (int) $student1->id,
+            'lesson',
+            (int) $lesson->cmid,
+        );
+
+        $this->setUser($student1);
+        $own = json_decode(cursive_json_func_data::get_lesson_submission_data(
+            (int) $student1->id,
+            'lesson',
+            (int) $lesson->cmid,
+        ), true);
+        $this->assertSame((int) $student1->id, (int) $own['res']['userid']);
+
+        $this->setUser($student2);
+        $this->assert_cross_user_access_denied(static function () use ($student1, $lesson): void {
+            cursive_json_func_data::get_lesson_submission_data(
+                (int) $student1->id,
+                'lesson',
+                (int) $lesson->cmid,
+            );
+        });
+
+        $this->setUser($teacher);
+        $teacherresult = json_decode(cursive_json_func_data::get_lesson_submission_data(
+            (int) $student1->id,
+            'lesson',
+            (int) $lesson->cmid,
+        ), true);
+        $this->assertSame((int) $student1->id, (int) $teacherresult['res']['userid']);
+    }
+
+    /**
+     * Test quiz analytics permit own and teacher access but reject another student.
+     */
+    public function test_get_comment_link_ownership(): void {
+        global $CFG;
+        require_once($CFG->dirroot . '/lib/editor/tiny/plugins/cursive/externallib.php');
+
+        $course = $this->getDataGenerator()->create_course();
+        $quiz = $this->getDataGenerator()->create_module('quiz', ['course' => $course->id]);
+        $student1 = $this->getDataGenerator()->create_user();
+        $student2 = $this->getDataGenerator()->create_user();
+        $teacher = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student1->id, $course->id, 'student');
+        $this->getDataGenerator()->enrol_user($student2->id, $course->id, 'student');
+        $this->getDataGenerator()->enrol_user($teacher->id, $course->id, 'editingteacher');
+        $attemptid = 1234;
+        $questionid = 5678;
+        $this->create_analytics_capture(
+            (int) $course->id,
+            (int) $quiz->cmid,
+            (int) $student1->id,
+            'quiz',
+            $attemptid,
+            $questionid,
+        );
+
+        $this->setUser($student1);
+        $own = json_decode(cursive_json_func_data::get_comment_link(
+            $attemptid,
+            'quiz',
+            (int) $quiz->cmid,
+            $questionid,
+            (int) $student1->id,
+        ), true);
+        $this->assertNotEmpty($own['data']['filename']);
+
+        $this->setUser($student2);
+        $this->assert_cross_user_access_denied(static function () use (
+            $attemptid,
+            $quiz,
+            $questionid,
+            $student1,
+        ): void {
+            cursive_json_func_data::get_comment_link(
+                $attemptid,
+                'quiz',
+                (int) $quiz->cmid,
+                $questionid,
+                (int) $student1->id,
+            );
+        });
+
+        $this->setUser($teacher);
+        $teacherresult = json_decode(cursive_json_func_data::get_comment_link(
+            $attemptid,
+            'quiz',
+            (int) $quiz->cmid,
+            $questionid,
+            (int) $student1->id,
+        ), true);
+        $this->assertNotEmpty($teacherresult['data']['filename']);
+    }
+
+    /**
+     * Test workshop analytics authorize against the stored capture owner.
+     */
+    public function test_get_workshop_submission_ownership(): void {
+        global $CFG;
+        require_once($CFG->dirroot . '/lib/editor/tiny/plugins/cursive/externallib.php');
+
+        $course = $this->getDataGenerator()->create_course();
+        $workshop = $this->getDataGenerator()->create_module('workshop', ['course' => $course->id]);
+        $student1 = $this->getDataGenerator()->create_user();
+        $student2 = $this->getDataGenerator()->create_user();
+        $teacher = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student1->id, $course->id, 'student');
+        $this->getDataGenerator()->enrol_user($student2->id, $course->id, 'student');
+        $this->getDataGenerator()->enrol_user($teacher->id, $course->id, 'editingteacher');
+        $submissionid = 7001;
+        $this->create_analytics_capture(
+            (int) $course->id,
+            (int) $workshop->cmid,
+            (int) $student1->id,
+            'workshop',
+            $submissionid,
+        );
+
+        $this->setUser($student1);
+        $own = json_decode(cursive_json_func_data::get_workshop_submission(
+            $submissionid,
+            0,
+            'workshop',
+            (int) $workshop->cmid,
+        ), true);
+        $this->assertSame((int) $student1->id, (int) $own['data']['userid']);
+
+        $this->setUser($student2);
+        $this->assert_cross_user_access_denied(static function () use ($submissionid, $workshop): void {
+            cursive_json_func_data::get_workshop_submission(
+                $submissionid,
+                0,
+                'workshop',
+                (int) $workshop->cmid,
+            );
+        });
+
+        $this->setUser($teacher);
+        $teacherresult = json_decode(cursive_json_func_data::get_workshop_submission(
+            $submissionid,
+            0,
+            'workshop',
+            (int) $workshop->cmid,
+        ), true);
+        $this->assertSame((int) $student1->id, (int) $teacherresult['data']['userid']);
+    }
+
+    /**
+     * Test web token generation requires system-level plugin administration capability.
+     */
+    public function test_generate_webtoken_capability(): void {
+        global $CFG;
+        require_once($CFG->dirroot . '/lib/editor/tiny/plugins/cursive/externallib.php');
+
+        $student = $this->getDataGenerator()->create_user();
+        $this->setUser($student);
+        try {
+            cursive_json_func_data::generate_webtoken();
+            $this->fail('Expected required_capability_exception for web token generation.');
+        } catch (required_capability_exception $exception) {
+            $this->assertNotEmpty($exception->getMessage());
+        }
+
+        $this->setAdminUser();
+        $result = cursive_json_func_data::generate_webtoken();
+        $this->assertArrayHasKey('token', $result);
     }
 
     /**

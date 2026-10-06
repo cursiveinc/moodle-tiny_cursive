@@ -247,7 +247,7 @@ function xmldb_tiny_cursive_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026082001, 'tiny', 'cursive');
     }
 
-    if ($oldversion < 2026091500) {
+    if ($oldversion < 2026100601) {
         // Define table tiny_cursive_notice: the append-only acknowledgement log.
         $table = new xmldb_table('tiny_cursive_notice');
         $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
@@ -281,7 +281,7 @@ function xmldb_tiny_cursive_upgrade($oldversion) {
         }
 
         // Cursive savepoint reached.
-        upgrade_plugin_savepoint(true, 2026091500, 'tiny', 'cursive');
+        upgrade_plugin_savepoint(true, 2026100601, 'tiny', 'cursive');
     }
 
     // Do not queue the telemetry task under PHPUnit: it makes an outbound HTTP
