@@ -21,8 +21,8 @@ use xmldb_table;
 /**
  * Tests for re-linking pending PDF Annotator captures.
  *
- * mod_pdfannotator is a third-party plugin, so the tests create a minimal copy of its
- * comments table and a course module row pointing at it.
+ * mod_pdfannotator is a third-party plugin, so where it is not installed the tests create a
+ * minimal copy of its comments table and a course module row pointing at it.
  *
  * @package    tiny_cursive
  * @category   test
@@ -67,8 +67,10 @@ final class pdfannotator_relink_test extends \advanced_testcase {
         if (!$dbman->table_exists($table)) {
             $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
             $table->add_field('pdfannotatorid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '-1');
+            $table->add_field('annotationid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
             $table->add_field('userid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
             $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '11', null, XMLDB_NOTNULL, null, null);
+            $table->add_field('timemodified', XMLDB_TYPE_INTEGER, '11', null, XMLDB_NOTNULL, null, null);
             $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
             $dbman->create_table($table);
             $this->createdtable = true;
@@ -134,8 +136,10 @@ final class pdfannotator_relink_test extends \advanced_testcase {
 
         return (int) $DB->insert_record('pdfannotator_comments', (object) [
             'pdfannotatorid' => $instance,
+            'annotationid' => 1,
             'userid' => $userid,
             'timecreated' => $timecreated,
+            'timemodified' => $timecreated,
         ]);
     }
 
