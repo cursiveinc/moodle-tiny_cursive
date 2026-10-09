@@ -215,6 +215,8 @@ class pdfexport {
             $analytics->effort             = ceil($analytics->effort * 100);
             $submitted = json_decode($analytics->submitted_text);
             $submitted = is_string($submitted) ? clean_text($submitted, FORMAT_HTML) : '';
+            // Only the cleaned copy goes to the page: the stored value is HTML from the remote API.
+            unset($analytics->submitted_text);
             $this->templatecontent = [
                 "analytics"  => $analytics,
                 "modulename" => $modname->name,
