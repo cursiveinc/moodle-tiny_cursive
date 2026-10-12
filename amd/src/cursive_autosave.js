@@ -44,6 +44,8 @@ export default class CursiveAutosave {
         // Bind methods that will be used as event listener
         this.fetchSavedContent = this.fetchSavedContent.bind(this);
         this.handleEscapeKey = this.handleEscapeKey.bind(this);
+        this.handleDocumentClick = this.handleDocumentClick.bind(this);
+        this.repositionSavedDropdown = this.repositionSavedDropdown.bind(this);
         this._savingTimer = null;
         CursiveAutosave.instance = this;
         this.fetchStrings();
@@ -78,6 +80,7 @@ export default class CursiveAutosave {
     }
 
     destroy() {
+        this.closeSavedDropdown();
         const el = this.module?.modulename === 'quiz'
             ? document.querySelector(`#tiny_cursive_savingState${this.module.questionid}`)
             : document.querySelector('#tiny_cursive_savingState');
@@ -229,12 +232,7 @@ export default class CursiveAutosave {
             this.closeSavedDropdown();
             return;
         }
-        let editorWrapper = null;
-        if (this.module.modulename === 'quiz') {
-            editorWrapper = document.querySelector(`#tiny_cursive_savingState${this.module.questionid}`);
-        } else {
-            editorWrapper = document.querySelector('#tiny_cursive_savingState');
-        }
+        const editorWrapper = e.currentTarget;
 
         let args = {
             id: this.module.resourceId,
@@ -284,11 +282,18 @@ export default class CursiveAutosave {
      */
     openSavedDropdown() {
         const dropdown = document.querySelector('#savedDropdown');
+        if (!dropdown) {
+            return;
+        }
         dropdown.classList.add('show');
 
-        // Add event listener to close on Escape key
+        // Add event listeners for keyboard, outside-click, and viewport changes.
         document.removeEventListener('keydown', this.handleEscapeKey);
         document.addEventListener('keydown', this.handleEscapeKey);
+        document.removeEventListener('click', this.handleDocumentClick);
+        document.addEventListener('click', this.handleDocumentClick);
+        window.addEventListener('resize', this.repositionSavedDropdown);
+        window.addEventListener('scroll', this.repositionSavedDropdown, true);
     }
 
     /**
@@ -303,6 +308,10 @@ export default class CursiveAutosave {
             dropdown.classList.remove('show');
             dropdown.remove();
             document.removeEventListener('keydown', this.handleEscapeKey);
+            document.removeEventListener('click', this.handleDocumentClick);
+            window.removeEventListener('resize', this.repositionSavedDropdown);
+            window.removeEventListener('scroll', this.repositionSavedDropdown, true);
+            this.savedDropdownAnchor = null;
         }
     }
 
@@ -315,6 +324,49 @@ export default class CursiveAutosave {
         if (event.key === 'Escape') {
             this.closeSavedDropdown();
         }
+    }
+
+    /**
+     * Closes the saved content panel when the user clicks outside it.
+     *
+     * @param {MouseEvent} event Click event.
+     */
+    handleDocumentClick(event) {
+        const dropdown = document.querySelector('#savedDropdown');
+        if (dropdown && !dropdown.contains(event.target) && !this.savedDropdownAnchor?.contains(event.target)) {
+            this.closeSavedDropdown();
+        }
+    }
+
+    /**
+     * Positions the saved-content panel beside its toolbar control without clipping.
+     */
+    repositionSavedDropdown() {
+        const dropdown = document.querySelector('#savedDropdown');
+        const anchor = this.savedDropdownAnchor;
+        if (!dropdown || !anchor) {
+            return;
+        }
+
+        const gap = 8;
+        const edge = 8;
+        const anchorRect = anchor.getBoundingClientRect();
+        const dropdownRect = dropdown.getBoundingClientRect();
+        const width = dropdownRect.width || 320;
+        const height = dropdownRect.height;
+        let left = anchorRect.right - width;
+        let top = anchorRect.bottom + gap;
+
+        left = Math.max(edge, Math.min(left, window.innerWidth - width - edge));
+        if (top + height > window.innerHeight - edge && anchorRect.top > height + gap) {
+            top = anchorRect.top - height - gap;
+            dropdown.classList.add('tiny_cursive-saved-dropdown--above');
+        } else {
+            dropdown.classList.remove('tiny_cursive-saved-dropdown--above');
+        }
+
+        dropdown.style.left = `${left}px`;
+        dropdown.style.top = `${Math.max(edge, top)}px`;
     }
 
     timeAgo(unixTime) {
@@ -368,31 +420,30 @@ export default class CursiveAutosave {
      */
     renderCommentList(context, editorWrapper) {
         templates.render('tiny_cursive/saved_content', context).then(html => {
-            editorWrapper.style.position = 'relative';
-
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = html.trim();
             tempDiv.id = 'savedDropdown';
             tempDiv.classList.add('tiny_cursive-saved-dropdown');
 
-            if (!tempDiv) {
-                window.console.error("Saved content template rendered empty or invalid HTML.");
-                return false;
-            }
-
             // Add to DOM if not already added
             let existingPanel = document.querySelector('#savedDropdown');
 
             if (!existingPanel) {
-                editorWrapper.appendChild(tempDiv);
+                document.body.appendChild(tempDiv);
                 existingPanel = tempDiv;
             }
 
-            // Toggle visibility
-            existingPanel.classList.toggle('active');
+            this.savedDropdownAnchor = editorWrapper;
             this.openSavedDropdown();
+            this.repositionSavedDropdown();
 
-            this.insertSavedItems(this.editor);
+            existingPanel.querySelector('.tiny_cursive-close-btn')?.addEventListener('click', event => {
+                event.preventDefault();
+                event.stopPropagation();
+                this.closeSavedDropdown();
+            });
+
+            this.insertSavedItems(this.editor, existingPanel);
 
             return true;
 
@@ -428,13 +479,16 @@ export default class CursiveAutosave {
      * insert the element's text content into the editor when clicked. The text is inserted with
      * a leading space.
      * @param {Object} editor - The TinyMCE editor instance
+     * @param {HTMLElement} dropdown - Saved content dropdown element.
      * @returns {void}
      */
-    insertSavedItems(editor) {
-        const items = document.querySelectorAll('.tiny_cursive-item-preview');
+    insertSavedItems(editor, dropdown) {
+        const items = dropdown.querySelectorAll('.tiny_cursive-saved-item');
         items.forEach(element => {
-            element.addEventListener('click', function() {
-                editor.insertContent(" " + this.textContent);
+            element.addEventListener('click', () => {
+                const content = element.querySelector('.tiny_cursive-item-preview')?.textContent ?? '';
+                editor.insertContent(' ' + content);
+                this.closeSavedDropdown();
             });
         });
     }

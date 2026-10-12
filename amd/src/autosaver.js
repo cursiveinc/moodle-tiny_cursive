@@ -907,6 +907,9 @@ function sentMobileInput(key) {
                 Autosave.getInstance(editor, rightWrapper, moduleIds, isFullScreen);
             } else { // Regular view
                 let menubar = editor?.container?.children[0]?.childNodes[0]?.childNodes[0];
+                if (!menubar?.matches('div[role="menubar"].tox-menubar')) {
+                    menubar = editor?.container?.querySelector('div[role="menubar"].tox-menubar');
+                }
 
                 if (targetMenu && !targetMenu.querySelector(`#${elementId}`)) {
                     targetMenu.appendChild(rightWrapper);

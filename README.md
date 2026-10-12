@@ -2,12 +2,27 @@
 
 At Cursive Technology, Inc., we're focused on the writing process. By capturing key event data (also known by the scary euphemism "key logging"), we can make new opportunities for teaching, learning, and research in a low-cost, low-effort way, all in the existing workflows of your course and site.
 
-Currently, the extension captures key event data in a structured JSON object, which a teacher or administrator can download and review. This is for each use of the TinyMCE text editor by a student, sortable by course, assignment, student, and attempt. This data can be utilized with the shared Excel or Google document which provide analysis that may help determine the level of effort by a student.
+The plugin captures writing-process events in structured JSON for supported TinyMCE activity fields. Authorised users can review writing replays and reports or download the captured JSON by course, activity, student, and attempt.
 
-**Premium/Subscription:** Cursive's plugin is designed to interact with our ML server as a paid service. This integration is optional and adds the following capabilities: 
-1. identify student authorship across their submissions, 
-2. provide writing analytics automatically, 
-3. provide students a running total of their words, pages, typing speed, and assignments across their courses.
+## Features
+
+- Captures typing, editing, paste, and revision events from supported TinyMCE writing activities.
+- Replays the writing process for authorised students and teaching staff.
+- Provides a focused full-page writing view with activity details, important dates, rubrics, a timer, and live word count where available.
+- Provides course and activity reports plus personal writing reports linked from user profiles.
+- Supports filtered reports, secure JSON downloads, and aggregate CSV exports.
+- Provides per-activity paste policies: allow paste, block paste, or require a cite-source comment.
+- Provides student-facing writing summaries when student view is enabled.
+- Allows Cursive to be enabled or disabled by course and supported activity.
+
+**Premium/Subscription:** The optional Cursive API integration adds:
+
+1. Authorship identification across a student's submissions.
+2. Automated writing analytics and submission-difference reports.
+3. Analytics indicators on supported activity grading, review, report, and student pages.
+4. Dashboard charts and metrics including effort, revision rate, active time, word count, WPM, and CPM.
+5. Analytics PDF exports, interpretation guidance, and enhanced student writing summaries.
+6. Resubmission of eligible payloads when remote analysis needs to be retried.
 
 Ultimately, we believe in human contribution as captured through the writing process, the beautiful production of written work expressing your individual thoughts that cannot be completed by a third party nor replicated by generative AI. We're excited to work with you.
 
@@ -70,6 +85,9 @@ Each acknowledgement is written to an append-only log (`tiny_cursive_notice`) wi
 The report at `Site administration -> Reports -> Cursive notice acknowledgements` (capability `tiny/cursive:viewnoticereport`, managers by default) lists acknowledgements with sorting, date, version and language filters, CSV/Excel/ODS download, links to the stored wording flagged where it has since been superseded, and a "not yet acknowledged" view scoped to a course or cohort.
 
 **Retention on erasure.** GDPR data exports include the user's acknowledgements with the full wording they saw. Erasure requests clear every other Cursive table but deliberately leave the acknowledgement log and its wording snapshots in place: the record is the institution's evidence that a specific person was shown a specific wording on a specific date, which is exactly what it needs if that person later disputes the processing. GDPR Art. 17(3)(b) and (e) provide for retention where necessary to comply with a legal obligation or to establish, exercise or defend legal claims. Records are kept indefinitely unless you configure the retention period above, in which case the institution's own retention schedule applies.
+### External data transmission
+
+Premium analytics sends captured writing data to the configured Cursive API when an administrator configures and enables that integration. The **Share site information after upgrades** setting separately sends the site's public URL, Moodle version, and Cursive plugin version to that API after installation or upgrade. Site-information sharing is enabled by default and can be explicitly disabled by an administrator.
 
 ## Supported Activity Modules
 
@@ -85,12 +103,17 @@ Currently supported Moodle activity modules:
 | 2 | Quiz       | Essay question types only |
 | 3 | Forum      | Posts and discussion entries |
 | 4 | Lesson     | Essay-style lesson questions |
-| 5 | OU Blog    | Blog posts and entries |
+| 5 | PDF Annotator | Written annotation comments |
+| 6 | Workshop | Written submissions and assessments |
+| 7 | Diary | Written diary entries |
 
-> **Note:** Across all modules, only **essay-type** responses are supported. And supported both MySQL and PostgreSQL Database.
+Only the written-text workflows shown above are supported. File uploads, multiple-choice questions, and other non-text response types are not captured.
 
+PDF Annotator and Diary integrations require their respective Moodle activity plugins to be installed. Assignment, Quiz, Forum, Lesson, and Workshop are Moodle core activities.
 
->**Note:** Users who want to use and get Cursive support in the **OU Blog** plugin must install the support plugin. Check for more updates about it at https://cursivetechnology.com.
+OU Blog is not included in this plugin's direct activity list. Cursive support for OU Blog requires the separate companion support plugin; see https://cursivetechnology.com for availability and updates.
+
+The plugin uses Moodle's database APIs and supports MySQL/MariaDB and PostgreSQL deployments.
 
 ## License
 #### 2026 Cursive Technology, Inc.

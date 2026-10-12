@@ -64,10 +64,14 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
                 });
         },
         getToken: function(scoreSetting, showcomment, hasApiKey) {
-            $('#page-mod-forum-discuss').find("article").get().forEach(function(entry) {
+            $('#page-mod-forum-discuss, #page-mod-forum-view').find('[data-region="post"]').get().forEach(function(entry) {
 
-                var ids = $("#" + entry.id).data("post-id");
+                var ids = entry.dataset.postId;
                 var cmid = M.cfg.contextInstanceId;
+                var target = entry.querySelector('#post-content-' + ids);
+                if (!ids || !target) {
+                    return;
+                }
 
                 let args = {id: ids, modulename: "forum", cmid: cmid};
                 let methodname = 'tiny_cursive_get_forum_comment_link';
@@ -92,7 +96,7 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
                         analyticButtonDiv.classList.add('text-center', 'my-2');
                         analyticButtonDiv.dataset.region = "analytic-div" + ids;
 
-                        $("#" + entry.id).find('#post-content-' + ids).prepend(analyticButtonDiv);
+                        $(target).prepend(analyticButtonDiv);
 
                         let myEvents = new AnalyticEvents();
                         var context = {
@@ -112,7 +116,6 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
                     }
 
                 });
-                return com.usercomment;
             });
         },
     };

@@ -77,17 +77,22 @@ export const quizView = (scoreSetting, hasApiKey, userid) => {
 };
 
 export const forumView = (scoreSetting, hasApiKey, userid) => {
-    let forumObject = document.querySelectorAll('.forumpost');
-    if (forumObject) {
+    let forumObject = document.querySelectorAll('[data-region="post"]');
+    if (forumObject.length) {
         forumObject.forEach(post => {
             let userId = getForumPostUserId(post);
-            if (userId == userid) {
+            // Some forum layouts and anonymous posts omit the author profile link. In that case,
+            // query the post and let the external function's ownership filter decide whether the
+            // current student has Cursive data for it.
+            if (!userId || userId == userid) {
                 let postId = post.dataset.postId;
                 let cmid = M.cfg.contextInstanceId;
-                let args = {id: postId, modulename: "forum", cmid: cmid};
-                let studentData = getStudentData('tiny_cursive_get_forum_comment_link', args);
                 let target = post.querySelector('#post-content-' + postId);
-                setStudentView(studentData, hasApiKey, postId, scoreSetting, target, "", "forum");
+                if (target) {
+                    let args = {id: postId, modulename: "forum", cmid: cmid};
+                    let studentData = getStudentData('tiny_cursive_get_forum_comment_link', args);
+                    setStudentView(studentData, hasApiKey, postId, scoreSetting, target, "", "forum");
+                }
             }
         });
     }
@@ -289,8 +294,12 @@ function getQuizQuestionId(question) {
  * @returns {string|null} The user ID extracted from the header link URL parameters, or null if not found
  */
 function getForumPostUserId(post) {
-    let header = post.querySelector('.header a');
-    let url = header.getAttribute('href');
-    let queryparams = new URLSearchParams(url.split('?')[1]);
-    return queryparams.get('id');
+    const authorLink = post.querySelector(
+        '[data-region="author-name"][href], .author-name[href], .header a[href*="/user/"]',
+    );
+    if (!authorLink?.href) {
+        return null;
+    }
+
+    return new URL(authorLink.href, window.location.origin).searchParams.get('id');
 }

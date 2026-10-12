@@ -1,4 +1,4 @@
-@tiny_cursive @javascript
+@tiny @tiny_cursive @javascript
 Feature: Data transparency notice acknowledgement report
   In order to evidence who was informed
   As a manager

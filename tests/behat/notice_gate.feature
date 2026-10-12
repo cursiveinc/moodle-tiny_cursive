@@ -1,4 +1,4 @@
-@editor @editor_tiny @tiny_cursive @javascript
+@editor @editor_tiny @tiny @tiny_cursive @javascript
 Feature: Data transparency notice gate
   In order to be informed before biometric data is collected
   As a student

@@ -317,22 +317,47 @@ class observers {
                 return null;
             }
 
-            // The controller is serialized. Try to extract original_course_id
-            // without full unserialization if possible, or restrict allowed classes.
-            $raw = base64_decode($record->controller);
+            // Prefer scalar extraction and never instantiate classes from stored data.
+            $raw = base64_decode($record->controller, true);
+            if ($raw === false) {
+                return null;
+            }
             if (preg_match('/"original_course_id";[is]:\d+:"?(\d+)"?/', $raw, $matches)) {
                 return (int) $matches[1];
             }
-            $controller = @unserialize($raw, ['allowed_classes' => ['backup_controller', 'stdClass']]);
-            if ($controller && method_exists($controller, 'get_info')) {
-                $info = $controller->get_info();
-                if (!empty($info->original_course_id)) {
-                    return (int) $info->original_course_id;
-                }
-            }
+            $controller = @unserialize($raw, ['allowed_classes' => false]);
+            return self::find_original_courseid($controller);
         } catch (\Exception $e) {
             debugging('tiny_cursive: Failed to extract original course id from controller: ' .
                       $e->getMessage(), DEBUG_DEVELOPER);
+        }
+
+        return null;
+    }
+
+    /**
+     * Find the original course id in unserialized controller data.
+     *
+     * Objects are incomplete classes because object instantiation is disabled. Their
+     * private property names contain null-byte prefixes, hence the suffix comparison.
+     *
+     * @param mixed $value Value to inspect.
+     * @param int $depth Current recursion depth.
+     * @return int|null The original course id, or null when it is absent.
+     */
+    private static function find_original_courseid($value, int $depth = 0): ?int {
+        if ($depth > 20 || (!is_array($value) && !is_object($value))) {
+            return null;
+        }
+
+        foreach ((array) $value as $key => $item) {
+            if (str_ends_with((string) $key, 'original_course_id') && is_numeric($item)) {
+                return (int) $item;
+            }
+            $courseid = self::find_original_courseid($item, $depth + 1);
+            if ($courseid !== null) {
+                return $courseid;
+            }
         }
 
         return null;

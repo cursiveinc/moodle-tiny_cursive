@@ -97,13 +97,18 @@ class upload_student_json_cron extends scheduled_task {
         $filerecords = $DB->get_records_sql($sql, null, 0, $batchsize);
 
         $table = 'tiny_cursive_files';
-        $successcount = 0;
         $transientfailurecount = 0;
-        $permanentfailurecount = 0;
+        $successids = [];
+        $permanentfailureids = [];
 
         $contentrecords = [];
+        $modules = [];
         if (!empty($filerecords)) {
             $contentrecords = $DB->get_records_list($table, 'id', array_keys($filerecords), '', 'id, content, original_content');
+            $cmids = array_values(array_unique(array_filter(array_column($filerecords, 'cmid'))));
+            if ($cmids) {
+                $modules = $DB->get_records_list('course_modules', 'id', $cmids, '', 'id');
+            }
         }
 
         foreach ($filerecords as $filerecord) {
@@ -118,27 +123,34 @@ class upload_student_json_cron extends scheduled_task {
             }
 
             // Skip records where the course module no longer exists (activity was deleted).
-            if (!empty($filerecord->cmid)) {
-                $module = get_coursemodule_from_id('', $filerecord->cmid);
-                if (!$module) {
-                    mtrace("Skipping record {$filerecord->id}: cmid {$filerecord->cmid} no longer exists.");
-                    continue;
-                }
+            if (!empty($filerecord->cmid) && !isset($modules[$filerecord->cmid])) {
+                mtrace("Skipping record {$filerecord->id}: cmid {$filerecord->cmid} no longer exists.");
+                continue;
             }
 
             $status = tiny_cursive_upload_multipart_record($filerecord, $filerecord->filename, $wstoken, $answer);
             if ($status === 'success') {
-                // Update only the timestamp column to avoid rewriting the large content blob.
-                $DB->set_field($table, 'uploaded', time(), ['id' => $filerecord->id]);
-                $successcount++;
+                $successids[] = $filerecord->id;
             } else if ($status === 'permanent_failure') {
-                // Mark permanently-failing records as handled so they stop being retried every run.
-                $DB->set_field($table, 'uploaded', $filerecord->timemodified, ['id' => $filerecord->id]);
-                $permanentfailurecount++;
+                $permanentfailureids[] = $filerecord->id;
             } else {
                 $transientfailurecount++;
             }
         }
+
+        // Update upload state once per outcome instead of issuing a write query per row.
+        if ($successids) {
+            [$insql, $params] = $DB->get_in_or_equal($successids, SQL_PARAMS_NAMED);
+            $params['uploadtime'] = time();
+            $DB->execute("UPDATE {{$table}} SET uploaded = :uploadtime WHERE id {$insql}", $params);
+        }
+        if ($permanentfailureids) {
+            [$insql, $params] = $DB->get_in_or_equal($permanentfailureids, SQL_PARAMS_NAMED);
+            $DB->execute("UPDATE {{$table}} SET uploaded = timemodified WHERE id {$insql}", $params);
+        }
+
+        $successcount = count($successids);
+        $permanentfailurecount = count($permanentfailureids);
 
         mtrace(
             "[tiny_cursive] Upload cron summary - batch size: {$batchsize}, processed: " . count($filerecords) .
