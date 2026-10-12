@@ -167,9 +167,9 @@ $functions = [
         'methodname' => 'generate_webtoken',
         'classpath' => '/lib/editor/tiny/plugins/cursive/externallib.php',
         'description' => 'Generate a webservice token',
-        'type' => 'read',
+        'type' => 'write',
         'ajax' => true,
-        'capabilities' => 'tiny/cursive:view',
+        'capabilities' => 'tiny/cursive:editsettings',
     ],
     'tiny_cursive_write_local_to_json' => [
         'classname' => 'cursive_json_func_data',

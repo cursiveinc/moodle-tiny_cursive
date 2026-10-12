@@ -84,6 +84,7 @@ final class record_acknowledgement_test extends \externallib_advanced_testcase {
     public function test_execute_rejects_when_disabled(): void {
         global $DB;
         $this->resetAfterTest();
+        set_config('notice_enabled', 0, 'tiny_cursive');
 
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);

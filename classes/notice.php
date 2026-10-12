@@ -40,7 +40,7 @@ class notice {
      * Version of the notice wording. Bump this in a release whenever the wording
      * materially changes; every user is then re-prompted on their next editor load.
      */
-    public const VERSION = 1;
+    public const VERSION = 2;
 
     /** User preference mirroring the acknowledged notice version (a cache of the table). */
     public const PREFERENCE = 'tiny_cursive_noticeversion';

@@ -85,6 +85,7 @@ final class notice_test extends \advanced_testcase {
         $user = $this->getDataGenerator()->create_user();
 
         // Setting off: never required.
+        set_config('notice_enabled', 0, 'tiny_cursive');
         $this->setUser($user);
         $this->assertFalse(notice::is_required_for_current_user());
         $this->assertSame(notice::STATE_NOTREQUIRED, notice::get_user_state($user->id));
@@ -224,6 +225,7 @@ final class notice_test extends \advanced_testcase {
      */
     public function test_record_acknowledgement_requires_setting(): void {
         $this->resetAfterTest();
+        set_config('notice_enabled', 0, 'tiny_cursive');
 
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);

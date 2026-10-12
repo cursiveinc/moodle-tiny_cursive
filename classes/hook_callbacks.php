@@ -73,16 +73,40 @@ class hook_callbacks {
             return;
         }
 
+        if ($cmid && $PAGE->bodyid === 'page-mod-pdfannotator-view' && isloggedin() && !isguestuser()) {
+            // Repair a capture whose browser link call never arrived, before the user's next
+            // annotation is appended to it.
+            helper::relink_pending_pdfannotator_captures((int) $USER->id, (int) $cmid);
+        }
+
         $context  = context_course::instance($COURSE->id);
         $userrole = constants::is_teacher_admin($context) ? 'teacher_admin' : '';
 
         $plugins  = core_component::get_plugin_list('local');
         $PAGE->requires->js_call_amd('tiny_cursive/settings', 'init', [constants::show_comments(), $userrole]);
+        // PDF capture relinking is required for data integrity and must not depend on the
+        // optional student analytics view setting.
+        if (
+            $PAGE->bodyid === 'page-mod-pdfannotator-view' &&
+                $userrole === '' && constants::is_active() &&
+                !intval(get_config('tiny_cursive', "STD$COURSE->id$cmid"))
+        ) {
+            // Use the long-standing init export for compatibility with a stale Moodle JavaScript
+            // cache during deployment. The final argument limits the current build to linking only.
+            $PAGE->requires->js_call_amd(
+                'tiny_cursive/append_pdfannotator',
+                'init',
+                [0, false, false, $USER->id, false, true],
+            );
+        }
         if ($PAGE->bodyid === 'page-mod-assign-removesubmissionconfirm') {
             $PAGE->requires->js_call_amd('tiny_cursive/remove_submission', 'init', []);
         }
         // For Student Analytics view.
-        if (array_key_exists($PAGE->bodyid, constants::STUDENT_VIEW) && $userrole === '') {
+        if (
+            array_key_exists($PAGE->bodyid, constants::STUDENT_VIEW) &&
+                $userrole === '' && constants::is_active()
+        ) {
             if (intval(get_config('tiny_cursive', "STD$COURSE->id$cmid"))) {
                 $PAGE->requires->js_call_amd(
                     "tiny_cursive/" . constants::STUDENT_VIEW[$PAGE->bodyid][0],
