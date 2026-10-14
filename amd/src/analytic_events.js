@@ -47,7 +47,7 @@ function getGuidanceState() {
     if (!guidanceStateRequest) {
         const contextid = (window.M && M.cfg && M.cfg.contextid) ? M.cfg.contextid : 0;
         guidanceStateRequest = Promise.resolve(
-            getContent([{methodname: 'cursive_get_guidance_state', args: {contextid}}])[0]
+            getContent([{methodname: 'tiny_cursive_get_guidance_state', args: {contextid}}])[0]
         ).then(state => {
             guidanceState = state;
             return state;
@@ -173,6 +173,7 @@ export default class AnalyticEvents {
     }
 
     checkDiff(userid, fileid, questionid = '', replayInstances = null, filepath = null) {
+        const self = this;
         const nodata = document.createElement('p');
         nodata.classList.add('tiny_cursive_nopayload', 'bg-light');
         getString('nopaylod', 'tiny_cursive').then(str => {
@@ -200,7 +201,7 @@ export default class AnalyticEvents {
                 throw new Error('Missing file id or Difference Content not received yet');
             }
             getContent([{
-                methodname: 'cursive_get_writing_differences',
+                methodname: 'tiny_cursive_get_writing_differences',
                 args: {fileid: fileid},
             }])[0].done(response => {
                 let responsedata = JSON.parse(response.data);
@@ -210,7 +211,7 @@ export default class AnalyticEvents {
                     const getPasteCount = () => {
                         if (filepath) {
                             return getContent([{
-                                methodname: 'cursive_get_reply_json',
+                                methodname: 'tiny_cursive_get_reply_json',
                                 args: {filepath: filepath}
                             }])[0].then(replayResponse => {
 
@@ -298,10 +299,13 @@ export default class AnalyticEvents {
                             // Append the legend items to the legend container.
                             $legend.append($attributedItem).append($unattributedItem);
 
+                            let reconstructedText = document.createElement('div');
+                            reconstructedText.id = 'tiny_cursive-reconstructed_text';
+                            reconstructedText.style.whiteSpace = 'pre-wrap';
+                            reconstructedText.appendChild(self.renderComparisonContent(JSON.parse(submittedText)));
+
                             let contents = $('<div>').addClass('tiny_cursive-comparison-content');
-                            let textBlock2 = $('<div>').addClass('tiny_cursive-text-block').append(
-                                $('<div>').attr('id', 'tiny_cursive-reconstructed_text').html(JSON.parse(submittedText))
-                            );
+                            let textBlock2 = $('<div>').addClass('tiny_cursive-text-block').append(reconstructedText);
 
                             contents.append(commentBox, $legend, textBlock2);
                             $('#content' + userid).html(contents); // Update content.
@@ -319,6 +323,57 @@ export default class AnalyticEvents {
                 throw new Error('Error loading JSON file: ' + error.message);
             });
         });
+    }
+
+    /**
+     * Builds safe comparison markup while retaining Cursive attribution highlights.
+     *
+     * Captured text can contain the span elements which identify typed, pasted, and
+     * AI-assisted content. Rendering the value as text exposes those tags to users,
+     * while assigning it directly to innerHTML would trust captured content. This
+     * method copies text and a small allowlist of presentation elements only.
+     *
+     * @param {string} content Reconstructed submission content.
+     * @returns {DocumentFragment} Sanitised content ready to append to the report.
+     */
+    renderComparisonContent(content) {
+        const allowedClasses = new Set([
+            'tiny_cursive_added',
+            'tiny_cursive-inserted',
+            'tiny_cursive-pasted_content',
+            'tiny_cursive-ai_inserted',
+        ]);
+        const allowedElements = new Set(['BR', 'DIV', 'P']);
+        const template = document.createElement('template');
+        const fragment = document.createDocumentFragment();
+        template.innerHTML = String(content ?? '');
+
+        const copyNodes = (source, target) => {
+            source.childNodes.forEach(node => {
+                if (node.nodeType === Node.TEXT_NODE) {
+                    target.appendChild(document.createTextNode(node.textContent));
+                    return;
+                }
+                if (node.nodeType !== Node.ELEMENT_NODE) {
+                    return;
+                }
+
+                const classes = Array.from(node.classList).filter(className => allowedClasses.has(className));
+                let destination = target;
+                if (node.tagName === 'SPAN' && classes.length > 0) {
+                    destination = document.createElement('span');
+                    destination.classList.add(...classes);
+                    target.appendChild(destination);
+                } else if (allowedElements.has(node.tagName)) {
+                    destination = document.createElement(node.tagName.toLowerCase());
+                    target.appendChild(destination);
+                }
+                copyNodes(node, destination);
+            });
+        };
+
+        copyNodes(template.content, fragment);
+        return fragment;
     }
 
     replyWriting(userid, filepath, questionid = '', replayInstances = null) {

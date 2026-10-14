@@ -89,7 +89,7 @@ define([
                         // Create the table cell element and append the anchor.
 
                         let args = {id: userid, modulename: "assign", cmid: cmid};
-                        let methodname = 'cursive_user_list_submission_stats';
+                        let methodname = 'tiny_cursive_user_list_submission_stats';
                         let com = AJAX.call([{methodname, args}]);
                         try {
                             com[0].done(function(json) {

@@ -32,7 +32,7 @@ export const init = () => {
         form.addEventListener('submit', (e) => {
             e.preventDefault();
             call([{
-                methodname: 'cursive_remove_submission',
+                methodname: 'tiny_cursive_remove_submission',
                 args: {
                     courseid: courseid,
                     userid: userid,

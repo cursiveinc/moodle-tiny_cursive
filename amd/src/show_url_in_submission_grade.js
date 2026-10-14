@@ -94,7 +94,7 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
                 var cmid = parm.searchParams.get('id');
 
                 let args = {id: userid, modulename: "assign", 'cmid': cmid};
-                let methodname = 'cursive_get_assign_grade_comment';
+                let methodname = 'tiny_cursive_get_assign_grade_comment';
                 let com = AJAX.call([{methodname, args}]);
                 com[0].done(function(json) {
                     var data = JSON.parse(json);

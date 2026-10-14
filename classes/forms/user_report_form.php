@@ -126,18 +126,18 @@ class user_report_form extends moodleform {
         $data = parent::get_data();
         if (!empty($data)) {
             $mform = &$this->_form;
-            // Add the studentid properly to the $data object.
+            // Add the parameters properly sanitized to the $data object.
             if (!empty($mform->_submitValues['courseid'])) {
-                $data->courseid = $mform->_submitValues['courseid'];
+                $data->courseid = clean_param($mform->_submitValues['courseid'], PARAM_INT);
             }
             if (!empty($mform->_submitValues['userid'])) {
-                $data->userid = $mform->_submitValues['userid'];
+                $data->userid = clean_param($mform->_submitValues['userid'], PARAM_INT);
             }
             if (!empty($mform->_submitValues['moduleid'])) {
-                $data->moduleid = $mform->_submitValues['moduleid'];
+                $data->moduleid = clean_param($mform->_submitValues['moduleid'], PARAM_ALPHANUMEXT);
             }
             if (!empty($mform->_submitValues['orderby'])) {
-                $data->orderby = $mform->_submitValues['orderby'];
+                $data->orderby = clean_param($mform->_submitValues['orderby'], PARAM_ALPHA);
             }
         }
         return $data;
@@ -149,7 +149,7 @@ class user_report_form extends moodleform {
      * @param integer $courseid
      * @return array
      */
-    public function get_modules($courseid) {
+    public static function get_modules($courseid) {
         // Default option: All modules.
         $mdetail = [0 => get_string('allmodule', 'tiny_cursive')];
 
@@ -188,7 +188,7 @@ class user_report_form extends moodleform {
      * @param integer $courseid
      * @return array
      */
-    public function get_user($courseid) {
+    public static function get_user($courseid) {
 
         $udetail = [];
 

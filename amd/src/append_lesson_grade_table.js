@@ -107,7 +107,7 @@ export const init = (scoreSetting, showcomment, hasApiKey) => {
     function analytics(userid, cmid, $emailLink, grade) {
 
         let args = {id: userid, modulename: "lesson", cmid: cmid};
-        let methodname = 'cursive_get_lesson_submission_data';
+        let methodname = 'tiny_cursive_get_lesson_submission_data';
         let com = getData([{methodname, args}]);
         com[0].done(function(json) {
             var data = JSON.parse(json);

@@ -55,7 +55,7 @@ define(["jquery", "core/ajax", "core/str", "core/templates"], function(
         var courseid = $(this).val();
         var promise1 = AJAX.call([
           {
-            methodname: "cursive_get_user_list",
+            methodname: "tiny_cursive_get_user_list",
             args: {
               courseid: courseid,
             },
@@ -79,7 +79,7 @@ define(["jquery", "core/ajax", "core/str", "core/templates"], function(
 
         var promise2 = AJAX.call([
           {
-            methodname: "cursive_get_module_list",
+            methodname: "tiny_cursive_get_module_list",
             args: {
               courseid: courseid,
             },

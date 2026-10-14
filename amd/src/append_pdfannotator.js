@@ -27,7 +27,90 @@ import replayButton from 'tiny_cursive/replay_button';
 import AnalyticEvents from 'tiny_cursive/analytic_events';
 import templates from 'core/templates';
 import Replay from 'tiny_cursive/replay';
-export const init = (scoreSetting, comments, hasApiKey, userid) => {
+
+let submissionLinkingInitialized = false;
+
+/**
+ * Link a newly-created PDF Annotator comment to its pending Cursive capture.
+ *
+ * This must be initialized independently from the optional student analytics view. The guard
+ * prevents duplicate handlers when the analytics initializer is also loaded on the same page.
+ */
+const linkSubmission = () => {
+    if (submissionLinkingInitialized) {
+        return;
+    }
+    submissionLinkingInitialized = true;
+
+    const container = document.querySelector('.comment-list-container');
+    const moduleName = document.body.id.split('-')[2];
+    let pendingSubmit = false;
+    let buttonElement = '';
+
+    document.addEventListener('click', event => {
+        if (event.target.id === 'commentSubmit') {
+            localStorage.removeItem('isEditing');
+            buttonElement = event.target.value;
+            pendingSubmit = true;
+        }
+        if (event.target.id === 'commentCancel') {
+            localStorage.removeItem('isEditing');
+            pendingSubmit = false;
+        }
+    });
+
+    if (container) {
+        const observer = new MutationObserver(() => {
+            if (container?.lastChild?.id) {
+                extractResourceId(container.lastChild.id);
+            }
+        });
+
+        observer.observe(container, {
+            subtree: true,
+            childList: true
+        });
+    }
+
+    /**
+     * Extract the new comment ID and update the pending capture.
+     *
+     * @param {string} id Comment element ID in the form 'prefix_number'.
+     */
+    function extractResourceId(id) {
+        // Do not relink an existing comment while it is being edited.
+        if (buttonElement === 'Save') {
+            pendingSubmit = false;
+            return;
+        }
+
+        const resourceId = parseInt(id?.split('_')[1]);
+        if (resourceId && pendingSubmit) {
+            pendingSubmit = false;
+            call([{
+                methodname: 'tiny_cursive_update_pdf_annote_id',
+                args: {
+                    cmid: M.cfg.contextInstanceId,
+                    userid: M.cfg.userId ?? 0,
+                    courseid: M.cfg.courseId,
+                    modulename: moduleName,
+                    resourceid: resourceId
+                },
+            }])[0].catch(error => window.console.error('Updating PDF annotation entries:', error));
+        }
+    }
+};
+
+export const studentView = (scoreSetting, hasApiKey, userid) => {
+    linkSubmission();
+    init(scoreSetting, false, hasApiKey, userid, true);
+};
+
+export const init = (scoreSetting, comments, hasApiKey, userid, studentOnly = false, linkOnly = false) => {
+    linkSubmission();
+    if (linkOnly) {
+        return;
+    }
     const replayInstances = {};
     // eslint-disable-next-line camelcase
     window.video_playback = function(mid, filepath) {
@@ -49,26 +132,7 @@ export const init = (scoreSetting, comments, hasApiKey, userid) => {
         return false;
     };
 
-    let container = document.querySelector('.comment-list-container');
     const overviewTable = document.querySelector('table[id^="mod-pdfannotator-"]');
-
-    document.addEventListener('click', handleSubmit);
-    const moduleName = document.body.id.split('-')[2];
-    var pendingSubmit = false;
-    var buttonElement = "";
-
-    if (container) {
-        const observer = new MutationObserver(() => {
-            if (container?.lastChild?.id) {
-                extractResourceId(container.lastChild.id);
-            }
-        });
-
-        observer.observe(container, {
-            subtree: true,
-            childList: true
-        });
-    }
 
     if (overviewTable) {
         let newChild = document.createElement('th');
@@ -90,7 +154,10 @@ export const init = (scoreSetting, comments, hasApiKey, userid) => {
      */
     function setReplayButton(overviewTable) {
         const rows = overviewTable.querySelectorAll('tbody > tr');
-        const action = new URL(window.location.href).searchParams.get('action');
+        let action = new URL(window.location.href).searchParams.get('action');
+        if (action === 'overview') {
+            action = 'overviewquestions';
+        }
 
         rows.forEach(row => {
             const cols = {
@@ -133,73 +200,18 @@ export const init = (scoreSetting, comments, hasApiKey, userid) => {
                 }
             }
 
-            getCursiveAnalytics(userId, commentId, cmid, cols.col1);
+            const analyticsColumn = document.createElement('td');
+            if (!cols.col1) {
+                return;
+            }
+            cols.col1.insertAdjacentElement('afterend', analyticsColumn);
+
+            if (studentOnly && userId !== null && String(userId) !== String(userid)) {
+                return;
+            }
+
+            getCursiveAnalytics(userId, commentId, cmid, analyticsColumn, studentOnly);
         });
-    }
-
-    /**
-     * Handles the submission and cancellation of comments
-     * @param {Event} e - The click event object
-     * @description When comment is submitted or cancelled:
-     * - Removes 'isEditing' flag from localStorage
-     * - Sets pendingSubmit flag appropriately (true for submit, false for cancel)
-     */
-    function handleSubmit(e) {
-        if (e.target.id === 'commentSubmit') {
-            localStorage.removeItem('isEditing');
-            buttonElement = e.target.value;
-            pendingSubmit = true;
-        }
-        if (e.target.id === 'commentCancel') {
-            localStorage.removeItem('isEditing');
-            pendingSubmit = false;
-        }
-    }
-
-    const updateEntries = async(methodname, args) => {
-        try {
-            const response = await call([{
-                methodname,
-                args,
-            }])[0];
-            return response;
-        } catch (error) {
-            window.console.error('updating Entries:', error);
-            throw error;
-        }
-    };
-
-    /**
-     * Extracts the resource ID from a comment ID and updates entries if submission is pending
-     * @param {string} id - The ID string to extract resource ID from, expected format: 'prefix_number'
-     * @description This function:
-     * 1. Parses the resource ID from the given ID string
-     * 2. If resource ID exists and there's a pending submission:
-     *    - Resets the pending submission flag
-     *    - Constructs arguments with context info
-     *    - Calls updateEntries to process the PDF annotation
-     */
-    function extractResourceId(id) {
-
-        // Prevent updating ID while editing a existing entry.
-        if (buttonElement === 'Save') {
-
-            pendingSubmit = false;
-            return;
-        }
-
-        let resourceId = parseInt(id?.split('_')[1]);
-        if (resourceId && pendingSubmit) {
-            pendingSubmit = false;
-            let args = {
-                cmid: M.cfg.contextInstanceId,
-                userid: M.cfg.userId ?? 0,
-                courseid: M.cfg.courseId,
-                modulename: moduleName,
-                resourceid: resourceId
-            };
-            updateEntries('cursive_update_pdf_annote_id', args);
-        }
     }
 
     /**
@@ -207,19 +219,29 @@ export const init = (scoreSetting, comments, hasApiKey, userid) => {
      * @param {number} userid - The ID of the user
      * @param {number} resourceid - The ID of the resource to get analytics for
      * @param {number} cmid - The course module ID
-     * @param {HTMLElement} place - The DOM element where analytics should be placed
+     * @param {HTMLTableCellElement} analyticsColumn - The table cell where analytics should be placed
+     * @param {boolean} requireOwnData - Whether to skip rows without current-user Cursive data
      * @description This function:
      * 1. Makes an AJAX call to get forum comment data
      * 2. Creates and inserts analytics/replay buttons
      * 3. Sets up analytics events and modal functionality
      * 4. Handles both API key and non-API key scenarios
      */
-    function getCursiveAnalytics(userid, resourceid, cmid, place) {
+    function getCursiveAnalytics(userid, resourceid, cmid, analyticsColumn, requireOwnData = false) {
+        if (!resourceid || !cmid || !analyticsColumn) {
+            return;
+        }
         let args = {id: resourceid, modulename: "pdfannotator", cmid: cmid};
-        let methodname = 'cursive_get_forum_comment_link';
+        let methodname = 'tiny_cursive_get_forum_comment_link';
         let com = call([{methodname, args}]);
         com[0].done(function(json) {
             var data = JSON.parse(json);
+
+            // Student requests are filtered by the external function. Do not render an empty
+            // analytics control for another user's row or a comment without Cursive data.
+            if (requireOwnData && !data.data.filename) {
+                return;
+            }
 
             var filepath = '';
             if (data.data.filename) {
@@ -227,7 +249,6 @@ export const init = (scoreSetting, comments, hasApiKey, userid) => {
             }
 
             let analyticButtonDiv = document.createElement('div');
-            let analyticsColumn = document.createElement('td');
 
             if (!hasApiKey) {
                 analyticButtonDiv.append(replayButton(resourceid));
@@ -237,7 +258,6 @@ export const init = (scoreSetting, comments, hasApiKey, userid) => {
 
             analyticButtonDiv.dataset.region = "analytic-div" + userid;
             analyticsColumn.append(analyticButtonDiv);
-            place.insertAdjacentElement('afterend', analyticsColumn);
 
             let myEvents = new AnalyticEvents();
             var context = {

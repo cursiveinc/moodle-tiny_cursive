@@ -17,12 +17,6 @@
 namespace tiny_cursive;
 
 use context_course;
-
-defined('MOODLE_INTERNAL') || die();
-require_once($CFG->dirroot . '/mod/quiz/lib.php');
-require_once($CFG->dirroot . '/mod/quiz/locallib.php');
-
-
 use stdClass;
 
 /**

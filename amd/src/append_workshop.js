@@ -106,7 +106,7 @@ export const init = (scoreSetting, showcomment, hasApiKey) => {
     function analytics(userid, cmid, assessmentButton) {
 
         let args = {resourceid: cmid, userid: userid, modulename: "workshop", cmid: cmid};
-        let methodname = 'cursive_get_workshop_submission';
+        let methodname = 'tiny_cursive_get_workshop_submission';
         let com = getData([{methodname, args}]);
         com[0].done(function(json) {
 

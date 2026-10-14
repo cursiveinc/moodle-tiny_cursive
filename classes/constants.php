@@ -47,6 +47,37 @@ class constants {
      * const array NAMES List of module names where cursive can be used
      */
     public const NAMES = ["assign", "forum", "quiz", "lesson", 'pdfannotator', 'workshop', 'diary']; // Excluded oublog.
+
+    /**
+     * Body ids of the pages on which the editor plugin registers keystroke capture.
+     * Must be kept in step with the page list in amd/src/plugin.js.
+     * const array EDITOR_PAGES Page body ids where Cursive capture can run
+     */
+    public const EDITOR_PAGES = [
+        'page-mod-assign-editsubmission',
+        'page-mod-quiz-attempt',
+        'page-mod-forum-view',
+        'page-mod-forum-post',
+        'page-mod-lesson-view',
+        'page-mod-pdfannotator-view',
+        'page-mod-workshop-submission',
+        'page-mod-workshop-assessment',
+        'page-mod-diary-edit',
+    ];
+    /**
+     * How long before a pending PDF Annotator capture was created its comment may have been
+     * saved, in seconds. Keystrokes are sent in batches, so a short comment can be saved first.
+     * @var int
+     */
+    public const PDF_RELINK_BEFORE = 120;
+
+    /**
+     * How long after the last keystroke of a pending PDF Annotator capture its comment may
+     * have been saved, in seconds.
+     * @var int
+     */
+    public const PDF_RELINK_AFTER = 1800;
+
     /**
      * Array mapping module names to their corresponding rubric areas.
      * Used to identify the correct rubric area for different module types.
@@ -87,7 +118,9 @@ class constants {
             'page-mod-assign-view'         => ['analytics_student_view', 'assignView'],
             'page-mod-quiz-review'         => ['analytics_student_view', 'quizView'],
             'page-mod-forum-discuss'       => ['analytics_student_view', 'forumView'],
+            'page-mod-forum-view'          => ['analytics_student_view', 'forumView'],
             'page-mod-lesson-view'         => ['analytics_student_view', 'lessonView'],
+            'page-mod-pdfannotator-view'   => ['append_pdfannotator', 'studentView'],
             'page-mod-workshop-view'       => ['append_workshop', 'init'],
             'page-mod-workshop-submission' => ['analytics_student_view', 'workshopView'],
             'page-mod-diary-view'          => ['analytics_student_view', 'diaryView'],
@@ -191,7 +224,7 @@ class constants {
         $nextsync     = strtotime('+5 minutes');
 
         if (empty($secret)) {
-            if ($apikey !== false || $apikey !== "0") {
+            if (!empty($apikey)) {
                 set_config('apiKey', false, 'tiny_cursive');
             }
             if ($syncinterval < $now) {

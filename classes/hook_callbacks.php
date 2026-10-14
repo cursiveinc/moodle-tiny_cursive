@@ -73,16 +73,40 @@ class hook_callbacks {
             return;
         }
 
+        if ($cmid && $PAGE->bodyid === 'page-mod-pdfannotator-view' && isloggedin() && !isguestuser()) {
+            // Repair a capture whose browser link call never arrived, before the user's next
+            // annotation is appended to it.
+            helper::relink_pending_pdfannotator_captures((int) $USER->id, (int) $cmid);
+        }
+
         $context  = context_course::instance($COURSE->id);
         $userrole = constants::is_teacher_admin($context) ? 'teacher_admin' : '';
 
         $plugins  = core_component::get_plugin_list('local');
         $PAGE->requires->js_call_amd('tiny_cursive/settings', 'init', [constants::show_comments(), $userrole]);
+        // PDF capture relinking is required for data integrity and must not depend on the
+        // optional student analytics view setting.
+        if (
+            $PAGE->bodyid === 'page-mod-pdfannotator-view' &&
+                $userrole === '' && constants::is_active() &&
+                !intval(get_config('tiny_cursive', "STD$COURSE->id$cmid"))
+        ) {
+            // Use the long-standing init export for compatibility with a stale Moodle JavaScript
+            // cache during deployment. The final argument limits the current build to linking only.
+            $PAGE->requires->js_call_amd(
+                'tiny_cursive/append_pdfannotator',
+                'init',
+                [0, false, false, $USER->id, false, true],
+            );
+        }
         if ($PAGE->bodyid === 'page-mod-assign-removesubmissionconfirm') {
             $PAGE->requires->js_call_amd('tiny_cursive/remove_submission', 'init', []);
         }
         // For Student Analytics view.
-        if (array_key_exists($PAGE->bodyid, constants::STUDENT_VIEW) && $userrole === '') {
+        if (
+            array_key_exists($PAGE->bodyid, constants::STUDENT_VIEW) &&
+                $userrole === '' && constants::is_active()
+        ) {
             if (intval(get_config('tiny_cursive', "STD$COURSE->id$cmid"))) {
                 $PAGE->requires->js_call_amd(
                     "tiny_cursive/" . constants::STUDENT_VIEW[$PAGE->bodyid][0],
@@ -124,11 +148,13 @@ class hook_callbacks {
             'collapsed' => false,
         ]);
         // Add a static element for the notice above the enable/disable dropdown.
-        $noticemsg = get_config('tiny_cursive', 'note_text') ?: get_string('cursive_enable_notice', 'tiny_cursive');
-        $noticeurl = get_config('tiny_cursive', 'note_url') ?: 'https://cursivetechnology.com/moodle-integration-how-it-works';
-        $urltext   = get_config('tiny_cursive', 'note_url_text') ?: get_string('cursive_more_info', 'tiny_cursive');
+        $noticemsg = s(get_config('tiny_cursive', 'note_text') ?: get_string('cursive_enable_notice', 'tiny_cursive'));
+        $defaulturl = 'https://cursivetechnology.com/moodle-integration-how-it-works';
+        $noticeurl = clean_param(get_config('tiny_cursive', 'note_url') ?: $defaulturl, PARAM_URL);
+        $urltext   = s(get_config('tiny_cursive', 'note_url_text') ?: get_string('cursive_more_info', 'tiny_cursive'));
 
-        $notice = "{$noticemsg} <a href='{$noticeurl}' target='_blank'>{$urltext}</a>";
+        $link = \html_writer::link($noticeurl, $urltext, ['target' => '_blank', 'rel' => 'noopener noreferrer']);
+        $notice = "{$noticemsg} " . $link;
 
         $mform->addElement('static', 'cursive_notice', '', $notice);
 

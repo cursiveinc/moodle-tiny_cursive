@@ -118,6 +118,12 @@ class visualization {
      * @param string $yaxis Axis key for Y ('time'|'effort'|'words'). Defaults to 'effort'.
      */
     public function render(string $xaxis = 'time', string $yaxis = 'effort'): void {
+        if (!empty($this->cmid)) {
+            require_capability('tiny/cursive:writingreport', \context_module::instance($this->cmid));
+        } else {
+            require_capability('tiny/cursive:writingreport', \context_course::instance($this->courseid));
+        }
+
         $this->page_setup(
             $this->get_course_analytics($this->courseid, $this->cmid),
             constants::has_api_key(),
