@@ -1990,7 +1990,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
 }
 
 .tiny_cursive-modal-header-custom {
-    background: linear-gradient(135deg, #0b5ed7 0%, #0a58ca 100%);
+    background: #306ab3;
     padding: 30px;
     text-align: center;
     color: white;
@@ -2029,7 +2029,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     position: absolute;
     top: -12px;
     right: 20px;
-    background: linear-gradient(135deg, #0b5ed7 0%, #0a58ca 100%);
+    background: #306ab3;
     color: white;
     padding: 4px 14px;
     border-radius: 20px;
