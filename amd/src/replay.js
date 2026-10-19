@@ -86,7 +86,16 @@ export default class Replay {
                 if (this.controllerId && this.logData) {
                     this.constructController(this.controllerId);
                 }
-                this.startReplay();
+                // Respect the OS reduced-motion preference: show Play and wait instead of autoplaying.
+                const reduceMotion = window.matchMedia &&
+                    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+                if (reduceMotion && this.playButton) {
+                    const playSvg = document.createElement("img");
+                    playSvg.src = M.util.image_url("playicon", "tiny_cursive");
+                    this.playButton.querySelector(".play-icon").innerHTML = playSvg.outerHTML;
+                } else {
+                    this.startReplay();
+                }
             } else {
                 this.handleNoSubmission();
             }

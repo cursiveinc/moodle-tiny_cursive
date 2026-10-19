@@ -45,9 +45,14 @@ export default class MyModal extends Modal {
 
         const root = this.getRoot();
 
-
-        // Hide the default modal header.
+        // Hide the default modal header; the plugin renders its own.
         root.find('.modal-header').remove();
+
+        // Core's aria-labelledby pointed at the removed header, so name the dialog from the plugin heading.
+        const title = root.find('.tiny_cursive-analytics-title').first();
+        if (title.length) {
+            root.attr('aria-labelledby', title.attr('id'));
+        }
 
         root.find('.modal-content').css({
             'border-radius': '30px'

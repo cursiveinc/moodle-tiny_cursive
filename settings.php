@@ -49,7 +49,8 @@ if ($ADMIN->fulltree) {
         get_string('pluginname_desc_new', 'tiny_cursive') . ' ' .
         html_writer::link(
             'https://sjcgf.share.hsforms.com/2SHQOFefUSriOMeP9SzMmmw',
-            get_string('pluginname_desc_new_link', 'tiny_cursive'),
+            get_string('pluginname_desc_new_link', 'tiny_cursive') . ' ' .
+            html_writer::span('(' . get_string('opensinnewwindow') . ')', 'sr-only visually-hidden'),
             ['target' => '_blank', 'rel' => 'noopener']
         ) . '. ' . get_string('pluginname_desc_new_2', 'tiny_cursive')
     );
@@ -77,8 +78,8 @@ if ($ADMIN->fulltree) {
             'tiny_cursive/secretkey',
             get_string('secretkey', 'tiny_cursive'),
             get_string('secretkey_desc', 'tiny_cursive') . '' .
-            "<br/><a id='tiny_cursive_approve_token' href='#' class='btn btn-primary'>  " .
-            get_string('test_token', 'tiny_cursive') . " </a><span id='cursive_token_message'></span>",
+            "<br/><button type='button' id='tiny_cursive_approve_token' class='btn btn-primary'>" .
+            get_string('test_token', 'tiny_cursive') . "</button> <span id='cursive_token_message' class='ml-2 ms-2' role='status' aria-live='polite'></span>",
             "",
             PARAM_TEXT
         )
@@ -139,9 +140,9 @@ if ($ADMIN->fulltree) {
         new admin_setting_configtext(
             'tiny_cursive/cursivetoken',
             get_string('webservicetoken', "tiny_cursive"),
-            "<a id='generate_cursivetoken' href='#' class=''>  " .
-            get_string('generate', 'tiny_cursive') . " </a>" . ' ' .
-            get_string('webservicetoken_des', 'tiny_cursive') . "<br><span id='cursivetoken_'></span>",
+            "<button type='button' id='generate_cursivetoken' class='btn btn-link p-0 align-baseline'>" .
+            get_string('generate', 'tiny_cursive') . "</button>" . ' ' .
+            get_string('webservicetoken_des', 'tiny_cursive') . "<br><span id='cursivetoken_' role='status' aria-live='polite'></span>",
             '',
             PARAM_TEXT
         )
@@ -161,11 +162,11 @@ if ($ADMIN->fulltree) {
         new admin_setting_configempty(
             'tiny_cursive/cursivedisable',
             get_string('cursivedisable', 'tiny_cursive'),
-            "<a href='#cursivedisable' class='btn btn-primary mb-1' id='cursivedisable' >" .
-            get_string('disable', 'tiny_cursive') . "</a>
-            <a href='#cursiveenable' class='btn btn-primary mb-1' id='cursiveenable'>" .
+            "<button type='button' class='btn btn-primary mb-1' id='cursivedisable'>" .
+            get_string('disable', 'tiny_cursive') . "</button>
+            <button type='button' class='btn btn-primary mb-1 ml-1 ms-1' id='cursiveenable'>" .
             get_string('enable', 'tiny_cursive') . "
-            </a><br><span id='cursivedisable_'></span><br>" .
+            </button><br><span id='cursivedisable_' role='status' aria-live='polite'></span><br>" .
             get_string('cursivedisable_des', 'tiny_cursive'),
         )
     );

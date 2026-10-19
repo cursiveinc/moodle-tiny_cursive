@@ -110,7 +110,7 @@ export default class CursiveAutosave {
 
         button.style.padding = '.3rem';
         textSpan.style.fontSize = '0.75rem';
-        textSpan.style.color = 'gray';
+        textSpan.style.color = '#595959';
 
         if (this.module.modulename === 'quiz') {
             iconSpan.id = `CursiveCloudIcon${this.module.questionid}`;

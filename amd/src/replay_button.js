@@ -23,35 +23,49 @@
  */
 
 define(["core/str"], function(Str) {
-    const replayButton = (userid, questionid = "") => {
-        const anchor = document.createElement("a");
-        anchor.href = "#";
-        anchor.id = "analytics" + userid + questionid;
-        anchor.classList.add(
+    /**
+     * Build the Replay pill that opens the analytics modal on the Replay tab.
+     *
+     * @param {number|string} userid User (or entry) id used to build the element id.
+     * @param {number|string} questionid Optional question id for quiz contexts.
+     * @param {string} label Optional accessible name carrying row context, e.g. "Replay: Jane Doe".
+     * @returns {HTMLButtonElement}
+     */
+    const replayButton = (userid, questionid = "", label = "") => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.id = "analytics" + userid + questionid;
+        button.classList.add(
+          "tiny_cursive-pill-button",
           "d-inline-flex",
           "justify-content-center",
-          'text-decoration-none'
+          "text-decoration-none"
         );
+        button.setAttribute("aria-haspopup", "dialog");
+        if (label) {
+            button.setAttribute("aria-label", label);
+        }
 
-        const button = document.createElement('div');
-        button.className = 'tiny_cursive-replay-button';
+        const pill = document.createElement("div");
+        pill.className = "tiny_cursive-replay-button";
 
-        // Left side (icon + label)
-        const left = document.createElement('div');
-        left.className = 'tiny_cursive-replay-left';
+        // Left side (icon + label).
+        const left = document.createElement("div");
+        left.className = "tiny_cursive-replay-left";
 
-        const icon = document.createElement('img');
-        icon.src = M.util.image_url('playicon', 'tiny_cursive');
-        icon.alt = 'Replay Icon';
-        icon.className = 'tiny_cursive-replay-bar-icon';
+        // Decorative: the visible label carries the name.
+        const icon = document.createElement("img");
+        icon.src = M.util.image_url("playicon", "tiny_cursive");
+        icon.alt = "";
+        icon.className = "tiny_cursive-replay-bar-icon";
 
-        const label = document.createElement('span');
-        label.className = 'tiny_cursive-replay-label';
-        label.textContent = 'Replay';
+        const text = document.createElement("span");
+        text.className = "tiny_cursive-replay-label";
+        text.textContent = "Replay";
 
         Str.get_string("replay", "tiny_cursive")
             .then((replayString) => {
-                label.textContent = replayString;
+                text.textContent = replayString;
                 return replayString;
             })
             .catch((error) => {
@@ -59,11 +73,11 @@ define(["core/str"], function(Str) {
             });
 
         left.appendChild(icon);
-        left.appendChild(label);
-        button.appendChild(left);
+        left.appendChild(text);
+        pill.appendChild(left);
 
-        anchor.appendChild(button);
-        return anchor;
+        button.appendChild(pill);
+        return button;
     };
 
     return replayButton;
