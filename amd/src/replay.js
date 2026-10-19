@@ -76,9 +76,11 @@ export default class Replay {
             throw new Error(`Element with id '${elementId}' not found`);
         }
         this.outputElement = element;
+        this.strings = {};
+        this.finalTextMode = false;
 
-        // Load JSON data and initialize replay
-        this.loadJSON(filePath).then(data => {
+        // Load the capture and the control labels together so the controls never render unlabelled.
+        Promise.all([this.loadJSON(filePath), this.loadStrings()]).then(([data]) => {
             if (data.status) {
                 this.processData(data);
                 this.totalEvents = this.logData.length;
@@ -105,16 +107,79 @@ export default class Replay {
             this.handleNoSubmission();
             window.console.error('Error loading JSON file:', error.message);
         });
-        if (!localStorage.getItem('nopasteevent') || !localStorage.getItem('pasteEvent')) {
-            Str.get_string('nopasteevent', 'tiny_cursive').then(str => {
-                localStorage.setItem('nopasteevent', str);
-                return str;
-            }).catch(error => window.console.log(error));
-            Str.get_string('pasteEvent', 'tiny_cursive').then(str => {
-                localStorage.setItem('pasteEvent', str);
-                return str;
-            }).catch(error => window.console.log(error));
+    }
+
+    /**
+     * Resolve every control label and announcement once. Placeholder strings are fetched with their
+     * placeholders as the parameter so the raw template is kept and filled per use by str().
+     *
+     * @returns {Promise<Object>} The string map (also stored on this.strings).
+     */
+    loadStrings() {
+        const keys = [
+            'replay_play', 'replay_pause', 'replay_position', 'replay_speed', 'replay_prevpaste', 'replay_nextpaste',
+            'replay_showpasted', 'replay_showcomment', 'replay_finished', 'replay_showfinal', 'replay_showreplay',
+            'replay_finaltext', 'replay_legend_typed', 'replay_legend_pasted', 'replay_legend_ai',
+            'replay_legend_deleted', 'pasteEvent', 'nopasteevent', 'legend',
+        ];
+        const scalar = ['replay_speed_option', 'replay_jumptopaste', 'replay_playing'];
+        const timed = ['replay_time', 'replay_pastecounter', 'replay_paused', 'replay_seeked'];
+        const requests = keys.map(key => ({key, component: 'tiny_cursive'}))
+            .concat(scalar.map(key => ({key, component: 'tiny_cursive', param: '{$a}'})))
+            .concat(timed.map(key => ({key, component: 'tiny_cursive',
+                param: {current: '{$a->current}', total: '{$a->total}', index: '{$a->index}'}})));
+        return Str.get_strings(requests).then(values => {
+            requests.forEach((request, i) => {
+                this.strings[request.key] = values[i];
+            });
+            return this.strings;
+        }).catch(error => {
+            window.console.error(error);
+            return this.strings;
+        });
+    }
+
+    /**
+     * Fill a loaded string template.
+     *
+     * @param {string} key String key.
+     * @param {string|number|Object} [a] Placeholder value(s).
+     * @returns {string}
+     */
+    str(key, a) {
+        let text = this.strings[key] || key;
+        if (a !== undefined && a !== null) {
+            if (typeof a === 'object') {
+                Object.keys(a).forEach(name => {
+                    text = text.split('{$a->' + name + '}').join(String(a[name]));
+                });
+            } else {
+                text = text.split('{$a}').join(String(a));
+            }
         }
+        return text;
+    }
+
+    /**
+     * Current / total time for announcements and the scrubber value text.
+     *
+     * @returns {{current: string, total: string}}
+     */
+    timeParams() {
+        return {
+            current: this.formatTime(Math.min(this.currentTime, this.totalDuration)),
+            total: this.formatTime(this.totalDuration),
+        };
+    }
+
+    /**
+     * Announce a playback state change through the modal's live region (polite, once per change).
+     *
+     * @param {string} key String key.
+     * @param {*} [a] Placeholder value(s).
+     */
+    announce(key, a) {
+        announceNear(this.outputElement, this.str(key, a));
     }
 
     /**
@@ -187,7 +252,9 @@ export default class Replay {
             if (this.playButton) {
                 const playSvg = document.createElement('img');
                 playSvg.src = M.util.image_url('playicon', 'tiny_cursive');
+                playSvg.alt = '';
                 this.playButton.querySelector('.play-icon').innerHTML = playSvg.outerHTML;
+                this.playButton.setAttribute('aria-label', this.str('replay_play'));
             }
         }
     }
@@ -248,25 +315,34 @@ export default class Replay {
         const speedContainer = this.createSpeedControls();
         bottomRow.appendChild(speedContainer);
 
+        this.finalTextButton = this.createFinalTextToggle();
+        bottomRow.appendChild(this.finalTextButton);
+
         const pasteEventsToggle = this.createPasteEventsToggle(container);
         bottomRow.appendChild(pasteEventsToggle);
 
         controlContainer.appendChild(topRow);
         controlContainer.appendChild(bottomRow);
+        controlContainer.appendChild(this.createLegend());
         container.appendChild(this.pasteEventsPanel);
     }
 
     /** @private */
     createPlayButton() {
         const playButton = document.createElement('button');
+        playButton.type = 'button';
         playButton.classList.add('tiny_cursive_play_button');
+        playButton.setAttribute('aria-label', this.str('replay_play'));
         const playSvg = document.createElement('i');
+        playSvg.setAttribute('aria-hidden', 'true');
         playButton.innerHTML = `<span class="play-icon">${playSvg.outerHTML}</span>`;
         playButton.addEventListener('click', () => {
             if (this.replayInProgress) {
                 this.stopReplay();
+                this.announce('replay_paused', this.timeParams());
             } else {
                 this.startReplay(false);
+                this.announce('replay_playing', this.timeParams().current);
             }
             // Keep the Replay tab selected in this modal only (several modals can share a page).
             const scope = playButton.closest('.modal') || document;
@@ -289,8 +365,14 @@ export default class Replay {
         this.scrubberElement.max = '100';
         this.scrubberElement.min = '0';
         this.scrubberElement.value = '0';
+        this.scrubberElement.setAttribute('aria-label', this.str('replay_position'));
+        this.scrubberElement.setAttribute('aria-valuetext', this.str('replay_time', this.timeParams()));
         this.scrubberElement.addEventListener('input', () => {
             this.skipToTime(parseInt(this.scrubberElement.value, 10));
+        });
+        // Announce once the user lets go of the thumb, not on every step.
+        this.scrubberElement.addEventListener('change', () => {
+            this.announce('replay_seeked', this.timeParams());
         });
         scrubberContainer.appendChild(this.scrubberElement);
         return scrubberContainer;
@@ -310,22 +392,33 @@ export default class Replay {
         speedContainer.classList.add('tiny_cursive_speed_controls', 'speed-controls');
         const speedLabel = document.createElement('span');
         speedLabel.classList.add('tiny_cursive_speed_label');
-        speedLabel.textContent = 'Speed: ';
+        speedLabel.id = `${this.controllerId}_speedlabel`;
+        speedLabel.textContent = this.str('replay_speed') + ': ';
         speedContainer.appendChild(speedLabel);
 
         const speedGroup = document.createElement('div');
         speedGroup.classList.add('tiny_cursive_speed_group');
+        speedGroup.setAttribute('role', 'group');
+        speedGroup.setAttribute('aria-labelledby', speedLabel.id);
         [1, 1.5, 2, 5, 10].forEach(speed => {
             const speedBtn = document.createElement('button');
+            speedBtn.type = 'button';
             speedBtn.textContent = `${speed}x`;
+            speedBtn.setAttribute('aria-label', this.str('replay_speed_option', speed));
             speedBtn.classList.add('tiny_cursive_speed_btn', 'speed-btn');
-            if (parseFloat(speed) === this.speed) {
+            const current = parseFloat(speed) === this.speed;
+            speedBtn.setAttribute('aria-pressed', current ? 'true' : 'false');
+            if (current) {
                 speedBtn.classList.add('active');
             }
             speedBtn.dataset.speed = speed;
             speedBtn.addEventListener('click', () => {
-                document.querySelectorAll('.tiny_cursive_speed_btn').forEach(btn => btn.classList.remove('active'));
+                speedGroup.querySelectorAll('.tiny_cursive_speed_btn').forEach(btn => {
+                    btn.classList.remove('active');
+                    btn.setAttribute('aria-pressed', 'false');
+                });
                 speedBtn.classList.add('active');
+                speedBtn.setAttribute('aria-pressed', 'true');
                 this.speed = parseFloat(speedBtn.dataset.speed);
                 if (this.replayInProgress) {
                     this.stopReplay();
@@ -339,21 +432,113 @@ export default class Replay {
     }
 
     /**
+     * Button that swaps the animated replay for the finished text as plain paragraphs, so a
+     * screen-reader user can read what was written without per-character chatter.
+     *
+     * @returns {HTMLButtonElement}
+     * @private
+     */
+    createFinalTextToggle() {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.classList.add('tiny_cursive_final_text_btn');
+        button.setAttribute('aria-pressed', 'false');
+        button.textContent = this.str('replay_showfinal');
+        button.addEventListener('click', () => this.toggleFinalText());
+        return button;
+    }
+
+    /**
+     * Switch between the replay view and the final-text view.
+     *
+     * Showing the final text pauses playback and moves it to the end; switching back shows the
+     * end state of the replay, from which Play restarts.
+     */
+    toggleFinalText() {
+        if (this.finalTextMode) {
+            this.finalTextMode = false;
+            this.outputElement.classList.remove('tiny_cursive_final_text_mode');
+            if (this.finalTextButton) {
+                this.finalTextButton.setAttribute('aria-pressed', 'false');
+                this.finalTextButton.textContent = this.str('replay_showfinal');
+            }
+            this.updateDisplayText(this.text, this.cursorPosition, [], []);
+            return;
+        }
+
+        this.stopReplay();
+        this.skipToTime(100);
+        this.finalTextMode = true;
+        this.outputElement.classList.add('tiny_cursive_final_text_mode');
+        if (this.finalTextButton) {
+            this.finalTextButton.setAttribute('aria-pressed', 'true');
+            this.finalTextButton.textContent = this.str('replay_showreplay');
+        }
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'tiny_cursive_final_text';
+        const heading = document.createElement('h4');
+        heading.className = 'h6';
+        heading.textContent = this.str('replay_finaltext');
+        wrapper.appendChild(heading);
+        (this.text || '').split('\n').forEach(line => {
+            const paragraph = document.createElement('p');
+            paragraph.textContent = line;
+            wrapper.appendChild(paragraph);
+        });
+        this.outputElement.innerHTML = '';
+        this.outputElement.appendChild(wrapper);
+        this.outputElement.scrollTop = 0;
+    }
+
+    /**
+     * Legend naming the four text treatments, each shown with its real styling so the
+     * non-colour cues (bold, underline, dotted underline, strike-through) are visible too.
+     *
+     * @returns {HTMLUListElement}
+     * @private
+     */
+    createLegend() {
+        const legend = document.createElement('ul');
+        legend.className = 'tiny_cursive_replay_legend list-unstyled';
+        legend.setAttribute('aria-label', this.str('legend'));
+        [
+            ['span', 'tiny_cursive-highlighted-char', 'replay_legend_typed'],
+            ['mark', 'tiny_cursive-pasted-char', 'replay_legend_pasted'],
+            ['ins', 'tiny_cursive-ai-char', 'replay_legend_ai'],
+            ['del', 'tiny_cursive-deleted-char', 'replay_legend_deleted'],
+        ].forEach(([tag, cls, key]) => {
+            const item = document.createElement('li');
+            const sample = document.createElement(tag);
+            sample.className = `${cls} tiny_cursive_legend_sample`;
+            sample.setAttribute('aria-hidden', 'true');
+            sample.textContent = 'Aa';
+            item.appendChild(sample);
+            item.appendChild(document.createTextNode(' ' + this.str(key)));
+            legend.appendChild(item);
+        });
+        return legend;
+    }
+
+    /**
      * @param {*} container
      * @private
      */
     createPasteEventsToggle(container) {
-        const pasteEventsToggle = document.createElement('div');
+        const pasteEventsToggle = document.createElement('button');
+        pasteEventsToggle.type = 'button';
         pasteEventsToggle.classList.add('tiny_cursive_paste_events_toggle', 'paste-events-toggle');
+        pasteEventsToggle.setAttribute('aria-expanded', 'false');
 
         const pasteEventsIcon = document.createElement('span');
         const pasteIcon = document.createElement('img');
         pasteIcon.src = M.util.image_url('pasteicon', 'tiny_cursive');
+        pasteIcon.alt = '';
         pasteEventsIcon.innerHTML = pasteIcon.outerHTML;
         pasteEventsIcon.classList.add('tiny_cursive_paste_events_icon');
 
         const pasteEventsText = document.createElement('span');
-        pasteEventsText.textContent = localStorage.getItem('pasteEvent');
+        pasteEventsText.textContent = this.str('pasteEvent');
 
         this.pasteEventCount = document.createElement('span');
         this.pasteEventCount.textContent = `(${this.pasteTimestamps.length})`;
@@ -363,6 +548,7 @@ export default class Replay {
         const chevronIcon = document.createElement('span');
         const chevron = document.createElement('i');
         chevron.className = 'fa fa-chevron-down';
+        chevron.setAttribute('aria-hidden', 'true');
         chevronIcon.innerHTML = chevron.outerHTML;
         chevronIcon.style.marginLeft = '5px';
         chevronIcon.style.transition = 'transform 0.3s ease';
@@ -373,9 +559,11 @@ export default class Replay {
         pasteEventsToggle.appendChild(chevronIcon);
 
         this.pasteEventsPanel = this.createPasteEventsPanel(container);
+        pasteEventsToggle.setAttribute('aria-controls', this.pasteEventsPanel.id);
         pasteEventsToggle.addEventListener('click', () => {
             const isHidden = this.pasteEventsPanel.style.display === 'none';
             this.pasteEventsPanel.style.display = isHidden ? 'block' : 'none';
+            pasteEventsToggle.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
             chevronIcon.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
         });
 
@@ -392,6 +580,7 @@ export default class Replay {
             existingPanel.remove();
         }
         const pasteEventsPanel = document.createElement('div');
+        pasteEventsPanel.id = `${this.controllerId}_pasteevents`;
         pasteEventsPanel.classList.add('tiny_cursive_paste_events_panel', 'paste-events-panel');
         pasteEventsPanel.style.display = 'none';
         this.populatePasteEventsPanel(pasteEventsPanel);
@@ -504,7 +693,7 @@ export default class Replay {
         if (!this.pasteTimestamps.length) {
             const noEventsMessage = document.createElement('div');
             noEventsMessage.className = 'no-paste-events-message p-3';
-            noEventsMessage.textContent = localStorage.getItem('nopasteevent');
+            noEventsMessage.textContent = this.str('nopasteevent');
             panel.appendChild(noEventsMessage);
             return;
         }
@@ -517,17 +706,24 @@ export default class Replay {
 
         const counterDisplay = document.createElement('div');
         counterDisplay.classList.add('paste-events-counter', 'tiny_cursive_counter_display');
-        counterDisplay.textContent = 'Paste Events';
+        counterDisplay.setAttribute('aria-live', 'polite');
+        const total = this.pasteTimestamps.length;
+        counterDisplay.textContent = this.str('replay_pastecounter', {index: 1, total});
 
         const navButtons = document.createElement('div');
         navButtons.classList.add('tiny_cursive_nav_buttons');
         const prevButton = document.createElement('button');
+        prevButton.type = 'button';
         prevButton.classList.add('paste-event-prev-btn', 'tiny_cursive_nav_button');
-        prevButton.innerHTML = '<i class="fa fa-chevron-left"></i>';
+        prevButton.setAttribute('aria-label', this.str('replay_prevpaste'));
+        prevButton.innerHTML = '<i class="fa fa-chevron-left" aria-hidden="true"></i>';
+        prevButton.disabled = true;
 
         const nextButton = document.createElement('button');
+        nextButton.type = 'button';
         nextButton.classList.add('paste-event-next-btn', 'tiny_cursive_nav_button');
-        nextButton.innerHTML = '<i class="fa fa-chevron-right"></i>';
+        nextButton.setAttribute('aria-label', this.str('replay_nextpaste'));
+        nextButton.innerHTML = '<i class="fa fa-chevron-right" aria-hidden="true"></i>';
         nextButton.disabled = this.pasteTimestamps.length <= 1;
 
         navButtons.appendChild(prevButton);
@@ -547,7 +743,7 @@ export default class Replay {
         const updateDisplay = () => {
             contentContainer.innerHTML = '';
             contentContainer.appendChild(this.createPasteEventDisplay(this.pasteTimestamps[currentIndex]));
-            counterDisplay.textContent = 'Paste Events';
+            counterDisplay.textContent = this.str('replay_pastecounter', {index: currentIndex + 1, total});
             prevButton.disabled = currentIndex === 0;
             prevButton.style.opacity = currentIndex === 0 ? '0.5' : '1';
             nextButton.disabled = currentIndex === this.pasteTimestamps.length - 1;
@@ -594,9 +790,11 @@ export default class Replay {
 
         if (pasteEvent.comment && pasteEvent.comment.trim() !== '') {
             const commentIcon = document.createElement('button');
+            commentIcon.type = 'button';
             commentIcon.className = 'tiny_cursive_comment_toggle_btn';
-            commentIcon.innerHTML = '<i class="fa fa-file-text"></i>';
-            commentIcon.title = 'Pasted content';
+            commentIcon.innerHTML = '<i class="fa fa-file-text" aria-hidden="true"></i>';
+            commentIcon.title = this.str('replay_showpasted');
+            commentIcon.setAttribute('aria-label', this.str('replay_showpasted'));
             commentIcon.style.background = '#007bff';
             commentIcon.style.border = 'none';
             commentIcon.style.borderRadius = '50%';
@@ -652,27 +850,32 @@ export default class Replay {
                 e.stopPropagation();
                 isShowingComment = !isShowingComment;
 
+                const label = this.str(isShowingComment ? 'replay_showpasted' : 'replay_showcomment');
                 if (isShowingComment) {
                     pastedTextContainer.style.display = 'none';
                     commentContainer.style.display = 'block';
-                    commentIcon.innerHTML = '<i class="fa fa-file-text"></i>';
-                    commentIcon.title = 'Pasted content';
+                    commentIcon.innerHTML = '<i class="fa fa-file-text" aria-hidden="true"></i>';
                     commentIcon.style.background = '#007bff';
                 } else {
                     pastedTextContainer.style.display = 'block';
                     commentContainer.style.display = 'none';
-                    commentIcon.innerHTML = '<i class="fa fa-comment"></i>';
-                    commentIcon.title = 'Student comment';
+                    commentIcon.innerHTML = '<i class="fa fa-comment" aria-hidden="true"></i>';
                     commentIcon.style.background = '#ffc107';
                 }
+                commentIcon.title = label;
+                commentIcon.setAttribute('aria-label', label);
 
+                // Dark icon on the amber fill (white fails 3:1); white on the blue fill passes.
                 const iconElement = commentIcon.querySelector('i');
-                iconElement.style.color = 'white';
+                iconElement.style.color = isShowingComment ? 'white' : '#1d2125';
                 iconElement.style.fontSize = '13px';
             });
 
+            const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
             commentIcon.addEventListener('mouseenter', () => {
-                commentIcon.style.transform = 'scale(1.1)';
+                if (!reduceMotion) {
+                    commentIcon.style.transform = 'scale(1.1)';
+                }
                 commentIcon.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)';
             });
 
@@ -685,9 +888,12 @@ export default class Replay {
         }
 
         const playButton = document.createElement('button');
+        playButton.type = 'button';
         playButton.className = 'paste-event-play-btn tiny_cursive_seekplay_button';
+        playButton.setAttribute('aria-label', this.str('replay_jumptopaste', pasteEvent.formattedTime));
         const playIcon = document.createElement('img');
         playIcon.src = M.util.image_url('seekplayicon', 'tiny_cursive');
+        playIcon.alt = '';
         playButton.innerHTML = playIcon.outerHTML;
         playButton.addEventListener('click', () => this.jumpToTimestamp(pasteEvent.timestamp));
 
@@ -707,10 +913,14 @@ export default class Replay {
      */
     jumpToTimestamp(timestamp) {
         const percentage = this.totalDuration > 0 ? (timestamp / this.totalDuration) * 100 : 0;
+        if (this.finalTextMode) {
+            this.toggleFinalText();
+        }
         this.skipToTime(percentage);
         if (!this.replayInProgress) {
             this.startReplay(false);
         }
+        this.announce('replay_playing', this.timeParams().current);
     }
 
     /**
@@ -720,6 +930,7 @@ export default class Replay {
     setScrubberVal(value) {
         if (this.scrubberElement) {
             this.scrubberElement.value = String(value);
+            this.scrubberElement.setAttribute('aria-valuetext', this.str('replay_time', this.timeParams()));
             if (this.timeDisplay) {
                 const displayTime = Math.min(this.currentTime, this.totalDuration);
                 this.timeDisplay.textContent = `${this.formatTime(displayTime)} / ${this.formatTime(this.totalDuration)}`;
@@ -786,10 +997,15 @@ export default class Replay {
             this.currentAiIndex = 0;
             this.aiChars = [];
         }
+        if (this.finalTextMode) {
+            this.toggleFinalText();
+        }
         if (this.playButton) {
             const pauseSvg = document.createElement('i');
             pauseSvg.className = 'fa fa-pause';
+            pauseSvg.setAttribute('aria-hidden', 'true');
             this.playButton.querySelector('.play-icon').innerHTML = pauseSvg.outerHTML;
+            this.playButton.setAttribute('aria-label', this.str('replay_pause'));
         }
         this.replayLog();
     }
@@ -850,6 +1066,7 @@ export default class Replay {
                 } else {
                     this.stopReplay();
                     this.updateDisplayText(this.text, this.cursorPosition, [], []);
+                    this.announce('replay_finished');
                 }
             } else {
                 this.replayTimeout = setTimeout(() => this.replayLog(), incrementTime);
@@ -2218,8 +2435,8 @@ export default class Replay {
         this.setScrubberVal(percentage);
 
         if (wasPlaying) {
-            this.replayInProgress = true;
-            this.replayLog();
+            // Resume through startReplay so the Pause icon and name stay in step with playback.
+            this.startReplay(false);
         }
     }
 
@@ -2234,6 +2451,9 @@ export default class Replay {
      */
     // eslint-disable-next-line complexity
     updateDisplayText(text, cursorPosition, highlights, deletions) {
+        if (this.finalTextMode) {
+            return;
+        }
         let html = '';
         const highlightMap = {};
         const deletionMap = {};
@@ -2288,23 +2508,23 @@ export default class Replay {
                 }
                 const char = line[i];
                 if (deletionMap[currentPosition]) {
-                    html += `<span class="tiny_cursive-deleted-char" style="opacity:
-                        ${deletionMap[currentPosition].opacity};">${deletionMap[currentPosition].chars}</span>`;
+                    html += `<del class="tiny_cursive-deleted-char" style="opacity:
+                        ${deletionMap[currentPosition].opacity};">${deletionMap[currentPosition].chars}</del>`;
                 }
                 const isPasted = pastedMap[currentPosition];
                 const isAi = aiMap[currentPosition];
                 const isHighlighted = highlightMap[currentPosition] && char !== ' ';
 
                 if (isPasted && isHighlighted) {
-                    html += `<span class="tiny_cursive-pasted-char tiny_cursive-highlighted-char" style="opacity:
-                        ${highlightMap[currentPosition].opacity};">${char}</span>`;
+                    html += `<mark class="tiny_cursive-pasted-char tiny_cursive-highlighted-char" style="opacity:
+                        ${highlightMap[currentPosition].opacity};">${char}</mark>`;
                 } else if (isAi && isHighlighted) {
-                    html += `<span class="tiny_cursive-ai-char tiny_cursive-highlighted-char" style="opacity:
-                        ${highlightMap[currentPosition].opacity};">${char}</span>`;
+                    html += `<ins class="tiny_cursive-ai-char tiny_cursive-highlighted-char" style="opacity:
+                        ${highlightMap[currentPosition].opacity};">${char}</ins>`;
                 } else if (isPasted) {
-                    html += `<span class="tiny_cursive-pasted-char">${char === ' ' ? ' ' : this.escapeHtml(char)}</span>`;
+                    html += `<mark class="tiny_cursive-pasted-char">${char === ' ' ? ' ' : this.escapeHtml(char)}</mark>`;
                 } else if (isAi) {
-                    html += `<span class="tiny_cursive-ai-char">${char === ' ' ? ' ' : this.escapeHtml(char)}</span>`;
+                    html += `<ins class="tiny_cursive-ai-char">${char === ' ' ? ' ' : this.escapeHtml(char)}</ins>`;
                 } else if (isHighlighted) {
                     html += `<span class="tiny_cursive-highlighted-char" style="opacity:
                         ${highlightMap[currentPosition].opacity};">${char}</span>`;
@@ -2331,11 +2551,11 @@ export default class Replay {
             const cursorHTML = '<span class="tiny_cursive-cursor"></span>';
             const cursorPos = html.lastIndexOf(cursorHTML);
             if (cursorPos !== -1) {
-                let deletedWordHTML = '<span class="tiny_cursive-deleted-char" style="opacity: 0.5;">';
+                let deletedWordHTML = '<del class="tiny_cursive-deleted-char" style="opacity: 0.5;">';
                 outOfRangeDeletions.forEach(d => {
                     deletedWordHTML += d.chars;
                 });
-                deletedWordHTML += '</span>';
+                deletedWordHTML += '</del>';
                 html = html.substring(0, cursorPos) + deletedWordHTML + html.substring(cursorPos);
             }
         }

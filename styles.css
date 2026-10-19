@@ -731,9 +731,10 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
 }
 
 .tiny_cursive_replay_control {
-    height: 115px;
+    min-height: 115px;
     display: flex;
     flex-direction: column;
+    flex-wrap: wrap;
     gap: 10px;
     margin: 10px 0;
     align-items: center;
@@ -745,9 +746,69 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     width: 100%;
 }
 
+/* Replay controls share one visible focus ring. */
+.tiny_cursive_play_button:focus-visible,
+.tiny_cursive_speed_btn:focus-visible,
+.tiny_cursive_nav_button:focus-visible,
+.tiny_cursive_seekplay_button:focus-visible,
+.tiny_cursive_comment_toggle_btn:focus-visible,
+.tiny_cursive_paste_events_toggle:focus-visible,
+.tiny_cursive_final_text_btn:focus-visible,
+.tiny_cursive_timeline_scrubber:focus-visible {
+    outline: 2px solid var(--tiny-cursive-action);
+    outline-offset: 2px;
+}
+
+/* "Show final text" toggle. */
+.tiny_cursive_final_text_btn {
+    background: white;
+    color: var(--tiny-cursive-action);
+    border: 1px solid var(--tiny-cursive-action);
+    border-radius: 4px;
+    padding: 4px 10px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.tiny_cursive_final_text_btn[aria-pressed="true"] {
+    background: var(--tiny-cursive-action);
+    color: white;
+}
+
+.tiny_cursive_final_text_mode {
+    font-family: inherit;
+}
+
+.tiny_cursive_final_text p {
+    white-space: pre-wrap;
+    margin: 0 0 .75rem;
+}
+
+/* Legend for the text treatments (bold, underline, dotted underline, strike-through). */
+.tiny_cursive_replay_legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+    margin: 0;
+    font-size: 12px;
+    color: var(--tiny-cursive-text-muted);
+}
+
+.tiny_cursive_legend_sample {
+    font-family: monospace;
+    padding: 0 2px;
+}
+
+/* Pasted text: bold on a tinted background with a solid underline (survives greyscale). */
 .tiny_cursive-pasted-char {
     font-weight: bold;
     background-color: #fff2cc;
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 2px;
 }
 
 /* Combined styling for AI suggested  +  pasted text */
@@ -832,22 +893,6 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     flex-shrink: 0;
 }
 
-.tiny_cursive_play_button {
-    min-width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: var(--tiny-cursive-action);
-    color: white;
-    border: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.2s, transform 0.1s;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    flex-shrink: 0;
-}
-
 .tiny_cursive_play_button:hover {
     background: #3367d6;
     transform: scale(1.05);
@@ -868,6 +913,8 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
 
 .tiny_cursive_bottom_row {
     display: flex;
+    flex-wrap: wrap;
+    gap: 8px 12px;
     width: 100%;
     justify-content: space-between;
     align-items: center;
@@ -941,6 +988,11 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     font-size: 14px;
     font-weight: 500;
     margin-left: auto;
+    /* It is a disclosure button now: no browser button chrome. */
+    background: none;
+    border: 0;
+    padding: 4px 6px;
+    border-radius: 4px;
 }
 
 .tiny_cursive_paste_events_icon {
@@ -1054,21 +1106,6 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     transition: all 0.3s ease;
 }
 
-.tiny_cursive_seekplay_button {
-    background: var(--tiny-cursive-action);
-    border: none;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    flex-shrink: 0;
-    box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
-}
-
 @media (max-width: 768px) {
     .tiny_cursive_header_row {
         flex-direction: column;
@@ -1081,11 +1118,15 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     }
 }
 
+/* AI-inserted text: bold on a tinted background with a dotted underline (distinct from pasted in greyscale). */
 .tiny_cursive-ai-char {
     background-color: #ede9fe;
     color: #111827;
     font-weight: bold;
     border-radius: 3px;
+    text-decoration: underline dotted;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 2px;
     transition: background-color 0.25s ease, color 0.25s ease;
 }
 
@@ -1142,7 +1183,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     }
 }
 
-.tiny_cursive-timeline-scrubber {
+.tiny_cursive_timeline_scrubber {
     width: 100%;
     height: 8px;
     border-radius: 4px;
@@ -1151,14 +1192,14 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     transition: background 0.2s;
 }
 
-.tiny_cursive-timeline-scrubber:hover {
+.tiny_cursive_timeline_scrubber:hover {
     background: #d0d0d0;
 }
 
-.tiny_cursive-timeline-scrubber::-webkit-slider-thumb {
+.tiny_cursive_timeline_scrubber::-webkit-slider-thumb {
     appearance: none;
-    width: 16px;
-    height: 16px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
     background: var(--tiny-cursive-action);
     cursor: pointer;
@@ -1166,22 +1207,23 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     transition: transform 0.1s, box-shadow 0.1s;
 }
 
-.tiny_cursive-timeline-scrubber::-webkit-slider-thumb:hover {
+.tiny_cursive_timeline_scrubber::-webkit-slider-thumb:hover {
     transform: scale(1.1);
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
 
-.tiny_cursive-timeline-scrubber::-moz-range-thumb {
-    width: 16px;
-    height: 16px;
+.tiny_cursive_timeline_scrubber::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
+    border: 0;
     background: var(--tiny-cursive-action);
     cursor: pointer;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
     transition: transform 0.1s;
 }
 
-.tiny_cursive-timeline-scrubber::-moz-range-thumb:hover {
+.tiny_cursive_timeline_scrubber::-moz-range-thumb:hover {
     transform: scale(1.1);
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
@@ -2316,19 +2358,19 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     }
 
     /* Vendor pseudo-elements get their own rules: an unknown one in a list voids the whole rule. */
-    .tiny_cursive-timeline-scrubber::-webkit-slider-thumb {
+    .tiny_cursive_timeline_scrubber::-webkit-slider-thumb {
         transition: none;
     }
 
-    .tiny_cursive-timeline-scrubber::-moz-range-thumb {
+    .tiny_cursive_timeline_scrubber::-moz-range-thumb {
         transition: none;
     }
 
-    .tiny_cursive-timeline-scrubber::-webkit-slider-thumb:hover {
+    .tiny_cursive_timeline_scrubber::-webkit-slider-thumb:hover {
         transform: none;
     }
 
-    .tiny_cursive-timeline-scrubber::-moz-range-thumb:hover {
+    .tiny_cursive_timeline_scrubber::-moz-range-thumb:hover {
         transform: none;
     }
 }
