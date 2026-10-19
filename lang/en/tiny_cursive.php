@@ -172,6 +172,7 @@ $string['no_submission'] = 'No submission';
 $string['nolimit'] = 'No limit';
 $string['nopasteevent'] = "No paste events detected for this submission.";
 $string['nopaylod'] = 'No payload data!';
+$string['notifications_resubmit'] = 'Notifications: a resubmission is available';
 $string['note_text_title'] = "Notification text";
 $string['note_url_text'] = "URL title";
 $string['note_url_title'] = "URL";

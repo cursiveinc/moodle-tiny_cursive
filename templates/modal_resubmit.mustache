@@ -24,9 +24,9 @@
     {
     }
 }}
-<div class="tiny_cursive-toast-body" id="cursive-toast-body">
+<div class="tiny_cursive-toast-body" id="cursive-toast-body" role="status" aria-live="polite">
     <span id="ToastTextContent">{{#str}}resubmit, tiny_cursive {{/str}} </span>
-    <a href="#" id="cursive-resubmit" class="d-block btn btn-sm mt-2 border rounded">
+    <button type="button" id="cursive-resubmit" class="d-block btn btn-sm mt-2 border rounded">
         <span id="toastOverlay" class="d-none">{{#pix}}i/loading, core{{/pix}}</span>{{#str}}resubmitbtn, tiny_cursive{{/str}}
-    </a>
+    </button>
 </div>
