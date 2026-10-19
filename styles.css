@@ -282,6 +282,18 @@ body#page-cws #region-main > div {
     padding: .8rem 1rem;
     display: flex;
     gap: .5rem;
+    /* Tabs are buttons: drop the browser chrome and fill the strip. */
+    width: 100%;
+    background: none;
+    border: 0;
+    text-align: start;
+    align-items: center;
+    cursor: pointer;
+}
+
+.tiny_cursive-nav-tab .tiny_cursive-nav-item .nav-link:disabled {
+    cursor: not-allowed;
+    opacity: .65;
 }
 
 .tiny_cursive-nav-tab .tiny_cursive-nav-item .nav-link svg {
@@ -308,7 +320,7 @@ body#page-cws #region-main > div {
     border-radius: .2rem .2rem 1.1rem 1.1rem;
     padding: 1.2rem 1rem 1rem 2rem;
     height: 500px;
-    text-align: justify;
+    text-align: start;
     overflow: auto;
 }
 
@@ -353,9 +365,11 @@ body#page-cws #region-main > div {
     height: 385px;
 }
 
-.tiny_cursive .tiny_cursive_table tr td:nth-child(1) {
-    display: inline-flex;
+/* Metric name cell: icon beside the label, without turning the cell itself into a flex box. */
+.tiny_cursive .tiny_cursive_table .tiny_cursive-metric {
+    display: flex;
     gap: .5rem;
+    align-items: flex-start;
 }
 
 .tiny_cursive-analyticcontent {
@@ -373,6 +387,7 @@ body#page-cws #region-main > div {
     /* width: 100% !important; */
 }
 
+.tiny_cursive .tiny_cursive_table th:first-child,
 .tiny_cursive .tiny_cursive_table td:first-child {
     font-size: 1rem;
     font-weight: 600;
@@ -384,22 +399,27 @@ body#page-cws #region-main > div {
     font-weight: 500;
 }
 
+.tiny_cursive .tiny_cursive_table tr th svg,
 .tiny_cursive .tiny_cursive_table tr td svg {
     fill: var(--tiny-cursive-text-muted);
     width: 30px;
     height: auto;
 }
 
+.tiny_cursive .tiny_cursive_table tr:first-child th svg,
 .tiny_cursive .tiny_cursive_table tr:first-child td svg {
     width: 30px;
     height: 30px;
 }
 
-.tiny_cursive .tiny_cursive_table tr td:nth-child(1) {
+.tiny_cursive .tiny_cursive_table tr th:first-child {
     font-size: 1.18rem;
+    font-weight: 600;
+    text-align: start;
+    vertical-align: top;
 }
 
-.tiny_cursive .tiny_cursive_table tr td:nth-child(1) p {
+.tiny_cursive .tiny_cursive_table tr th:first-child p {
     font-size: 14px;
     color: var(--tiny-cursive-text-muted);
     width: 190px;
@@ -507,7 +527,6 @@ body#page-cws #region-main > div {
 .tiny_cursive_nopayload {
     vertical-align: middle;
     text-align: center;
-    text-transform: uppercase;
     font-weight: 600;
     padding: 2rem;
     margin: 2rem 0;

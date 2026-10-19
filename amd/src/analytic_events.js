@@ -30,6 +30,28 @@ import {get_string as getString} from 'core/str';
 import {get_strings as getStrings} from 'core/str';
 import template from 'core/templates';
 import {setUserPreference} from 'core_user/repository';
+import {announceNear} from './live_status';
+
+/**
+ * Build the loading placeholder shown while a tab fetches its content.
+ *
+ * @param {string} loadingText Translated "Loading" text for assistive technology.
+ * @returns {JQuery}
+ */
+function loader(loadingText) {
+    return $('<div>').addClass('d-flex justify-content-center my-5')
+        .append($('<div>').addClass('tiny_cursive-loader').attr('aria-hidden', 'true'))
+        .append($('<span>').addClass('sr-only visually-hidden').text(loadingText));
+}
+
+/**
+ * Clear the selected state on every tab in the strip that contains a tab.
+ *
+ * @param {JQuery|HTMLElement} tab A tab inside the strip.
+ */
+function deselectTabs(tab) {
+    $(tab).closest('.tiny_cursive-nav-tab').find('.active').removeClass('active');
+}
 
 // Memoised per-page guidance state shared by every analytics modal instance.
 let guidanceState = null;
@@ -62,9 +84,15 @@ function getGuidanceState() {
 export default class AnalyticEvents {
 
     constructor() {
-        getString('notenoughtinfo', 'tiny_cursive').then(str => {
-            localStorage.setItem('notenoughtinfo', str);
-            return str;
+        this.loadingText = 'Loading';
+        this.nopayloadText = '';
+        getStrings([
+            {key: 'loading', component: 'core'},
+            {key: 'nopaylod', component: 'tiny_cursive'},
+        ]).then(([loading, nopayload]) => {
+            this.loadingText = loading;
+            this.nopayloadText = nopayload;
+            return true;
         }).catch(error => window.console.log(error));
 
         // Persist + apply the guidance toggle. Delegated and namespaced so it binds
@@ -101,10 +129,9 @@ export default class AnalyticEvents {
 
                 if (isReplayButton) {
                     setTimeout(() => {
-                        $('.tiny_cursive-nav-tab').find('.active').removeClass('active');
-
                         const replayTab = $('#rep' + userid + questionid);
                         if (replayTab.length) {
+                            deselectTabs(replayTab);
                             replayTab.trigger('click');
                             replayTab.addClass('active');
                         }
@@ -113,7 +140,7 @@ export default class AnalyticEvents {
 
                 let moreBtn = $('body #more' + userid + questionid);
                 if (moreBtn.length > 0) {
-                    $('.tiny_cursive-nav-tab').find('.active').removeClass('active');
+                    deselectTabs(moreBtn);
                     $('#analytic' + userid + questionid).prop('disabled', true);
                     $('#diff' + userid + questionid).prop('disabled', true);
                     $('#analytic' + userid + questionid).css({
@@ -140,7 +167,7 @@ export default class AnalyticEvents {
     }
 
     analytics(userid, templates, context, questionid = '', replayInstances = null, authIcon) {
-
+        const self = this;
         $('body').on('click', '#analytic' + userid + questionid, function(e) {
             $('#rep' + userid + questionid).prop('disabled', false);
             $('#quality' + userid + questionid).prop('disabled', false);
@@ -149,12 +176,12 @@ export default class AnalyticEvents {
             $('#content' + userid).removeClass('tiny_cursive_outputElement')
                 .addClass('tiny_cursive').attr('data-label', 'analytics');
             e.preventDefault();
-            $('#content' + userid).html($('<div>').addClass('d-flex justify-content-center my-5')
-                .append($('<div>').addClass('tiny_cursive-loader')));
+            $('#content' + userid).html(loader(self.loadingText));
+            announceNear(this, self.loadingText);
             if (replayInstances && replayInstances[userid]) {
                 replayInstances[userid].stopReplay();
             }
-            $('.tiny_cursive-nav-tab').find('.active').removeClass('active');
+            deselectTabs(this);
             $(this).addClass('active'); // Add 'active' class to the clicked element
 
             getGuidanceState().then(function(state) {
@@ -189,15 +216,17 @@ export default class AnalyticEvents {
             });
             $('#content' + userid).removeClass('tiny_cursive_outputElement').addClass('tiny_cursive').attr('data-label', 'diff');
             e.preventDefault();
-            $('#content' + userid).html($('<div>').addClass('d-flex justify-content-center my-5')
-                .append($('<div>').addClass('tiny_cursive-loader')));
-            $('.tiny_cursive-nav-tab').find('.active').removeClass('active');
+            $('#content' + userid).html(loader(self.loadingText));
+            announceNear(this, self.loadingText);
+            deselectTabs(this);
             $(this).addClass('active');
             if (replayInstances && replayInstances[userid]) {
                 replayInstances[userid].stopReplay();
             }
+            const tab = this;
             if (!fileid) {
                 $('#content' + userid).html(nodata);
+                announceNear(tab, self.nopayloadText);
                 throw new Error('Missing file id or Difference Content not received yet');
             }
             getContent([{
@@ -312,14 +341,17 @@ export default class AnalyticEvents {
                         }).catch(error => {
                             window.console.error("Failed to load language strings:", error);
                             $('#content' + userid).html(nodata);
+                            announceNear(tab, self.nopayloadText);
                         });
                     });
                 } else {
                     $('#content' + userid).html(nodata);
+                    announceNear(tab, self.nopayloadText);
                 }
                 return responsedata;
             }).catch(error => {
                 $('#content' + userid).html(nodata);
+                announceNear(tab, self.nopayloadText);
                 throw new Error('Error loading JSON file: ' + error.message);
             });
         });
@@ -377,24 +409,28 @@ export default class AnalyticEvents {
     }
 
     replyWriting(userid, filepath, questionid = '', replayInstances = null) {
+        const self = this;
         $('body').on('click', '#rep' + userid + questionid, function(e) {
+            e.preventDefault();
+            // Already showing: do not restart the replay (the tab stays enabled so focus is not lost).
+            if ($(this).hasClass('active')) {
+                return;
+            }
 
             if (filepath) {
                 $('#replayControls_' + userid + questionid).removeClass('d-none');
                 $('#content' + userid).addClass('tiny_cursive_outputElement');
             }
 
-            $(this).prop('disabled', true);
             $('#quality' + userid + questionid).prop('disabled', false);
             $('#content' + userid).attr('data-label', 'replay');
             $('#player_' + userid + questionid).css({
                 'display': 'block',
                 'padding-right': '8px'
             });
-            e.preventDefault();
-            $('#content' + userid).html($('<div>').addClass('d-flex justify-content-center my-5')
-                .append($('<div>').addClass('tiny_cursive-loader')));
-            $('.tiny_cursive-nav-tab').find('.active').removeClass('active');
+            $('#content' + userid).html(loader(self.loadingText));
+            announceNear(this, self.loadingText);
+            deselectTabs(this);
             $(this).addClass('active'); // Add 'active' class to the clicked element
             if (replayInstances && replayInstances[userid]) {
                 replayInstances[userid].stopReplay();
@@ -410,7 +446,7 @@ export default class AnalyticEvents {
     }
 
     learnMore(moreBtn, context, userid, questionid, replayInstances) {
-        $('.tiny_cursive-nav-tab').find('.active').removeClass('active');
+        deselectTabs(moreBtn);
         moreBtn.addClass('active');
         $('#rep' + userid + questionid).prop('disabled', false);
         if (replayInstances && replayInstances[userid]) {
@@ -438,47 +474,64 @@ export default class AnalyticEvents {
         }
     }
 
+    /**
+     * Build the authorship result cell: an icon for sighted users plus the equivalent text
+     * for assistive technology (verified / not enough information / submitted by mobile).
+     *
+     * @param {string} agent User agent class ('mobile', 'tablet' or anything else).
+     * @param {boolean} firstFile Whether this is the user's first capture (no baseline).
+     * @param {number|string} score Authorship score.
+     * @param {number} scoreSetting Site threshold for a verified result.
+     * @returns {JQuery}
+     */
     authorshipStatus(agent, firstFile, score, scoreSetting) {
-
-        var icon = 'fa fa-circle-o';
-        var color = 'font-size:32px;color:black';
         score = parseFloat(score);
 
-        if (firstFile) {
-            icon = 'fa fa-solid fa-info-circle';
-            color = 'font-size:32px;color:#000000';
-        } else if (score >= scoreSetting) {
-            icon = 'fa fa-check-circle';
-            color = 'font-size:32px;color:green';
-        }
-        if (agent === 'mobile' || agent === 'tablet') {
-            icon = 'fas fa-mobile-alt';
-            color = 'font-size:42px; color: black;';
+        let icon = 'fa fa-circle-o';
+        let color = 'font-size:32px;color:black';
+        let stringKey = 'notenoughtinfo';
 
+        if (agent === 'mobile' || agent === 'tablet') {
             const $container = $('<span>').addClass('d-flex align-items-center');
-            const $icon = $('<i>').addClass(icon).attr('style', color);
+            const $icon = $('<i>').addClass('fas fa-mobile-alt').attr('style', 'font-size:42px; color: black;')
+                .attr('aria-hidden', 'true');
             const $text = $('<span>').addClass('ms-2 text-start').css('line-height', '1.2');
 
             $container.append($icon).append($text);
 
-            // Load string asynchronously
-            getStrings([{key: 'submittedbtmobile', component: 'tiny_cursive'}])
-                .done(function(string) {
-                    $text.text(string[0]); // ✅ update AFTER loaded
-                })
-                .fail(function() {
-                    $text.text('Submitted by mobile'); // Fallback
-                });
+            getString('submittedbtmobile', 'tiny_cursive').then(string => {
+                $text.text(string);
+                return string;
+            }).catch(() => {
+                $text.text('Submitted by mobile');
+            });
 
             return $container;
         }
+
         if (score < scoreSetting) {
             icon = 'fa fa-question-circle';
-            color = 'font-size:32px;color:#A9A9A9';
-            return $('<i>').addClass(icon).attr('style', color).attr('title', localStorage.getItem('notenoughtinfo'));
+            color = 'font-size:32px;color:var(--tiny-cursive-text-muted, #595959)';
+        } else if (firstFile) {
+            icon = 'fa fa-solid fa-info-circle';
+            color = 'font-size:32px;color:#000000';
         } else {
-            return $('<i>').addClass(icon).attr('style', color);
+            icon = 'fa fa-check-circle';
+            color = 'font-size:32px;color:var(--tiny-cursive-success, #146c2e)';
+            stringKey = 'verified';
         }
 
+        const $container = $('<span>').addClass('d-inline-flex align-items-center');
+        const $icon = $('<i>').addClass(icon).attr('style', color).attr('aria-hidden', 'true');
+        const $text = $('<span>').addClass('sr-only visually-hidden');
+        $container.append($icon).append($text);
+
+        getString(stringKey, 'tiny_cursive').then(string => {
+            $text.text(string);
+            $icon.attr('title', string);
+            return string;
+        }).catch(error => window.console.error(error));
+
+        return $container;
     }
 }
