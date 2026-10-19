@@ -79,7 +79,8 @@ if ($ADMIN->fulltree) {
             get_string('secretkey', 'tiny_cursive'),
             get_string('secretkey_desc', 'tiny_cursive') . '' .
             "<br/><button type='button' id='tiny_cursive_approve_token' class='btn btn-primary'>" .
-            get_string('test_token', 'tiny_cursive') . "</button> <span id='cursive_token_message' class='ml-2 ms-2' role='status' aria-live='polite'></span>",
+            get_string('test_token', 'tiny_cursive') . "</button> " .
+            "<span id='cursive_token_message' class='ml-2 ms-2' role='status' aria-live='polite'></span>",
             "",
             PARAM_TEXT
         )
@@ -142,7 +143,8 @@ if ($ADMIN->fulltree) {
             get_string('webservicetoken', "tiny_cursive"),
             "<button type='button' id='generate_cursivetoken' class='btn btn-link p-0 align-baseline'>" .
             get_string('generate', 'tiny_cursive') . "</button>" . ' ' .
-            get_string('webservicetoken_des', 'tiny_cursive') . "<br><span id='cursivetoken_' role='status' aria-live='polite'></span>",
+            get_string('webservicetoken_des', 'tiny_cursive') .
+            "<br><span id='cursivetoken_' role='status' aria-live='polite'></span>",
             '',
             PARAM_TEXT
         )

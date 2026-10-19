@@ -80,8 +80,8 @@ define(["jquery", "core/ajax", "core/str"], function($, AJAX, str) {
             showResult("#cursive_token_message", data.message, false);
           }
         });
-        promise1[0].fail(function(error) {
-          window.console.error(error);
+        promise1[0].fail(function(response) {
+          window.console.error(response);
           str.get_string("webservtokenerror", "tiny_cursive").then((message) => {
             showResult("#cursive_token_message", message, false);
             return message;
@@ -118,8 +118,8 @@ define(["jquery", "core/ajax", "core/str"], function($, AJAX, str) {
             return true;
           }).catch(error => window.console.error(error));
         });
-        promise1[0].fail(function(error) {
-          window.console.error(error);
+        promise1[0].fail(function(response) {
+          window.console.error(response);
           str.get_string("webservtokenerror", "tiny_cursive").then((message) => {
             showResult("#cursivetoken_", message, false);
             return message;
@@ -153,8 +153,8 @@ define(["jquery", "core/ajax", "core/str"], function($, AJAX, str) {
             return true;
           }).catch(error => window.console.error(error));
         });
-        promise1[0].fail(function(error) {
-          window.console.error(error);
+        promise1[0].fail(function(response) {
+          window.console.error(response);
           str.get_string("cursive:status", "tiny_cursive").then((message) => {
             showResult("#cursivedisable_", message, false);
             return message;

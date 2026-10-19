@@ -64,7 +64,6 @@ define(["jquery", "core/config", "core/str", "core_table/local/dynamic/events"],
                 // The participant's name gives each control a distinct accessible name.
                 const nameCell = $(tr).find('th, td').eq(1);
                 const fullname = (nameCell.find('a').first().text() || nameCell.text()).trim() || userid;
-                // eslint-disable-next-line no-await-in-loop
                 const statsFor = await Str.get_string('statsfor', 'tiny_cursive', fullname);
 
                 const link = document.createElement('a');
