@@ -2279,8 +2279,6 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     [class*="tiny_cursive"],
     [class*="tiny-cursive"],
     [class*="cursive-"],
-    .tiny_cursive-timeline-scrubber::-webkit-slider-thumb,
-    .tiny_cursive-timeline-scrubber::-moz-range-thumb,
     .paste-event-timestamp {
         transition: none;
     }
@@ -2292,11 +2290,26 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     .tiny_cursive-writing-report .download-btn:hover,
     .tiny_cursive_play_button:hover,
     .tiny_cursive_comment_toggle_btn:hover,
-    .tiny_cursive-timeline-scrubber::-webkit-slider-thumb:hover,
-    .tiny_cursive-timeline-scrubber::-moz-range-thumb:hover,
     .tiny_cursive-pricing-card:hover,
     .tiny_cursive-saved-dropdown,
     .tiny_cursive-saved-dropdown.show {
+        transform: none;
+    }
+
+    /* Vendor pseudo-elements get their own rules: an unknown one in a list voids the whole rule. */
+    .tiny_cursive-timeline-scrubber::-webkit-slider-thumb {
+        transition: none;
+    }
+
+    .tiny_cursive-timeline-scrubber::-moz-range-thumb {
+        transition: none;
+    }
+
+    .tiny_cursive-timeline-scrubber::-webkit-slider-thumb:hover {
+        transform: none;
+    }
+
+    .tiny_cursive-timeline-scrubber::-moz-range-thumb:hover {
         transform: none;
     }
 }

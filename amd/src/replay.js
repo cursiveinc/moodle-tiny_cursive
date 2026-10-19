@@ -90,9 +90,9 @@ export default class Replay {
                 const reduceMotion = window.matchMedia &&
                     window.matchMedia("(prefers-reduced-motion: reduce)").matches;
                 if (reduceMotion && this.playButton) {
-                    const playSvg = document.createElement("img");
-                    playSvg.src = M.util.image_url("playicon", "tiny_cursive");
-                    this.playButton.querySelector(".play-icon").innerHTML = playSvg.outerHTML;
+                    // Reset the output (clears the loader) and immediately pause, so the Play icon shows.
+                    this.startReplay();
+                    this.stopReplay();
                 } else {
                     this.startReplay();
                 }

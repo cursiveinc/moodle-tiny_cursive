@@ -21,7 +21,8 @@
  */
 
 define(["jquery", "core/config", "core/str", "core_table/local/dynamic/events"], function($, mdlcfg, Str, tableEvents) {
-    // The header and body cell after which the Stats column is inserted (same index keeps them aligned).
+    // Index of the header/body cell after which the Stats column is inserted. Body rows mix <th> (name) and
+    // <td>, so cells are counted with children('th, td') to keep header and body aligned.
     const INSERT_AFTER = 6;
     let listening = false;
 
@@ -32,7 +33,9 @@ define(["jquery", "core/config", "core/str", "core_table/local/dynamic/events"],
             // Re-inject after the dynamic table reloads (pagination, sort, filter) instead of a fixed timer.
             if (!listening) {
                 listening = true;
-                document.addEventListener(tableEvents.eventTypes.tableContentRefreshed, () => {
+                // The core module is a default export; AMD consumers get it under .default.
+                const eventTypes = tableEvents.default || tableEvents;
+                document.addEventListener(eventTypes.tableContentRefreshed, () => {
                     usersTable.appendTable();
                 });
             }
@@ -51,27 +54,40 @@ define(["jquery", "core/config", "core/str", "core_table/local/dynamic/events"],
                 );
             }
 
-            const rows = $('tbody').find("tr").get();
-            for (const tr of rows) {
-                const tdUser = $(tr).find("td").get()[0];
+            // Collect the rows that need a cell, then resolve every "statsfor" label in one request.
+            const pending = [];
+            $('tbody').find("tr").get().forEach((tr) => {
+                const tdUser = $(tr).children("th, td").get()[0];
                 let userid = $(tdUser).find("input").get()[0]?.id;
                 userid = userid?.slice(4); // Extract userid from the checkbox id ("user123").
 
                 if (!userid || $(tr).find('.tiny_cursive-participant-stats').length) {
-                    continue;
+                    return;
                 }
 
                 // The participant's name gives each control a distinct accessible name.
-                const nameCell = $(tr).find('th, td').eq(1);
+                const nameCell = $(tr).children('th, td').eq(1);
                 const fullname = (nameCell.find('a').first().text() || nameCell.text()).trim() || userid;
-                const statsFor = await Str.get_string('statsfor', 'tiny_cursive', fullname);
+                pending.push({tr, userid, fullname});
+            });
 
+            if (!pending.length) {
+                return;
+            }
+
+            const labels = await Str.get_strings(pending.map((row) => ({
+                key: 'statsfor',
+                component: 'tiny_cursive',
+                param: row.fullname,
+            })));
+
+            pending.forEach((row, i) => {
                 const link = document.createElement('a');
                 link.href = mdlcfg.wwwroot + "/lib/editor/tiny/plugins/cursive/writing_report.php?userid="
-                    + userid + "&courseid=" + courseid;
-                link.dataset.id = userid;
+                    + row.userid + "&courseid=" + courseid;
+                link.dataset.id = row.userid;
                 link.className = 'tiny_cursive-participant-stats text-decoration-none';
-                link.setAttribute('aria-label', statsFor);
+                link.setAttribute('aria-label', labels[i]);
 
                 const icon = document.createElement('i');
                 icon.className = 'fa fa-area-chart';
@@ -88,8 +104,8 @@ define(["jquery", "core/config", "core/str", "core_table/local/dynamic/events"],
                 cell.className = 'cell c7';
                 cell.appendChild(link);
 
-                $(tr).find('td').eq(INSERT_AFTER).after(cell);
-            }
+                $(row.tr).children('th, td').eq(INSERT_AFTER).after(cell);
+            });
         }
     };
     return usersTable;
