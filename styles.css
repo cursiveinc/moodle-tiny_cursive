@@ -1847,37 +1847,42 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .modal-header {
     position: relative;
 }
 
-.tox-editor-header > .tiny_cursive_state_wrapper {
+/* `.tox` prefix: TinyMCE's skin sets 16px / dark text on every descendant, so these need the higher specificity. */
+.tox .tox-editor-header > .tiny_cursive_state_wrapper {
     position: absolute;
     top: 0;
-    inset-inline-end: .5rem;
+    inset-inline-end: .75rem;
     height: 39px; /* TinyMCE menubar row height in Boost; JS overrides with the measured value. */
     z-index: 2;
+    gap: .5rem;
 }
 
-.tiny_cursive_StateButtonWrap {
+.tox .tiny_cursive_StateButtonWrap {
     background: none;
     border: 0;
     padding: 0 .2rem;
-    margin-inline-start: .2rem;
+    margin-inline-start: .25rem;
     cursor: pointer;
     line-height: 0;
 }
 
-.tiny_cursive_savingState_wrapper {
+.tox .tiny_cursive_savingState_wrapper {
     display: inline-flex;
     align-items: center;
-    gap: .25rem;
+    gap: .35rem;
 }
 
-.tiny_cursive_savingState {
-    padding: .3rem;
+.tox .tiny_cursive_savingState {
+    padding: .25rem .3rem;
     line-height: 1;
+    min-width: auto;
 }
 
-.tiny_cursive_savingState_text {
+.tox .tiny_cursive_savingState_text {
     font-size: .75rem;
+    line-height: 1.2;
     color: var(--tiny-cursive-text-muted);
+    white-space: nowrap;
 }
 
 .tiny_cursive_state_tooltip {
