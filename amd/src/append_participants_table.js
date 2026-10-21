@@ -20,56 +20,91 @@
  * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
  */
 
-define(["jquery", "core/config", "core/str"], function($, mdlcfg, Str) {
+define(["jquery", "core/config", "core/str", "core_table/local/dynamic/events"], function($, mdlcfg, Str, tableEvents) {
+    // Index of the header/body cell after which the Stats column is inserted. Body rows mix <th> (name) and
+    // <td>, so cells are counted with children('th, td') to keep header and body aligned.
+    const INSERT_AFTER = 6;
+    let listening = false;
+
     var usersTable = {
-        init: async function(page) {
-            await usersTable.appendTable(page);
+        init: async function() {
+            await usersTable.appendTable();
+
+            // Re-inject after the dynamic table reloads (pagination, sort, filter) instead of a fixed timer.
+            if (!listening) {
+                listening = true;
+                // The core module is a default export; AMD consumers get it under .default.
+                const eventTypes = tableEvents.default || tableEvents;
+                document.addEventListener(eventTypes.tableContentRefreshed, () => {
+                    usersTable.appendTable();
+                });
+            }
         },
         appendTable: async function() {
-            $(document).ready(async function($) {
-                // Get the first row in the table header
-                let hTr = $('thead').find('tr').get()[0];
-                let courseid = M.cfg.courseId;
+            const hTr = $('thead').find('tr').get()[0];
+            if (!hTr) {
+                return;
+            }
+            const courseid = M.cfg.courseId;
+            const statsString = await Str.get_string('stats', 'tiny_cursive');
 
-                // Fetch string for stats header
-                let statsString = await Str.get_string('stats', 'tiny_cursive');
+            if (!$(hTr).find('#stats').length) {
+                $(hTr).find('th').eq(INSERT_AFTER).after(
+                    '<th class="header c7" id="stats" scope="col">' + statsString + '</th>'
+                );
+            }
 
-                // Add the stats header if it doesn't already exist
-                if (!$(hTr).find('#stats').length) {
-                    $(hTr).find('th').eq(6).after('<th class="header c7" id="stats">' + statsString + '</th>');
+            // Collect the rows that need a cell, then resolve every "statsfor" label in one request.
+            const pending = [];
+            $('tbody').find("tr").get().forEach((tr) => {
+                const tdUser = $(tr).children("th, td").get()[0];
+                let userid = $(tdUser).find("input").get()[0]?.id;
+                userid = userid?.slice(4); // Extract userid from the checkbox id ("user123").
+
+                if (!userid || $(tr).find('.tiny_cursive-participant-stats').length) {
+                    return;
                 }
 
-                // Iterate over each row in the table body
-                $('tbody').find("tr").get().forEach(function(tr) {
-                    let tdUser = $(tr).find("td").get()[0];
-                    let userid = $(tdUser).find("input").get()[0]?.id;
-                    userid = userid?.slice(4); // Extract userid from input id
+                // The participant's name gives each control a distinct accessible name.
+                const nameCell = $(tr).children('th, td').eq(1);
+                const fullname = (nameCell.find('a').first().text() || nameCell.text()).trim() || userid;
+                pending.push({tr, userid, fullname});
+            });
 
-                    if (userid) {
-                        // Avoid duplicating the icon by checking if the icon is already added
-                        if (!$(tr).find('td').eq(6).find('i').length) {
-                            let color = 'font-size:24px;color:black;text-decoration:none';
-                            let link = mdlcfg.wwwroot + "/lib/editor/tiny/plugins/cursive/writing_report.php?userid="
-                                + userid + "&courseid=" + courseid;
-                            let icon = 'fa fa-area-chart';
+            if (!pending.length) {
+                return;
+            }
 
-                            // Add the icon link to the 6th column
-                            let thunderIcon = '<td><a href="' + link + '" data-id=' + userid + '>' +
-                                '<i class="' + icon + '" aria-hidden="true" style="' + color + '"></i></a></td>';
-                            $(tr).find('td').eq(5).after(thunderIcon); // Insert after the 5th column
-                        }
-                    }
-                });
+            const labels = await Str.get_strings(pending.map((row) => ({
+                key: 'statsfor',
+                component: 'tiny_cursive',
+                param: row.fullname,
+            })));
 
-                // Add event listener for page change or other events triggering table update
-                $(".page-item, .header").on('click', function() {
-                    setTimeout(() => {
-                        // Prevent multiple initializations by checking if already initialized
-                        if (!$('#stats').length) {
-                            usersTable.init(); // Initialize the table if needed
-                        }
-                    }, 1800); // Slight delay to ensure the DOM is fully updated
-                });
+            pending.forEach((row, i) => {
+                const link = document.createElement('a');
+                link.href = mdlcfg.wwwroot + "/lib/editor/tiny/plugins/cursive/writing_report.php?userid="
+                    + row.userid + "&courseid=" + courseid;
+                link.dataset.id = row.userid;
+                link.className = 'tiny_cursive-participant-stats text-decoration-none';
+                link.setAttribute('aria-label', labels[i]);
+
+                const icon = document.createElement('i');
+                icon.className = 'fa fa-area-chart';
+                icon.setAttribute('aria-hidden', 'true');
+
+                const text = document.createElement('span');
+                text.className = 'ml-1 ms-1';
+                text.textContent = statsString;
+
+                link.appendChild(icon);
+                link.appendChild(text);
+
+                const cell = document.createElement('td');
+                cell.className = 'cell c7';
+                cell.appendChild(link);
+
+                $(row.tr).children('th, td').eq(INSERT_AFTER).after(cell);
             });
         }
     };

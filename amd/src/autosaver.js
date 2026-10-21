@@ -586,12 +586,6 @@ function sentMobileInput(key) {
     sendKeyEvent("keyUp", event);
 }
 
-    editor.on('remove', () => {
-        if (editor.inputMutationDetector) {
-            editor.inputMutationDetector.disconnect();
-            editor.inputMutationDetector = null;
-        }
-    });
     /**
      * Constructs a mouse event object with caret position and button information
      * @param {Object} editor - The TinyMCE editor instance

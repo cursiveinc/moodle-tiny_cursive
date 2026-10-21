@@ -1,3 +1,16 @@
+/*
+ * Shared colour tokens. Every pair below meets WCAG 2.2 AA on the backgrounds it is used on
+ * (text 4.5:1, large text and icons 3:1). Change a token here rather than reintroducing literals.
+ */
+:root {
+    --tiny-cursive-text-muted: #595959;
+    --tiny-cursive-text-dark: #1d2125;
+    --tiny-cursive-action: #0b57d0;
+    --tiny-cursive-success: #146c2e;
+    --tiny-cursive-warning-text: #8a4b00;
+    --tiny-cursive-danger: #c5221f;
+}
+
 #page-mod-lesson-view .tiny_cursive-replay-button .tiny_cursive-replay-left {
     padding: 4px 14px;
 }
@@ -46,7 +59,7 @@ body#page-cws #region-main > div {
 .cursive-profile-avatar {
     width: 80px;
     height: 80px;
-    background: linear-gradient(135deg, #42a5f5 0%, #9c27b0 100%);
+    background: linear-gradient(135deg, #1565c0 0%, #6a1b9a 100%);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -211,7 +224,35 @@ body#page-cws #region-main > div {
 .tiny_cursive-analytics-header .tiny_cursive-close-btn {
     font-size: 1.2rem;
     cursor: pointer;
+    background: none;
+    border: 0;
+    padding: 0;
+}
 
+/* Visible focus for controls that opt out of Boost's default ring. */
+.tiny_cursive-analytics-header .tiny_cursive-close-btn:focus-visible,
+.tiny_cursive-nav-tab .tiny_cursive-nav-item .nav-link:focus-visible,
+.tiny_cursive-pill-button:focus-visible,
+.tiny_cursive-participant-stats:focus-visible {
+    outline: 2px solid var(--tiny-cursive-action);
+    outline-offset: 2px;
+}
+
+/* Injected Analytics / Replay pills are buttons; strip the browser button chrome. */
+.tiny_cursive-pill-button {
+    background: none;
+    border: 0;
+    padding: 0;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+    border-radius: .5rem;
+}
+
+/* Guidance call-outs under each metric (RTLCSS flips the border side). */
+.tiny_cursive-guidance {
+    background-color: #f1f3f5;
+    border-left: 4px solid var(--tiny-cursive-action);
 }
 
 .tiny_cursive-analytics-header .tiny_cursive-close-btn span {
@@ -235,16 +276,28 @@ body#page-cws #region-main > div {
 }
 
 .tiny_cursive-nav-tab .tiny_cursive-nav-item .nav-link {
-    color: gray;
+    color: var(--tiny-cursive-text-muted);
     font-weight: 600;
     font-size: 1rem;
     padding: .8rem 1rem;
     display: flex;
     gap: .5rem;
+    /* Tabs are buttons: drop the browser chrome and fill the strip. */
+    width: 100%;
+    background: none;
+    border: 0;
+    text-align: start;
+    align-items: center;
+    cursor: pointer;
+}
+
+.tiny_cursive-nav-tab .tiny_cursive-nav-item .nav-link:disabled {
+    cursor: not-allowed;
+    opacity: .65;
 }
 
 .tiny_cursive-nav-tab .tiny_cursive-nav-item .nav-link svg {
-    fill: gray;
+    fill: var(--tiny-cursive-text-muted);
     width: 25px;
     height: auto;
 }
@@ -267,7 +320,7 @@ body#page-cws #region-main > div {
     border-radius: .2rem .2rem 1.1rem 1.1rem;
     padding: 1.2rem 1rem 1rem 2rem;
     height: 500px;
-    text-align: justify;
+    text-align: start;
     overflow: auto;
 }
 
@@ -312,9 +365,11 @@ body#page-cws #region-main > div {
     height: 385px;
 }
 
-.tiny_cursive .tiny_cursive_table tr td:nth-child(1) {
-    display: inline-flex;
+/* Metric name cell: icon beside the label, without turning the cell itself into a flex box. */
+.tiny_cursive .tiny_cursive_table .tiny_cursive-metric {
+    display: flex;
     gap: .5rem;
+    align-items: flex-start;
 }
 
 .tiny_cursive-analyticcontent {
@@ -332,6 +387,7 @@ body#page-cws #region-main > div {
     /* width: 100% !important; */
 }
 
+.tiny_cursive .tiny_cursive_table th:first-child,
 .tiny_cursive .tiny_cursive_table td:first-child {
     font-size: 1rem;
     font-weight: 600;
@@ -343,24 +399,29 @@ body#page-cws #region-main > div {
     font-weight: 500;
 }
 
+.tiny_cursive .tiny_cursive_table tr th svg,
 .tiny_cursive .tiny_cursive_table tr td svg {
-    fill: gray;
+    fill: var(--tiny-cursive-text-muted);
     width: 30px;
     height: auto;
 }
 
+.tiny_cursive .tiny_cursive_table tr:first-child th svg,
 .tiny_cursive .tiny_cursive_table tr:first-child td svg {
     width: 30px;
     height: 30px;
 }
 
-.tiny_cursive .tiny_cursive_table tr td:nth-child(1) {
+.tiny_cursive .tiny_cursive_table tr th:first-child {
     font-size: 1.18rem;
+    font-weight: 600;
+    text-align: start;
+    vertical-align: top;
 }
 
-.tiny_cursive .tiny_cursive_table tr td:nth-child(1) p {
+.tiny_cursive .tiny_cursive_table tr th:first-child p {
     font-size: 14px;
-    color: gray;
+    color: var(--tiny-cursive-text-muted);
     width: 190px;
     font-weight: 400;
     /* stylelint-disable-next-line csstree/validator */
@@ -371,145 +432,6 @@ body#page-cws #region-main > div {
     font-size: 1.1rem;
 }
 
-
-.tiny_cursive-chatbox {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 400px;
-    height: 400px;
-    background-color: #fff;
-    font-family: 'Lato', sans-serif;
-
-    -webkit-transition: all 600ms cubic-bezier(0.19, 1, 0.22, 1);
-    transition: all 600ms cubic-bezier(0.19, 1, 0.22, 1);
-    z-index: 999;
-    display: flex;
-
-    -webkit-flex-direction: column;
-    flex-direction: column;
-}
-
-.tiny_cursive-chatbox--tray {
-    bottom: -350px;
-}
-
-.tiny_cursive-chatbox--closed {
-    bottom: -400px;
-}
-
-.tiny_cursive-chatbox .form-control:focus {
-    border-color: #1f2836;
-}
-
-.tiny_cursive-chatbox__title,
-.tiny_cursive-chatbox__body {
-    border-bottom: none;
-}
-
-.tiny_cursive-chatbox__title {
-    min-height: 50px;
-    padding-right: 10px;
-    background-color: #1f2836cc;
-    border-top-left-radius: 4px;
-    border-top-right-radius: 4px;
-    cursor: pointer;
-    display: flex;
-
-    -webkit-align-items: center;
-    align-items: center;
-}
-
-.tiny_cursive-chatbox__title h5 {
-    height: 50px;
-    margin: 0 0 0 15px;
-    line-height: 50px;
-    position: relative;
-    padding-left: 20px;
-
-    -webkit-flex-grow: 1;
-    flex-grow: 1;
-}
-
-.tiny_cursive-chatbox__title h5 a {
-    color: #fff;
-    max-width: 195px;
-    display: inline-block;
-    text-decoration: none;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.tiny_cursive-chatbox__title__tray,
-.tiny_cursive-chatbox__title__close {
-    width: 24px;
-    height: 24px;
-    outline: 0;
-    border: none;
-    background-color: transparent;
-    opacity: 0.5;
-    cursor: pointer;
-
-    -webkit-transition: opacity 200ms;
-    transition: opacity 200ms;
-}
-
-.tiny_cursive-chatbox__title__tray:hover,
-.tiny_cursive-chatbox__title__close:hover {
-    opacity: 1;
-}
-
-.tiny_cursive-chatbox__title__tray span {
-    width: 12px;
-    height: 12px;
-    display: inline-block;
-    border-bottom: 2px solid #fff;
-}
-
-.tiny_cursive-chatbox__title__close svg {
-    vertical-align: middle;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-width: 1.2px;
-}
-
-.tiny_cursive-chatbox__body,
-.tiny_cursive-chatbox__credentials {
-    padding: 15px;
-    border-top: 0;
-    background-color: #fafafa;
-    border-left: 1px solid #ddd;
-    border-right: 1px solid #ddd;
-    -webkit-flex-grow: 1;
-    flex-grow: 1;
-}
-
-
-.tiny_cursive-chatbox--empty {
-    height: 262px;
-}
-
-.tiny_cursive-chatbox--empty.chatbox--tray {
-    bottom: -212px;
-}
-
-.tiny_cursive-chatbox--empty.chatbox--closed {
-    bottom: -262px;
-}
-
-.tiny_cursive-chatbox--empty .chatbox__body,
-.tiny_cursive-chatbox--empty .chatbox__message {
-    display: none;
-}
-
-.tiny_cursive-chatbox--empty .chatbox__credentials {
-    display: block;
-}
-
-.tiny_cursive-chatbox22 .form-control:focus {
-    border-color: #dcdcdc;
-}
 
 .tiny_cursive-comparison-content {
     margin-right: 1rem;
@@ -605,7 +527,6 @@ body#page-cws #region-main > div {
 .tiny_cursive_nopayload {
     vertical-align: middle;
     text-align: center;
-    text-transform: uppercase;
     font-weight: 600;
     padding: 2rem;
     margin: 2rem 0;
@@ -668,22 +589,12 @@ body#page-cws #region-main > div {
 }
 
 .tiny-cursive-title-description {
-    color: gray;
+    color: var(--tiny-cursive-text-muted);
     font-weight: 400;
     line-height: 1.2;
     font-size: 14px;
     display: inline-block;
     margin-top: 0.5rem;
-}
-
-.tiny_cursive-content {
-    background: rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(10px);
-    border-radius: 12px;
-    padding: 30px;
-    text-align: center;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-    width: 400px;
 }
 
 .tiny_cursive-logo img {
@@ -851,7 +762,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
 .tiny_cursive-ai-suggested-char.tiny_cursive-highlighted-char {
     background-color: #e8f5e8;
     border-bottom: 2px dotted #4caf50;
-    color: #388e3c;
+    color: var(--tiny-cursive-success);
 }
 
 /* Triple combination: AI  +  pasted  +  highlighted */
@@ -859,7 +770,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     font-weight: bold;
     background-color: #fff3e0;
     border-bottom: 2px dotted #ff9800;
-    color: #f57c00;
+    color: var(--tiny-cursive-warning-text);
 }
 
 .tiny_cursive_loading_spinner {
@@ -909,7 +820,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     min-width: 36px;
     height: 36px;
     border-radius: 50%;
-    background: #4285f4;
+    background: var(--tiny-cursive-action);
     color: white;
     border: none;
     cursor: pointer;
@@ -925,7 +836,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     min-width: 36px;
     height: 36px;
     border-radius: 50%;
-    background: #4285f4;
+    background: var(--tiny-cursive-action);
     color: white;
     border: none;
     cursor: pointer;
@@ -951,7 +862,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     width: 100%;
     height: 8px;
     border-radius: 4px;
-    accent-color: #4285f4;
+    accent-color: var(--tiny-cursive-action);
     /* Modern browsers only */
 }
 
@@ -1005,7 +916,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
 }
 
 .tiny_cursive_speed_btn.active {
-    background: #4285f4;
+    background: var(--tiny-cursive-action);
     color: white;
 }
 
@@ -1025,7 +936,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     align-items: center;
     cursor: pointer;
     user-select: none;
-    color: #4285f4;
+    color: var(--tiny-cursive-action);
     font-family: sans-serif;
     font-size: 14px;
     font-weight: 500;
@@ -1072,7 +983,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
 
 .paste-event-timestamp {
     font-size: 13px;
-    color: #6c757d;
+    color: var(--tiny-cursive-text-muted);
     font-weight: 500;
     display: inline-block;
     background: #e9ecef;
@@ -1101,24 +1012,10 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
 }
 
 .tiny_cursive_comment_toggle_btn i {
-    color: white;
+    color: var(--tiny-cursive-text-dark);
     font-size: 12px;
 }
 
-
-@keyframes pulse {
-
-    0%,
-    100% {
-        transform: scale(1);
-        opacity: 1;
-    }
-
-    50% {
-        transform: scale(1.2);
-        opacity: 0.8;
-    }
-}
 
 .tiny_cursive_content_container {
     flex: 1;
@@ -1129,7 +1026,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     background: #f8f9fa;
     padding: 12px;
     border-radius: 6px;
-    border-left: 3px solid #007bff;
+    border-left: 3px solid var(--tiny-cursive-action);
     font-family: 'Courier New', monospace;
     font-size: 13px;
     line-height: 1.6;
@@ -1158,7 +1055,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
 }
 
 .tiny_cursive_seekplay_button {
-    background: #007bff;
+    background: var(--tiny-cursive-action);
     border: none;
     border-radius: 50%;
     width: 40px;
@@ -1212,23 +1109,22 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
 }
 
 .tiny_cursive-highlighted-char {
-    color: #34a853;
+    color: var(--tiny-cursive-success);
     font-weight: bold;
     transition: opacity 0.3s ease, color 0.3s ease;
 }
 
 .tiny_cursive-deleted-char {
-    color: #ea4335;
+    color: var(--tiny-cursive-danger);
     text-decoration: line-through;
-    opacity: 0.5;
-    transition: opacity 0.3s ease;
+    transition: color 0.3s ease;
 }
 
 .tiny_cursive-cursor {
     display: inline-block;
     width: 2px;
     height: 1.2em;
-    background-color: #4285f4;
+    background-color: var(--tiny-cursive-action);
     animation: tiny_cursive-blink 1s infinite;
     vertical-align: middle;
     border-radius: 1px;
@@ -1264,7 +1160,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     width: 16px;
     height: 16px;
     border-radius: 50%;
-    background: #4285f4;
+    background: var(--tiny-cursive-action);
     cursor: pointer;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
     transition: transform 0.1s, box-shadow 0.1s;
@@ -1279,7 +1175,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     width: 16px;
     height: 16px;
     border-radius: 50%;
-    background: #4285f4;
+    background: var(--tiny-cursive-action);
     cursor: pointer;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
     transition: transform 0.1s;
@@ -1291,7 +1187,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
 }
 
 .tiny_cursive-speed-btn.active {
-    background: #4285f4;
+    background: var(--tiny-cursive-action);
     color: white;
     font-weight: 500;
 }
@@ -1320,7 +1216,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
 
 .tiny_cursive_counter_display {
     font-weight: bold;
-    color: #4285f4;
+    color: var(--tiny-cursive-action);
 }
 
 .tiny_cursive_nav_buttons {
@@ -1338,7 +1234,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    color: #4285f4;
+    color: var(--tiny-cursive-action);
     transition: background-color 0.2s;
     opacity: 1;
 }
@@ -1424,60 +1320,9 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     vertical-align: middle;
 }
 
-.tiny_cursive_scatter input[type="checkbox"] {
-    display: none;
-}
-
-.tiny_cursive_scatter .expander-container {
-    position: relative;
-    display: inline-block;
-}
-
-.tiny_cursive_scatter label.toggle-btn {
-    line-height: 20px;
-    cursor: pointer;
-    user-select: none;
-    display: inline-block;
-}
-
-.tiny_cursive_scatter .content {
-    position: absolute;
-    top: 0;
-    right: 100%;
-    width: 0;
-    height: 44px;
-    /* 👈 Same height as the label/button */
-    overflow: hidden;
-    transition: width 0.15s ease, padding 0.15s ease;
-    border-radius: 4px 0 0 4px;
-    padding: 0;
-    z-index: 10;
-    white-space: nowrap;
-    display: flex;
-    justify-content: flex-end;
-    gap: 1rem;
-    align-items: center;
-    background-color: rgb(255, 255, 255, 0.95);
-}
-
-.tiny_cursive_scatter .cursive-btn {
-    background-color: rgb(235, 235, 235);
-    padding: .6rem 1.3rem;
-    font-weight: 500;
-}
-
-.tiny_cursive_scatter .cursive-btn:hover {
-    background-color: rgb(218, 218, 218);
-}
-
-.tiny_cursive_scatter #toggle:checked ~ .content {
-    width: max-content;
-    padding: 0 12px;
-}
-
 .tiny_cursive-export-pdf .tiny_cursive_added {
     background-color: transparent;
-    color: orange;
+    color: var(--tiny-cursive-warning-text);
     font-weight: bold;
     padding: 2px 4px;
     border-radius: 4px;
@@ -1500,7 +1345,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
 }
 
 .tiny_cursive-header h2 {
-    color: #007bff;
+    color: var(--tiny-cursive-action);
     margin-bottom: 5px;
 }
 
@@ -1528,7 +1373,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
 }
 
 .tiny_cursive-info-col h5 {
-    color: #007bff;
+    color: var(--tiny-cursive-action);
     margin-bottom: 5px;
 }
 
@@ -1540,7 +1385,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
 .tiny_cursive-section-divider {
     border: 0;
     height: 2px;
-    background-color: #007bff;
+    background-color: var(--tiny-cursive-action);
     margin: 30px 0;
     border-radius: 2px;
 }
@@ -1555,7 +1400,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
 }
 
 .tiny_cursive-section-title {
-    border-bottom: 1px solid #007bff;
+    border-bottom: 1px solid var(--tiny-cursive-action);
     padding-bottom: 10px;
     margin-bottom: 15px;
 }
@@ -1568,7 +1413,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
 }
 
 .tiny_cursive-section-title h3 {
-    color: #007bff;
+    color: var(--tiny-cursive-action);
     margin: 0;
 }
 
@@ -1609,7 +1454,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
 }
 
 .tiny_cursive-stats-card h2 {
-    color: #007bff;
+    color: var(--tiny-cursive-action);
     margin: 5px 0;
     font-size: 24px;
 }
@@ -1650,7 +1495,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
 }
 
 .tiny_cursive-analysis-card h4 {
-    color: #28a745;
+    color: var(--tiny-cursive-success);
     margin-top: 0;
     margin-bottom: 10px;
 }
@@ -1681,7 +1526,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     display: inline-block;
     vertical-align: middle;
     margin-right: 5px;
-    background-color: orange;
+    background-color: var(--tiny-cursive-warning-text);
 }
 
 /* Submission Text Box */
@@ -1769,12 +1614,18 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
 
 .tiny_cursive-analytics-right {
     background-color: #28c76f;
-    color: white;
+    color: var(--tiny-cursive-text-dark);
     padding: 6px 12px;
     font-weight: bold;
     font-size: 14px;
     display: flex;
     align-items: center;
+    gap: 4px;
+}
+
+/* Below the effort threshold: amber fill plus an icon so the state does not rely on colour alone. */
+.tiny_cursive-analytics-right-low {
+    background-color: #eab308;
 }
 
 /* Notification Button */
@@ -1924,7 +1775,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
 .cursive-saved-times {
     display: block;
     font-size: 12px !important;
-    color: gray !important;
+    color: var(--tiny-cursive-text-muted) !important;
     margin: .3rem 0 0 0 !important;
 }
 
@@ -2091,7 +1942,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
 }
 
 .tiny_cursive-status-red {
-    color: red !important;
+    color: var(--tiny-cursive-danger) !important;
 }
 
 .tiny_cursive-status-green {
@@ -2158,7 +2009,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
 }
 
 .tiny_cursive-modal-header-custom {
-    background: linear-gradient(135deg, #4facfe 0%, #00c3fe 100%);
+    background: #306ab3;
     padding: 30px;
     text-align: center;
     color: white;
@@ -2181,13 +2032,13 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
 }
 
 .tiny_cursive-pricing-card:hover {
-    border-color: #4facfe !important;
+    border-color: var(--tiny-cursive-action) !important;
     box-shadow: 0 8px 24px rgba(79, 172, 254, 0.15);
     transform: translateY(-2px);
 }
 
 .tiny_cursive-pricing-card.premium {
-    border-color: #4facfe !important;
+    border-color: var(--tiny-cursive-action) !important;
     background: linear-gradient(135deg, #f8fcff 0%, #f0f9ff 100%);
     position: relative;
 }
@@ -2197,7 +2048,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     position: absolute;
     top: -12px;
     right: 20px;
-    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    background: #306ab3;
     color: white;
     padding: 4px 14px;
     border-radius: 20px;
@@ -2207,7 +2058,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
 }
 
 .tiny_cursive-card-price {
-    color: #4facfe;
+    color: var(--tiny-cursive-action);
     font-weight: 600;
     font-size: 13px;
 }
@@ -2430,4 +2281,54 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
 .tiny_cursive-notice-gate [data-region="existing-content"] {
     max-height: 20rem;
     overflow: auto;
+}
+
+/*
+ * Reduced motion: stop the looping animations and the hover movement when the OS asks for it.
+ * Loading states keep their static shape; the replay caret stays visible without blinking.
+ */
+@media (prefers-reduced-motion: reduce) {
+    .tiny_cursive-loader,
+    .tiny_cursive_loading_spinner::after,
+    .tiny_cursive-cursor,
+    .tiny_cursive-notification-btn.has-alert::after {
+        animation: none;
+    }
+
+    [class*="tiny_cursive"],
+    [class*="tiny-cursive"],
+    [class*="cursive-"],
+    .paste-event-timestamp {
+        transition: none;
+    }
+
+    .cursive-stat-card:hover,
+    .tiny_cursive-text-block:hover,
+    .tiny_cursive-analytics-button:hover,
+    .tiny_cursive-replay-button:hover,
+    .tiny_cursive-writing-report .download-btn:hover,
+    .tiny_cursive_play_button:hover,
+    .tiny_cursive_comment_toggle_btn:hover,
+    .tiny_cursive-pricing-card:hover,
+    .tiny_cursive-saved-dropdown,
+    .tiny_cursive-saved-dropdown.show {
+        transform: none;
+    }
+
+    /* Vendor pseudo-elements get their own rules: an unknown one in a list voids the whole rule. */
+    .tiny_cursive-timeline-scrubber::-webkit-slider-thumb {
+        transition: none;
+    }
+
+    .tiny_cursive-timeline-scrubber::-moz-range-thumb {
+        transition: none;
+    }
+
+    .tiny_cursive-timeline-scrubber::-webkit-slider-thumb:hover {
+        transform: none;
+    }
+
+    .tiny_cursive-timeline-scrubber::-moz-range-thumb:hover {
+        transform: none;
+    }
 }

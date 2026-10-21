@@ -45,9 +45,14 @@ export default class MyModal extends Modal {
 
         const root = this.getRoot();
 
-
-        // Hide the default modal header.
+        // Hide the default modal header; the plugin renders its own.
         root.find('.modal-header').remove();
+
+        // Core's aria-labelledby pointed at the removed header, so name the dialog from the plugin heading.
+        const title = root.find('.tiny_cursive-analytics-title').first();
+        if (title.length) {
+            root.attr('aria-labelledby', title.attr('id'));
+        }
 
         root.find('.modal-content').css({
             'border-radius': '30px'
@@ -64,6 +69,8 @@ export default class MyModal extends Modal {
             'background-color': 'transparent'
         });
 
+        this.initTabs(root[0]);
+
         // Ensure modal closes on 'analytic-close' button click.
         root.find('#analytic-close').on('click', () => {
             this.destroy();
@@ -75,5 +82,83 @@ export default class MyModal extends Modal {
                 this.destroy();
             }
         });
+    }
+
+    /**
+     * Give the Metrics / Difference / Replay / Learn more strip real tab semantics.
+     *
+     * The click handlers in analytic_events toggle the `active` class; this keeps
+     * aria-selected, the roving tabindex and the panel label in step with that class,
+     * and adds arrow-key navigation (APG tabs pattern, automatic activation).
+     *
+     * @param {HTMLElement} root The modal root element.
+     */
+    initTabs(root) {
+        const tablist = root.querySelector('[role="tablist"]');
+        // Bind once: show() runs twice per modal (configure show:true, then the explicit call).
+        if (!tablist || tablist.dataset.tinyCursiveTabs) {
+            return;
+        }
+        tablist.dataset.tinyCursiveTabs = '1';
+        const panel = root.querySelector('[role="tabpanel"]');
+        const tabs = () => Array.from(tablist.querySelectorAll('[role="tab"]'));
+        const enabledTabs = () => tabs().filter(tab => !tab.disabled);
+
+        const sync = () => {
+            const all = tabs();
+            const active = all.find(tab => tab.classList.contains('active'));
+            all.forEach(tab => {
+                const selected = tab === active;
+                tab.setAttribute('aria-selected', selected ? 'true' : 'false');
+                tab.tabIndex = selected ? 0 : -1;
+            });
+            // Keep one enabled tab reachable with Tab when nothing is selected (free mode).
+            if (!active || active.disabled) {
+                const first = enabledTabs()[0];
+                if (first) {
+                    first.tabIndex = 0;
+                }
+            }
+            if (panel && active) {
+                panel.setAttribute('aria-labelledby', active.id);
+            }
+        };
+
+        tablist.addEventListener('keydown', (e) => {
+            const enabled = enabledTabs();
+            const index = enabled.indexOf(document.activeElement);
+            if (index < 0) {
+                return;
+            }
+            let next = null;
+            switch (e.key) {
+                case 'ArrowDown':
+                case 'ArrowRight':
+                    next = enabled[(index + 1) % enabled.length];
+                    break;
+                case 'ArrowUp':
+                case 'ArrowLeft':
+                    next = enabled[(index - 1 + enabled.length) % enabled.length];
+                    break;
+                case 'Home':
+                    next = enabled[0];
+                    break;
+                case 'End':
+                    next = enabled[enabled.length - 1];
+                    break;
+                default:
+                    return;
+            }
+            e.preventDefault();
+            next.focus();
+            next.click();
+        });
+
+        new MutationObserver(sync).observe(tablist, {
+            subtree: true,
+            attributes: true,
+            attributeFilter: ['class', 'disabled'],
+        });
+        sync();
     }
 }

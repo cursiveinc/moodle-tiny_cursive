@@ -109,7 +109,13 @@ const makeCollapsible = (heading, index, labels) => {
     button.className = 'btn btn-link btn-sm p-0 ml-2 ms-2 align-baseline';
     button.dataset.action = 'toggle-section';
     button.setAttribute('aria-controls', container.id);
-    heading.appendChild(button);
+    if (!heading.id) {
+        heading.id = `tiny_cursive-settings-heading-${index}`;
+    }
+    button.id = `tiny_cursive-settings-toggle-${index}`;
+    // Name: "Collapse, Section title" so each toggle is distinct and the heading reads cleanly.
+    button.setAttribute('aria-labelledby', `${button.id} ${heading.id}`);
+    heading.insertAdjacentElement('afterend', button);
 
     const apply = (collapsed) => {
         container.hidden = collapsed;

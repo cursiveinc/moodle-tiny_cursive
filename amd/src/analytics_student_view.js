@@ -236,6 +236,9 @@ function setStudentView(data, hasApiKey, userid, scoreSetting, target, questioni
         } else if (module === "diary") {
             // Insert the indicator as a sibling right below the entry heading (h5).
             target.after(container);
+        } else if (module === "assign" && target.nextElementSibling) {
+            // Put the pill in the data cell, not the row header (header text names every cell in its row).
+            target.nextElementSibling.appendChild(container);
         } else {
             target.appendChild(container);
         }

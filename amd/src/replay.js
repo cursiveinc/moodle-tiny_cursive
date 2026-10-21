@@ -24,6 +24,7 @@ import {call as fetchJson} from 'core/ajax';
 import templates from 'core/templates';
 import $ from 'jquery';
 import * as Str from 'core/str';
+import {announceNear} from './live_status';
 
 /**
  * Reconstructs captured editor events and renders an interactive writing replay.
@@ -86,7 +87,16 @@ export default class Replay {
                 if (this.controllerId && this.logData) {
                     this.constructController(this.controllerId);
                 }
-                this.startReplay();
+                // Respect the OS reduced-motion preference: show Play and wait instead of autoplaying.
+                const reduceMotion = window.matchMedia &&
+                    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+                if (reduceMotion && this.playButton) {
+                    // Reset the output (clears the loader) and immediately pause, so the Play icon shows.
+                    this.startReplay();
+                    this.stopReplay();
+                } else {
+                    this.startReplay();
+                }
             } else {
                 this.handleNoSubmission();
             }
@@ -157,7 +167,8 @@ export default class Replay {
                 Str.get_string('warningpayload', 'tiny_cursive')
             ]);
             const newElement = $(html).text(str);
-            return $('.tiny_cursive').html(newElement);
+            announceNear(this.outputElement, str);
+            return $(this.outputElement).html(newElement);
         } catch (error) {
             window.console.error(error);
             return false;
@@ -257,8 +268,13 @@ export default class Replay {
             } else {
                 this.startReplay(false);
             }
-            $('.tiny_cursive-nav-tab').find('.active').removeClass('active');
-            $('a[id^="rep"]').addClass('active');
+            // Keep the Replay tab selected in this modal only (several modals can share a page).
+            const scope = playButton.closest('.modal') || document;
+            scope.querySelectorAll('.tiny_cursive-nav-tab .active').forEach(el => el.classList.remove('active'));
+            const replayTab = scope.querySelector('.tiny_cursive-nav-tab [id^="rep"]');
+            if (replayTab) {
+                replayTab.classList.add('active');
+            }
         });
         return playButton;
     }
