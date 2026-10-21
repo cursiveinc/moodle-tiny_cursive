@@ -17,42 +17,57 @@
 {{!
     @template tiny_cursive/saved_content
 
-    Template for displaying saved content in a dropdown menu with a list of user comments
-    
+    Non-modal dialog listing the drafts saved for this editor. Each draft is a button that
+    inserts its text; times are relative with the absolute time on the <time> element.
+
     Example context (json):
     {
+        "hascomments": true,
         "comments": [
             {
-                "usercomment": "This is a sample comment"
+                "usercomment": "This is a sample comment",
+                "time": "5 minutes ago",
+                "absolutetime": "19 Oct 2026, 14:02",
+                "isotime": "2026-10-19T13:02:00.000Z"
             },
             {
-                "usercomment": "Another saved comment example"
-            },
-            {
-                "usercomment": "Third example of saved content"
+                "usercomment": "Another saved comment example",
+                "time": "yesterday",
+                "absolutetime": "18 Oct 2026, 09:40",
+                "isotime": "2026-10-18T08:40:00.000Z"
             }
         ]
     }
 }}
 
-<div>
+<div role="dialog" aria-labelledby="tiny_cursive-savedcontent-title">
     <div class="tiny_cursive-dropdown-header">
-        <div class="tiny_cursive-dropdown-title">{{#str}}savedcontent, tiny_cursive{{/str}} </div>
-        <button type="button" class="tiny_cursive-close-btn" aria-label="{{#str}}close, core{{/str}}">×</button>
+        <h2 class="h6 mb-0 tiny_cursive-dropdown-title" id="tiny_cursive-savedcontent-title" tabindex="-1">{{#str}}savedcontent, tiny_cursive{{/str}}</h2>
+        <button type="button" class="tiny_cursive-close-btn" aria-label="{{#str}}closebuttontitle, core{{/str}}">×</button>
     </div>
     <div class="tiny_cursive-saved-items">
-        {{#comments}}
-         <button type="button" class="tiny_cursive-saved-item">
-            <span class="tiny_cursive-item-preview">{{usercomment}}</span>
-            <span class="cursive-saved-times"><span><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12"
-                    viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                    class="small">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <polyline points="12 6 12 12 16 14"></polyline>
-                </svg></span>
-            <span>{{time}}</span></span>
-        </button>
-        {{/comments}}
+        {{#hascomments}}
+        <ul class="list-unstyled mb-0">
+            {{#comments}}
+            <li>
+                <button type="button" class="tiny_cursive-saved-item">
+                    <span class="tiny_cursive-item-preview">{{usercomment}}</span>
+                    <span class="cursive-saved-times">
+                        <svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="12" height="12"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="small">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                        <time datetime="{{isotime}}" title="{{absolutetime}}">{{time}}</time>
+                    </span>
+                </button>
+            </li>
+            {{/comments}}
+        </ul>
+        {{/hascomments}}
+        {{^hascomments}}
+        <p class="tiny_cursive-saved-empty p-3 mb-0">{{#str}}nosavedcontent, tiny_cursive{{/str}}</p>
+        {{/hascomments}}
     </div>
 </div>

@@ -39,7 +39,7 @@ export default {
         border: '1px solid #ccc',
         marginBottom: '6px',
         padding: '10px',
-        textAlign: 'justify',
+        textAlign: 'start',
         minWidth: '200px',
         borderRadius: '1px',
         pointerEvents: 'none',
