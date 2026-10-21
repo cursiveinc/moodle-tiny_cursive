@@ -28,7 +28,8 @@ import {get_string as getString, get_strings as getStrings} from 'core/str';
 
 export default class CursiveAutosave {
 
-    static instance = null;
+    /** @type {Map<string, CursiveAutosave>} One instance per editor on the page, keyed by editor id. */
+    static instances = new Map();
 
     /** @type {Object<string, string>} Translated labels shared by every instance on the page. */
     static strings = {};
@@ -47,10 +48,6 @@ export default class CursiveAutosave {
     };
 
     constructor(editor, rightWrapper, modules, isFullScreen) {
-        if (CursiveAutosave.instance) {
-            return CursiveAutosave.instance;
-        }
-
         this.editor = editor;
         this.module = modules;
         this.savingState = '';
@@ -63,8 +60,18 @@ export default class CursiveAutosave {
         this.handleDocumentClick = this.handleDocumentClick.bind(this);
         this.repositionSavedDropdown = this.repositionSavedDropdown.bind(this);
         this._savingTimer = null;
-        CursiveAutosave.instance = this;
+        CursiveAutosave.instances.set(CursiveAutosave.keyFor(editor), this);
         this.fetchStrings();
+    }
+
+    /**
+     * Map key for an editor.
+     *
+     * @param {Object|string} editor TinyMCE editor or its id.
+     * @returns {string}
+     */
+    static keyFor(editor) {
+        return String((editor && editor.id) || editor || 'editor');
     }
 
     /**
@@ -87,17 +94,27 @@ export default class CursiveAutosave {
         };
     }
 
+    /**
+     * Get (or create) the instance for an editor and make sure its control is in the given wrapper.
+     *
+     * @param {Object} editor TinyMCE editor.
+     * @param {HTMLElement} rightWrapper Container the control is prepended to.
+     * @param {Object} modules Module ids.
+     * @param {boolean} isFullScreen Document mode flag.
+     * @returns {CursiveAutosave}
+     */
     static getInstance(editor, rightWrapper, modules, isFullScreen) {
-        if (!this.instance) {
-            this.instance = new CursiveAutosave(editor, rightWrapper, modules, isFullScreen);
+        let instance = this.instances.get(this.keyFor(editor));
+        if (!instance) {
+            instance = new CursiveAutosave(editor, rightWrapper, modules, isFullScreen);
         }
-        this.instance.isFullScreen = isFullScreen;
-        const hasState = document.getElementById(this.instance.ids.button);
-        if (!hasState) {
-            this.instance.init();
+        instance.isFullScreen = isFullScreen;
+        instance.rightWrapper = rightWrapper;
+        if (!document.getElementById(instance.ids.button)) {
+            instance.init();
         }
 
-        return this.instance;
+        return instance;
     }
 
     init() {
@@ -109,14 +126,20 @@ export default class CursiveAutosave {
     destroy() {
         this.closeSavedDropdown(false);
         document.getElementById(this.ids.button)?.closest('.tiny_cursive_savingState_wrapper')?.remove();
-        CursiveAutosave.instance = null;
+        CursiveAutosave.instances.delete(CursiveAutosave.keyFor(this.editor));
     }
 
-    static destroyInstance() {
-        if (this.instance) {
-            this.instance.destroy();
-            this.instance = null;
+    /**
+     * Destroy one editor's instance, or every instance when no editor is given.
+     *
+     * @param {Object|string} [editor] TinyMCE editor or its id.
+     */
+    static destroyInstance(editor) {
+        if (editor) {
+            this.instances.get(this.keyFor(editor))?.destroy();
+            return;
         }
+        Array.from(this.instances.values()).forEach(instance => instance.destroy());
     }
 
     /**
@@ -173,12 +196,15 @@ export default class CursiveAutosave {
     }
 
     /**
-     * Updates the saving state icon and text in the editor
+     * Updates the saving state icon and text of one editor's indicator.
+     *
      * @param {string} state - The state to update to ('saving', 'saved', or 'offline')
-     * @description Updates the global saving state and modifies the UI elements to reflect the new state
+     * @param {Object|string} [editor] - TinyMCE editor or its id; defaults to the first instance.
      */
-    static updateSavingState(state) {
-        const instance = this.instance;
+    static updateSavingState(state, editor) {
+        const instance = editor
+            ? this.instances.get(this.keyFor(editor))
+            : this.instances.values().next().value;
         if (!instance) {
             return;
         }

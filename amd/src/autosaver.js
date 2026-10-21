@@ -89,12 +89,12 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics,
                     localStorage.removeItem(filename);
                 }
                 setTimeout(() => {
-                    Autosave.updateSavingState('saved');
+                    Autosave.updateSavingState('saved', editorid);
                 }, 1000);
             }
             return response;
         } catch (error) {
-            Autosave.updateSavingState('offline');
+            Autosave.updateSavingState('offline', editorid);
             window.console.error('Error in postOne:', error);
             throw error;
         }
@@ -740,7 +740,7 @@ function sentMobileInput(key) {
 
         if (!data || data.length === 0 || !navigator.onLine) {
             if (!navigator.onLine) {
-                Autosave.updateSavingState('offline');
+                Autosave.updateSavingState('offline', editorid);
             }
             return;
         } else {
@@ -749,7 +749,7 @@ function sentMobileInput(key) {
                 originalText = getRawText(editor);
             }
             try {
-                Autosave.updateSavingState('saving');
+                Autosave.updateSavingState('saving', editorid);
                 // eslint-disable-next-line
                 return await postOne('tiny_cursive_write_local_to_json', {
                     key: ed.key,
@@ -797,67 +797,59 @@ function sentMobileInput(key) {
      */
     function customTooltip() {
         try {
-            // The indicator only needs to be built once per editor. customTooltip runs on
-            // every keystroke, so bail out if it already exists; otherwise it would be torn
-            // down and rebuilt empty, making the saved icon flicker/disappear while typing.
-            if (document.querySelector('#tiny_cursive_StateIcon0')) {
+            // One indicator per editor, keyed by the editor id so two editors on a page never clash.
+            const safeId = String(editorid || 'editor').replace(/[^a-zA-Z0-9_-]/g, '_');
+            const elementId = `tiny_cursive_StateIcon_${safeId}`;
+            const tooltipId = `tiny_cursive_tooltip_${safeId}`;
+
+            // Bail out once the indicator exists (customTooltip runs on every keystroke); otherwise
+            // it would be torn down and rebuilt empty, making the saved icon flicker while typing.
+            if (document.getElementById(elementId)) {
                 return;
             }
-            const tooltipText = getTooltipText();
-            const menubarDiv = document.querySelectorAll('div[role="menubar"].tox-menubar');
-            let classArray = [];
-
-            if (menubarDiv.length) {
-                menubarDiv.forEach(function(element, index) {
-                    index += 1;
-                    let className = 'cursive-menu-' + index;
-                    element.classList.add(className);
-                    classArray.push(className);
-                });
+            const menubar = editor?.container?.querySelector('div[role="menubar"].tox-menubar');
+            if (!menubar) {
+                return;
             }
+            menubar.classList.add(`cursive-menu-${safeId}`);
+            const tooltipText = getTooltipText();
 
             const cursiveIcon = document.createElement('img');
             cursiveIcon.src = hasApiKey ? iconUrl : iconGrayUrl;
             // Decorative: the surrounding button carries the name.
             cursiveIcon.alt = '';
-
             cursiveIcon.setAttribute('class', 'tiny_cursive_StateButton');
             cursiveIcon.style.display = 'inline-block';
 
-            cursiveState(cursiveIcon, menubarDiv, classArray);
+            cursiveState(cursiveIcon, menubar, elementId, tooltipId);
 
-            for (let index in classArray) {
-                const elementId = "tiny_cursive_StateIcon" + index;
-                const tooltipId = `tiny_cursive_tooltip${index}`;
+            tooltipText.then((text) => {
+                return setTooltip(text, document.getElementById(elementId), tooltipId);
+            }).catch(error => window.console.error(error));
 
-                tooltipText.then((text) => {
-                    return setTooltip(text, document.querySelector(`#${elementId}`), tooltipId);
-                }).catch(error => window.console.error(error));
-
-                // The disclosure shows on hover and on keyboard focus, and Escape dismisses it (1.4.13).
-                const disclosure = document.querySelector(`#${elementId}`);
-                if (disclosure) {
-                    const show = () => {
-                        disclosure.style.position = 'relative';
-                        $(`#${tooltipId}`).css(tooltipCss);
-                        disclosure.setAttribute('aria-expanded', 'true');
-                    };
-                    const hide = () => {
-                        $(`#${tooltipId}`).css('display', 'none');
-                        disclosure.setAttribute('aria-expanded', 'false');
-                    };
-                    disclosure.addEventListener('mouseenter', show);
-                    disclosure.addEventListener('mouseleave', hide);
-                    disclosure.addEventListener('focus', show);
-                    disclosure.addEventListener('blur', hide);
-                    disclosure.addEventListener('click', show);
-                    disclosure.addEventListener('keydown', (e) => {
-                        if (e.key === 'Escape') {
-                            hide();
-                            e.stopPropagation();
-                        }
-                    });
-                }
+            // The disclosure shows on hover and on keyboard focus, and Escape dismisses it (1.4.13).
+            const disclosure = document.getElementById(elementId);
+            if (disclosure) {
+                const show = () => {
+                    disclosure.style.position = 'relative';
+                    $(`#${tooltipId}`).css(tooltipCss);
+                    disclosure.setAttribute('aria-expanded', 'true');
+                };
+                const hide = () => {
+                    $(`#${tooltipId}`).css('display', 'none');
+                    disclosure.setAttribute('aria-expanded', 'false');
+                };
+                disclosure.addEventListener('mouseenter', show);
+                disclosure.addEventListener('mouseleave', hide);
+                disclosure.addEventListener('focus', show);
+                disclosure.addEventListener('blur', hide);
+                disclosure.addEventListener('click', show);
+                disclosure.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        hide();
+                        e.stopPropagation();
+                    }
+                });
             }
         } catch (error) {
             window.console.error('Error setting up custom tooltip:', error);
@@ -884,102 +876,65 @@ function sentMobileInput(key) {
     }
 
     /**
-     * Updates the Cursive icon state and positions it in the menubar
-     * @param {HTMLElement} cursiveIcon - The Cursive icon element to modify
-     * @param {HTMLElement} menubarDiv - The menubar div element
-     * @param {Array} classArray - Array of class names for the menubar div elements
+     * Builds this editor's indicator (capture disclosure + Saved Content control) and places it
+     * beside the menubar, or in the document-mode sidebar when the editor is fullscreen.
+     *
+     * @param {HTMLElement} cursiveIcon - The Cursive icon element to clone into the disclosure
+     * @param {HTMLElement} menubar - This editor's menubar
+     * @param {string} elementId - Id for the disclosure button
+     * @param {string} tooltipId - Id for the tooltip it describes itself with
      */
-    function cursiveState(cursiveIcon, menubarDiv, classArray) {
-        if (!menubarDiv) {
+    function cursiveState(cursiveIcon, menubar, elementId, tooltipId) {
+        const rightWrapper = document.createElement('div');
+        // The capture disclosure is a real button: focusable, named, with the tooltip as its description.
+        const imgWrapper = document.createElement('button');
+        const iconClone = cursiveIcon.cloneNode(true);
+
+        rightWrapper.className = 'tiny_cursive_state_wrapper';
+        rightWrapper.style.cssText = `
+                    margin-inline-start: auto;
+                    display: flex;
+                    align-items: center;
+                `;
+
+        imgWrapper.type = 'button';
+        imgWrapper.id = elementId;
+        imgWrapper.className = 'tiny_cursive_StateButtonWrap';
+        imgWrapper.setAttribute('aria-describedby', tooltipId);
+        imgWrapper.setAttribute('aria-expanded', 'false');
+        imgWrapper.appendChild(iconClone);
+        rightWrapper.appendChild(imgWrapper);
+
+        const moduleIds = {
+            resourceId: resourceId,
+            cmid: cmid,
+            modulename: modulename,
+            questionid: questionid,
+            userid: userid,
+            courseid: courseid};
+
+        const fullpage = isFullScreen ? document.querySelector('#tiny_cursive-fullpage-right-wrapper') : null;
+        if (fullpage) {
+            // Document mode: the indicator lives in the sidebar, not the editor header.
+            editor.container?.querySelector('.tiny_cursive_state_wrapper')?.remove();
+            if (!document.getElementById(elementId)) {
+                rightWrapper.style.marginTop = '3px';
+                fullpage.prepend(rightWrapper);
+            }
+            Autosave.getInstance(editor, rightWrapper, moduleIds, isFullScreen);
             return;
         }
 
-        for (let index in classArray) {
-            const rightWrapper = document.createElement('div');
-            // The capture disclosure is a real button: focusable, named, with the tooltip as its description.
-            const imgWrapper = document.createElement('button');
-            const iconClone = cursiveIcon.cloneNode(true);
-            const targetMenu = document.querySelector('.' + classArray[index]);
-            let elementId = "tiny_cursive_StateIcon" + index;
-
-            rightWrapper.className = 'tiny_cursive_state_wrapper';
-            rightWrapper.style.cssText = `
-                        margin-inline-start: auto;
-                        display: flex;
-                        align-items: center;
-                    `;
-
-            imgWrapper.type = 'button';
-            imgWrapper.id = elementId;
-            imgWrapper.className = 'tiny_cursive_StateButtonWrap';
-            imgWrapper.setAttribute('aria-describedby', `tiny_cursive_tooltip${index}`);
-            imgWrapper.setAttribute('aria-expanded', 'false');
-            imgWrapper.appendChild(iconClone);
-            rightWrapper.appendChild(imgWrapper);
-
-            let moduleIds = {
-                resourceId: resourceId,
-                cmid: cmid,
-                modulename: modulename,
-                questionid: questionid,
-                userid: userid,
-                courseid: courseid};
-            // Document mode, other modules single editor instances
-            if (isFullScreen && ['assign', 'forum', 'lesson', 'workshop', 'diary'].includes(modulename)) {
-                let existsElement = document.querySelector('.tox-editor-header > .tiny_cursive_state_wrapper');
-                if (existsElement) {
-                    existsElement.remove();
-                }
-
-                if (!document.querySelector(`#${elementId}`)) {
-                    rightWrapper.style.marginTop = '3px';
-                    document.querySelector('#tiny_cursive-fullpage-right-wrapper').prepend(rightWrapper);
-                }
-
-                Autosave.destroyInstance();
-                Autosave.getInstance(editor, rightWrapper, moduleIds, isFullScreen);
-            } else if (isFullScreen && modulename === 'quiz') { // Document mode, quiz multiple editor instances
-                let existingElement = editor.container?.childNodes[1]?.childNodes[0]?.childNodes[0]?.childNodes[7];
-                let newHeader = editor.container?.childNodes[0];
-                if (existingElement) {
-                    existingElement.remove();
-                }
-
-                if (newHeader && !newHeader.querySelector(`span[id*=tiny_cursive_StateIcon]`)) {
-                    rightWrapper.style.marginTop = '3px';
-                    document.querySelector('#tiny_cursive-fullpage-right-wrapper').prepend(rightWrapper);
-                }
-                Autosave.destroyInstance();
-                Autosave.getInstance(editor, rightWrapper, moduleIds, isFullScreen);
-            } else { // Regular view
-                let menubar = editor?.container?.children[0]?.childNodes[0]?.childNodes[0];
-                if (!menubar?.matches('div[role="menubar"].tox-menubar')) {
-                    menubar = editor?.container?.querySelector('div[role="menubar"].tox-menubar');
-                }
-
-                // Place the indicator beside the menubar, not inside it: a menubar may only own menu items.
-                const header = targetMenu ? targetMenu.parentElement : null;
-                if (targetMenu && header && !header.querySelector(`#${elementId}`)) {
-                    header.classList.add('tiny_cursive_has_state');
-                    if (targetMenu.offsetHeight > 0) {
-                        rightWrapper.style.height = `${targetMenu.offsetHeight}px`;
-                    }
-                    targetMenu.insertAdjacentElement('afterend', rightWrapper);
-                }
-                // Regular view, multiple editor instances
-                if (modulename === 'quiz' && menubar) {
-                    let wrapper = menubar.parentElement?.querySelector('button[id*="tiny_cursive_StateIcon"]');
-
-                    if (wrapper) {
-                        Autosave.destroyInstance();
-                        Autosave.getInstance(editor, wrapper?.parentElement, moduleIds, isFullScreen);
-                    }
-                } else {
-                    Autosave.destroyInstance();
-                    Autosave.getInstance(editor, rightWrapper, moduleIds, isFullScreen);
-                }
+        // Regular view: beside the menubar, not inside it (a menubar may only own menu items).
+        const header = menubar.parentElement;
+        if (header && !header.querySelector(`#${elementId}`)) {
+            header.classList.add('tiny_cursive_has_state');
+            if (menubar.offsetHeight > 0) {
+                rightWrapper.style.height = `${menubar.offsetHeight}px`;
             }
+            menubar.insertAdjacentElement('afterend', rightWrapper);
         }
+        Autosave.getInstance(editor, rightWrapper, moduleIds, isFullScreen);
     }
 
     /**
