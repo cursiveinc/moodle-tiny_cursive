@@ -95,7 +95,7 @@ export default class MyModal extends Modal {
      */
     initTabs(root) {
         const tablist = root.querySelector('[role="tablist"]');
-        // show() runs twice per modal (configure show:true, then the explicit call), so bind once.
+        // Bind once: show() runs twice per modal (configure show:true, then the explicit call).
         if (!tablist || tablist.dataset.tinyCursiveTabs) {
             return;
         }
