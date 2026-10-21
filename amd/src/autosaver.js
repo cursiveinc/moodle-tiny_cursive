@@ -423,6 +423,10 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics,
     editor.on('SetContent', () => {
         customTooltip();
     });
+    // The config call usually resolves after the editor's init event has fired, so build the indicator now.
+    if (editor.initialized) {
+        customTooltip();
+    }
     editor.on('FullscreenStateChanged', (e) => {
         let view = new DocumentView(user, Rubrics, submission, modulename, editor, quizInfo);
         isFullScreen = e.state;
@@ -783,7 +787,8 @@ function sentMobileInput(key) {
     function getRawText(editor) {
         let editorId = editor?.id;
         if (editorId) {
-            let iframe = document.querySelector(`#${editorId}_ifr`);
+            // Quiz editor ids contain colons, which a selector cannot carry unescaped.
+            let iframe = document.getElementById(`${editorId}_ifr`);
             let iframeBody = iframe.contentDocument?.body || iframe.contentWindow?.document?.body;
             return iframeBody?.textContent;
         }
