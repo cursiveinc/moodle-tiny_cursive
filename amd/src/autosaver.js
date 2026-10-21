@@ -432,6 +432,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics,
             } else {
                 view.fullPageMode();
             }
+            placeIndicator();
         } catch (error) {
             if (errorAlert) {
                 errorAlert = false;
@@ -873,6 +874,36 @@ function sentMobileInput(key) {
             getString('cursive:state:noapikey', 'tiny_cursive'),
         ]);
         return {buttonTitle, buttonDes, noApiKey};
+    }
+
+    /**
+     * Move this editor's existing indicator to where the current mode shows it: the document-mode
+     * sidebar when fullscreen, otherwise back beside the editor's menubar.
+     */
+    function placeIndicator() {
+        const safeId = String(editorid || 'editor').replace(/[^a-zA-Z0-9_-]/g, '_');
+        const wrapper = document.getElementById(`tiny_cursive_StateIcon_${safeId}`)?.closest('.tiny_cursive_state_wrapper');
+        if (!wrapper) {
+            // Leaving document mode tears the sidebar (and the indicator in it) down: rebuild it.
+            customTooltip();
+            return;
+        }
+        const fullpage = isFullScreen ? document.querySelector('#tiny_cursive-fullpage-right-wrapper') : null;
+        if (fullpage) {
+            wrapper.style.height = '';
+            wrapper.style.marginTop = '3px';
+            fullpage.prepend(wrapper);
+            return;
+        }
+        const menubar = editor?.container?.querySelector('div[role="menubar"].tox-menubar');
+        if (menubar && wrapper.previousElementSibling !== menubar) {
+            wrapper.style.marginTop = '';
+            if (menubar.offsetHeight > 0) {
+                wrapper.style.height = `${menubar.offsetHeight}px`;
+            }
+            menubar.parentElement?.classList.add('tiny_cursive_has_state');
+            menubar.insertAdjacentElement('afterend', wrapper);
+        }
     }
 
     /**
