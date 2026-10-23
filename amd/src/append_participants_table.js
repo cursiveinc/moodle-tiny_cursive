@@ -26,15 +26,15 @@ define(["core/config", "core/str"], function(mdlcfg, Str) {
             await usersTable.appendTable();
         },
         appendTable: async function() {
-            let h_tr = document.querySelector('thead tr');
-            if (!h_tr) {
+            let headerRow = document.querySelector('thead tr');
+            if (!headerRow) {
                 return;
             }
             let courseid = M.cfg.courseId;
             let statsString = await Str.get_string('stats', 'tiny_cursive');
 
-            if (!h_tr.querySelector('#stats')) {
-                const lastHeader = h_tr.querySelector('th:last-child');
+            if (!headerRow.querySelector('#stats')) {
+                const lastHeader = headerRow.querySelector('th:last-child');
                 if (lastHeader) {
                     const newHeader = document.createElement('th');
                     newHeader.className = 'header c7';

@@ -47,6 +47,10 @@ export default class DocumentView {
             this.normalizePage(id);
         } else if (this.module === 'pdfannotator') {
             this.normalizePage(id);
+        } else if (this.module === 'workshop') {
+            this.normalizePage(id);
+        } else if (this.module === 'diary') {
+            this.normalizePage(id);
         }
     }
 
@@ -66,6 +70,12 @@ export default class DocumentView {
             this.fullPageModule(this.editor?.id);
         } else if (this.module === 'pdfannotator') {
             this.moduleIcon = Icons.pdfannotator;
+            this.fullPageModule(this.editor?.id);
+        } else if (this.module === 'workshop') {
+            this.moduleIcon = Icons.workshop;
+            this.fullPageModule(this.editor?.id);
+        } else if (this.module === 'diary') {
+            this.moduleIcon = Icons.assignment;
             this.fullPageModule(this.editor?.id);
         }
     }
@@ -172,7 +182,7 @@ export default class DocumentView {
             );
         }
 
-        if (courseDes && courseDes?.textContent.trim() !== '') {
+        if (courseDes && courseDes?.textContent.trim() !== '' && this.module !== 'diary') {
             let fileSubDiv = document.querySelectorAll('.fileuploadsubmission');
             if (fileSubDiv) {
                 fileSubDiv.forEach(Element => {
@@ -246,9 +256,51 @@ export default class DocumentView {
             );
         }
 
+        if (this.module === 'workshop') {
+            this.extendWorkshopModule(content);
+        }
+
+        if (this.module === 'diary') {
+            this.extendDiaryModule(content);
+        }
+
         container.append(btnWrapper, header, content);
         return container;
 
+    }
+
+    extendDiaryModule(content) {
+        let intro = document.querySelector('#region-main .box.generalbox')
+            || document.querySelector('[role="main"] .box.generalbox');
+
+        if (intro && intro.textContent.trim() !== '') {
+            content.append(
+                this.createBox({
+                    bg: 'bg-amber',
+                    titleColor: 'text-dark',
+                    icon: this.moduleIcon,
+                    title: `${this.getSidebarTitle().title} ${this.description}`,
+                    bodyHTML: intro.innerHTML
+                })
+            );
+        }
+    }
+
+    extendWorkshopModule(content) {
+        let instructionTitle = document.querySelector('#workshop-viewlet-instructauthors_caption');
+        let instruction = document.querySelector('.generalbox.instructions');
+
+        if (instructionTitle && instruction) {
+            content.append(
+                this.createBox({
+                    bg: 'bg-info',
+                    titleColor: 'text-info',
+                    icon: this.moduleIcon,
+                    title: ` ${instructionTitle.textContent}`,
+                    bodyHTML: instruction.textContent
+                })
+            );
+        }
     }
 
     extendQuizModule(content) {
@@ -809,7 +861,7 @@ export default class DocumentView {
     }
 
     getSidebarTitle() {
-        const [assign, discus, quiz, lesson] = this.getText('sbTitle');
+        const [assign, discus, quiz, lesson, workshop] = this.getText('sbTitle');
         switch (this.module) {
             case 'assign':
                 return {title: assign, icon: Icons.assignment};
@@ -820,7 +872,11 @@ export default class DocumentView {
             case 'quiz':
                 return {title: quiz, icon: Icons.quiz};
             case 'pdfannotator':
-                return {title: 'PDF Annotation', icon: Icons.pdfannotator};
+                return {title: 'PDF Annotator', icon: Icons.pdfannotator};
+            case 'workshop':
+                return {title: workshop, icon: Icons.workshop};
+            case 'diary':
+                return {title: 'Diary', icon: Icons.assignment};
             default:
                 return {title: 'Page', icon: Icons.quiz};
         }

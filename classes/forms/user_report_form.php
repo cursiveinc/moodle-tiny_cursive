@@ -44,12 +44,40 @@ class user_report_form extends moodleform {
         // Start dropdowns of course, quiz and user email search field in mform.
         global $PAGE;
         $mform = &$this->_form;
-        $attributes = '';
+        $attributes = ['style' => 'width: 90%;'];
         $courseid = $this->_customdata['courseid'];
         $users = self::get_user($courseid);
+        $userid = $this->_customdata['userid'] ?? 0;
         $modules = self::get_modules($courseid);
         $options = ['multiple' => false, 'includefrontpage' => false];
-        $mform->addElement('course', 'courseid', get_string('coursename', 'tiny_cursive'), $options);
+        $module = $this->_customdata['moduleid'] ?? 0;
+        $orderby = $this->_customdata['orderby'] ?? 'id';
+
+        if ($module) {
+            $options['modid'] = $module;
+        }
+
+        $courses = [];
+        $courselist = get_courses();
+
+        foreach ($courselist as $course) {
+            if ($course->id == SITEID) {
+                continue;
+            }
+
+            $courses[$course->id] = format_string($course->fullname);
+        }
+
+        $mform->addElement(
+            'select',
+            'courseid',
+            get_string('coursename', 'tiny_cursive'),
+            $courses,
+            $attributes
+        );
+
+        $mform->setType('courseid', PARAM_INT);
+
         if ($courseid) {
             $mform->setDefault('courseid', $courseid);
         }
@@ -57,8 +85,18 @@ class user_report_form extends moodleform {
         $mform->addRule('courseid', null, 'required', null, 'client');
         $mform->addElement('select', 'moduleid', get_string('module_name', 'tiny_cursive'), $modules, $attributes);
         $mform->setType('moduleid', PARAM_TEXT);
+
+        if ($module) {
+            $mform->setDefault('moduleid', $module);
+        }
+
         $mform->addElement('select', 'userid', get_string('userename', 'tiny_cursive'), $users, $attributes);
         $mform->setType('userid', PARAM_TEXT);
+
+        if ($userid) {
+            $mform->setDefault('userid', $userid);
+        }
+
         $options = [
             'id'    => get_string('uid', 'tiny_cursive'),
             'name'  => get_string('name', "tiny_cursive"),
@@ -67,6 +105,11 @@ class user_report_form extends moodleform {
         ];
         $mform->addElement('select', 'orderby', get_string('orderby', 'tiny_cursive'), $options, $attributes);
         $mform->setType('orderby', PARAM_TEXT);
+
+        if ($orderby) {
+            $mform->setDefault('orderby', $orderby);
+        }
+
         $this->add_action_buttons(false, get_string('submit'));
 
         if (!is_siteadmin()) {
@@ -83,18 +126,18 @@ class user_report_form extends moodleform {
         $data = parent::get_data();
         if (!empty($data)) {
             $mform = &$this->_form;
-            // Add the studentid properly to the $data object.
+            // Add the parameters properly sanitized to the $data object.
             if (!empty($mform->_submitValues['courseid'])) {
-                $data->courseid = $mform->_submitValues['courseid'];
+                $data->courseid = clean_param($mform->_submitValues['courseid'], PARAM_INT);
             }
             if (!empty($mform->_submitValues['userid'])) {
-                $data->userid = $mform->_submitValues['userid'];
+                $data->userid = clean_param($mform->_submitValues['userid'], PARAM_INT);
             }
             if (!empty($mform->_submitValues['moduleid'])) {
-                $data->moduleid = $mform->_submitValues['moduleid'];
+                $data->moduleid = clean_param($mform->_submitValues['moduleid'], PARAM_ALPHANUMEXT);
             }
             if (!empty($mform->_submitValues['orderby'])) {
-                $data->orderby = $mform->_submitValues['orderby'];
+                $data->orderby = clean_param($mform->_submitValues['orderby'], PARAM_ALPHA);
             }
         }
         return $data;
@@ -106,7 +149,7 @@ class user_report_form extends moodleform {
      * @param integer $courseid
      * @return array
      */
-    public function get_modules($courseid) {
+    public static function get_modules($courseid) {
         // Default option: All modules.
         $mdetail = [0 => get_string('allmodule', 'tiny_cursive')];
 
@@ -145,7 +188,7 @@ class user_report_form extends moodleform {
      * @param integer $courseid
      * @return array
      */
-    public function get_user($courseid) {
+    public static function get_user($courseid) {
 
         $udetail = [];
 

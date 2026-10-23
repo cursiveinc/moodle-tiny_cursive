@@ -50,7 +50,7 @@ define([
             );
             replayInstances[mid] = replay;
         } else {
-            // eslint-disable-next-line
+
             templates.render('tiny_cursive/no_submission').then(html => {
                 const contentElement = document.getElementById('content' + mid);
                 if (contentElement) {
@@ -63,7 +63,7 @@ define([
     };
 
     var usersTable = {
-        init: function(score_setting, showcomment, hasApiKey) {
+        init: function(scoreSetting, showcomment, hasApiKey) {
 
             const graderElement = document.getElementById('page-mod-assign-grader');
             if (graderElement) {
@@ -72,11 +72,10 @@ define([
 
             str.get_strings([{key: "field_require", component: "tiny_cursive"}])
                     .done(function() {
-                    usersTable.appendSubmissionDetail(score_setting, showcomment, hasApiKey);
+                    usersTable.appendSubmissionDetail(scoreSetting, showcomment, hasApiKey);
                 });
         },
-        // eslint-disable-next-line
-        appendSubmissionDetail: function(score_setting, showcomment, hasApiKey) {
+        appendSubmissionDetail: function(scoreSetting, showcomment, hasApiKey) {
 
             const divElement = document.querySelector('.path-mod-assign [data-region="grade-panel"]');
             let previousContextId = window.location.href;
@@ -100,7 +99,7 @@ define([
             var cmid = parm.searchParams.get('id');
 
             const args = {id: userid, modulename: "assign", cmid: cmid};
-            const methodname = 'cursive_get_assign_grade_comment';
+            const methodname = 'tiny_cursive_get_assign_grade_comment';
             const com = AJAX.call([{methodname, args}]);
 
             com[0].done(function(json) {
@@ -145,12 +144,14 @@ define([
                 const context = {
                     tabledata: data.data,
                     formattime: myEvents.formatedTime(data.data),
-                    page: score_setting,
+                    page: scoreSetting,
                     userid: userid,
                     apikey: hasApiKey
                 };
 
-                const authIcon = myEvents.authorshipStatus(data.data.first_file, data.data.score, score_setting);
+                const authIcon = myEvents.authorshipStatus(
+                    data.data?.user_agent, data.data.first_file, data.data.score, scoreSetting
+                );
                 myEvents.createModal(userid, context, '', replayInstances, authIcon);
                 myEvents.analytics(userid, templates, context, '', replayInstances, authIcon);
                 myEvents.checkDiff(userid, data.data.file_id, '', replayInstances, filepath);

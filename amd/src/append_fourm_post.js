@@ -43,7 +43,10 @@ define(["core/ajax", "core/str", "core/templates", "./replay", "./analytic_butto
             replayInstances[mid] = replay;
         } else {
             templates.render('tiny_cursive/no_submission').then(html => {
-                document.getElementById('content' + mid).innerHTML = html;
+                const el = document.getElementById('content' + mid);
+                if (el) {
+                    el.innerHTML = html;
+                }
                 return true;
             }).catch(e => window.console.error(e));
         }
@@ -54,20 +57,26 @@ define(["core/ajax", "core/str", "core/templates", "./replay", "./analytic_butto
         init: function(scoreSetting, showcomment, hasApiKey) {
             str
                 .get_strings([
-                    {key: "field_require", component: "tiny_cursive" },
+                    {key: "field_require", component: "tiny_cursive"},
                 ])
                 .done(function() {
                     usersTable.getToken(scoreSetting, showcomment, hasApiKey);
                 });
         },
         getToken: function(scoreSetting, showcomment, hasApiKey) {
-            document.querySelectorAll('#page-mod-forum-discuss article').forEach(function(entry) {
-
-                const ids = entry.getAttribute('data-post-id');
+            const selector = '#page-mod-forum-discuss [data-region="post"], ' +
+                '#page-mod-forum-view [data-region="post"]';
+            const entries = document.querySelectorAll(selector);
+            entries.forEach(function(entry) {
+                var ids = entry.dataset.postId;
                 var cmid = M.cfg.contextInstanceId;
+                var target = entry.querySelector('#post-content-' + ids);
+                if (!ids || !target) {
+                    return;
+                }
 
                 let args = {id: ids, modulename: "forum", cmid: cmid};
-                let methodname = 'cursive_get_forum_comment_link';
+                let methodname = 'tiny_cursive_get_forum_comment_link';
                 let com = AJAX.call([{methodname, args}]);
                 com[0].done(function(json) {
                     const data = JSON.parse(json);
@@ -87,26 +96,25 @@ define(["core/ajax", "core/str", "core/templates", "./replay", "./analytic_butto
                         analyticButtonDiv.classList.add('text-center', 'my-2');
                         analyticButtonDiv.setAttribute('data-region', "analytic-div" + ids);
 
-                        const postContent = entry.querySelector('#post-content-' + ids);
-                        postContent.prepend(analyticButtonDiv);
+                        target.prepend(analyticButtonDiv);
 
                         const myEvents = new AnalyticEvents();
                         const context = {
                             tabledata: data.data,
                             formattime: myEvents.formatedTime(data.data),
                             page: scoreSetting,
-                            userid: ids,
+                            showcomment: showcomment,
                             apikey: hasApiKey
                         };
 
-                        const authIcon = myEvents.authorshipStatus(data.data.first_file, data.data.score, scoreSetting);
+                        const authIcon = myEvents.authorshipStatus(data.data?.user_agent,
+                            data.data.first_file, data.data.score, scoreSetting);
                         myEvents.createModal(ids, context, '', replayInstances, authIcon);
                         myEvents.analytics(ids, templates, context, '', replayInstances, authIcon);
                         myEvents.checkDiff(ids, data.data.file_id, '', replayInstances, filepath);
                         myEvents.replyWriting(ids, filepath, '', replayInstances);
                     }
                 });
-                return com.usercomment;
             });
         },
     };

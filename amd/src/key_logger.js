@@ -21,6 +21,33 @@
  */
 
 define(["core/ajax", "core/str", "core/templates"], function(AJAX, str, templates) {
+  /**
+   * Sets up modal listeners.
+   */
+  function setupModals() {
+    document.querySelectorAll(".popup_item").forEach(function(element) {
+      element.addEventListener("click", function() {
+        var mid = this.dataset.id;
+        document.getElementById(mid).style.display = 'block';
+      });
+    });
+
+    document.querySelectorAll(".link_icon").forEach(function(element) {
+      element.addEventListener("click", function() {
+        var smid = this.dataset.id;
+        document.getElementById(smid).style.display = 'block';
+      });
+    });
+
+    document.querySelectorAll(".modal-close").forEach(function(element) {
+      element.addEventListener("click", function() {
+        document.querySelectorAll(".modal").forEach(function(modal) {
+          modal.style.display = 'none';
+        });
+      });
+    });
+  }
+
   var usersTable = {
     init: function(page) {
       str
@@ -28,30 +55,7 @@ define(["core/ajax", "core/str", "core/templates"], function(AJAX, str, template
           {key: "field_require", component: "tiny_cursive"}
         ])
         .done(function() {
-          document.addEventListener("DOMContentLoaded", function() {
-            document.querySelectorAll(".popup_item").forEach(function(element) {
-              element.addEventListener("click", function() {
-                var mid = this.dataset.id;
-                document.getElementById(mid).style.display = 'block';
-              });
-            });
-
-            document.querySelectorAll(".link_icon").forEach(function(element) {
-              element.addEventListener("click", function() {
-                var smid = this.dataset.id;
-                document.getElementById(smid).style.display = 'block';
-              });
-            });
-
-            document.querySelectorAll(".modal-close").forEach(function(element) {
-              element.addEventListener("click", function() {
-                document.querySelectorAll(".modal").forEach(function(modal) {
-                  modal.style.display = 'none';
-                });
-              });
-            });
-          });
-
+          setupModals();
           usersTable.getusers(page);
         });
     },
@@ -63,13 +67,13 @@ define(["core/ajax", "core/str", "core/templates"], function(AJAX, str, template
 
         var promise1 = AJAX.call([
           {
-            methodname: "cursive_get_user_list",
+            methodname: "tiny_cursive_get_user_list",
             args: {
               courseid: courseid,
             },
           },
         ]);
-          // eslint-disable-next-line
+
         promise1[0].done(function(json) {
           var data = JSON.parse(json);
           var context = {
@@ -78,12 +82,13 @@ define(["core/ajax", "core/str", "core/templates"], function(AJAX, str, template
           };
           templates.render("tiny_cursive/user_list", context).then(function(html) {
             document.getElementById("id_username").innerHTML = html;
-          });
+            return html;
+          }).catch(e => window.console.error(e));
         });
 
         var promise2 = AJAX.call([
           {
-            methodname: "cursive_get_module_list",
+            methodname: "tiny_cursive_get_module_list",
             args: {
               courseid: courseid,
             },
@@ -96,11 +101,10 @@ define(["core/ajax", "core/str", "core/templates"], function(AJAX, str, template
             tabledata: data,
             page: page,
           };
-          // eslint-disable-next-line
           templates.render("tiny_cursive/module_list", context).then(function(html) {
             document.getElementById("id_modulename").innerHTML = html;
             return true;
-          });
+          }).catch(e => window.console.error(e));
         });
       });
     },

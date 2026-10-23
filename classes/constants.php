@@ -18,7 +18,6 @@ namespace tiny_cursive;
 
 use question_engine;
 defined('MOODLE_INTERNAL') || die();
-require_once($CFG->libdir . '/externallib.php');
 require_once($CFG->dirroot . '/grade/grading/lib.php');
 require_once($CFG->dirroot . '/grade/grading/form/rubric/lib.php');
 
@@ -35,7 +34,7 @@ class constants {
      * Base URL for the Cursive Technology API
      * @var string The API base endpoint URL
      */
-    public const BASE_URL = 'https://staging.api.cursivetechnology.net/api';
+    public const BASE_URL = 'https://api.cursivetechnology.net/api';
 
     /**
      * API endpoint path for Moodle integration installs
@@ -47,7 +46,38 @@ class constants {
      * Array of supported activity module names.
      * const array NAMES List of module names where cursive can be used
      */
-    public const NAMES = ["assign", "forum", "quiz", "lesson", 'pdfannotator']; // Excluded oublog.
+    public const NAMES = ["assign", "forum", "quiz", "lesson", 'pdfannotator', 'workshop', 'diary']; // Excluded oublog.
+
+    /**
+     * Body ids of the pages on which the editor plugin registers keystroke capture.
+     * Must be kept in step with the page list in amd/src/plugin.js.
+     * const array EDITOR_PAGES Page body ids where Cursive capture can run
+     */
+    public const EDITOR_PAGES = [
+        'page-mod-assign-editsubmission',
+        'page-mod-quiz-attempt',
+        'page-mod-forum-view',
+        'page-mod-forum-post',
+        'page-mod-lesson-view',
+        'page-mod-pdfannotator-view',
+        'page-mod-workshop-submission',
+        'page-mod-workshop-assessment',
+        'page-mod-diary-edit',
+    ];
+    /**
+     * How long before a pending PDF Annotator capture was created its comment may have been
+     * saved, in seconds. Keystrokes are sent in batches, so a short comment can be saved first.
+     * @var int
+     */
+    public const PDF_RELINK_BEFORE = 120;
+
+    /**
+     * How long after the last keystroke of a pending PDF Annotator capture its comment may
+     * have been saved, in seconds.
+     * @var int
+     */
+    public const PDF_RELINK_AFTER = 1800;
+
     /**
      * Array mapping module names to their corresponding rubric areas.
      * Used to identify the correct rubric area for different module types.
@@ -72,6 +102,10 @@ class constants {
             'page-course-view-participants' => ['append_participants_table', 'course'],
             'page-mod-lesson-essay'         => ['append_lesson_grade_table', 'lesson'],
             'page-mod-pdfannotator-view'    => ['append_pdfannotator', 'pdfannotator'],
+            'page-mod-workshop-submission'  => ['append_workshop', 'init'],
+            'page-mod-workshop-view'        => ['append_workshop', 'init'],
+            'page-mod-diary-report'         => ['append_diary_report', 'diary'],
+            'page-mod-diary-reportsingle'   => ['append_diary_report', 'diary'],
         ];
     /**
      * Array mapping page body IDs to their corresponding handler functions and module types.
@@ -84,7 +118,12 @@ class constants {
             'page-mod-assign-view'         => ['analytics_student_view', 'assignView'],
             'page-mod-quiz-review'         => ['analytics_student_view', 'quizView'],
             'page-mod-forum-discuss'       => ['analytics_student_view', 'forumView'],
+            'page-mod-forum-view'          => ['analytics_student_view', 'forumView'],
             'page-mod-lesson-view'         => ['analytics_student_view', 'lessonView'],
+            'page-mod-pdfannotator-view'   => ['append_pdfannotator', 'studentView'],
+            'page-mod-workshop-view'       => ['append_workshop', 'init'],
+            'page-mod-workshop-submission' => ['analytics_student_view', 'workshopView'],
+            'page-mod-diary-view'          => ['analytics_student_view', 'diaryView'],
     ];
 
     /**
@@ -95,6 +134,42 @@ class constants {
     public static function confidence_threshold() {
         $value = get_config('tiny_cursive', 'confidence_threshold');
         return !empty($value) ? floatval($value) : 0.65;
+    }
+
+    /**
+     * Get the active base URL for the Cursive Technology API.
+     * Reads from the tiny_cursive/python_server admin setting so the same
+     * regional host used for the ML server (upload/verify-token) is reused for the
+     * install-reporting endpoint too, while normalizing out any trailing API version
+     * segments (such as /v3 or /v1) which only apply to Python endpoints.
+     * Falls back to BASE_URL if not set.
+     *
+     * @return string
+     */
+    public static function base_url(): string {
+        $configured = get_config('tiny_cursive', 'python_server');
+        if (!empty($configured)) {
+            $configured = trim($configured);
+            $parsed = parse_url($configured);
+            if (!empty($parsed['scheme']) && !empty($parsed['host'])) {
+                $base = $parsed['scheme'] . '://' . $parsed['host'];
+                if (!empty($parsed['port'])) {
+                    $base .= ':' . $parsed['port'];
+                }
+                $path = $parsed['path'] ?? '';
+                // Strip trailing version segment (e.g. /v3, /v1) if present.
+                $path = preg_replace('#/v\d+/?$#i', '', $path);
+                $path = rtrim($path, '/');
+                if (empty($path)) {
+                    $path = '/api';
+                } else if (substr($path, -4) !== '/api') {
+                    $path .= '/api';
+                }
+                return $base . $path;
+            }
+            return rtrim($configured, '/');
+        }
+        return self::BASE_URL;
     }
 
     /**
@@ -169,7 +244,7 @@ class constants {
         $nextsync     = strtotime('+5 minutes');
 
         if (empty($secret)) {
-            if ($apikey !== false || $apikey !== "0") {
+            if (!empty($apikey)) {
                 set_config('apiKey', false, 'tiny_cursive');
             }
             if ($syncinterval < $now) {

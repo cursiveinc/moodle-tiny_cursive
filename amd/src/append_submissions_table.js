@@ -25,7 +25,7 @@ define([
     "core/str",
     "core/templates",
     "./replay",
-    './analytic_button',
+    "./analytic_button",
     './replay_button',
     './analytic_events',
     'core/str'], function(
@@ -52,7 +52,10 @@ define([
             replayInstances[mid] = replay;
         } else {
             templates.render('tiny_cursive/no_submission').then(html => {
-                document.getElementById('content' + mid).innerHTML = html;
+                const el = document.getElementById('content' + mid);
+                if (el) {
+                    el.innerHTML = html;
+                }
                 return true;
             }).catch(e => window.console.error(e));
         }
@@ -63,15 +66,18 @@ define([
         init: function(scoreSetting, showcomment, hasApiKey) {
             str
                 .get_strings([
-                    { key: "confidence_threshold", component: "tiny_cursive" },
+                    {key: "confidence_threshold", component: "tiny_cursive"},
                 ]).done(function() {
                     usersTable.appendTable(scoreSetting, showcomment, hasApiKey);
                 });
         },
         appendTable: function(scoreSetting, showComment, hasApiKey) {
-            let sub_url = window.location.href;
-            let parm = new URL(sub_url);
-            let h_tr = document.querySelector('thead tr');
+            let subUrl = window.location.href;
+            let parm = new URL(subUrl);
+            let hTr = document.querySelector('table#submissions thead tr') || document.querySelector('thead tr');
+            if (!hTr) {
+                return;
+            }
 
             Str.get_string('analytics', 'tiny_cursive')
                 .then(analyticString => {
@@ -80,15 +86,21 @@ define([
                     th.scope = "col";
                     th.innerHTML = analyticString + '<div class="commands">' +
                         '<i class="icon fa fa-minus fa-fw " aria-hidden="true"></i></div>';
-                    h_tr.children[3].insertAdjacentElement('afterend', th);
+                    if (hTr.children[3]) {
+                        hTr.children[3].insertAdjacentElement('afterend', th);
+                    }
 
-                    document.querySelectorAll('tbody tr').forEach(function(tr) {
-                        let td_user = tr.querySelector("td");
-                        let userid = td_user.querySelector("input[type='checkbox']")?.value;
+                    const rows = document.querySelectorAll('table#submissions tbody tr, tbody tr');
+                    rows.forEach(function(tr) {
+                        let tdUser = tr.querySelector("td");
+                        if (!tdUser) {
+                            return;
+                        }
+                        let userid = tdUser.querySelector("input[type='checkbox']")?.value;
                         let cmid = parm.searchParams.get('id');
 
                         let args = {id: userid, modulename: "assign", cmid: cmid};
-                        let methodname = 'cursive_user_list_submission_stats';
+                        let methodname = 'tiny_cursive_user_list_submission_stats';
                         let com = AJAX.call([{methodname, args}]);
 
                         try {
@@ -105,35 +117,33 @@ define([
                                 } else {
                                     tableCell.appendChild(analyticButton(data.res.effort_ratio, userid));
                                 }
-                                tr.children[3].insertAdjacentElement('afterend', tableCell);
+                                if (tr.children[3]) {
+                                    tr.children[3].insertAdjacentElement('afterend', tableCell);
+                                }
 
                                 // Get Module Name from element
                                 let element = document.querySelector('.page-header-headings h1');
-                                let textContent = element.textContent; // Extracts the text content from the h1 element
+                                let textContent = element ? element.textContent : '';
 
                                 let myEvents = new AnalyticEvents();
                                 var context = {
                                     tabledata: data.res,
                                     formattime: myEvents.formatedTime(data.res),
-                                    moduletitle: textContent,
                                     page: scoreSetting,
-                                    userid: userid,
+                                    name: textContent,
                                     apikey: hasApiKey
                                 };
 
-                                let authIcon = myEvents.authorshipStatus(data.res.first_file, data.res.score, scoreSetting);
+                                let authIcon = myEvents.authorshipStatus(data.res?.user_agent,
+                                    data.res.first_file, data.res.score, scoreSetting);
                                 myEvents.createModal(userid, context, '', replayInstances, authIcon);
                                 myEvents.analytics(userid, templates, context, '', replayInstances, authIcon);
                                 myEvents.checkDiff(userid, data.res.file_id, '', replayInstances, filepath);
                                 myEvents.replyWriting(userid, filepath, '', replayInstances);
-
-                            }).fail(function(error) {
-                                window.console.error('AJAX request failed:', error);
                             });
-                        } catch (error) {
-                            window.console.error('Error processing data:', error);
+                        } catch (e) {
+                            window.console.error(e);
                         }
-                        return com.usercomment;
                     });
                     return true;
                 })

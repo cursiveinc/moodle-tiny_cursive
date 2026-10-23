@@ -21,6 +21,9 @@
  * @copyright 2024, CTI <info@cursivetechnology.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+defined('MOODLE_INTERNAL') || die(); // phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalNotNeeded
+
 use tiny_cursive\constants;
 /**
  * Given an array with a file path, it returns the itemid and the filepath for the defined filearea.
@@ -51,15 +54,33 @@ function tiny_cursive_get_path_from_pluginfile(array $args): array {
  * This function handles file serving requests for files stored in the tiny_cursive
  * plugin's file area. It retrieves and sends the requested file to the user.
  *
- * @param stdClass $context The context object for file access permissions
+ * @param stdClass $course The course object
+ * @param stdClass $cm The course module object
+ * @param context $context The context object for file access permissions
  * @param string $filearea The file area identifier within tiny_cursive
  * @param array $args Array of path segments identifying the file
  * @param bool $forcedownload If true, forces file download rather than display
  * @param array $options Additional options for file serving (e.g. caching, filters)
  * @return void|bool Returns false if file not found, void otherwise
  */
-function tiny_cursive_pluginfile($context, $filearea, $args, $forcedownload, array $options = []) {
-    $itemid = array_shift($args);
+function tiny_cursive_pluginfile(
+    $course,
+    $cm,
+    context $context,
+    string $filearea,
+    array $args,
+    bool $forcedownload,
+    array $options = []
+) {
+    global $DB, $USER;
+
+    if ($context->contextlevel != CONTEXT_MODULE && $context->contextlevel != CONTEXT_SYSTEM) {
+        return false;
+    }
+
+    require_login($course, false, $cm);
+
+    $itemid = (int) array_shift($args);
     $filename = array_pop($args);
 
     if (!$args) {
@@ -68,7 +89,13 @@ function tiny_cursive_pluginfile($context, $filearea, $args, $forcedownload, arr
         $filepath = '/' . implode('/', $args) . '/';
     }
 
-    $fs   = get_file_storage();
+    // Verify access to the requested file.
+    $record = $DB->get_record('tiny_cursive_files', ['id' => $itemid]);
+    if (!$record || ((int)$USER->id !== (int)$record->userid && !has_capability('tiny/cursive:view', $context))) {
+        return false;
+    }
+
+    $fs = get_file_storage();
 
     $file = $fs->get_file($context->id, 'tiny_cursive', $filearea, $itemid, $filepath, $filename);
     if (!$file) {
@@ -220,7 +247,9 @@ function tiny_cursive_coursemodule_standard_elements($formwrapper, $mform) {
 function tiny_cursive_coursemodule_edit_post_actions($formdata, $course) {
     global $PAGE;
 
+    $plugins   = core_component::get_plugin_list('local');
     $cursive = tiny_cursive_status($course->id);
+
     if (!$cursive) {
         return $formdata;
     }
@@ -298,7 +327,7 @@ function tiny_cursive_myprofile_navigation(core_user\output\myprofile\tree $tree
  * @param string $filenamewithfullpath Full path to the file to upload
  * @param string $wstoken Web service token for authentication
  * @param string $answertext Original submission text
- * @return bool|string Returns response from server or false on failure
+ * @return string One of: success, transient_failure, permanent_failure
  * @throws dml_exception
  */
 function tiny_cursive_upload_multipart_record($filerecord, $filenamewithfullpath, $wstoken, $answertext) {
@@ -306,30 +335,36 @@ function tiny_cursive_upload_multipart_record($filerecord, $filenamewithfullpath
     require_once($CFG->dirroot . '/lib/filelib.php');
 
     $moodleurl = get_config('tiny_cursive', 'host_url');
-    $result    = '';
+    $tempfilepath = null;
 
     try {
         $token      = get_config('tiny_cursive', 'secretkey');
         $remoteurl  = get_config('tiny_cursive', 'python_server') . "/upload_file";
-        $filetosend = '';
 
         $tempfilepath = make_temp_directory('tiny_cursive') . '/' . uniqid('upload_', true);
 
-        $jsoncontent  = json_decode($filerecord->content, true);
+        // Guard against empty/null content to prevent json_decode() deprecation warnings in PHP 8.1+.
+        if (empty($filerecord->content)) {
+            echo "Skipping. Empty content in file record: " . $filerecord->id . "\n";
+            return false;
+        }
 
+        $jsoncontent = json_decode($filerecord->content, true);
+
+        // A payload that cannot be decoded will never succeed, so treat it as permanent.
         if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new moodle_exception('invalidjson', 'tiny_cursive');
+            mtrace("[tiny_cursive] Upload permanent failure for record {$filerecord->id}: invalid JSON payload.");
+            return 'permanent_failure';
         }
-            file_put_contents($tempfilepath, json_encode($jsoncontent));
-            $filetosend = new CURLFILE($tempfilepath, 'application/json', 'uploaded.json');
 
-            // Ensure the temporary file does not exceed the size limit.
+        file_put_contents($tempfilepath, json_encode($jsoncontent));
+        $filetosend = new CURLFILE($tempfilepath, 'application/json', 'uploaded.json');
+
+        // Ensure the temporary file does not exceed the size limit.
         if (filesize($tempfilepath) > 16 * 1024 * 1024) {
-            unlink($tempfilepath);
-            throw new moodle_exception('filesizelimit', 'tiny_cursive');
+            mtrace("[tiny_cursive] Upload permanent failure for record {$filerecord->id}: payload exceeds 16MB.");
+            return 'permanent_failure';
         }
-
-        echo $remoteurl;
 
         $curl     = new curl();
         $postdata = [
@@ -338,6 +373,7 @@ function tiny_cursive_upload_multipart_record($filerecord, $filenamewithfullpath
             'person_id' => $filerecord->userid,
             'ws_token' => $wstoken,
             'originalsubmission' => $answertext,
+            'user_agent' => true,
         ];
 
         $headers = [
@@ -351,26 +387,41 @@ function tiny_cursive_upload_multipart_record($filerecord, $filenamewithfullpath
             'CURLOPT_RETURNTRANSFER' => true,
         ]);
 
-        $httpcode = $curl->get_info()['http_code'];
+        $httpcode = (int) ($curl->get_info()['http_code'] ?? 0);
 
+        // A transport-level failure may recover on a later run.
         if ($result === false) {
-            echo "File not found: " . $filenamewithfullpath . "\n";
-            echo "cURL Error: " . $curl->error . "\n";
-        } else {
-            echo "\nHTTP Status Code: " . $httpcode . "\n";
-            echo "File Id: " . $filerecord->id . "\n";
-            echo "response: " . $result . "\n";
+            mtrace("[tiny_cursive] Upload transient failure for record {$filerecord->id}: cURL error {$curl->error}.");
+            return 'transient_failure';
         }
 
-        // Remove the temporary file if it was created.
-        if (isset($tempfilepath) && file_exists($tempfilepath)) {
+        if ($httpcode >= 200 && $httpcode < 300) {
+            mtrace("[tiny_cursive] Upload success for record {$filerecord->id} (HTTP {$httpcode}).");
+            return 'success';
+        }
+
+        // Rate limiting and server errors are worth retrying later.
+        if ($httpcode === 429 || $httpcode >= 500 || $httpcode === 0) {
+            mtrace("[tiny_cursive] Upload transient failure for record {$filerecord->id} (HTTP {$httpcode}).");
+            return 'transient_failure';
+        }
+
+        // Other 4xx responses indicate the request itself is bad and will not recover.
+        if ($httpcode >= 400) {
+            mtrace("[tiny_cursive] Upload permanent failure for record {$filerecord->id} (HTTP {$httpcode}).");
+            return 'permanent_failure';
+        }
+
+        mtrace("[tiny_cursive] Upload transient failure for record {$filerecord->id}: unexpected HTTP {$httpcode}.");
+        return 'transient_failure';
+    } catch (moodle_exception $e) {
+        mtrace("[tiny_cursive] Upload permanent failure for record {$filerecord->id}: {$e->getMessage()}");
+        return 'permanent_failure';
+    } finally {
+        if ($tempfilepath !== null && file_exists($tempfilepath)) {
             unlink($tempfilepath);
         }
-    } catch (moodle_exception $e) {
-        echo $e->getMessage();
     }
-
-    return $result;
 }
 
 /**
@@ -473,4 +524,32 @@ function cursive_approve_token() {
     }
 
     return $result;
+}
+
+/**
+ * Register user preferences owned by tiny_cursive so they can be saved via AJAX.
+ *
+ * Whitelisting the preference here is what allows the analytics guidance toggle
+ * to persist through core's set_user_preferences web service without a bespoke
+ * write endpoint. The permission callback restricts writes to the owning user.
+ *
+ * @return array Preference definitions keyed by preference name.
+ */
+function tiny_cursive_user_preferences() {
+    return [
+        'tiny_cursive_showguidance' => [
+            'type' => PARAM_BOOL,
+            'null' => NULL_NOT_ALLOWED,
+            'default' => 0,
+            'permissioncallback' => [core_user::class, 'is_current_user'],
+        ],
+        // Cache of the acknowledged notice version. The table is the source of truth and
+        // this is only ever written server-side, so no user may set it through the API.
+        \tiny_cursive\notice::PREFERENCE => [
+            'type' => PARAM_INT,
+            'null' => NULL_NOT_ALLOWED,
+            'default' => 0,
+            'permissioncallback' => fn(): bool => false,
+        ],
+    ];
 }

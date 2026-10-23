@@ -28,6 +28,32 @@ use moodle_exception;
  */
 class helper {
     /**
+     * Validate access to a stored writing JSON download.
+     *
+     * The course is always derived from the course module so a caller cannot combine a privileged
+     * course ID with an unrelated module ID.
+     *
+     * @param int $cmid Course module ID.
+     * @param int $userid Owner of the requested writing data.
+     * @return \stdClass The course record derived from the course module.
+     */
+    public static function require_json_download_access(int $cmid, int $userid): \stdClass {
+        global $USER;
+
+        $cm = get_coursemodule_from_id(null, $cmid, 0, false, MUST_EXIST);
+        $course = get_course($cm->course);
+        require_login($course, false, $cm);
+
+        $context = \context_module::instance($cmid);
+        require_capability('tiny/cursive:writingreport', $context);
+        if ((int) $USER->id !== $userid) {
+            require_capability('tiny/cursive:view', $context);
+        }
+
+        return $course;
+    }
+
+    /**
      * Updates resource IDs for both comments and cursive files
      *
      * @param array $data Array containing userid, modulename, courseid, cmid and resourceid
@@ -91,6 +117,125 @@ class helper {
     }
 
     /**
+     * Links PDF Annotator captures that were left pending to the comment they belong to.
+     *
+     * A new annotation is captured under resourceid 0 and re-linked by a browser call once
+     * PDF Annotator has saved the comment. When that call never arrives, the capture stays
+     * pending and the same user's next annotation in the activity is written into it. This
+     * matches each pending capture to the user's own comment in that activity which has no
+     * capture yet and was created closest to the capture's last activity.
+     *
+     * @param int|null $userid Limit to one user's captures, or null for all users
+     * @param int|null $cmid Limit to one course module, or null for all PDF Annotator activities
+     * @param bool $parkunmatched Move captures with no matching comment aside so they are not reused
+     * @return array Counts keyed by 'linked' and 'parked'
+     * @throws \dml_exception
+     */
+    public static function relink_pending_pdfannotator_captures(
+        ?int $userid = null,
+        ?int $cmid = null,
+        bool $parkunmatched = false
+    ): array {
+        global $DB;
+
+        $result = ['linked' => 0, 'parked' => 0];
+        if (!$DB->get_manager()->table_exists('pdfannotator_comments')) {
+            return $result;
+        }
+
+        $sql = "SELECT f.id, f.userid, f.cmid, f.courseid, f.timemodified, f.content, cm.instance
+                  FROM {tiny_cursive_files} f
+                  JOIN {course_modules} cm ON cm.id = f.cmid
+                  JOIN {modules} m ON m.id = cm.module AND m.name = :modname
+                 WHERE f.modulename = :modulename AND f.resourceid = 0";
+        $params = ['modname' => 'pdfannotator', 'modulename' => 'pdfannotator'];
+        if ($userid !== null) {
+            $sql .= " AND f.userid = :userid";
+            $params['userid'] = $userid;
+        }
+        if ($cmid !== null) {
+            $sql .= " AND f.cmid = :cmid";
+            $params['cmid'] = $cmid;
+        }
+
+        // Read everything first: the rows are updated below.
+        $pending = $DB->get_records_sql($sql . " ORDER BY f.id ASC", $params);
+        foreach ($pending as $file) {
+            $lastactivity = self::get_capture_last_activity($file);
+            $candidates = $DB->get_records_sql(
+                "SELECT c.id, c.timecreated
+                   FROM {pdfannotator_comments} c
+                  WHERE c.userid = :userid AND c.pdfannotatorid = :instance
+                        AND c.timecreated >= :earliest AND c.timecreated <= :latest
+                        AND NOT EXISTS (
+                            SELECT 1
+                              FROM {tiny_cursive_files} linked
+                             WHERE linked.modulename = :modulename AND linked.cmid = :cmid
+                                   AND linked.resourceid = c.id
+                        )",
+                [
+                    'userid' => $file->userid,
+                    'instance' => $file->instance,
+                    'earliest' => $file->timemodified - constants::PDF_RELINK_BEFORE,
+                    'latest' => $lastactivity + constants::PDF_RELINK_AFTER,
+                    'modulename' => 'pdfannotator',
+                    'cmid' => $file->cmid,
+                ],
+            );
+
+            $match = null;
+            foreach ($candidates as $candidate) {
+                $distance = abs($candidate->timecreated - $lastactivity);
+                if ($match === null || $distance < $match['distance']) {
+                    $match = ['id' => (int) $candidate->id, 'distance' => $distance];
+                }
+            }
+
+            if ($match === null && !$parkunmatched) {
+                continue;
+            }
+
+            // A parked capture gets a negative resourceid no comment can have, so the next
+            // annotation starts a capture of its own instead of being appended to this one.
+            self::update_resource_id([
+                'userid' => $file->userid,
+                'modulename' => 'pdfannotator',
+                'courseid' => $file->courseid,
+                'cmid' => $file->cmid,
+                'resourceid' => $match === null ? -(int) $file->id : $match['id'],
+            ]);
+            $result[$match === null ? 'parked' : 'linked']++;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Returns when a capture last received a keystroke, in server time.
+     *
+     * The row's timemodified is only set when the capture is created, and event timestamps
+     * come from the browser clock, so only the span between the first and last event is
+     * taken from the events and added to the creation time.
+     *
+     * @param \stdClass $file A tiny_cursive_files row with timemodified and content
+     * @return int Unix timestamp in seconds
+     */
+    private static function get_capture_last_activity(\stdClass $file): int {
+        $created = (int) $file->timemodified;
+        $events = json_decode((string) $file->content, true);
+        if (!is_array($events) || !$events) {
+            return $created;
+        }
+        $first = reset($events)['unixTimestamp'] ?? 0;
+        $last = end($events)['unixTimestamp'] ?? 0;
+        if (!is_numeric($first) || !is_numeric($last) || $last <= $first) {
+            return $created;
+        }
+
+        return $created + (int) floor(($last - $first) / 1000);
+    }
+
+    /**
      * Update autosaved content records.
      *
      * @param array $conditions The conditions to find records to update
@@ -120,13 +265,17 @@ class helper {
     private static function update_records($recs, $table, $id, $name = null) {
         global $DB;
 
-        foreach ($recs as $rec) {
-            $rec->resourceid = $id;
-            if ($name) {
-                $rec->filename = $name;
-            }
-            $DB->update_record($table, $rec, true);
+        if (empty($recs)) {
+            return;
         }
+        [$insql, $inparams] = $DB->get_in_or_equal(array_keys($recs), SQL_PARAMS_NAMED);
+        $set = "resourceid = :newresourceid";
+        $params = ['newresourceid' => $id] + $inparams;
+        if ($name) {
+            $set .= ", filename = :newfilename";
+            $params['newfilename'] = $name;
+        }
+        $DB->execute("UPDATE {{$table}} SET {$set} WHERE id {$insql}", $params);
     }
 
     /**
@@ -142,7 +291,7 @@ class helper {
             return;
         }
 
-        [$curl, $url, $options] = self::get_curl(constants::BASE_URL . constants::API_END);
+        [$curl, $url, $options] = self::get_curl(constants::base_url() . constants::API_END);
         $json = json_encode($data);
 
         if ($json === false) {

@@ -62,17 +62,17 @@ define([
     };
 
     var usersTable = {
-        init: function(score_setting, showcomment, hasApiKey) {
+        init: function(scoreSetting, showcomment, hasApiKey) {
             str.get_strings([{key: "field_require", component: "tiny_cursive"}])
                 .done(function() {
-                    usersTable.appendSubmissionDetail(score_setting, hasApiKey);
+                    usersTable.appendSubmissionDetail(scoreSetting, hasApiKey);
                 });
         },
 
-        appendSubmissionDetail: function(score_setting, hasApiKey) {
-            let sub_url = window.location.href;
-            let parm = new URL(sub_url);
-            let attempt_id = parm.searchParams.get('attempt');
+        appendSubmissionDetail: function(scoreSetting, hasApiKey) {
+            let subUrl = window.location.href;
+            let parm = new URL(subUrl);
+            let attemptId = parm.searchParams.get('attempt');
             let cmid = M.cfg.contextInstanceId;
 
             let userid = '';
@@ -96,8 +96,8 @@ define([
                     questionid = editQuestionHref.match(/&id=(\d+)/)[1];
                 }
 
-                let args = {id: attempt_id, modulename: "quiz", cmid: cmid, questionid: questionid, userid: userid};
-                let methodname = 'cursive_get_comment_link';
+                let args = {id: attemptId, modulename: "quiz", cmid: cmid, questionid: questionid, userid: userid};
+                let methodname = 'tiny_cursive_get_comment_link';
                 let com = AJAX.call([{methodname, args}]);
 
                 com[0].done(function(json) {
@@ -132,12 +132,14 @@ define([
                             let context = {
                                 tabledata: data.data,
                                 formattime: myEvents.formatedTime(data.data),
-                                page: score_setting,
+                                page: scoreSetting,
                                 userid: userid,
                                 quizid: questionid,
                                 apikey: hasApiKey
                             };
-                            let authIcon = myEvents.authorshipStatus(data.data.first_file, data.data.score, score_setting);
+                            let authIcon = myEvents.authorshipStatus(
+                                data.data?.user_agent, data.data.first_file, data.data.score, scoreSetting
+                            );
 
                             myEvents.createModal(userid, context, questionid, replayInstances, authIcon);
                             myEvents.analytics(userid, templates, context, questionid, replayInstances, authIcon);

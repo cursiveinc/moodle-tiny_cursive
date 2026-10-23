@@ -21,17 +21,19 @@
  */
 
 import {call} from 'core/ajax';
-import {create} from 'core/modal_factory';
+import SaveCancelModal from 'core/modal_save_cancel';
 import {get_string as getString} from 'core/str';
 import {save, cancel, hidden} from 'core/modal_events';
 import {iconUrl, iconGrayUrl, tooltipCss} from 'tiny_cursive/common';
 import Autosave from 'tiny_cursive/cursive_autosave';
 import DocumentView from 'tiny_cursive/document_view';
-import { call as getUser } from "core/ajax";
+import {call as getUser} from "core/ajax";
 
-export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, submission, quizInfo, pasteSetting) => {
-    var isStudent = !document.querySelector('#body').classList.contains('teacher_admin');
-    var intervention = document.querySelector('#body').classList.contains('intervention');
+export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics,
+    submission, quizInfo, pasteSetting, canBypassPaste, intervention) => {
+
+    canBypassPaste = !!canBypassPaste;
+    intervention = !!intervention;
     var host = M.cfg.wwwroot;
     var userid = userId;
     var courseid = M.cfg.courseId;
@@ -72,9 +74,9 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
         });
     }
 
-    const postOne = async (methodname, args, filename = "") => {
+    const postOne = async(methodname, args, filename = "") => {
         try {
-            const response = await call([{ methodname, args }])[0];
+            const response = await call([{methodname, args}])[0];
             if (response) {
                 if (filename) {
                     localStorage.removeItem(filename);
@@ -118,6 +120,27 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
         assignSubmit.addEventListener('click', handleAssignSubmit);
     }
 
+    // Diary's "Save and continue editing" button posts and reloads the editor on the same
+    // entry; flush captured keystrokes before it navigates, matching the main submit button.
+    const diarySaveContinue = document.getElementById('id_saveandcontinue');
+    if (diarySaveContinue) {
+        const handleDiarySaveContinue = async function(e) {
+            e.preventDefault();
+            if (filename) {
+                // eslint-disable-next-line
+                syncData().then(() => {
+                    diarySaveContinue.removeEventListener('click', handleDiarySaveContinue);
+                    diarySaveContinue.click();
+                });
+            } else {
+                diarySaveContinue.removeEventListener('click', handleDiarySaveContinue);
+                diarySaveContinue.click();
+            }
+            localStorage.removeItem('lastCopyCutContent');
+        };
+        diarySaveContinue.addEventListener('click', handleDiarySaveContinue);
+    }
+
     if (quizSubmit) {
         const handleQuizSubmit = async function(e) {
             e.preventDefault();
@@ -142,20 +165,22 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
             getString('tiny_cursive_srcurl_des', 'tiny_cursive'),
             getString('tiny_cursive_placeholder', 'tiny_cursive')
         ]).then(function([title, titledes, placeholder]) {
-            return create({
-                type: 'SAVE_CANCEL',
+            // eslint-disable-next-line promise/no-nesting
+            return SaveCancelModal.create({
                 title: `<div><div class="tiny-cursive-title-text">${title}</div>
                 <span class="tiny-cursive-title-description ">${titledes}</span></div>`,
                 body: `<textarea class="form-control inputUrl" value="" id="inputUrl" placeholder="${placeholder}"></textarea>`,
                 removeOnClose: true,
-            }).done(modal => {
+                show: true,
+            }).then(modal => {
                 modal.getRoot().addClass('tiny-cursive-modal');
-                modal.show();
                 var lastEvent = '';
+
                 modal.getRoot().on(save, function() {
                     var number = document.getElementById("inputUrl").value.trim();
                     if (number === "" || number === null || number === undefined) {
                         editor.execCommand('Undo');
+                        // eslint-disable-next-line
                         getString('pastewarning', 'tiny_cursive').then(str => alert(str));
                     } else {
                         if (pendingPasteContent) {
@@ -175,7 +200,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
                             pendingPasteContent = null;
                         }
                     }
-                    postOne('cursive_user_comments', {
+                    postOne('tiny_cursive_user_comments', {
                         modulename: modulename,
                         cmid: cmid,
                         resourceid: resourceId,
@@ -187,10 +212,12 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
                     lastEvent = 'save';
                     modal.destroy();
                 });
+
                 modal.getRoot().on(cancel, function() {
                     editor.execCommand('Undo');
                     lastEvent = 'cancel';
                 });
+
                 modal.getRoot().on(hidden, function() {
                     if (lastEvent !== 'cancel' && lastEvent !== 'save') {
                         editor.execCommand('Undo');
@@ -201,6 +228,8 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
         }).catch(error => window.console.error(error));
     };
 
+    let lastKeyFingerprint = null;
+    let lastKeyTimestamp = 0;
     const sendKeyEvent = (events, editor) => {
         ed = editor;
         event = events;
@@ -209,6 +238,25 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
         if (modulename === 'quiz') {
             questionid = editorid.split(':')[1].split('_')[0];
             filename = `${userid}_${resourceId}_${cmid}_${questionid}_${modulename}_attempt`;
+        }
+
+        // Deduplicate: block same key + event within 100ms (iPhone double-fire)
+        const now = Date.now();
+        const fingerprint = event + '_' + editor.key + '_' + ed.caretPosition;
+
+        if (fingerprint === lastKeyFingerprint && (now - lastKeyTimestamp) < 100) {
+            return;
+        }
+        const keys = ['Shift', 'Control', 'Alt', 'Meta', 'Delete', 'Backspace', 'Enter'];
+        if (editor.key.length > 1 && !keys.includes(editor.key)) {
+            return;
+        }
+        lastKeyFingerprint = fingerprint;
+        lastKeyTimestamp = now;
+
+        // Unidentified key guard
+        if (editor.key === 'Unidentified') {
+            return;
         }
 
         if (localStorage.getItem(filename)) {
@@ -225,7 +273,8 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
                 position: ed.caretPosition,
                 rePosition: ed.rePosition,
                 pastedContent: editor.pastedContent,
-                aiContent: editor.aiContent
+                aiContent: editor.aiContent,
+                userAgent: M.userAgent
             });
             localStorage.setItem(filename, JSON.stringify(data));
         } else {
@@ -241,7 +290,8 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
                 position: ed.caretPosition,
                 rePosition: ed.rePosition,
                 pastedContent: editor.pastedContent,
-                aiContent: editor.aiContent
+                aiContent: editor.aiContent,
+                userAgent: M.userAgent
             }];
             localStorage.setItem(filename, JSON.stringify(data));
         }
@@ -264,7 +314,8 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
         const trimmedPastedContent = pastedContent.trim();
         const lastCopyCutContent = localStorage.getItem('lastCopyCutContent');
         const isFromOwnEditor = lastCopyCutContent && trimmedPastedContent === lastCopyCutContent;
-        if (isStudent && intervention) {
+
+        if (!canBypassPaste && intervention) {
             if (PASTE_SETTING === 'block') {
                 if (!isFromOwnEditor) {
                     e.preventDefault();
@@ -275,7 +326,10 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
                     getString('paste_blocked', 'tiny_cursive').then(str => {
                         return editor.windowManager.alert(str);
                     }).catch(error => window.console.error(error));
-                    setTimeout(() => { isPasteAllowed = true; shouldBlockPaste = false; }, 100);
+                    setTimeout(() => {
+                        isPasteAllowed = true;
+                        shouldBlockPaste = false;
+                    }, 100);
                     return;
                 }
                 shouldBlockPaste = false;
@@ -299,7 +353,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
 
     editor.on('Redo', async(e) => {
         customTooltip();
-        if (isStudent && intervention) {
+        if (!canBypassPaste && intervention) {
             getModal(e);
         }
     });
@@ -308,7 +362,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
         customTooltip();
         const isPasteAttempt = (editor.key === 'v' || editor.key === 'V') &&
         (editor.ctrlKey || editor.metaKey);
-        if (isPasteAttempt && isStudent && intervention && PASTE_SETTING === 'block' && !isPasteAllowed) {
+        if (isPasteAttempt && !canBypassPaste && intervention && PASTE_SETTING === 'block' && !isPasteAllowed) {
             setTimeout(() => {
                 isPasteAllowed = true;
             }, 100);
@@ -372,6 +426,15 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
             if (isPaste) {
                 if (shouldBlockPaste) {
                     shouldBlockPaste = false;
+                    sendKeyEvent("Paste", {
+                        key: "v",
+                        keyCode: 86,
+                        caretPosition: editor.caretPosition,
+                        rePosition: editor.rePosition,
+                        pastedContent: pastedText,
+                        blocked: true,
+                        srcElement: {baseURI: window.location.href}
+                    });
                     e.preventDefault();
                     editor.undoManager.undo();
                     return;
@@ -379,8 +442,17 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
                 const lastCopyCutContent = localStorage.getItem('lastCopyCutContent');
                 const isFromOwnEditor = lastCopyCutContent && pastedText.trim() === lastCopyCutContent;
 
-                if (isStudent && intervention && PASTE_SETTING === 'block' && !isFromOwnEditor) {
+                if (!canBypassPaste && intervention && PASTE_SETTING === 'block' && !isFromOwnEditor) {
                     isPasteAllowed = false;
+                    sendKeyEvent("Paste", {
+                        key: "v",
+                        keyCode: 86,
+                        caretPosition: editor.caretPosition,
+                        rePosition: editor.rePosition,
+                        pastedContent: pastedText,
+                        blocked: true,
+                        srcElement: {baseURI: window.location.href}
+                    });
                     editor.undoManager.undo();
                     return;
                 }
@@ -408,31 +480,123 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
         }
     });
 
+    let isComposing = false;
+    let previousContent = '';
+
+    editor.on('compositionstart', function() {
+        isComposing = true;
+        previousContent = '';
+    });
+
+    editor.on('compositionupdate', function(e) {
+        const current = e.data;
+        const prev = previousContent;
+
+        if (current.length > prev.length) {
+            // Only send the NEW character added
+            const newChar = current.slice(prev.length);
+            sentMobileInput(newChar);
+        } else if (current.length < prev.length) {
+            sentMobileInput('Backspace');
+        }
+
+        previousContent = current;
+    });
+
+    editor.on('compositionend', function() {
+        isComposing = false;
+        previousContent = '';
+    });
+
     editor.on('input', function(e) {
-        let position = getCaretPosition(true);
-        editor.caretPosition = position.caretPosition;
-        editor.rePosition = position.rePosition;
-        let aiContent = e.data;
+        if (isComposing) {
+            return;
+        }
 
-        if (e.inputType === 'insertReplacementText' || (e.inputType === 'insertText' && aiContent && aiContent.length > 1)) {
+        // Block whole words from autocomplete/swipe keyboard
+        if (e.data && e.data.length > 1 && e.inputType === 'insertText') {
+            for (const char of e.data) {
+                sentMobileInput(char);
+            }
+            return;
+        }
 
-            aiContents.push(aiContent);
+        if (e.inputType === 'deleteContentBackward') {
+            sentMobileInput('Backspace');
+        } else if (e.inputType === 'deleteContentForward') {
+            sentMobileInput('Delete');
+        } else if (e.inputType === 'insertLineBreak' || e.inputType === 'insertParagraph') {
+            sentMobileInput('Enter');
+        } else if (e.inputType === 'insertText' && e.data) {
+            sentMobileInput(e.data);
+        } else {
+            let position = getCaretPosition(true);
+            editor.caretPosition = position.caretPosition;
+            editor.rePosition = position.rePosition;
+            let aiContent = e.data;
 
-            e.key = "ai";
-            e.keyCode = 0;
-            e.caretPosition = position.caretPosition;
-            e.rePosition = position.rePosition;
-            e.aiContent = aiContent;
-
-            sendKeyEvent("aiInsert", e);
+            if (e.inputType === 'insertReplacementText' ||
+                (e.inputType === 'insertText' && aiContent && aiContent.length > 1)) {
+                aiContents.push(aiContent);
+                e.key = "ai";
+                e.keyCode = 0;
+                e.caretPosition = position.caretPosition;
+                e.rePosition = position.rePosition;
+                e.aiContent = aiContent;
+                sendKeyEvent("aiInsert", e);
+            }
         }
     });
+
+    let lastKey = null;
+    let lastKeyTime = 0;
+
+    /**
+     * Capture mobile device input and emit synthetic key events.
+     * @param {string} key - The character or named key produced by the mobile input.
+     */
+    function sentMobileInput(key) {
+        const now = Date.now();
+
+        // Deduplicate iPhone double-fire (same key within 100ms)
+        if (key === lastKey && (now - lastKeyTime) < 100) {
+            return;
+        }
+
+        lastKey = key;
+        lastKeyTime = now;
+
+        const keyCodeMap = {Backspace: 8, Delete: 46, Enter: 13, ' ': 32};
+        const keyCode = key in keyCodeMap ? keyCodeMap[key] : key.charCodeAt(0);
+
+        const event = {
+            key: key,
+            keyCode: keyCode,
+            data: key,
+        };
+
+        let position = getCaretPosition(true);
+        event.caretPosition = position.caretPosition;
+        event.rePosition = position.rePosition;
+
+        sendKeyEvent("keyDown", event);
+
+        let upPosition = getCaretPosition(false);
+        event.caretPosition = upPosition.caretPosition;
+        event.rePosition = upPosition.rePosition;
+
+        sendKeyEvent("keyUp", event);
+    }
 
     editor.on('FullscreenStateChanged', (e) => {
         let view = new DocumentView(user, Rubrics, submission, modulename, editor, quizInfo);
         isFullScreen = e.state;
         try {
-            if (!e.state) { view.normalMode(); } else { view.fullPageMode(); }
+            if (!e.state) {
+                view.normalMode();
+            } else {
+                view.fullPageMode();
+            }
         } catch (error) {
             if (errorAlert) {
                 errorAlert = false;
@@ -445,7 +609,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
         }
     });
 
-     /**
+    /**
      * Constructs a mouse event object with caret position and button information
      * @param {Object} editor - The TinyMCE editor instance
      * @function constructMouseEvent
@@ -459,7 +623,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
         editor.keyCode = editor.button;
     }
 
-     /**
+    /**
      * Gets the string representation of a mouse button based on its numeric value
      * @param {Object} editor - The editor object containing button information
      * @returns {string} The string representation of the mouse button ('left', 'middle', or 'right')
@@ -487,7 +651,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
     function getCaretPosition(skip = false) {
         try {
             if (!editor || !editor.selection) {
-            return {caretPosition: 0, rePosition: 0};
+                return {caretPosition: 0, rePosition: 0};
             }
 
             const range = editor.selection.getRng();
@@ -514,46 +678,36 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
             const blockElements = tempDiv.querySelectorAll('p, div, h1, h2, h3, h4, h5, h6, li');
             let emptyBlockCount = 0;
             blockElements.forEach(block => {
-            const text = block.innerText || block.textContent || '';
-            if (text.trim() === '' && block.childNodes.length === 1 &&
-                block.childNodes[0].nodeName === 'BR') {
-                emptyBlockCount++;
-            }
+                const text = block.innerText || block.textContent || '';
+                if (text.trim() === '' && block.childNodes.length === 1 &&
+                    block.childNodes[0].nodeName === 'BR') {
+                    emptyBlockCount++;
+                }
             });
 
             if (emptyBlockCount > 0) {
-            textBeforeCursor += '\n'.repeat(emptyBlockCount);
+                textBeforeCursor += '\n'.repeat(emptyBlockCount);
             }
 
-            const absolutePosition = textBeforeCursor.length;
+            let absoluteOffset = textBeforeCursor.length;
 
             if (skip) {
-            return {
-                caretPosition: lastCaretPos,
-                rePosition: absolutePosition
-            };
+                return {caretPosition: lastCaretPos || 1, rePosition: absoluteOffset};
             }
-            const storageKey = `${userid}_${resourceId}_${cmid}_position`;
-            let storedPos = parseInt(sessionStorage.getItem(storageKey), 10);
-            if (isNaN(storedPos)) {
-            storedPos = 0;
-            }
-            storedPos++;
-            lastCaretPos = storedPos;
-            sessionStorage.setItem(storageKey, storedPos);
 
-            return {
-            caretPosition: storedPos,
-            rePosition: absolutePosition
-            };
-
+            const sessionKey = 'caretPositionSequence';
+            let position = parseInt(sessionStorage.getItem(sessionKey)) || 0;
+            position++;
+            sessionStorage.setItem(sessionKey, position);
+            lastCaretPos = position;
+            return {caretPosition: position, rePosition: absoluteOffset};
         } catch (e) {
             window.console.warn('Error getting caret position:', e);
             return {caretPosition: lastCaretPos || 1, rePosition: 0};
         }
     }
 
-     /**
+    /**
      * Synchronizes data from localStorage to server
      * @async
      * @function SyncData
@@ -561,18 +715,22 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
      * @returns {Promise} Returns response from server if data exists and is successfully sent
      * @throws {Error} Logs error to console if data submission fails
      */
-     async function syncData() {
+    async function syncData() {
         checkIsPdfAnnotator();
         let data = localStorage.getItem(filename);
         if (!data || data.length === 0 || !navigator.onLine) {
-            if (!navigator.onLine) { Autosave.updateSavingState('offline'); }
-            return;
+            if (!navigator.onLine) {
+                Autosave.updateSavingState('offline');
+            }
+            return null;
         } else {
             let originalText = editor.getContent({format: 'text'});
-            if (!originalText) { originalText = getRawText(editor); }
+            if (!originalText) {
+                originalText = getRawText(editor);
+            }
             try {
                 Autosave.updateSavingState('saving');
-                return await postOne('cursive_write_local_to_json', {
+                return await postOne('tiny_cursive_write_local_to_json', {
                     key: ed.key,
                     event: event,
                     keyCode: ed.keyCode,
@@ -585,21 +743,22 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
                 }, filename);
             } catch (error) {
                 window.console.error('Error submitting data:', error);
+                return null;
             }
         }
     }
 
     /**
-    * Gets the raw text content from a TinyMCE editor iframe
-    * @param {Object} editor - The TinyMCE editor instance
-    * @returns {string} The raw text content of the editor body, or empty string if not found
-    * @description Attempts to get the raw text content from the editor's iframe body by:
-    * 1. Getting the editor ID
-    * 2. Finding the associated iframe element
-    * 3. Accessing the iframe's document body
-    * 4. Returning the text content
-    * Returns empty string if any step fails
-    */
+     * Gets the raw text content from a TinyMCE editor iframe
+     * @param {Object} editor - The TinyMCE editor instance
+     * @returns {string} The raw text content of the editor body, or empty string if not found
+     * @description Attempts to get the raw text content from the editor's iframe body by:
+     * 1. Getting the editor ID
+     * 2. Finding the associated iframe element
+     * 3. Accessing the iframe's document body
+     * 4. Returning the text content
+     * Returns empty string if any step fails
+     */
     function getRawText(editor) {
         let editorId = editor?.id;
         if (editorId) {
@@ -611,12 +770,12 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
     }
 
     /**
-    * Fetches and caches localized strings used in the UI
-    * @function fetchStrings
-    * @description Retrieves strings for sidebar titles and document sidebar elements if not already cached in localStorage
-    * Uses Promise.all to fetch multiple strings in parallel for better performance
-    * Stores the fetched strings in localStorage under 'sbTitle' and 'docSideBar' keys
-    */
+     * Fetches and caches localized strings used in the UI
+     * @function fetchStrings
+     * @description Retrieves strings for sidebar titles and document sidebar elements if not already cached in localStorage
+     * Uses Promise.all to fetch multiple strings in parallel for better performance
+     * Stores the fetched strings in localStorage under 'sbTitle' and 'docSideBar' keys
+     */
     function fetchStrings() {
         if (!localStorage.getItem('sbTitle')) {
             Promise.all([
@@ -624,6 +783,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
                 getString('discussion', 'tiny_cursive'),
                 getString('pluginname', 'mod_quiz'),
                 getString('pluginname', 'mod_lesson'),
+                getString('pluginname', 'mod_workshop'),
                 getString('description', 'tiny_cursive'),
             ]).then(function(strings) {
                 return localStorage.setItem('sbTitle', JSON.stringify(strings));
@@ -666,13 +826,13 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
     }
 
     /**
-    * Checks if the current page is a PDF annotator and updates the resourceId accordingly
-    * @function checkIsPdfAnnotator
-    * @description Checks if URL contains 'pdfannotator' and sets resourceId based on editor ID and editing state:
-    * - If editing an existing annotation (editor.id !== 'id_pdfannotator_content' and isEditing is true):
-    *   Sets resourceId to the annotation ID extracted from editor.id
-    * - Otherwise: Sets resourceId to 0
-    */
+     * Checks if the current page is a PDF annotator and updates the resourceId accordingly
+     * @function checkIsPdfAnnotator
+     * @description Checks if URL contains 'pdfannotator' and sets resourceId based on editor ID and editing state:
+     * - If editing an existing annotation (editor.id !== 'id_pdfannotator_content' and isEditing is true):
+     *   Sets resourceId to the annotation ID extracted from editor.id
+     * - Otherwise: Sets resourceId to 0
+     */
     function checkIsPdfAnnotator() {
         if (ur.includes('pdfannotator')) {
             if (editor.id !== 'id_pdfannotator_content' && parseInt(localStorage.getItem('isEditing'))) {
@@ -683,7 +843,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
         }
     }
 
-     /**
+    /**
      * Sets up custom tooltip functionality for the Cursive icon
      * Initializes tooltip text, positions the icon in the menubar,
      * and sets up mouse event handlers for showing/hiding the tooltip
@@ -735,7 +895,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
         }
     }
 
-     /**
+    /**
      * Retrieves tooltip text strings from language files
      * @async
      * @function getTooltipText
@@ -749,13 +909,13 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
         return {buttonTitle, buttonDes};
     }
 
-     /**
+    /**
      * Updates the Cursive icon state and positions it in the menubar
      * @param {HTMLElement} cursiveIcon - The Cursive icon element to modify
      * @param {HTMLElement} menubarDiv - The menubar div element
      * @param {Array} classArray - Array of class names for the menubar div elements
      */
-     function cursiveState(cursiveIcon, menubarDiv, classArray) {
+    function cursiveState(cursiveIcon, menubarDiv, classArray) {
         if (!menubarDiv) {
             return;
         }
@@ -787,35 +947,43 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
                 courseid: courseid
             };
 
-            if (isFullScreen && (modulename === 'assign' || modulename === 'forum'
-                || modulename === 'lesson')) {
+            // Document mode, other modules single editor instances
+            if (isFullScreen && ['assign', 'forum', 'lesson', 'workshop', 'diary'].includes(modulename)) {
                 let existsElement = document.querySelector('.tox-menubar[class*="cursive-menu-"] > div');
                 if (existsElement) {
                     existsElement.remove();
                 }
+
                 if (!document.querySelector(`#${elementId}`)) {
                     rightWrapper.style.marginTop = '3px';
                     document.querySelector('#tiny_cursive-fullpage-right-wrapper').prepend(rightWrapper);
                 }
+
                 Autosave.destroyInstance();
                 Autosave.getInstance(editor, rightWrapper, moduleIds, isFullScreen);
-            } else if (isFullScreen && modulename === 'quiz') {
+            } else if (isFullScreen && modulename === 'quiz') { // Document mode, quiz multiple editor instances
                 let existingElement = editor.container?.childNodes[1]?.childNodes[0]?.childNodes[0]?.childNodes[7];
                 let newHeader = editor.container?.childNodes[0];
                 if (existingElement) {
                     existingElement.remove();
                 }
+
                 if (newHeader && !newHeader.querySelector(`span[id*=tiny_cursive_StateIcon]`)) {
                     rightWrapper.style.marginTop = '3px';
                     document.querySelector('#tiny_cursive-fullpage-right-wrapper').prepend(rightWrapper);
                 }
                 Autosave.destroyInstance();
                 Autosave.getInstance(editor, rightWrapper, moduleIds, isFullScreen);
-            } else {
+            } else { // Regular view
                 let menubar = editor?.container?.children[0]?.childNodes[0]?.childNodes[0];
+                if (!menubar?.matches('div[role="menubar"].tox-menubar')) {
+                    menubar = editor?.container?.querySelector('div[role="menubar"].tox-menubar');
+                }
+
                 if (targetMenu && !targetMenu.querySelector(`#${elementId}`)) {
                     targetMenu.appendChild(rightWrapper);
                 }
+
                 if (modulename === 'quiz' && menubar) {
                     let wrapper = menubar.querySelector('span[id*="tiny_cursive_StateIcon"]');
                     if (wrapper) {
@@ -875,14 +1043,21 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
         if (!MODULES.some(module => ur.includes(module))) {
             return false;
         }
+
         if (ur.includes("forum") && !ur.includes("assign")) {
             resourceId = parm.searchParams.get('edit');
         } else {
             resourceId = parm.searchParams.get('attempt');
         }
+
+        if (ur.includes("workshop") && ur.includes("assessment")) {
+            resourceId = parm.searchParams.get('asid');
+        }
+
         if (resourceId === null) {
             resourceId = 0;
         }
+
         for (const module of MODULES) {
             if (ur.includes(module)) {
                 modulename = module;
@@ -890,11 +1065,21 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics, 
                     resourceId = cmid;
                 } else if (module === "oublog") {
                     resourceId = 0;
+                } else if (module === "diary") {
+                    // Diary stores multiple entries per (cmid, userid); key capture on the
+                    // diary_entries id. The edit form exposes it as a hidden "entryid" field
+                    // (populated when editing/continuing an existing entry). A brand-new entry
+                    // has no id yet, so capture under 0 and let the entry_created observer
+                    // reattribute the records to the real entry id on save.
+                    const entryField = document.querySelector('input[name="entryid"]');
+                    resourceId = entryField && entryField.value ? parseInt(entryField.value, 10) : 0;
                 }
                 break;
             }
         }
+
         checkIsPdfAnnotator();
+
         return {resourceId: resourceId, name: modulename};
     }
 

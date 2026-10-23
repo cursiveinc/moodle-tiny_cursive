@@ -23,6 +23,8 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+defined('MOODLE_INTERNAL') || die(); // phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalNotNeeded
+
 use tiny_cursive\task\post_upgrade_task;
 /**
  * Run all ClamAV plugin upgrade steps between the current DB version and the current version on disk.
@@ -80,32 +82,6 @@ function xmldb_tiny_cursive_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2024060228, 'tiny', 'cursive');
     }
 
-    if ($oldversion < 2024060282) {
-        $table = new xmldb_table('tiny_cursive_quality_metrics');
-
-        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
-        $table->add_field('file_id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
-        $table->add_field('total_active_time', XMLDB_TYPE_NUMBER, '10, 5', null, XMLDB_NOTNULL, null, null);
-        $table->add_field('edits', XMLDB_TYPE_NUMBER, '10, 5', null, XMLDB_NOTNULL, null, '0');
-        $table->add_field('verbosity', XMLDB_TYPE_NUMBER, '10, 5', null, XMLDB_NOTNULL, null, null);
-        $table->add_field('word_count', XMLDB_TYPE_NUMBER, '10, 5', null, XMLDB_NOTNULL, null, '0');
-        $table->add_field('sentence_count', XMLDB_TYPE_NUMBER, '10, 5', null, XMLDB_NOTNULL, null, '0');
-        $table->add_field('q_count', XMLDB_TYPE_NUMBER, '10, 5', null, XMLDB_NOTNULL, null, '0');
-        $table->add_field('word_len_mean', XMLDB_TYPE_NUMBER, '10, 5', null, XMLDB_NOTNULL, null, '0');
-        $table->add_field('sent_word_count_mean', XMLDB_TYPE_NUMBER, '10, 5', null, XMLDB_NOTNULL, null, '0');
-        $table->add_field('p_burst_mean', XMLDB_TYPE_NUMBER, '10, 5', null, XMLDB_NOTNULL, null, '0');
-        $table->add_field('p_burst_cnt', XMLDB_TYPE_NUMBER, '10, 5', null, XMLDB_NOTNULL, null, '0');
-
-        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
-        $table->add_key('file_id_fk', XMLDB_KEY_FOREIGN, ['file_id'], 'tiny_cursive_files', ['id']);
-
-        if (!$dbman->table_exists($table)) {
-            $dbman->create_table($table);
-        }
-
-        upgrade_plugin_savepoint(true, 2024060282, 'tiny', 'cursive');
-    }
-
     if ($oldversion < 2024060283) {
         $table = new xmldb_table('tiny_cursive_user_writing');
         $field = new xmldb_field('quality_access', XMLDB_TYPE_INTEGER, 2, null, XMLDB_NOTNULL, null, '0', 'copy_behavior');
@@ -114,104 +90,6 @@ function xmldb_tiny_cursive_upgrade($oldversion) {
             $dbman->add_field($table, $field);
         }
         upgrade_plugin_savepoint(true, 2024060283, 'tiny', 'cursive');
-    }
-
-    if ($oldversion < 2024060285) {
-        $table = new xmldb_table('tiny_cursive_quality_metrics');
-
-        // Add each new field if it doesn't already exist.
-        $fields = [
-            'total_active_time_static' => [
-                'type' => XMLDB_TYPE_NUMBER,
-                'precision' => '10, 5',
-                'notnull' => XMLDB_NOTNULL,
-                'default' => '0',
-                'previous' => 'total_active_time',
-            ],
-            'edits_static' => [
-                'type' => XMLDB_TYPE_NUMBER,
-                'precision' => '10, 5',
-                'notnull' => XMLDB_NOTNULL,
-                'default' => '0',
-                'previous' => 'edits',
-            ],
-            'verbosity_static' => [
-                'type' => XMLDB_TYPE_NUMBER,
-                'precision' => '10, 5',
-                'notnull' => XMLDB_NOTNULL,
-                'default' => '0',
-                'previous' => 'verbosity',
-            ],
-            'word_count_static' => [
-                'type' => XMLDB_TYPE_NUMBER,
-                'precision' => '10, 5',
-                'notnull' => XMLDB_NOTNULL,
-                'default' => '0',
-                'previous' => 'word_count',
-            ],
-            'sentence_count_static' => [
-                'type' => XMLDB_TYPE_NUMBER,
-                'precision' => '10, 5',
-                'notnull' => XMLDB_NOTNULL,
-                'default' => '0',
-                'previous' => 'sentence_count',
-            ],
-            'q_count_static' => [
-                'type' => XMLDB_TYPE_NUMBER,
-                'precision' => '10, 5',
-                'notnull' => XMLDB_NOTNULL,
-                'default' => '0',
-                'previous' => 'q_count',
-            ],
-            'word_len_mean_static' => [
-                'type' => XMLDB_TYPE_NUMBER,
-                'precision' => '10, 5',
-                'notnull' => XMLDB_NOTNULL,
-                'default' => '0',
-                'previous' => 'word_len_mean',
-            ],
-            'sent_word_count_mean_static' => [
-                'type' => XMLDB_TYPE_NUMBER,
-                'precision' => '10, 5',
-                'notnull' => XMLDB_NOTNULL,
-                'default' => '0',
-                'previous' => 'sent_word_count_mean',
-            ],
-            'p_burst_mean_static' => [
-                'type' => XMLDB_TYPE_NUMBER,
-                'precision' => '10, 5',
-                'notnull' => XMLDB_NOTNULL,
-                'default' => '0',
-                'previous' => 'p_burst_mean',
-            ],
-            'p_burst_cnt_static' => [
-                'type' => XMLDB_TYPE_NUMBER,
-                'precision' => '10, 5',
-                'notnull' => XMLDB_NOTNULL,
-                'default' => '0',
-                'previous' => 'p_burst_cnt',
-            ], ];
-
-        foreach ($fields as $fieldname => $attributes) {
-            $field = new xmldb_field(
-                $fieldname,
-                $attributes['type'],
-                $attributes['precision'],
-                null,
-                $attributes['notnull'],
-                null,
-                $attributes['default'],
-                $attributes['previous'],
-            );
-
-            // Check if the field exists, and if not, add it.
-            if (!$dbman->field_exists($table, $field)) {
-                $dbman->add_field($table, $field);
-            }
-        }
-
-        // Save the upgrade step.
-        upgrade_plugin_savepoint(true, 2024060285, 'tiny', 'cursive');
     }
 
     if ($oldversion < 2024062004) {
@@ -319,6 +197,109 @@ function xmldb_tiny_cursive_upgrade($oldversion) {
         // Savepoint reached.
         upgrade_plugin_savepoint(true, 2026013002, 'tiny', 'cursive');
     }
-    \core\task\manager::queue_adhoc_task(new post_upgrade_task(), true);
+
+    if ($oldversion < 2026042300) {
+        $table = new xmldb_table('tiny_cursive_user_writing');
+
+        $field = new xmldb_field('user_agent', XMLDB_TYPE_TEXT, null, null, null, null, null, 'score');
+
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Savepoint.
+        upgrade_plugin_savepoint(true, 2026042300, 'tiny', 'cursive');
+    }
+
+    if ($oldversion < 2026052200) {
+        // Define table tiny_cursive_quality_metrics to be dropped if it exists.
+        $table = new xmldb_table('tiny_cursive_quality_metrics');
+
+        // Conditionally drop the table.
+        if ($dbman->table_exists($table)) {
+            $dbman->drop_table($table);
+        }
+
+        // Tiny Cursive savepoint reached.
+        upgrade_plugin_savepoint(true, 2026052200, 'tiny', 'cursive');
+    }
+
+    if ($oldversion < 2026082001) {
+        $table = new xmldb_table('tiny_cursive_user_writing');
+
+        // Re-apply the 2026042300 step. Its savepoint is unreachable for sites that
+        // installed or upgraded at 2026052100-2026052200, where user_agent was absent
+        // from both install.xml and upgrade.php: their recorded version is already
+        // above 2026042300, so that block can never run for them again.
+        $field = new xmldb_field('user_agent', XMLDB_TYPE_TEXT, null, null, null, null, null, 'score');
+
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $oldfield = new xmldb_field('quality_access');
+
+        if ($dbman->field_exists($table, $oldfield)) {
+            $dbman->drop_field($table, $oldfield);
+        }
+
+        // Savepoint reached.
+        upgrade_plugin_savepoint(true, 2026082001, 'tiny', 'cursive');
+    }
+
+    if ($oldversion < 2026100601) {
+        // Define table tiny_cursive_notice: the append-only acknowledgement log.
+        $table = new xmldb_table('tiny_cursive_notice');
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('userid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('noticeversion', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('noticetexthash', XMLDB_TYPE_CHAR, '64', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('userid', XMLDB_KEY_FOREIGN, ['userid'], 'user', ['id']);
+        $table->add_index('idx_notice_user_version', XMLDB_INDEX_UNIQUE, ['userid', 'noticeversion']);
+        $table->add_index('idx_notice_timecreated', XMLDB_INDEX_NOTUNIQUE, ['timecreated']);
+        $table->add_index('idx_notice_texthash', XMLDB_INDEX_NOTUNIQUE, ['noticetexthash']);
+
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // Define table tiny_cursive_notice_text: one row per distinct wording ever shown.
+        $table = new xmldb_table('tiny_cursive_notice_text');
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('noticetexthash', XMLDB_TYPE_CHAR, '64', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('noticetext', XMLDB_TYPE_TEXT, null, null, XMLDB_NOTNULL, null, null);
+        $table->add_field('lang', XMLDB_TYPE_CHAR, '30', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('noticeversion', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_index('idx_notice_text_hash', XMLDB_INDEX_UNIQUE, ['noticetexthash']);
+
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // Cursive savepoint reached.
+        upgrade_plugin_savepoint(true, 2026100601, 'tiny', 'cursive');
+    }
+
+    if ($oldversion < 2026100602) {
+        // PDF Annotator captures made by students while student view was off were never linked
+        // to their comment. Link the ones that can be matched and move the rest aside, so a
+        // student's next annotation is not appended to an old capture.
+        \tiny_cursive\helper::relink_pending_pdfannotator_captures(null, null, true);
+
+        // Cursive savepoint reached.
+        upgrade_plugin_savepoint(true, 2026100602, 'tiny', 'cursive');
+    }
+
+    // Do not queue the telemetry task under PHPUnit: it makes an outbound HTTP
+    // call that fails in the test environment and leaks its adhoc task lock,
+    // aborting phpunit_util::install_site().
+    if (!PHPUNIT_TEST) {
+        \core\task\manager::queue_adhoc_task(new post_upgrade_task(), true);
+    }
+
     return true;
 }

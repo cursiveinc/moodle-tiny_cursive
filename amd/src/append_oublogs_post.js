@@ -73,7 +73,7 @@ export const init = (scoreSetting, comments, hasApiKey) => {
 
         if (userid && resourceId) {
             let args = {id: userid, resourceid: resourceId, modulename: "oublog", cmid: cmid};
-            let methodname = 'cursive_get_oublog_submission_data';
+            let methodname = 'tiny_cursive_get_oublog_submission_data';
             let com = getData([{methodname, args}]);
 
             com[0].done(function(json) {
@@ -100,7 +100,7 @@ export const init = (scoreSetting, comments, hasApiKey) => {
                     apikey: hasApiKey
                 };
 
-                const authIcon = myEvents.authorshipStatus(data.res.first_file, data.res.score, scoreSetting);
+                const authIcon = myEvents.authorshipStatus(data.res?.user_agent, data.res.first_file, data.res.score, scoreSetting);
                 myEvents.createModal(userid, context, '', replayInstances, authIcon);
                 myEvents.analytics(userid, templates, context, '', replayInstances, authIcon);
                 myEvents.checkDiff(userid, data.res.file_id, '', replayInstances, filepath);

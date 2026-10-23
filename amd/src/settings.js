@@ -22,23 +22,23 @@
 
 define(["core/str"], function(str) {
   var usersTable = {
-    init: function(showcomments, user_role) {
+    init: function(showcomments, userRole) {
       str
         .get_strings([
           {key: "tiny_cursive", component: "tiny_cursive"},
         ])
         .done(function() {
-          usersTable.getToken(showcomments, user_role);
+          usersTable.getToken(showcomments, userRole);
         });
     },
 
-    getToken: function(showcomments, user_role) {
+    getToken: function(showcomments, userRole) {
       var body = document.createElement("div");
       body.id = "body";
       body.className = "body";
-      body.className = user_role;
+      body.className = userRole;
       if (showcomments == 1) {
-        body.className = 'intervention ' + user_role;
+        body.className = 'intervention ' + userRole;
       }
       document.body.appendChild(body);
 

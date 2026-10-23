@@ -25,7 +25,6 @@
 require('../../../../../config.php');
 
 require_login();
-require_sesskey();
 
 $id     = required_param('id', PARAM_INT);
 $file   = required_param('file', PARAM_INT);

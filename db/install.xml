@@ -64,7 +64,7 @@
         <FIELD NAME="backspace_percent" TYPE="float" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Percentage of keystrokes that were backspaces"/>
         <FIELD NAME="score" TYPE="float" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Computed score for the writing session"/>
         <FIELD NAME="copy_behavior" TYPE="float" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Metric tracking copy/paste behavior"/>
-        <FIELD NAME="quality_access" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Access flag for quality metrics"/>
+        <FIELD NAME="user_agent" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Client user agent string for the writing session"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
@@ -77,7 +77,7 @@
     <TABLE NAME="tiny_cursive_writing_diff" COMMENT="Writing Difference data">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
-        <FIELD NAME="file_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="file_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="ID of the related file record"/>
         <FIELD NAME="reconstructed_text" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="Original content"/>
         <FIELD NAME="submitted_text" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="Difference html content"/>
         <FIELD NAME="meta" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="extra field for optional use"/>
@@ -87,6 +87,41 @@
       </KEYS>
       <INDEXES>
         <INDEX NAME="idx_writing_diff_fileid" UNIQUE="false" FIELDS="file_id"/>
+      </INDEXES>
+    </TABLE>
+
+    <TABLE NAME="tiny_cursive_notice" COMMENT="Append-only log of transparency notice acknowledgements, one row per user per notice version.">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="User who acknowledged the notice."/>
+        <FIELD NAME="noticeversion" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Notice version constant in force at acknowledgement."/>
+        <FIELD NAME="noticetexthash" TYPE="char" LENGTH="64" NOTNULL="true" SEQUENCE="false" COMMENT="SHA-256 of the exact wording shown; references tiny_cursive_notice_text."/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Server timestamp of the acknowledgement."/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="userid" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="idx_notice_user_version" UNIQUE="true" FIELDS="userid, noticeversion"/>
+        <INDEX NAME="idx_notice_timecreated" UNIQUE="false" FIELDS="timecreated"/>
+        <INDEX NAME="idx_notice_texthash" UNIQUE="false" FIELDS="noticetexthash"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="tiny_cursive_notice_text" COMMENT="One row per distinct notice wording ever acknowledged, keyed by SHA-256, so every acknowledgement stays resolvable to the text that was shown.">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="noticetexthash" TYPE="char" LENGTH="64" NOTNULL="true" SEQUENCE="false" COMMENT="SHA-256 of noticetext."/>
+        <FIELD NAME="noticetext" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="The full rendered wording, stored on first use of this hash."/>
+        <FIELD NAME="lang" TYPE="char" LENGTH="30" NOTNULL="true" SEQUENCE="false" COMMENT="Language the wording was rendered in."/>
+        <FIELD NAME="noticeversion" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Notice version in force when this wording was first shown."/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="First time this wording was acknowledged by anyone."/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="idx_notice_text_hash" UNIQUE="true" FIELDS="noticetexthash"/>
       </INDEXES>
     </TABLE>
 

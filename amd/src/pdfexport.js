@@ -43,7 +43,8 @@ export const init = (data) => {
         }).then(modal => {
             modal.show();
             modal.getRoot().on(ModalEvents.hidden, () => window.history.back());
-        });
+            return modal;
+        }).catch(e => window.console.error(e));
         return;
     }
 
@@ -57,20 +58,21 @@ export const init = (data) => {
 
     templates.render('tiny_cursive/export_pdf', data).then(html => {
         // eslint-disable-next-line
-        return html2pdf().set(option).from(html).save().then(() => {
-            return str.get_string('download_pdf_message', 'tiny_cursive').then(s => {
-                const loaderMessage = document.getElementById('loadermessage');
-                if (loaderMessage) {
-                    loaderMessage.textContent = s;
-                }
-                setTimeout(() => {
-                    const loader = document.getElementById('pdfexportLoader');
-                    if (loader) {
-                        loader.remove();
-                    }
-                    window.history.back();
-                }, 4000);
-            });
-        });
+        return html2pdf().set(option).from(html).save();
+    }).then(() => {
+        return str.get_string('download_pdf_message', 'tiny_cursive');
+    }).then(s => {
+        const loaderMessage = document.getElementById('loadermessage');
+        if (loaderMessage) {
+            loaderMessage.textContent = s;
+        }
+        setTimeout(() => {
+            const loader = document.getElementById('pdfexportLoader');
+            if (loader) {
+                loader.remove();
+            }
+            window.history.back();
+        }, 4000);
+        return true;
     }).catch(e => window.console.error(e));
 };

@@ -23,23 +23,31 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+defined('MOODLE_INTERNAL') || die(); // phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalNotNeeded
+
+use tiny_cursive\task\post_upgrade_task;
 /**
  * Enable web services in Moodle
  *
  * @package tiny_cursive
  */
 function xmldb_tiny_cursive_install() {
-    global $DB;
 
-    enable_webservice();
-    enable_webservice_protocol('rest');
+    tiny_cursive_enable_webservice();
+    tiny_cursive_enable_webservice_protocol();
+    // Do not queue the telemetry task under PHPUnit: it makes an outbound HTTP
+    // call that fails in the test environment and leaks its adhoc task lock,
+    // aborting phpunit_util::install_site().
+    if (!PHPUNIT_TEST) {
+        \core\task\manager::queue_adhoc_task(new post_upgrade_task(), true);
+    }
 }
 /**
  * Enable web services in Moodle
  *
  * @package tiny_cursive
  */
-function enable_webservice() {
+function tiny_cursive_enable_webservice() {
     set_config('enablewebservices', 1);
 }
 
@@ -47,8 +55,7 @@ function enable_webservice() {
  * Enable a specific web service protocol
  *
  * @package tiny_cursive
- * @param string $protocol The protocol to enable ('rest', 'soap', etc.)
  */
-function enable_webservice_protocol($protocol) {
+function tiny_cursive_enable_webservice_protocol() {
     set_config('webserviceprotocols', 'rest');
 }

@@ -48,16 +48,7 @@ class observers {
 
         $recs = $DB->get_records($table, $conditions);
         if ($recs) {
-            foreach ($recs as $rec) {
-                $dataobj             = new \stdClass();
-                $dataobj->userid     = $eventdata['userid'];
-                $dataobj->id         = $rec->id;
-                $dataobj->cmid       = $eventdata['contextinstanceid'];
-                $dataobj->courseid   = $eventdata['courseid'];
-                $dataobj->resourceid = $eventdata['objectid'];
-
-                $DB->update_record($table, $dataobj, true);
-            }
+            $DB->set_field($table, 'resourceid', $eventdata['objectid'], $conditions);
         }
         // Update autosave content as well.
         $conditions['modulename'] = $modulename . "_autosave";
@@ -95,22 +86,24 @@ class observers {
         ];
         $recs = $DB->get_records($table, $conditions);
         if ($recs) {
-            foreach ($recs as $rec) {
-                $userid              = $eventdata['userid'];
-                $cmid                = $eventdata['contextinstanceid'];
-                $resourceid          = $eventdata['objectid'];
-                $fname               = $userid . '_' . $resourceid . '_' . $cmid . '_attempt' . '.json';
-
-                $dataobj             = new \stdClass();
-                $dataobj->userid     = $userid;
-                $dataobj->id         = $rec->id;
-                $dataobj->cmid       = $cmid;
-                $dataobj->courseid   = $eventdata['courseid'];
-                $dataobj->resourceid = $resourceid;
-                $dataobj->filename   = $fname;
-
-                $DB->update_record($table, $dataobj, true);
-            }
+            $userid     = $eventdata['userid'];
+            $cmid       = $eventdata['contextinstanceid'];
+            $resourceid = $eventdata['objectid'];
+            $fname      = $userid . '_' . $resourceid . '_' . $cmid . '_attempt' . '.json';
+            $DB->execute(
+                "UPDATE {tiny_cursive_files}
+                    SET resourceid = :newresourceid, filename = :newfilename
+                  WHERE userid = :userid AND modulename = :modulename
+                    AND resourceid = 0 AND courseid = :courseid AND cmid = :cmid",
+                [
+                    'newresourceid' => $resourceid,
+                    'newfilename'   => $fname,
+                    'userid'        => $userid,
+                    'modulename'    => $modulename,
+                    'courseid'      => $eventdata['courseid'],
+                    'cmid'          => $cmid,
+                ]
+            );
         }
     }
 
@@ -182,6 +175,44 @@ class observers {
     }
 
     /**
+     * Tiny cursive plugin diary entry created observer.
+     *
+     * Reattributes the keystroke/comment records captured for a brand-new diary entry
+     * (stored under resourceid 0 while the entry had no id) to the real diary_entries id
+     * once the entry is saved. Reuses the generic forum reassignment helpers; the event's
+     * objectid is the diary_entries id and its component resolves to "diary".
+     *
+     * The parameter is type-hinted against \core\event\base (always available) so this
+     * file never references any \mod_diary class - tiny_cursive has no dependency on
+     * mod_diary and the observer only runs when mod_diary itself raises the event.
+     *
+     * @param \core\event\base $event
+     * @return void
+     * @throws \dml_exception
+     */
+    public static function entry_created(\core\event\base $event) {
+        self::update_comment($event);
+        self::update_cursive_files($event);
+    }
+
+    /**
+     * Tiny cursive plugin diary entry updated observer.
+     *
+     * Handles re-edits of an existing diary entry. Edits are already captured under the
+     * real entry id (the editor reads the hidden entryid field), so the resourceid 0
+     * reassignment is a no-op and never clobbers the original record; new entries created
+     * via "Save and continue editing" are reattributed here.
+     *
+     * @param \core\event\base $event
+     * @return void
+     * @throws \dml_exception
+     */
+    public static function entry_updated(\core\event\base $event) {
+        self::update_comment($event);
+        self::update_cursive_files($event);
+    }
+
+    /**
      * Reset tracking data.
      *
      * @param \core\event\course_reset_ended $event
@@ -203,9 +234,271 @@ class observers {
         $DB->delete_records('tiny_cursive_comments', ['courseid' => $courseid]);
 
         // Delete associated user writing records and files.
-        foreach ($fileids as $file) {
-            $DB->delete_records('tiny_cursive_user_writing', ['file_id' => $file->id]);
-            $DB->delete_records('tiny_cursive_writing_diff', ['file_id' => $file->id]);
+        if (!empty($fileids)) {
+            [$insql, $inparams] = $DB->get_in_or_equal(array_keys($fileids), SQL_PARAMS_NAMED);
+            $DB->delete_records_select('tiny_cursive_user_writing', "file_id {$insql}", $inparams);
+            $DB->delete_records_select('tiny_cursive_writing_diff', "file_id {$insql}", $inparams);
+        }
+    }
+
+    /**
+     * Copy Cursive configuration settings after a course restore.
+     *
+     * This observer handles both same-site and cross-site restores.
+     * For same-site: originalcourseid is available directly from the event.
+     * For cross-site: we attempt to extract the original course id from the
+     * backup controller info stored in the backup_controllers table.
+     *
+     * Note: The backup_ids_temp table is a temporary table that is dropped
+     * before this event fires, so we use course_modules position matching
+     * to map old cmids to new cmids instead.
+     *
+     * @param \core\event\course_restored $event The course restored event.
+     * @return void
+     */
+    public static function course_restored(\core\event\course_restored $event) {
+        global $DB;
+
+        $eventdata   = $event->get_data();
+        $newcourseid = (int) $eventdata['courseid'];
+        $oldcourseid = null;
+
+        // 1. Try to get the original course id from the event (same-site only).
+        if (!empty($eventdata['other']['originalcourseid'])) {
+            $oldcourseid = (int) $eventdata['other']['originalcourseid'];
+        }
+
+        // 2. Fallback: extract from backup_controllers table (works for cross-site too).
+        if (!$oldcourseid) {
+            $oldcourseid = self::get_original_courseid_from_controller($newcourseid);
+        }
+
+        if (!$oldcourseid || $oldcourseid === $newcourseid) {
+            return;
+        }
+
+        // Check if the old course has any Cursive settings at all.
+        $oldcourseenabled = get_config('tiny_cursive', "cursive-{$oldcourseid}");
+        if ($oldcourseenabled === false) {
+            return;
+        }
+
+        // Copy course-level setting.
+        self::copy_restored_course_settings($oldcourseid, $newcourseid);
+
+        // Build old→new cmid mapping and copy module-level settings.
+        $cmidmap = self::build_cmid_mapping($oldcourseid, $newcourseid);
+        if (!empty($cmidmap)) {
+            self::copy_restored_module_settings($oldcourseid, $newcourseid, $cmidmap);
+        }
+    }
+
+    /**
+     * Extract the original course id from the backup controller record.
+     *
+     * The backup_controllers table persists after restore completes and stores
+     * the serialized controller object which contains original_course_id in its info.
+     *
+     * @param int $newcourseid The restored (new) course id.
+     * @return int|null The original course id or null if not found.
+     */
+    protected static function get_original_courseid_from_controller(int $newcourseid): ?int {
+        global $DB;
+
+        try {
+            // Find the most recent restore controller for this course.
+            $sql = 'SELECT id, backupid, controller FROM {backup_controllers}
+                     WHERE operation = ? AND itemid = ? AND controller != ?
+                     ORDER BY timemodified DESC';
+            $records = $DB->get_records_sql($sql, ['restore', $newcourseid, ''], 0, 1);
+            $record = reset($records);
+
+            if (!$record || empty($record->controller)) {
+                return null;
+            }
+
+            // Prefer scalar extraction and never instantiate classes from stored data.
+            $raw = base64_decode($record->controller, true);
+            if ($raw === false) {
+                return null;
+            }
+            if (preg_match('/"original_course_id";[is]:\d+:"?(\d+)"?/', $raw, $matches)) {
+                return (int) $matches[1];
+            }
+            $controller = @unserialize($raw, ['allowed_classes' => false]);
+            return self::find_original_courseid($controller);
+        } catch (\Exception $e) {
+            debugging('tiny_cursive: Failed to extract original course id from controller: ' .
+                      $e->getMessage(), DEBUG_DEVELOPER);
+        }
+
+        return null;
+    }
+
+    /**
+     * Find the original course id in unserialized controller data.
+     *
+     * Objects are incomplete classes because object instantiation is disabled. Their
+     * private property names contain null-byte prefixes, hence the suffix comparison.
+     *
+     * @param mixed $value Value to inspect.
+     * @param int $depth Current recursion depth.
+     * @return int|null The original course id, or null when it is absent.
+     */
+    private static function find_original_courseid($value, int $depth = 0): ?int {
+        if ($depth > 20 || (!is_array($value) && !is_object($value))) {
+            return null;
+        }
+
+        foreach ((array) $value as $key => $item) {
+            if (str_ends_with((string) $key, 'original_course_id') && is_numeric($item)) {
+                return (int) $item;
+            }
+            $courseid = self::find_original_courseid($item, $depth + 1);
+            if ($courseid !== null) {
+                return $courseid;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Build a mapping of old course module ids to new course module ids.
+     *
+     * Since the backup_ids_temp table is dropped before the course_restored event
+     * fires, we build the mapping by matching course modules between the old and
+     * new courses based on module type and position within each section.
+     *
+     * Moodle restore preserves the module ordering within sections, so matching
+     * by (module type, section position, module position within section) is reliable.
+     *
+     * @param int $oldcourseid The original course id.
+     * @param int $newcourseid The restored course id.
+     * @return array Associative array of old cmid => new cmid.
+     */
+    protected static function build_cmid_mapping(int $oldcourseid, int $newcourseid): array {
+        global $DB;
+
+        $mapping = [];
+
+        // Get old course modules ordered by section number and position within section.
+        $sql = 'SELECT cm.id, cm.module, cm.instance, cs.section AS sectionnumber
+                  FROM {course_modules} cm
+                  JOIN {course_sections} cs ON cs.id = cm.section
+                 WHERE cm.course = ? AND cm.deletioninprogress = 0
+              ORDER BY cs.section ASC, cm.id ASC';
+
+        $oldmodules = $DB->get_records_sql($sql, [$oldcourseid]);
+        $newmodules = $DB->get_records_sql($sql, [$newcourseid]);
+
+        if (empty($oldmodules) || empty($newmodules)) {
+            return $mapping;
+        }
+
+        // Group modules by (section number, module type) to create position-based mapping.
+        $oldgrouped = [];
+        foreach ($oldmodules as $cm) {
+            $key = $cm->sectionnumber . '_' . $cm->module;
+            $oldgrouped[$key][] = $cm->id;
+        }
+
+        $newgrouped = [];
+        foreach ($newmodules as $cm) {
+            $key = $cm->sectionnumber . '_' . $cm->module;
+            $newgrouped[$key][] = $cm->id;
+        }
+
+        // Match by position within each (section, module type) group.
+        foreach ($oldgrouped as $key => $oldids) {
+            if (!isset($newgrouped[$key])) {
+                continue;
+            }
+            $newids = $newgrouped[$key];
+            $count = min(count($oldids), count($newids));
+            for ($i = 0; $i < $count; $i++) {
+                $mapping[$oldids[$i]] = $newids[$i];
+            }
+        }
+
+        return $mapping;
+    }
+
+    /**
+     * Copy course-level Cursive settings from the old course to the restored course.
+     *
+     * @param int $oldcourseid Original course id.
+     * @param int $newcourseid Restored course id.
+     * @return void
+     */
+    protected static function copy_restored_course_settings(int $oldcourseid, int $newcourseid): void {
+        $oldkey = "cursive-{$oldcourseid}";
+        $value  = get_config('tiny_cursive', $oldkey);
+
+        if ($value !== false) {
+            $newkey = "cursive-{$newcourseid}";
+            set_config($newkey, $value, 'tiny_cursive');
+        }
+    }
+
+    /**
+     * Copy module-level Cursive settings from the old course to the restored course.
+     *
+     * Handles three setting types:
+     * - CUR{courseid}{cmid}      — per-activity Cursive enable
+     * - STD{courseid}{cmid}      — per-activity Student View
+     * - PASTE{courseid}_{cmid}   — per-activity paste behavior
+     *
+     * @param int $oldcourseid Original course id.
+     * @param int $newcourseid Restored course id.
+     * @param array $cmidmap Mapping of old cmid => new cmid.
+     * @return void
+     */
+    protected static function copy_restored_module_settings(int $oldcourseid, int $newcourseid, array $cmidmap): void {
+        global $DB;
+
+        // Find all Cursive config entries for the old course.
+        $oldcourseidstr = (string) $oldcourseid;
+        $sql = 'SELECT id, name, value FROM {config_plugins}
+                 WHERE plugin = ?
+                   AND (name LIKE ? OR name LIKE ? OR name LIKE ?)';
+        $params = [
+            'tiny_cursive',
+            "CUR{$oldcourseidstr}%",
+            "STD{$oldcourseidstr}%",
+            "PASTE{$oldcourseidstr}_%",
+        ];
+        $records = $DB->get_records_sql($sql, $params);
+
+        $quotedid = preg_quote($oldcourseidstr, '/');
+
+        foreach ($records as $record) {
+            $oldname = $record->name;
+            $newname = null;
+
+            if (preg_match('/^CUR' . $quotedid . '(\d+)$/', $oldname, $matches)) {
+                // CUR{courseid}{cmid} — no separator between courseid and cmid.
+                $oldcmid = (int) $matches[1];
+                if (isset($cmidmap[$oldcmid])) {
+                    $newname = "CUR{$newcourseid}{$cmidmap[$oldcmid]}";
+                }
+            } else if (preg_match('/^STD' . $quotedid . '(\d+)$/', $oldname, $matches)) {
+                // STD{courseid}{cmid} — no separator between courseid and cmid.
+                $oldcmid = (int) $matches[1];
+                if (isset($cmidmap[$oldcmid])) {
+                    $newname = "STD{$newcourseid}{$cmidmap[$oldcmid]}";
+                }
+            } else if (preg_match('/^PASTE' . $quotedid . '_(\d+)$/', $oldname, $matches)) {
+                // PASTE{courseid}_{cmid} — has underscore separator.
+                $oldcmid = (int) $matches[1];
+                if (isset($cmidmap[$oldcmid])) {
+                    $newname = "PASTE{$newcourseid}_{$cmidmap[$oldcmid]}";
+                }
+            }
+
+            if ($newname !== null) {
+                set_config($newname, $record->value, 'tiny_cursive');
+            }
         }
     }
 

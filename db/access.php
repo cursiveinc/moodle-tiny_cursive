@@ -26,13 +26,14 @@
 defined('MOODLE_INTERNAL') || die();
 $capabilities = [
     'tiny/cursive:editsettings' => [
+        'riskbitmask' => RISK_CONFIG,
         'captype' => 'write',
         'contextlevel' => CONTEXT_SYSTEM,
         'archetypes' => [
             'manager' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
         ],
-        'clonepermission' => 'moodle/site:configwrite',
+        'clonepermissionsfrom' => 'moodle/site:configwrite',
     ],
     'tiny/cursive:view' => [
         'captype' => 'read',
@@ -51,6 +52,15 @@ $capabilities = [
             'editingteacher' => CAP_ALLOW,
         ],
     ],
+    'tiny/cursive:deletesubmission' => [
+        'riskbitmask' => RISK_DATALOSS,
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_MODULE,
+        'archetypes' => [
+            'manager' => CAP_ALLOW,
+            'editingteacher' => CAP_ALLOW,
+        ],
+    ],
     'tiny/cursive:writingreport' => [
         'captype' => 'read',
         'contextlevel' => CONTEXT_MODULE,
@@ -64,6 +74,33 @@ $capabilities = [
         'contextlevel' => CONTEXT_USER,
         'archetypes' => [
             'user' => CAP_ALLOW,
+        ],
+    ],
+    'tiny/cursive:viewguidance' => [
+        'captype' => 'read',
+        'contextlevel' => CONTEXT_MODULE,
+        'archetypes' => [
+            'teacher' => CAP_ALLOW,
+            'editingteacher' => CAP_ALLOW,
+            'manager' => CAP_ALLOW,
+        ],
+        'clonepermissionsfrom' => 'tiny/cursive:view',
+    ],
+    'tiny/cursive:bypasspastecontrols' => [
+        'captype' => 'read',
+        'contextlevel' => CONTEXT_MODULE,
+        'archetypes' => [
+            'editingteacher' => CAP_ALLOW,
+            'teacher' => CAP_ALLOW,
+            'manager' => CAP_ALLOW,
+        ],
+    ],
+    'tiny/cursive:viewnoticereport' => [
+        'riskbitmask' => RISK_PERSONAL,
+        'captype' => 'read',
+        'contextlevel' => CONTEXT_SYSTEM,
+        'archetypes' => [
+            'manager' => CAP_ALLOW,
         ],
     ],
 ];

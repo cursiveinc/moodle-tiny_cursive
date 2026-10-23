@@ -15,313 +15,367 @@
 
 /**
  * @module     tiny_cursive/cursive_writing_reports
- * @category TinyMCE Editor
+ * @category   TinyMCE Editor
  * @copyright  CTI <info@cursivetechnology.com>
- * @author Brain Station 23 <elearning@brainstation-23.com>
+ * @author     Brain Station 23 <sales@brainstation-23.com>
  */
+import AJAX from "core/ajax";
+import * as str from "core/str";
+import templates from "core/templates";
+import Replay from "tiny_cursive/replay";
+import analyticButton from "tiny_cursive/analytic_button";
+import AnalyticEvents from "tiny_cursive/analytic_events";
+import Events from "core/modal_events";
+import Alert from "core/modal";
+import Modal from "core/modal_save_cancel";
+import DashboardChart from "tiny_cursive/dashboard_chart";
+import replayButton from 'tiny_cursive/replay_button';
 
-define(["core/ajax", "core/str", "core/templates", "./replay", "./analytic_button", "./analytic_events",
-    "core/modal_events", "core/modal_save_cancel", "core/modal_factory", "core/modal",
-    "tiny_cursive/dashboard_chart", "tiny_cursive/replay_button"],
-    function (
-        AJAX,
-        str,
-        templates,
-        Replay,
-        analyticButton,
-        AnalyticEvents,
-        Events,
-        Modal,
-        Factory,
-        Alert,
-        DashboardChart,
-        replayButton
-    ) {
-        const replayInstances = {};
-        // eslint-disable-next-line
-        window.video_playback = function (mid, filepath) {
-            if (filepath !== '') {
-                const replay = new Replay(
-                    'content' + mid,
-                    filepath,
-                    10,
-                    false,
-                    'player_' + mid
-                );
-                replayInstances[mid] = replay;
-            } else {
-                templates.render('tiny_cursive/no_submission').then(html => {
-                    document.getElementById('content' + mid).innerHTML = html;
-                    return true;
-                }).catch(e => window.console.error(e));
-            }
-            return false;
-        };
+export const init = (page, hasApiKey, csvOption) => {
+    const replayInstances = {};
+    // eslint-disable-next-line
+    window.video_playback = function(mid, filepath) {
+        if (filepath !== '') {
+            const replay = new Replay(
+                'content' + mid,
+                filepath,
+                10,
+                false,
+                'player_' + mid
+            );
+            replayInstances[mid] = replay;
+        } else {
 
-        var usersTable = {
-            init: function (page, hasApiKey, csvOption) {
-                str.get_strings([{ key: "field_require", component: "tiny_cursive" }])
-                    .done(function () {
-                        usersTable.getusers(page);
-                    });
+            templates.render('tiny_cursive/no_submission').then(html => {
+                const contentEl = document.getElementById('content' + mid);
+                if (contentEl) {
+                    contentEl.innerHTML = html;
+                }
+                return true;
+            }).catch(e => window.console.error(e));
+        }
+        return false;
+    };
 
-                let myEvents = new AnalyticEvents();
-                (async function () {
-                    try {
-                        let scoreSetting = await str.get_string('confidence_threshold', 'tiny_cursive');
-                        analyticsEvents(scoreSetting, hasApiKey, parseInt(csvOption));
-                    } catch (error) {
-                        window.console.error('Error fetching string:', error);
-                    }
-                })();
+    str
+        .get_strings([
+            {key: "field_require", component: "tiny_cursive"},
+        ])
+        .done(function() {
+            getusers(page);
+        });
 
-                /**
-                 * Handles the analytics events for each modal on the page.
-                 *
-                 * This function iterates over each element with the class `analytic-modal`,
-                 * retrieves necessary data attributes, and makes an AJAX call to get writing
-                 * statistics. Once the data is retrieved, it processes and displays it within
-                 * the modal.
-                 *
-                 * @param {Object} scoreSetting - Configuration settings related to scoring.
-                 * @param {boolean} hasApiKey - API key status
-                 * @param {boolean} csvOption - CSV option status
-                 */
-                function analyticsEvents(scoreSetting, hasApiKey, csvOption) {
-                    const analyticModals = document.querySelectorAll(".analytic-modal");
+    let myEvents = new AnalyticEvents();
+    (async function() {
+        try {
+            let scoreSetting = await str.get_string('confidence_threshold', 'tiny_cursive');
+            analyticsEvents(scoreSetting, hasApiKey, parseInt(csvOption));
+        } catch (error) {
+            window.console.error('Error fetching string:', error);
+        }
+    })();
 
-                    analyticModals.forEach(modalElement => {
-                        const mid = modalElement.dataset.id;
-                        const filepath = modalElement.dataset.filepath;
-                        let context = {};
-                        context.userid = mid;
-                        const cmid = modalElement.dataset.cmid;
+    /**
+     * Handles the analytics events for each modal on the page.
+     *
+     * @param {Object} scoreSetting - Configuration settings related to scoring.
+     * @param {boolean} hasApiKey - api key status
+     * @param {boolean} csvOption - csv option status
+     */
+    function analyticsEvents(scoreSetting, hasApiKey, csvOption) {
 
-                        AJAX.call([{
-                            methodname: 'cursive_get_writing_statistics',
-                            args: { cmid: cmid, fileid: mid },
-                        }])[0].done(response => {
-                            try {
-                                let data = JSON.parse(response.data);
-                                modalElement.innerHTML = '';
-                                if (!hasApiKey) {
-                                    modalElement.appendChild(replayButton(mid));
-                                } else {
-                                    modalElement.appendChild(analyticButton(data.effort_ratio, mid));
-                                }
+        document.querySelectorAll(".analytic-modal").forEach(function(modalEl) {
+            var mid = modalEl.dataset.id;
+            var filepath = modalEl.dataset.filepath;
+            let context = {};
+            context.userid = mid;
+            let cmid = modalEl.dataset.cmid;
 
-                                context.formattime = myEvents.formatedTime(data);
-                                context.tabledata = data;
-                                context.apikey = hasApiKey;
+            AJAX.call([{
+                methodname: 'tiny_cursive_get_writing_statistics',
+                args: {
+                    cmid: cmid,
+                    fileid: mid,
+                },
+            }])[0].done(response => {
+                let data = JSON.parse(response.data);
 
-                                let authIcon = myEvents.authorshipStatus(data.first_file, data.score, scoreSetting);
-                                myEvents.createModal(mid, context, '', replayInstances, authIcon);
-                                myEvents.analytics(mid, templates, context, '', replayInstances, authIcon);
-                                myEvents.checkDiff(mid, mid, '', replayInstances, filepath);
-                                myEvents.replyWriting(mid, filepath, '', replayInstances);
-                            } catch (error) {
-                                window.console.error('Failed to parse response data:', error);
-                            }
-                        }).fail(error => {
-                            throw new Error('Error: ' + error.message);
-                        });
-                    });
-
-                    document.querySelectorAll('.download-btn').forEach(function(button) {
-                        button.addEventListener('click', async function(e) {
-                            e.preventDefault();
-
-                            const link1 = this.getAttribute('href');
-                            const link2 = this.getAttribute('data-link');
-
-                            let type = Factory.types.SAVE_CANCEL;
-                            let optionModal = Modal;
-                            let select = document.createElement('select');
-                            select.id = "download-type";
-                            select.classList.add('form-control', 'inputUrl');
-
-                            let title;
-                            try {
-                                title = await str.get_string('download', 'tiny_cursive');
-                            } catch (error) {
-                                window.console.error(error);
-                            }
-
-                            // Add CSV option
-                            if (csvOption) {
-                                try {
-                                    const text = await str.get_string('payloadjson', 'tiny_cursive');
-                                    let option = document.createElement('option');
-                                    option.text = text;
-                                    option.value = 0;
-                                    select.appendChild(option);
-                                } catch (error) {
-                                    window.console.error(error);
-                                }
-                            }
-
-                            // Add API key option
-                            if (hasApiKey) {
-                                try {
-                                    const text = await str.get_string('analyticspdf', 'tiny_cursive');
-                                    let option2 = document.createElement('option');
-                                    option2.text = text;
-                                    option2.value = 1;
-                                    select.appendChild(option2);
-                                } catch (error) {
-                                    window.console.error(error);
-                                }
-                            }
-
-                            // If no options available
-                            if (!hasApiKey && !csvOption) {
-                                try {
-                                    const noOptionText = await str.get_string('no_option', 'tiny_cursive');
-                                    const messageText = await str.get_string('message', 'tool_dataprivacy');
-                                    title = messageText;
-                                    type = Factory.types.ALERT;
-                                    optionModal = Alert;
-                                    select = noOptionText;
-                                } catch (error) {
-                                    window.console.error(error);
-                                }
-                            }
-
-                            optionModal.create({
-                                type: type,
-                                title: title,
-                                body: select,
-                                removeOnClose: true,
-                                buttons: type === Factory.types.SAVE_CANCEL ? [{
-                                    text: 'OK',
-                                    type: 'submit',
-                                    primary: true
-                                }] : []
-                            }).then(modal => {
-                                modal.show();
-
-                                if (type === Factory.types.SAVE_CANCEL) {
-                                    modal.getRoot().on(Events.save, function() {
-                                        const data = document.getElementById('download-type');
-                                        if (!data) {
-                                            return;
-                                        }
-
-                                        if (parseInt(data.value)) {
-                                            window.location.href = link2;
-                                        } else {
-                                            window.location.href = link1;
-                                        }
-                                    });
-                                }
-
-                                return modal;
-                            });
-
-                        });
-                    });
-
-                    const chartTitle = document.getElementById('CursiveChartTitle');
-                    const chartDesc = document.getElementById('CursiveChartDescription');
-
-                    var dataType = document.getElementById('CursiveChartTypeSelect').value;
-                    var chartType = "line";
-                    var subType = document.getElementById('CursiveMetricSelect')?.value ?? "";
-                    var parseddataset = document.getElementById('CursiveChartTypeSelect').dataset.chart;
-
-                    var dataset = {};
-                    try {
-                        dataset = JSON.parse(parseddataset || '{}');
-                    } catch(e) {
-                        window.console.error('Failed to parse chart dataset:', e);
-                    }
-
-                    if (hasApiKey) {
-                        usersTable.generateProgressChart(dataType, chartType, subType, dataset, false);
-
-                    document.getElementById('CursiveChartTypeSelect').addEventListener('change', function() {
-                        chartTitle.textContent = this.options[this.selectedIndex].text;
-                            document.getElementById('CursiveMetricSelect').dispatchEvent(new Event('change'));
-                                if (this.dataType !== 'progress') {
-                                    chartDesc.textContent = this.options[this.selectedIndex].dataset.track;
-                                }
-                        dataType = this.value;
-                        chartType = dataType === 'effort' ? 'bar' : 'line';
-                        usersTable.generateProgressChart(dataType, chartType, subType, dataset, false);
-                    });
-
-                document.getElementById('CursiveMetricSelect').addEventListener('change', function() {
-                    subType = this.value;
-                    let description = this.options[this.selectedIndex].dataset.track;
-                    chartDesc.textContent = description;
-                    usersTable.generateProgressChart(dataType, chartType, subType, dataset, false);
-                });
-
-                document.getElementById('CursiveChartTypeSelect').dispatchEvent(new Event('change'));
-                document.getElementById('CursiveMetricSelect').dispatchEvent(new Event('change'));
+                // Show replay button if no API key, otherwise show analytics button
+                if (!hasApiKey) {
+                    modalEl.innerHTML = replayButton(mid);
                 } else {
-                    usersTable.generateProgressChart("draw", chartType, subType, [], false);
+                    modalEl.innerHTML = analyticButton(data.effort_ratio, mid);
                 }
 
-               document.getElementById('expandChart').addEventListener('click', function() {
-               document.getElementById('CursiveChartContainer').classList.toggle('tiny_cursive-expand-height');
-               document.getElementById('showtext').classList.toggle('d-none');
-               document.getElementById('hidetext').classList.toggle('d-none');
+                context.formattime = myEvents.formatedTime(data);
+                context.tabledata = data;
+                context.apikey = hasApiKey;
+
+                // Perform actions that require context.tabledata
+                let authIcon = myEvents.authorshipStatus(data.user_agent, data.first_file, data.score, scoreSetting);
+                myEvents.createModal(mid, context, '', replayInstances, authIcon);
+                myEvents.analytics(mid, templates, context, '', replayInstances, authIcon);
+                myEvents.checkDiff(mid, mid, '', replayInstances, filepath);
+                myEvents.replyWriting(mid, filepath, '', replayInstances);
+
+            }).fail(error => {
+                throw new Error('Error: ' + error.message);
+            });
+        });
+
+        document.querySelectorAll('.download-btn').forEach(function(btn) {
+            btn.addEventListener('click', async function(e) {
+                e.preventDefault();
+
+                const link1 = btn.getAttribute('href');
+                const link2 = btn.dataset.link;
+
+                let optionModal = Modal;
+                let select = document.createElement('select');
+                select.id = "download-type";
+                select.classList.add('form-control', 'inputUrl');
+
+                let title = await str.get_string('download', 'tiny_cursive');
+
+                // Add CSV option
+                if (csvOption) {
+                    try {
+                        const text = await str.get_string('payloadjson', 'tiny_cursive');
+                        let option = document.createElement('option');
+                        option.text = text;
+                        option.value = 0;
+                        select.appendChild(option);
+                    } catch (error) {
+                        window.console.error(error);
+                    }
+                }
+
+                // Add API key option
+                if (hasApiKey) {
+                    try {
+                        const text = await str.get_string('analyticspdf', 'tiny_cursive');
+                        let option2 = document.createElement('option');
+                        option2.text = text;
+                        option2.value = 1;
+                        select.appendChild(option2);
+                    } catch (error) {
+                        window.console.error(error);
+                    }
+                }
+
+                // If no options available
+                if (!hasApiKey && !csvOption) {
+                    try {
+                        const noOptionText = await str.get_string('no_option', 'tiny_cursive');
+                        const messageText = await str.get_string('message', 'tool_dataprivacy');
+                        title = messageText;
+                        optionModal = Alert;
+                        select = noOptionText;
+                    } catch (error) {
+                        window.console.error(error);
+                    }
+                }
+
+                optionModal.create({
+                    title: title,
+                    body: select,
+                    removeOnClose: true,
+                    buttons: [{
+                        text: 'OK',
+                        type: 'submit',
+                        primary: true
+                    }],
+                    show: true,
+                }).then(modal => {
+                    if (optionModal !== Alert) {
+                        modal.getRoot().on(Events.save, function() {
+                            const data = document.getElementById('download-type');
+                            if (!data) {
+                                return;
+                            }
+                            if (parseInt(data.value)) {
+                                window.location.href = link2;
+                            } else {
+                                window.location.href = link1;
+                            }
+                        });
+                    }
+                    return modal;
+                }).catch(error => {
+                    window.console.error('failed to open modal', error);
+                });
+            });
+        });
+
+        // For Writing Statistics Page.
+        if (document.body.id === 'page-cws') {
+            const chartTitle = document.getElementById('CursiveChartTitle');
+            const chartDesc = document.getElementById('CursiveChartDescription');
+            const chartTypeSelect = document.getElementById('CursiveChartTypeSelect');
+            const metricSelect = document.getElementById('CursiveMetricSelect');
+
+            var dataType = chartTypeSelect ? chartTypeSelect.value : '';
+            var chartType = "line";
+            var subType = metricSelect ? metricSelect.value : "";
+            var dataset = chartTypeSelect && chartTypeSelect.dataset.chart
+                ? JSON.parse(chartTypeSelect.dataset.chart)
+                : [];
+
+            if (hasApiKey) {
+                generateProgressChart(dataType, chartType, subType, dataset, false);
+                if (chartTypeSelect) {
+                    chartTypeSelect.addEventListener('change', function() {
+                        const selectedOption = this.options[this.selectedIndex];
+                        if (chartTitle && selectedOption) {
+                            chartTitle.textContent = selectedOption.textContent;
+                        }
+                        if (metricSelect) {
+                            metricSelect.dispatchEvent(new Event('change'));
+                        }
+                        if (dataType !== 'progress' && chartDesc && selectedOption) {
+                            chartDesc.textContent = selectedOption.dataset.track || '';
+                        }
+
+                        dataType = this.value;
+                        chartType = dataType === 'effort' ? 'bar' : 'line';
+                        generateProgressChart(dataType, chartType, subType, dataset, false);
+                    });
+                }
+                if (metricSelect) {
+                    metricSelect.addEventListener('change', function() {
+                        subType = this.value;
+                        const selectedOption = this.options[this.selectedIndex];
+                        let description = selectedOption ? (selectedOption.dataset.track || '') : '';
+                        if (chartDesc) {
+                            chartDesc.textContent = description;
+                        }
+                        generateProgressChart(dataType, chartType, subType, dataset, false);
+                    });
+                }
+
+                if (chartTypeSelect) {
+                    chartTypeSelect.dispatchEvent(new Event('change'));
+                }
+                if (metricSelect) {
+                    metricSelect.dispatchEvent(new Event('change'));
+                }
+            } else {
+                generateProgressChart("draw", chartType, subType, [], false);
+            }
+
+            const expandChart = document.getElementById('expandChart');
+            if (expandChart) {
+                expandChart.addEventListener('click', function() {
+                    const chartContainer = document.getElementById('CursiveChartContainer');
+                    const showText = document.getElementById('showtext');
+                    const hideText = document.getElementById('hidetext');
+                    const tinyChartContainer = document.getElementById('tiny_cursive-chart-container');
+
+                    if (chartContainer) {
+                        chartContainer.classList.toggle('tiny_cursive-expand-height');
+                    }
+                    if (showText) {
+                        showText.classList.toggle('d-none');
+                    }
+                    if (hideText) {
+                        hideText.classList.toggle('d-none');
+                    }
                     setTimeout(() => {
-                    document.getElementById('tiny_cursive-chart-container').classList.toggle('tiny_cursive-hide-chartcontainer');
+                        if (tinyChartContainer) {
+                            tinyChartContainer.classList.toggle('tiny_cursive-hide-chartcontainer');
+                        }
                     }, 200);
                 });
             }
-            },
+        }
+    }
 
-            getusers: function (page) {
-                document.getElementById("id_coursename").addEventListener('change', function () {
-                    const courseid = this.value;
+    /**
+     * Handles user selection and populates user and module lists based on course selection.
+     *
+     * @param {string} page - The current page identifier used for context in templates
+     */
+    function getusers(page) {
+        const courseSelect = document.getElementById("id_courseid");
+        if (courseSelect) {
+            courseSelect.addEventListener('change', function() {
+                var courseid = this.value;
 
-                    AJAX.call([{
-                        methodname: "cursive_get_user_list",
-                        args: { courseid: courseid },
-                    }])[0].done(function (json) {
-                        const data = JSON.parse(json);
-                        const context = {
-                            tabledata: data,
-                            page: page,
-                        };
-                        templates.render("tiny_cursive/user_list", context)
-                            .then(function (html) {
-                                document.getElementById("id_username").innerHTML = html;
-                                return true;
-                            });
-                    });
-
-                    AJAX.call([{
-                        methodname: "cursive_get_module_list",
-                        args: { courseid: courseid },
-                    }])[0].done(function (json) {
-                        const data = JSON.parse(json);
-                        const context = {
-                            tabledata: data,
-                            page: page,
-                        };
-                        templates.render("tiny_cursive/module_list", context)
-                            .then(function (html) {
-                                document.getElementById("id_modulename").innerHTML = html;
-                                return true;
-                            });
-                    });
+                var promise1 = AJAX.call([
+                    {
+                        methodname: "tiny_cursive_get_user_list",
+                        args: {
+                            courseid: courseid,
+                        },
+                    },
+                ]);
+                promise1[0].done(function(json) {
+                    var data = JSON.parse(json);
+                    var context = {
+                        tabledata: data,
+                        page: page,
+                    };
+                    templates
+                        .render("tiny_cursive/user_list", context)
+                        .then(function(html) {
+                            const filteredUser = document.getElementById("id_username");
+                            if (filteredUser) {
+                                filteredUser.innerHTML = html;
+                            }
+                            return true;
+                        }).catch(e => window.console.error(e));
                 });
-            },
 
-            generateProgressChart: function(dataType, chartType, subType, dataset, toggle) {
-                if (dataType === 'progress') {
-                    document.getElementById('CursiveMetricControls').classList.remove('d-none');
-                    new DashboardChart(dataType, chartType, subType, dataset, toggle);
-                } else {
-                    document.getElementById('CursiveMetricControls').classList.add('d-none');
-                    new DashboardChart(dataType, chartType, null, dataset, toggle);
-                }
-            },
-        };
+                var promise2 = AJAX.call([
+                    {
+                        methodname: "tiny_cursive_get_module_list",
+                        args: {
+                            courseid: courseid,
+                        },
+                    },
+                ]);
+                promise2[0].done(function(json) {
+                    var data = JSON.parse(json);
 
-        return usersTable;
-    });
+                    var context = {
+                        tabledata: data,
+                        page: page,
+                    };
+                    templates
+                        .render("tiny_cursive/module_list", context)
+                        .then(function(html) {
+                            const filteredModule = document.getElementById("id_moduleid");
+                            if (filteredModule) {
+                                filteredModule.innerHTML = html;
+                            }
+                            return true;
+                        }).catch(e => window.console.error(e));
+                });
+            });
+        }
+    }
+
+    /**
+     * Generates a progress chart based on the specified parameters.
+     *
+     * @param {string} dataType - The type of data to display in the chart (e.g., 'progress', 'effort')
+     * @param {string} chartType - The type of chart to render (e.g., 'line', 'bar')
+     * @param {string|null} subType - The metric subtype for progress charts, null for other types
+     * @param {Array} dataset - The data to be displayed in the chart
+     * @param {boolean} toggle - Whether the chart is being toggled/expanded
+     */
+    function generateProgressChart(dataType, chartType, subType, dataset, toggle) {
+        const metricControls = document.getElementById('CursiveMetricControls');
+        if (dataType === 'progress') {
+            if (metricControls) {
+                metricControls.classList.remove('d-none');
+            }
+            new DashboardChart(dataType, chartType, subType, dataset, toggle);
+        } else {
+            if (metricControls) {
+                metricControls.classList.add('d-none');
+            }
+            new DashboardChart(dataType, chartType, null, dataset, toggle);
+        }
+    }
+};

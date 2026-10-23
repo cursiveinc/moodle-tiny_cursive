@@ -21,11 +21,12 @@
  */
 
 
-const component = 'tiny_cursive';
+export const component = 'tiny_cursive';
+export const pluginName = `${component}/plugin`;
 
 export default {
     component,
-    pluginName: `${component}/plugin`,
+    pluginName,
     iconUrl: M.util.image_url('cursive', 'tiny_cursive'),
     iconSaving: M.util.image_url('rotate', 'tiny_cursive'),
     iconGrayUrl: M.util.image_url('cursive_gray', 'tiny_cursive'),

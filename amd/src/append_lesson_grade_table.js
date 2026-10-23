@@ -122,11 +122,11 @@ export const init = (scoreSetting, showcomment, hasApiKey) => {
      * @param {boolean} grade - Whether this is being called from grade view
      */
     function analytics(userid, cmid, emailLink, grade) {
-        let args = { id: userid, modulename: "lesson", cmid: cmid };
-        let methodname = 'cursive_get_lesson_submission_data';
-        let com = getData([{ methodname, args }]);
+        let args = {id: userid, modulename: "lesson", cmid: cmid};
+        let methodname = 'tiny_cursive_get_lesson_submission_data';
+        let com = getData([{methodname, args}]);
 
-        com[0].done(function (json) {
+        com[0].done(function(json) {
           var data = JSON.parse(json);
           var filepath = data.res.filename || '';
 
@@ -166,6 +166,7 @@ export const init = (scoreSetting, showcomment, hasApiKey) => {
           };
 
           let authIcon = myEvents.authorshipStatus(
+            data.res?.user_agent,
             data.res.first_file,
             data.res.score,
             scoreSetting
