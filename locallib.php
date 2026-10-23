@@ -91,40 +91,39 @@ function tiny_cursive_get_user_attempts_data(
         $params['cmid'] = $moduleid;
     }
 
-    $sql .= " GROUP BY uf.id, u.id, uw.id, u.firstname, u.lastname, u.email,
-                       uf.courseid, uf.timemodified, uf.cmid, uf.filename,
+    $sql .= " GROUP BY uf.id, uf.uploaded, u.id, uw.id, uf.questionid,
+                       u.firstname, u.lastname, u.email, uf.courseid,
+                       u.firstnamephonetic, u.lastnamephonetic, u.middlename, u.alternatename,
+                       uf.timemodified, uf.cmid, uf.filename,
                        uw.total_time_seconds, uw.key_count, uw.keys_per_minute,
                        uw.character_count, uw.characters_per_minute, uw.word_count,
-                       uw.words_per_minute, uw.backspace_percent, uw.score, uw.copy_behavior, wd.meta ";
-
-    switch ($orderby) {
-        case 'name':
-            $sql .= 'ORDER BY u.firstname ASC';
-            break;
-        case 'email':
-            $sql .= 'ORDER BY u.email ASC';
-            break;
-        case 'date':
-            $sql .= 'ORDER BY uf.timemodified ASC';
-            break;
-        default:
-            $sql .= 'ORDER BY u.id ASC';
-            break;
-    }
+                       uw.words_per_minute, uw.backspace_percent, uw.score, uw.copy_behavior,
+                       wd.meta, uw.user_agent ";
 
     $countsql = "SELECT COUNT(*)
                         FROM ($sql) subquery";
     $totalcount = $DB->count_records_sql($countsql, $params);
 
-    if ($limit) {
-        $sql .= " LIMIT " . $limit;
-        if ($page) {
-            $offset = $page * $limit;
-            $sql .= " OFFSET " . $offset;
-        }
+    switch ($orderby) {
+        case 'name':
+            $sql .= ' ORDER BY u.firstname ASC';
+            break;
+        case 'email':
+            $sql .= ' ORDER BY u.email ASC';
+            break;
+        case 'date':
+            $sql .= ' ORDER BY uf.timemodified ASC';
+            break;
+        default:
+            $sql .= ' ORDER BY u.id ASC';
+            break;
     }
+
+    $limitfrom = ($limit && $page) ? ($page * $limit) : 0;
+    $limitnum = $limit ? $limit : 0;
+
     try {
-        $res = $DB->get_records_sql($sql, $params);
+        $res = $DB->get_records_sql($sql, $params, $limitfrom, $limitnum);
     } catch (moodle_exception $e) {
         throw new moodle_exception('dmlreadexception', 'error', '', null, $e->getMessage());
     }
@@ -191,21 +190,24 @@ function tiny_cursive_get_user_writing_data(
         $params[] = $moduleid;
     }
 
-    $select .= " ORDER BY ? ?";
-    $params[] =
-        $orderby === 'id' ? 'u.id' : ($orderby === 'name' ? 'u.firstname' : ($orderby === 'email' ? 'u.email' : 'uf.timemodified'));
-    $params[] = $order;
+    $ordercol = $orderby === 'name' ? 'u.firstname' :
+        ($orderby === 'email' ? 'u.email' : ($orderby === 'date' ? 'uf.timemodified' : 'u.id'));
+    $limitfrom = ($limit && $perpage) ? (int)$perpage : 0;
+    $limitnum = $limit ? (int)$limit : 0;
 
     $totalcount = 0;
     if ($limit) {
-        $getdetailcount = $DB->get_records_sql($select, $params);
-        $totalcount = count($getdetailcount);
-        $select .= " LIMIT ?, ?";
-        $params[] = $perpage;
-        $params[] = $limit;
+        $countsql = "SELECT COUNT(*) FROM ($select) subquery";
+        $totalcount = $DB->count_records_sql($countsql, $params);
     }
 
-    $res = $DB->get_records_sql($select, $params);
+    $select .= " ORDER BY {$ordercol} {$orderdir}";
+    $res = $DB->get_records_sql($select, $params, $limitfrom, $limitnum);
+
+    if (!$limit) {
+        $totalcount = count($res);
+    }
+
     $resncount = ['count' => $totalcount, 'data' => $res];
 
     return $resncount;
@@ -314,11 +316,11 @@ function tiny_cursive_get_user_submissions_data($userid, $modulename, $cmid, $co
     if (isset($data['filename']) && $data['filename']) {
         $sql = 'SELECT id as fileid
                   FROM {tiny_cursive_files}
-                 WHERE userid = :userid ORDER BY id ASC LIMIT 1';
+                 WHERE userid = :userid ORDER BY id ASC';
 
-        $ffile = $DB->get_record_sql($sql, ['userid' => $userid]);
-        $ffile = (array)$ffile;
-        if ($ffile['fileid'] == $data['file_id']) {
+        $firstfiles = $DB->get_records_sql($sql, ['userid' => $userid], 0, 1);
+        $ffile = reset($firstfiles);
+        if ($ffile && $ffile->fileid == $data['file_id']) {
             $data['first_file'] = 1;
         } else {
             $data['first_file'] = 0;

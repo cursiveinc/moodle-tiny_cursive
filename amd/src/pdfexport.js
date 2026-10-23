@@ -24,8 +24,7 @@
  */
 
 import templates from "core/templates";
-import Alert from 'core/modal';
-import Factory from 'core/modal_factory';
+import ModalAlert from 'core/local/modal/alert';
 import ModalEvents from 'core/modal_events';
 import * as str from 'core/str';
 
@@ -35,11 +34,9 @@ export const init = (data) => {
     }
 
     if (!Object.keys(data).length) {
-        Alert.create({
-            type: Factory.types.ALERT,
+        ModalAlert.create({
             title: str.get_string('message', 'tool_dataprivacy'),
             body: str.get_string('nopaylod', 'tiny_cursive'),
-            cssClass: 'modal-dialog modal-dialog-centered'
         }).then(modal => {
             modal.show();
             modal.getRoot().on(ModalEvents.hidden, () => window.history.back());

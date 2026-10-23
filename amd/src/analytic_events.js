@@ -327,7 +327,16 @@ export default class AnalyticEvents {
                     }
 
                     const [pasteCount, strings, responsedata] = results;
-                    const submittedText = atob(responsedata.submitted_text);
+                    let submittedText = '';
+                    if (responsedata.submitted_text) {
+                        try {
+                            submittedText = atob(responsedata.submitted_text);
+                        } catch (e) {
+                            submittedText = responsedata.submitted_text;
+                        }
+                    } else if (responsedata.reconstructed_text) {
+                        submittedText = responsedata.reconstructed_text;
+                    }
                     const originalTextString = strings[0];
                     const editsPastesAIString = strings[1];
                     const pasteCountString = strings[2];
@@ -398,7 +407,13 @@ export default class AnalyticEvents {
                     const reconstructedText = document.createElement('div');
                     reconstructedText.id = 'tiny_cursive-reconstructed_text';
                     reconstructedText.style.whiteSpace = 'pre-wrap';
-                    reconstructedText.appendChild(self.renderComparisonContent(JSON.parse(submittedText)));
+                    let parsedContent;
+                    try {
+                        parsedContent = JSON.parse(submittedText);
+                    } catch (e) {
+                        parsedContent = submittedText;
+                    }
+                    reconstructedText.appendChild(self.renderComparisonContent(parsedContent));
                     textBlock2.appendChild(reconstructedText);
 
                     contents.appendChild(commentBox);

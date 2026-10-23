@@ -1304,7 +1304,7 @@ class cursive_json_func_data extends external_api {
     public static function cursive_store_writing_differencs_parameters() {
         return new external_function_parameters([
             'fileid' => new external_value(PARAM_INT, 'file id', VALUE_REQUIRED, 0, true),
-            'reconstructed_text' => new external_value(PARAM_TEXT, 'original writing contents', VALUE_REQUIRED, "", true),
+            'reconstructed_text' => new external_value(PARAM_RAW, 'original writing contents', VALUE_REQUIRED, "", true),
             // Base64-encoded JSON, so type cleaning cannot see the HTML inside it. The decoded
             // value is sanitised where it is rendered: pdfexport::prepare_data_structure() and
             // renderComparisonContent() in amd/src/analytic_events.js.
@@ -1469,7 +1469,7 @@ class cursive_json_func_data extends external_api {
      */
     public static function cursive_get_writing_differencs_returns() {
         return new external_single_structure([
-            'data' => new external_value(PARAM_TEXT, 'content data'),
+            'data' => new external_value(PARAM_RAW, 'content data'),
         ]);
     }
 

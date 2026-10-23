@@ -101,10 +101,11 @@ export const init = (page, hasApiKey, csvOption) => {
                 let data = JSON.parse(response.data);
 
                 // Show replay button if no API key, otherwise show analytics button
+                modalEl.innerHTML = '';
                 if (!hasApiKey) {
-                    modalEl.innerHTML = replayButton(mid);
+                    modalEl.appendChild(replayButton(mid));
                 } else {
-                    modalEl.innerHTML = analyticButton(data.effort_ratio, mid);
+                    modalEl.appendChild(analyticButton(data.effort_ratio, mid));
                 }
 
                 context.formattime = myEvents.formatedTime(data);

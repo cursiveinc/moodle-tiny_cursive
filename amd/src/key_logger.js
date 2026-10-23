@@ -61,9 +61,14 @@ define(["core/ajax", "core/str", "core/templates"], function(AJAX, str, template
     },
 
     getusers: function(page) {
-      document.getElementById("fgroup_id_buttonar").style.display = 'none';
-      document.getElementById("id_coursename").addEventListener("change", function() {
-        var courseid = this.value;
+      var buttonar = document.getElementById("fgroup_id_buttonar");
+      if (buttonar) {
+        buttonar.style.display = 'none';
+      }
+      var coursename = document.getElementById("id_coursename");
+      if (coursename) {
+        coursename.addEventListener("change", function() {
+          var courseid = this.value;
 
         var promise1 = AJAX.call([
           {
@@ -106,7 +111,8 @@ define(["core/ajax", "core/str", "core/templates"], function(AJAX, str, template
             return true;
           }).catch(e => window.console.error(e));
         });
-      });
+        });
+      }
     },
   };
 

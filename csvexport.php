@@ -84,7 +84,7 @@ if ($courseid != 0) {
                         CAST(AVG(COALESCE(uw.backspace_percent,0)) AS DECIMAL(10,2)) as backspace_percent,
                         CAST(AVG(COALESCE(uw.score,0)) AS DECIMAL(10,2)) as score,
                         CAST(AVG(COALESCE(uw.copy_behavior,0)) AS DECIMAL(10,2)) as copybehavior,
-                        CAST(AVG(COALESCE(CAST(wd.meta AS DECIMAL(10,2)),0)) AS DECIMAL(10,2)) as effort
+                        CAST(AVG(COALESCE(CAST(NULLIF(wd.meta, '') AS DECIMAL(10,2)), 0)) AS DECIMAL(10,2)) as effort
                   FROM {tiny_cursive_files} uf
                   JOIN {user} u ON u.id = uf.userid
              LEFT JOIN {tiny_cursive_user_writing} uw ON uw.file_id = uf.id
@@ -108,7 +108,7 @@ if ($courseid != 0) {
         $params['moduleid'] = $moduleid;
     }
 
-    $attempts .= " GROUP BY uf.id, u.id, u.email, uf.courseid";
+    $attempts .= " GROUP BY uf.id, u.id, u.firstname, u.lastname, u.email, uf.courseid";
     $ress = $DB->get_records_sql($attempts, $params);
 
     foreach ($ress as $key => $res) {
