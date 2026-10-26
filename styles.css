@@ -1886,6 +1886,8 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .modal-header {
 }
 
 /* Capture disclosure tooltip: anchored under the indicator, readable line-height whatever TinyMCE's skin inherits. */
+/* `.tox` variant outranks the skin reset (`.tox :not(svg):not(rect) { position: static }`) inside the editor. */
+.tox .tiny_cursive_state_wrapper,
 .tiny_cursive_state_wrapper {
     position: relative;
 }
