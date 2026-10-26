@@ -184,9 +184,10 @@ export default class CursiveAutosave {
         textSpan.setAttribute('role', 'status');
         textSpan.setAttribute('aria-live', 'polite');
 
+        // The cloud is always drawn, so the Saved Content button is visible before the first save too.
+        iconSpan.innerHTML = this.getStateIcon(state || 'saved');
         if (state) {
             textSpan.textContent = this.getStateText(state);
-            iconSpan.innerHTML = this.getStateIcon(state);
         }
 
         wrapper.appendChild(button);
