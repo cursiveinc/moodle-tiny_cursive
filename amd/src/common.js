@@ -30,20 +30,9 @@ export default {
     iconUrl: M.util.image_url('cursive', 'tiny_cursive'),
     iconSaving: M.util.image_url('rotate', 'tiny_cursive'),
     iconGrayUrl: M.util.image_url('cursive_gray', 'tiny_cursive'),
+    // Placement, size and colours live in styles.css (.tiny_cursive_state_tooltip); this only reveals it.
     tooltipCss: {
-        display: 'block',
-        position: 'absolute',
-        transform: 'translateX(-100%)',
-        backgroundColor: 'white',
-        color: 'black',
-        border: '1px solid #ccc',
-        marginBottom: '6px',
-        padding: '10px',
-        textAlign: 'start',
-        minWidth: '200px',
-        borderRadius: '1px',
-        pointerEvents: 'none',
-        zIndex: 10000
+        display: 'block'
     },
     Color: {
         white: 'rgba(252, 252, 252, 1)',

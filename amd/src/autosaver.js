@@ -837,7 +837,6 @@ function sentMobileInput(key) {
             const disclosure = document.getElementById(elementId);
             if (disclosure) {
                 const show = () => {
-                    disclosure.style.position = 'relative';
                     $(`#${tooltipId}`).css(tooltipCss);
                     disclosure.setAttribute('aria-expanded', 'true');
                 };
@@ -998,10 +997,7 @@ function sentMobileInput(key) {
 
             tooltipSpan.style.display = 'none';
             tooltipTitle.textContent = text.buttonTitle;
-            tooltipTitle.style.fontSize = '16px';
-            tooltipTitle.style.fontWeight = 'bold';
             description.textContent = text.buttonDes;
-            description.style.fontSize = '14px';
 
             tooltipSpan.id = tooltipId;
             tooltipSpan.setAttribute('role', 'tooltip');
@@ -1009,7 +1005,9 @@ function sentMobileInput(key) {
             tooltipSpan.appendChild(tooltipTitle);
             tooltipSpan.appendChild(linebreak);
             tooltipSpan.appendChild(description);
-            cursiveIcon.appendChild(tooltipSpan);
+            // A sibling of the button, not a child: the button's tight line-height would collapse the lines,
+            // and button children are presentational for assistive technology.
+            (cursiveIcon.parentElement || cursiveIcon).appendChild(tooltipSpan);
         }
     }
 

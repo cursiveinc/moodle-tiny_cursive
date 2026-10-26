@@ -1885,8 +1885,35 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .modal-header {
     white-space: nowrap;
 }
 
-.tiny_cursive_state_tooltip {
+/* Capture disclosure tooltip: anchored under the indicator, readable line-height whatever TinyMCE's skin inherits. */
+.tiny_cursive_state_wrapper {
+    position: relative;
+}
+
+.tiny_cursive_state_wrapper .tiny_cursive_state_tooltip {
+    position: absolute;
+    top: 100%;
+    inset-inline-end: 0;
+    z-index: 10000;
+    width: max-content;
+    min-width: 12.5rem;
+    max-width: 20rem;
+    margin-top: .25rem;
+    padding: .625rem;
+    border: 1px solid #ccc;
+    border-radius: 2px;
+    background-color: #fff;
+    color: var(--tiny-cursive-text-dark);
+    font-size: .875rem;
+    line-height: 1.4;
     text-align: start;
+    white-space: normal;
+    pointer-events: none;
+}
+
+.tiny_cursive_state_wrapper .tiny_cursive_state_tooltip strong {
+    font-size: 1rem;
+    font-weight: 700;
 }
 
 .tiny_cursive-saved-item:last-child {
