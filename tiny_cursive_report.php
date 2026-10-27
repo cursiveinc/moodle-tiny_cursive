@@ -88,7 +88,6 @@ if ($courseid && $courseid != 0) {
 
 require_capability('tiny/cursive:view', $context);
 
-$PAGE->requires->js_call_amd('tiny_cursive/key_logger', 'init', [1]);
 $PAGE->requires->js_call_amd(
     'tiny_cursive/cursive_writing_reports',
     'init',
@@ -96,9 +95,13 @@ $PAGE->requires->js_call_amd(
 );
 
 $PAGE->set_context(context_system::instance());
-$PAGE->set_title(get_string('tiny_cursive', 'tiny_cursive'));
+// A distinct title per report page (2.4.2): the course name identifies this tab.
+$pagetitle = isset($course)
+    ? get_string('report_title_course', 'tiny_cursive', format_string($course->fullname))
+    : get_string('tiny_cursive', 'tiny_cursive');
+$PAGE->set_title($pagetitle);
 $PAGE->set_url($url);
-$PAGE->set_heading(get_string('tiny_cursive', 'tiny_cursive'));
+$PAGE->set_heading($pagetitle);
 
 echo $OUTPUT->header();
 
@@ -116,11 +119,13 @@ $axisbar = tiny_cursive_render_axis_selector_v2($xaxis, $yaxis);
 $canvas = html_writer::tag('canvas', '', [
     'id'    => 'effortScatterChart',
     'style' => 'max-height: 340px; width: 100%;',
+    'role'  => 'img',
+    'aria-label' => get_string('analytics_chart', 'tiny_cursive'),
 ]);
 
 
 $filterheader = html_writer::div(
-    html_writer::tag('span', get_string('filters', 'tiny_cursive'), ['class' => 'cursive-card-header-title']),
+    html_writer::tag('h2', get_string('filters', 'tiny_cursive'), ['class' => 'cursive-card-header-title']),
     'cursive-card-header'
 );
 $filterbody = html_writer::div($mform->render(), 'cursive-card-body');
@@ -131,7 +136,7 @@ $filtercard = html_writer::div(
 
 $axisbar = constants::has_api_key() ? html_writer::div($axisbar, 'cursive-axis-bar') : '';
 $chartheader = html_writer::div(
-    html_writer::tag('span', get_string('analytics_chart', 'tiny_cursive'), ['class' => 'cursive-card-header-title']) .
+    html_writer::tag('h2', get_string('analytics_chart', 'tiny_cursive'), ['class' => 'cursive-card-header-title']) .
     $axisbar,
     'cursive-card-header'
 );
@@ -155,7 +160,7 @@ echo html_writer::start_div('cursive-report-v2');
 echo html_writer::start_div('cursive-card cursive-table-card mt-2');
 echo html_writer::div(
     html_writer::tag(
-        'span',
+        'h2',
         get_string('student_writing_statics', 'tiny_cursive'),
         ['class' => 'cursive-card-header-title']
     ) . tiny_cursive_render_download_button($courseid, $moduleid, $userid),

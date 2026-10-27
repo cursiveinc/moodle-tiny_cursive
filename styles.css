@@ -678,14 +678,15 @@ body#page-cws #region-main > div {
     transform: scale(1.05);
 }
 
+/* 4.5:1 on white text; the old #28a745 was 3.1:1. */
 .tiny_cursive-writing-report .download-btn {
-    background: #28a745;
-    color: white;
+    background: var(--tiny-cursive-success);
+    color: #fff;
     text-decoration: none;
 }
 
 .tiny_cursive-writing-report .download-btn:hover {
-    background: #1e7a34;
+    background: #0f5223;
     transform: scale(1.05);
 }
 
@@ -2443,4 +2444,40 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .modal-header {
     .tiny_cursive_timeline_scrubber::-moz-range-thumb:hover {
         transform: none;
     }
+}
+
+/* Chart state messages live in the DOM (announced), centred over the empty plot. */
+.tiny_cursive-chart-message {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    padding: .5rem .75rem;
+    background: #fff;
+    color: var(--tiny-cursive-text-muted);
+    font-weight: 600;
+    text-align: center;
+    max-width: 90%;
+}
+
+.tiny_cursive-chart-message[hidden] {
+    display: none;
+}
+
+.tiny_cursive-chart-table th,
+.tiny_cursive-chart-table td {
+    white-space: nowrap;
+}
+
+/* The download control is a real button now; keep the pill look and show focus. */
+.tiny_cursive-writing-report button.download-btn {
+    font-family: inherit;
+    line-height: inherit;
+}
+
+.tiny_cursive-writing-report .download-btn:focus-visible,
+.tiny_cursive-analytics-placeholder:focus-visible {
+    outline: 2px solid var(--tiny-cursive-action);
+    outline-offset: 2px;
 }

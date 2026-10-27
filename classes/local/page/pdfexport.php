@@ -134,7 +134,11 @@ class pdfexport {
         global $OUTPUT;
 
         echo   $OUTPUT->header();
-        $content = html_writer::div(get_string('pleasewait', 'tiny_cursive'), '', ['id' => "loadermessage"]);
+        $content = html_writer::div(get_string('pleasewait', 'tiny_cursive'), '', [
+            'id' => 'loadermessage',
+            'role' => 'status',
+            'aria-live' => 'polite',
+        ]);
         $loader  = html_writer::div($OUTPUT->pix_icon('i/loading', 'core'), 'text-center');
         $data    = html_writer::start_span('', ['id' => 'CursiveStudentData', 'data-submission' =>
                    json_encode($this->templatecontent)]);
@@ -175,14 +179,14 @@ class pdfexport {
      * @return string Formatted date/time string
      */
     private function format_time($time, $report = false) {
-        // Get current timezone abbreviation (e.g., "GMT", "BST", "EST").
-        $timezone = date('T', $time);
+        // The viewer's language and timezone, not the server's.
+        $formatted = userdate($time, get_string('strftimedatetime', 'langconfig'));
 
         if ($report) {
-            return date('M d, Y h:i A', $time);
+            return $formatted;
         }
 
-        return date('M d, Y h:i A', $time) . " " . $timezone;
+        return $formatted . ' ' . usertimezone();
     }
 
 

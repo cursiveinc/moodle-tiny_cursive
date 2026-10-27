@@ -40,15 +40,16 @@ Example context (json):
     <div class="tiny_cursive-writing-activity-report-body">
         <div class="table-responsive">
             <table class="tiny_cursive-writing-report-table table">
+                <caption class="sr-only visually-hidden">{{#str}}student_writing_statics, tiny_cursive{{/str}}</caption>
                 <thead>
                     <tr>
-                        <th>{{#str}}attemptid, tiny_cursive{{/str}}</th>
-                        <th>{{#str}}fullname, tiny_cursive{{/str}}</th>
-                        <th>{{#str}}email, tiny_cursive{{/str}}</th>
-                        <th>{{#str}}module_name, tiny_cursive{{/str}}</th>
-                        <th>{{#str}}last_modified, tiny_cursive{{/str}}</th>
-                        <th>{{#str}}analytics, tiny_cursive{{/str}}</th>
-                        <th>{{#str}}download, tiny_cursive{{/str}}</th>
+                        <th scope="col">{{#str}}attemptid, tiny_cursive{{/str}}</th>
+                        <th scope="col">{{#str}}fullname, tiny_cursive{{/str}}</th>
+                        <th scope="col">{{#str}}email, tiny_cursive{{/str}}</th>
+                        <th scope="col">{{#str}}module_name, tiny_cursive{{/str}}</th>
+                        <th scope="col">{{#str}}last_modified, tiny_cursive{{/str}}</th>
+                        <th scope="col">{{#str}}analytics, tiny_cursive{{/str}}</th>
+                        <th scope="col">{{#str}}download, tiny_cursive{{/str}}</th>
                     </tr>
                 </thead>
                 <tbody>

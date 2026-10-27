@@ -66,7 +66,8 @@ export const init = (page, hasApiKey, csvOption) => {
     (async function() {
         try {
             let scoreSetting = await str.get_string('confidence_threshold', 'tiny_cursive');
-            analyticsEvents(scoreSetting, hasApiKey, parseInt(csvOption));
+            const unavailableText = await str.get_string('analytics_unavailable', 'tiny_cursive');
+            analyticsEvents(scoreSetting, hasApiKey, parseInt(csvOption), unavailableText);
         } catch (error) {
             window.console.error('Error fetching string:', error);
         }
@@ -83,8 +84,9 @@ export const init = (page, hasApiKey, csvOption) => {
      * @param {Object} scoreSetting - Configuration settings related to scoring.
      * @param {boolean} hasApiKey - api key status
      * @param {boolean} csvOption - csv option status
+     * @param {string} unavailableText - Translated text shown in a row when its analytics call fails
      */
-    function analyticsEvents(scoreSetting, hasApiKey, csvOption) {
+    function analyticsEvents(scoreSetting, hasApiKey, csvOption, unavailableText) {
 
         $(".analytic-modal").each(function() {
             var mid = $(this).data("id");
@@ -121,7 +123,8 @@ export const init = (page, hasApiKey, csvOption) => {
                 myEvents.replyWriting(mid, filepath, '', replayInstances);
 
             }).fail(error => {
-                throw new Error('Error: ' + error.message);
+                window.console.error(error);
+                $(this).html($('<span>').addClass('text-danger').attr('role', 'status').text(unavailableText));
             });
 
         });
@@ -130,7 +133,7 @@ export const init = (page, hasApiKey, csvOption) => {
         $('.download-btn').on('click', async function(e) {
             e.preventDefault();
 
-            const link1 = $(this).attr('href');
+            const link1 = $(this).data('href');
             const link2 = $(this).data('link');
 
             let optionModal = Modal;
@@ -138,7 +141,18 @@ export const init = (page, hasApiKey, csvOption) => {
             select.id = "download-type";
             select.classList.add('form-control', 'inputUrl');
 
-            let title = await str.get_string('download', 'tiny_cursive');
+            const [title, selectLabel, okText] = await str.get_strings([
+                {key: 'download', component: 'tiny_cursive'},
+                {key: 'download_type', component: 'tiny_cursive'},
+                {key: 'ok', component: 'core'},
+            ]);
+            let modalTitle = title;
+            // The format select announces a label (3.3.2).
+            const label = document.createElement('label');
+            label.setAttribute('for', select.id);
+            label.className = 'form-label';
+            label.textContent = selectLabel;
+            let body = $('<div>').append(label).append(select);
 
             // Add CSV option
             if (csvOption) {
@@ -171,23 +185,20 @@ export const init = (page, hasApiKey, csvOption) => {
                 try {
                     const noOptionText = await str.get_string('no_option', 'tiny_cursive');
                     const messageText = await str.get_string('message', 'tool_dataprivacy');
-                    title = messageText;
+                    modalTitle = messageText;
                     optionModal = Alert;
-                    select = noOptionText;
+                    body = noOptionText;
                 } catch (error) {
                     window.console.error(error);
                 }
             }
 
             optionModal.create({
-                title: title,
-                body: select,
+                title: modalTitle,
+                body: body,
                 removeOnClose: true,
-                buttons: [{
-                    text: 'OK',
-                    type: 'submit',
-                    primary: true
-                }],
+                // The modal takes a map of button action to label; the array form was silently ignored.
+                buttons: {save: okText},
                 show: true,
             }).then(modal => {
                 if (optionModal !== Alert) {
@@ -248,6 +259,7 @@ export const init = (page, hasApiKey, csvOption) => {
                 generateProgressChart("draw", chartType, subType, [], false);
             }
             $('#expandChart').on('click', function() {
+                this.setAttribute('aria-expanded', this.getAttribute('aria-expanded') === 'true' ? 'false' : 'true');
                 $('#CursiveChartContainer').toggleClass('cursive-expand-height');
                 $('#showtext').toggleClass('d-none');
                 $('#hidetext').toggleClass('d-none');
@@ -255,6 +267,24 @@ export const init = (page, hasApiKey, csvOption) => {
                     $('#tiny_cursive-chart-container').toggleClass('cursive-hide-chartcontainer');
                 }, 200);
             });
+
+            // Keyboard-reachable equivalent of the chart: a data table built from the same values (1.1.1).
+            const tableToggle = document.getElementById('CursiveChartTableToggle');
+            const tableWrap = document.getElementById('CursiveChartTable');
+            if (tableToggle && tableWrap) {
+                str.get_strings([
+                    {key: 'chart_table_show', component: 'tiny_cursive'},
+                    {key: 'chart_table_hide', component: 'tiny_cursive'},
+                ]).then(([showText, hideText]) => {
+                    tableToggle.addEventListener('click', () => {
+                        const open = tableWrap.hidden;
+                        tableWrap.hidden = !open;
+                        tableToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+                        tableToggle.textContent = open ? hideText : showText;
+                    });
+                    return true;
+                }).catch(error => window.console.error(error));
+            }
         }
     }
 
@@ -289,9 +319,9 @@ export const init = (page, hasApiKey, csvOption) => {
                 templates
                     .render("tiny_cursive/user_list", context)
                     .then(function(html) {
-
-                        var filteredUser = $("#id_username");
-                        filteredUser.html(html);
+                        // Only the options move into the page's own labelled select (no nested select).
+                        var filteredUser = $("#id_userid");
+                        filteredUser.html($("<div>").html(html).find("select").html());
                         return true;
                     });
             });
@@ -315,9 +345,8 @@ export const init = (page, hasApiKey, csvOption) => {
                 templates
                     .render("tiny_cursive/module_list", context)
                     .then(function(html) {
-
                         var filteredUser = $("#id_moduleid");
-                        filteredUser.html(html);
+                        filteredUser.html($("<div>").html(html).find("select").html());
                         return true;
                     });
             });

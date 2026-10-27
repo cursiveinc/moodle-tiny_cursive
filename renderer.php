@@ -65,10 +65,16 @@ class tiny_cursive_renderer extends plugin_renderer_base {
 
         $dwnldicon = $this->output->pix_icon(
             'download',
-            'download',
+            '',
             'tiny_cursive',
             ['class' => 'tiny_cursive-analytics-bar-icon']
         );
+
+        $placeholder = html_writer::tag('button', get_string('analytics', 'tiny_cursive'), [
+            'type' => 'button',
+            'class' => 'btn btn-secondary btn-sm tiny_cursive-analytics-placeholder',
+            'disabled' => 'disabled',
+        ]);
 
         $userdata      = [];
 
@@ -104,9 +110,9 @@ class tiny_cursive_renderer extends plugin_renderer_base {
             $row['username']   = fullname($user);
             $row['email']      = $user->email;
             $row['modulename'] = $module->name;
-            $row['timestamp']  = date("l jS \of F Y h:i:s A", $user->timemodified);
+            $row['timestamp']  = userdate($user->timemodified, get_string('strftimedaydatetime', 'langconfig'));
             $row['analytics']  = html_writer::div(
-                get_string('analytics', 'tiny_cursive'),
+                $placeholder,
                 'analytic-modal',
                 [
                         'data-cmid' => $user->cmid,
@@ -115,18 +121,19 @@ class tiny_cursive_renderer extends plugin_renderer_base {
                 ]
             );
             $row['download']   = html_writer::div(
-                html_writer::link(
-                    new moodle_url('/lib/editor/tiny/plugins/cursive/download_json.php', [
-                        'fname'   => $user->filename,
-                        'user_id' => $user->usrid,
-                        'cmid'    => $user->cmid,
-                        'course'  => $courseid,
-                        ]),
+                html_writer::tag(
+                    'button',
                     $dwnldicon . get_string('download', 'tiny_cursive'),
                     [
+                        'type' => 'button',
                         'class' => 'tiny_cursive-writing-report download-btn tiny_cursive-analytics-button',
-                        'aria-describedby' => get_string('download_attempt_json', 'tiny_cursive'),
-                        'role'  => 'button',
+                        'aria-haspopup' => 'dialog',
+                        'data-href' => (new moodle_url('/lib/editor/tiny/plugins/cursive/download_json.php', [
+                            'fname'   => $user->filename,
+                            'user_id' => $user->usrid,
+                            'cmid'    => $user->cmid,
+                            'course'  => $courseid,
+                        ]))->out(false),
                         'data-link' => constants::has_api_key() ? new moodle_url('/lib/editor/tiny/plugins/cursive/pdfexport.php', [
                             'id'      => $user->usrid,
                             'file'    => $user->fileid,
@@ -168,10 +175,16 @@ class tiny_cursive_renderer extends plugin_renderer_base {
 
         $dwnldicon = $this->output->pix_icon(
             'download',
-            'download',
+            '',
             'tiny_cursive',
             ['class' => 'tiny_cursive-analytics-bar-icon']
         );
+
+        $placeholder = html_writer::tag('button', get_string('analytics', 'tiny_cursive'), [
+            'type' => 'button',
+            'class' => 'btn btn-secondary btn-sm tiny_cursive-analytics-placeholder',
+            'disabled' => 'disabled',
+        ]);
 
         if (isset($userprofile->total_time) && $userprofile->total_time > 0) {
             $seconds = (int)$userprofile->total_time;
@@ -199,32 +212,27 @@ class tiny_cursive_renderer extends plugin_renderer_base {
             $courses = enrol_get_users_courses($USER->id, true, 'id, fullname, shortname', 'fullname ASC');
         }
 
-        $options    = [];
-        $currenturl = new moodle_url($baseurl, ['userid' => $userid, 'courseid' => null]);
-
-        $allcoursesurl = $currenturl->out(false, ['courseid' => null]);
-        $allattributes =
-            empty($courseid) ? ['value' => $allcoursesurl, 'selected' => 'selected'] : ['value' => $allcoursesurl];
-        if (is_siteadmin($USER->id) || $courseid == '' || isset($courseid) || $courseid == null) {
-            $options[] = html_writer::tag('option', get_string('allcourses', 'tiny_cursive'), $allattributes);
-        }
-
+        // Course filter: a plain GET form (select + Go), so keyboard browsing never navigates by itself.
+        $courseoptions = [[
+            'value'    => 0,
+            'label'    => get_string('allcourses', 'tiny_cursive'),
+            'selected' => empty($courseid),
+        ]];
         foreach ($courses as $course) {
             $cursive = get_config('tiny_cursive', "cursive-$course->id");
-
             if ($cursive == '1' || $cursive === false) {
-                $courseurl   = new moodle_url($baseurl, ['userid' => $userid, 'courseid' => $course->id]);
-                $cattributes = (isset($courseid) && $courseid == $course->id) ? ['value' => $courseurl,
-                'selected'   => 'selected'] : ['value' => $courseurl];
-                $options[]   = html_writer::tag('option', $course->fullname, $cattributes);
+                $courseoptions[] = [
+                    'value'    => $course->id,
+                    'label'    => format_string($course->fullname),
+                    'selected' => (int)$courseid === (int)$course->id,
+                ];
             }
         }
-
-        $select = html_writer::tag('select', implode('', $options), [
-            'id'       => 'course-select',
-            'class'    => 'custom-select',
-            'onchange' => 'window.location.href=this.value',
-        ]);
+        $courseform = [
+            'action'  => (new moodle_url($baseurl))->out_omit_querystring(),
+            'userid'  => $userid,
+            'options' => $courseoptions,
+        ];
 
         $totalcount = $users['count'];
         $data       = $users['data'];
@@ -281,12 +289,9 @@ class tiny_cursive_renderer extends plugin_renderer_base {
             }
             $row      = [];
             $row['modulename']   = $module ? $module->name : '';
-            $row['lastmodified'] = date("l jS \of F Y h:i:s A", $user->timemodified);
+            $row['lastmodified'] = userdate($user->timemodified, get_string('strftimedaydatetime', 'langconfig'));
             $row['analytics']    = html_writer::div(
-                html_writer::span(
-                    $dwnldicon . html_writer::span(get_string('analytics', 'tiny_cursive')),
-                    'd-inline-flex align-items-center text-white'
-                ),
+                $placeholder,
                 'analytic-modal',
                 [
                     'data-cmid'     => $user->cmid,
@@ -294,18 +299,19 @@ class tiny_cursive_renderer extends plugin_renderer_base {
                     'data-id'       => $user->attemptid,
                 ]
             );
-            $row['download']    = html_writer::link(
-                new moodle_url('/lib/editor/tiny/plugins/cursive/download_json.php', [
-                    'fname'   => $user->filename,
-                    'user_id' => $user->usrid,
-                    'cmid'    => $user->cmid,
-                    'course'  => $courseid,
-                ]),
+            $row['download']    = html_writer::tag(
+                'button',
                 $dwnldicon . get_string('download', 'tiny_cursive'),
                 [
+                    'type' => 'button',
                     'class' => 'tiny_cursive-writing-report download-btn tiny_cursive-analytics-button',
-                    'aria-describedby' => get_string('download_attempt_json', 'tiny_cursive'),
-                    'role'  => 'button',
+                    'aria-haspopup' => 'dialog',
+                    'data-href' => (new moodle_url('/lib/editor/tiny/plugins/cursive/download_json.php', [
+                        'fname'   => $user->filename,
+                        'user_id' => $user->usrid,
+                        'cmid'    => $user->cmid,
+                        'course'  => $courseid,
+                    ]))->out(false),
                     'data-link' => constants::has_api_key() ? new moodle_url('/lib/editor/tiny/plugins/cursive/pdfexport.php', [
                         'id'      => $user->usrid,
                         'file'    => $user->fileid,
@@ -329,10 +335,10 @@ class tiny_cursive_renderer extends plugin_renderer_base {
                 'username'   => $title,
                 'chartdata'  => json_encode($data),
                 'userdata'   => $userdata,
-                'options'    => $select,
+                'courseform' => $courseform,
                 'coursename' => $coursename,
                 'total_sub'  => $totalcount,
-                'lastupdate' => $lastupdate ? date("F j, Y", $lastupdate) : "- -",
+                'lastupdate' => $lastupdate ? userdate($lastupdate, get_string('strftimedate', 'langconfig')) : "- -",
                 'profile_pic' => $this->output->user_picture($profile, ['size' => 100, 'link' => true]),
             ],
         );

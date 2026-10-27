@@ -224,7 +224,7 @@ class visualization {
                 $writing[$key]->label           = $effortlevel['label'];
                 $writing[$key]->backgroundColor = $effortlevel['color'];
                 $writing[$key]->pointRadius     = 8;
-                $writing[$key]->pointStyle      = 'circle';
+                $writing[$key]->pointStyle      = $effortlevel['pointStyle'];
                 $writing[$key]->data            = [];
             }
 
@@ -271,27 +271,27 @@ class visualization {
      *
      * Colour scheme (4 tiers):
      *  - Low      < 0.5          → red    (#D32F2F)
-     *  - Low      0.5 – 1.0      → orange (#FF9800)
+     *  - Low      0.5 – 1.0      → orange (#E65100)
      *  - High     1.0 – 1.3      → green  (#43A047)
      *  - Very high 1.3+          → dark green (#2E7D32)
      *
      * Null or non-numeric values are treated as zero (lowest tier).
      *
      * @param  mixed $effort Raw effort score from the database (may be null).
-     * @return array         Associative array with keys 'label' and 'color'.
+     * @return array         Associative array with keys 'label', 'color' and 'pointStyle'.
      */
     private function get_effort_level($effort): array {
         // Treat null, empty string, or non-numeric values as zero.
         $score = is_numeric($effort) ? (float) $effort : 0.0;
 
         if ($score < 0.5) {
-            return ['label' => 'Low effort (<0.5)', 'color' => '#D32F2F'];
+            return ['label' => get_string('effort_tier_verylow', 'tiny_cursive'), 'color' => '#D32F2F', 'pointStyle' => 'rectRot'];
         } else if ($score <= 1.0) {
-            return ['label' => 'Low (0.5-1.0)', 'color' => '#FF9800'];
+            return ['label' => get_string('effort_tier_low', 'tiny_cursive'), 'color' => '#E65100', 'pointStyle' => 'triangle'];
         } else if ($score <= 1.3) {
-            return ['label' => 'High (1.0-1.3)', 'color' => '#43A047'];
+            return ['label' => get_string('effort_tier_high', 'tiny_cursive'), 'color' => '#43A047', 'pointStyle' => 'circle'];
         } else {
-            return ['label' => 'Very high (1.3+)', 'color' => '#2E7D32'];
+            return ['label' => get_string('effort_tier_veryhigh', 'tiny_cursive'), 'color' => '#2E7D32', 'pointStyle' => 'rect'];
         }
     }
 

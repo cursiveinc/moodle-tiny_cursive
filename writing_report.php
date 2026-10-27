@@ -84,7 +84,12 @@ $PAGE->requires->js_call_amd(
 
 $PAGE->set_context(context_system::instance());
 $PAGE->set_url($url);
-$PAGE->set_title(get_string('tiny_cursive', 'tiny_cursive'));
+// A distinct title per report page (2.4.2).
+$PAGE->set_title(get_string('report_title_user', 'tiny_cursive', [
+    'fullname' => fullname($user),
+    'course'   => format_string($course->fullname),
+]));
+$PAGE->set_heading(get_string('student_writing_statics', 'tiny_cursive'));
 $PAGE->set_pagetype('cws'); // CWS: Cursive Writing Statistics.
 echo $OUTPUT->header();
 

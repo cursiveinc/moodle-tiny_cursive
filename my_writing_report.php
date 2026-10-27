@@ -87,13 +87,17 @@ if ($courseid) {
     $context = context_system::instance();
 }
 
-$PAGE->requires->js_call_amd('tiny_cursive/key_logger', 'init', [1]);
 $PAGE->requires->js_call_amd('tiny_cursive/cursive_writing_reports', 'init', ["", constants::has_api_key(),
                 get_config('tiny_cursive', 'json_download')]);
 
 $PAGE->set_context(context_system::instance());
 $PAGE->set_url($url);
-$PAGE->set_title(get_string('tiny_cursive', 'tiny_cursive'));
+// A distinct title per report page (2.4.2).
+$PAGE->set_title(get_string('report_title_user', 'tiny_cursive', [
+    'fullname' => fullname($user),
+    'course'   => $courseid ? format_string(get_course($courseid)->fullname) : get_string('allcourses', 'tiny_cursive'),
+]));
+$PAGE->set_heading(get_string('student_writing_statics', 'tiny_cursive'));
 $PAGE->set_pagelayout('mypublic');
 $PAGE->set_pagetype('cws'); // CWS: Cursive Writing Statistics.
 

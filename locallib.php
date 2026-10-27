@@ -389,19 +389,18 @@ function tiny_cursive_render_download_button($courseid, $moduleid, $userid) {
     ]);
     // Prepare the link text.
     $linktext  = get_string('download_csv', 'tiny_cursive');
+    // Decorative icon: the link text already says "Download".
     $dwnldicon = $OUTPUT->pix_icon(
         'download',
-        get_string('download', 'tiny_cursive'),
+        '',
         'tiny_cursive',
         ['class' => 'tiny_cursive-analytics-bar-icon']
-    );    // Prepare the attributes for the link.
+    );
 
+    // A plain link in the same tab: the file downloads, so there is no new window to warn about.
     $attributes = [
-        'target' => '_blank',
         'id' => 'export',
-        'role' => 'button',
         'class' => 'btn btn-sm btn-primary',
-
     ];
     // Generate the link using html_writer::link.
     return html_writer::link($url, $dwnldicon . $linktext, $attributes);
