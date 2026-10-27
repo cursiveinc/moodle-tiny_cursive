@@ -186,21 +186,139 @@ const formatTime = seconds => {
 const formatTick = (value, axiskey) => (axiskey === 'time' ? formatTime(value) : value);
 
 /**
- * Draws a centred fallback message directly onto the chart canvas.
+ * Shows (or clears) a chart state message in the DOM beside the canvas, so it is
+ * announced by assistive technology and readable at any zoom level (4.1.3).
  *
- * @param {string} text  - Message to display.
- * @param {Chart}  chart - Active Chart.js instance.
+ * @param {HTMLCanvasElement} canvasEl - The chart canvas.
+ * @param {string} text - Message to display; empty clears it.
  */
-const drawMessage = (text, chart) => {
-    const {ctx: canvasCtx, chartArea: {left, right, top, bottom}} = chart;
-    canvasCtx.save();
-    canvasCtx.textAlign = 'center';
-    canvasCtx.textBaseline = 'middle';
-    canvasCtx.font = 'bold 16px "Segoe UI", Arial';
-    canvasCtx.fillStyle = '#666';
-    canvasCtx.fillText(text, (left + right) / 2, (top + bottom) / 2);
-    canvasCtx.restore();
+const setStatusMessage = (canvasEl, text) => {
+    let status = document.getElementById(`${canvasEl.id}-status`);
+    if (!status) {
+        status = document.createElement('p');
+        status.id = `${canvasEl.id}-status`;
+        status.className = 'tiny_cursive-chart-message';
+        status.setAttribute('role', 'status');
+        status.setAttribute('aria-live', 'polite');
+        canvasEl.insertAdjacentElement('afterend', status);
+    }
+    status.textContent = text;
+    status.hidden = !text;
 };
+
+/**
+ * Builds a table of every plotted point: the keyboard-reachable equivalent of the chart (1.1.1, 2.1.1).
+ *
+ * @param {object[]} datasets - Chart.js datasets, one per effort tier.
+ * @param {object} strings - Resolved lang strings.
+ * @returns {HTMLTableElement}
+ */
+const buildDataTable = (datasets, strings) => {
+    const table = document.createElement('table');
+    table.className = 'table table-sm tiny_cursive-chart-table';
+    const caption = table.createCaption();
+    caption.className = 'sr-only visually-hidden';
+    caption.textContent = strings.effortscore;
+
+    const head = table.createTHead().insertRow();
+    const columns = [strings.efforttier, strings.fullname, strings.timespent, strings.effortratio, strings.words, strings.wpm];
+    columns.forEach(text => {
+        const th = document.createElement('th');
+        th.scope = 'col';
+        th.textContent = text;
+        head.appendChild(th);
+    });
+
+    const body = table.createTBody();
+    datasets.forEach(ds => {
+        (ds.data || []).forEach(point => {
+            if (!point || typeof point !== 'object' || Object.keys(point).length === 0) {
+                return;
+            }
+            const row = body.insertRow();
+            const effort = `${Math.round(point.effort * 100 * 100) / 100}%`;
+            [ds.label, point.label, formatTime(point.time), effort, point.words, point.wpm].forEach(value => {
+                row.insertCell().textContent = value ?? '';
+            });
+        });
+    });
+    return table;
+};
+
+/**
+ * Adds a "Show data table" disclosure under the canvas and returns a refresh hook.
+ *
+ * @param {HTMLCanvasElement} canvasEl - The chart canvas.
+ * @param {object} strings - Resolved lang strings.
+ * @returns {{refresh: Function}} Hook that rebuilds the table from the given datasets.
+ */
+const createTableControls = (canvasEl, strings) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'tiny_cursive-chart-table-wrap mt-2';
+
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'btn btn-secondary btn-sm';
+    toggle.id = `${canvasEl.id}-table-toggle`;
+    toggle.textContent = strings.tableshow;
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.setAttribute('aria-controls', `${canvasEl.id}-table`);
+
+    const holder = document.createElement('div');
+    holder.id = `${canvasEl.id}-table`;
+    holder.className = 'table-responsive mt-2';
+    holder.hidden = true;
+
+    toggle.addEventListener('click', () => {
+        const open = holder.hidden;
+        holder.hidden = !open;
+        toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        toggle.textContent = open ? strings.tablehide : strings.tableshow;
+    });
+
+    wrap.append(toggle, holder);
+    canvasEl.parentElement.appendChild(wrap);
+
+    return {
+        refresh: (datasets, hasPoints) => {
+            holder.replaceChildren();
+            wrap.hidden = !hasPoints;
+            if (hasPoints) {
+                holder.appendChild(buildDataTable(datasets, strings));
+            }
+        },
+    };
+};
+
+/**
+ * Picks the state message for a chart that cannot show real data (empty string when it can).
+ *
+ * @param {boolean} apikey - True when a valid API key is configured.
+ * @param {object|Array} data - Parsed dataset or a state object.
+ * @param {boolean} hasPoints - True when at least one point is plotted.
+ * @param {object} strings - Resolved lang strings.
+ * @returns {string}
+ */
+const getStateMessage = (apikey, data, hasPoints, strings) => {
+    if (!apikey) {
+        return strings.freemium;
+    }
+    if (data.state === 'apply_filter') {
+        return strings.applyfilter;
+    }
+    if (data.state === 'no_submission') {
+        return strings.nosubmission;
+    }
+    if (!hasPoints && !data.state) {
+        return strings.nopayload;
+    }
+    return '';
+};
+
+/**
+ * @returns {boolean} True when the viewer asked for reduced motion.
+ */
+const prefersReducedMotion = () => Boolean(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 
 /**
  * Applies mutual-exclusion constraints to the two axis <select> elements.
@@ -281,6 +399,10 @@ export const init = async(hasdata, apikey, caption, xaxis = 'time', yaxis = 'eff
         strTimespent,
         strSubmissionSingular,
         strSubmissionsPlural,
+        strTableShow,
+        strTableHide,
+        strEffortTier,
+        strFullname,
     ] = await getStrings([
         {key: 'apply_filter', component: 'tiny_cursive'},
         {key: 'no_submission', component: 'tiny_cursive'},
@@ -294,6 +416,10 @@ export const init = async(hasdata, apikey, caption, xaxis = 'time', yaxis = 'eff
         {key: 'timespent', component: 'tiny_cursive'},
         {key: 'submission_singular', component: 'tiny_cursive'},
         {key: 'submissions', component: 'tiny_cursive'},
+        {key: 'chart_table_show', component: 'tiny_cursive'},
+        {key: 'chart_table_hide', component: 'tiny_cursive'},
+        {key: 'effort_tier', component: 'tiny_cursive'},
+        {key: 'fullname', component: 'tiny_cursive'},
     ]);
 
     const strings = {
@@ -310,6 +436,10 @@ export const init = async(hasdata, apikey, caption, xaxis = 'time', yaxis = 'eff
         // eslint-disable-next-line camelcase
         submission_singular: strSubmissionSingular,
         submissions:         strSubmissionsPlural,
+        tableshow:    strTableShow,
+        tablehide:    strTableHide,
+        efforttier:   strEffortTier,
+        fullname:     strFullname,
     };
 
     // -----------------------------------------------------------------------
@@ -360,34 +490,8 @@ export const init = async(hasdata, apikey, caption, xaxis = 'time', yaxis = 'eff
     // clip:false is set inside remapDatasets so it also applies on initial render.
     remapDatasets(datasets, xaxis, yaxis);
 
-    // -----------------------------------------------------------------------
-    // Fallback message plugin
-    // -----------------------------------------------------------------------
-    const fallbackMessagePlugin = {
-        id: 'fallbackMessagePlugin',
-        /**
-         * Draws a message when the chart cannot display real data.
-         *
-         * @param {Chart} chart - The Chart.js instance.
-         */
-        afterDraw(chart) {
-            if (!apikey) {
-                drawMessage('⚠ ' + strings.freemium, chart);
-                return;
-            }
-            if (data.state === 'apply_filter') {
-                drawMessage('⚠ ' + strings.applyfilter, chart);
-                return;
-            }
-            if (data.state === 'no_submission') {
-                drawMessage('⚠ ' + strings.nosubmission, chart);
-                return;
-            }
-            if (!hasPoints && !data.state) {
-                drawMessage('⚠ ' + strings.nopayload, chart);
-            }
-        },
-    };
+    // State messages live in the DOM beside the canvas, so they are announced and readable (4.1.3).
+    setStatusMessage(canvasEl, getStateMessage(apikey, data, hasPoints, strings));
 
     // -----------------------------------------------------------------------
     // Build the Chart.js instance
@@ -396,6 +500,7 @@ export const init = async(hasdata, apikey, caption, xaxis = 'time', yaxis = 'eff
         type: 'scatter',
         data: {datasets},
         options: {
+            animation: prefersReducedMotion() ? false : {},
             plugins: {
                 title: {
                     display: showTitle,
@@ -410,7 +515,7 @@ export const init = async(hasdata, apikey, caption, xaxis = 'time', yaxis = 'eff
                     // effort-tier labels are not shown against an empty chart.
                     display:  hasPoints,
                     position: 'bottom',
-                    labels:   {usePointStyle: true, pointStyle: 'circle', padding: 20},
+                    labels:   {usePointStyle: true, padding: 20},
                 },
                 tooltip: {
                     backgroundColor: 'rgba(252,252,252,0.8)',
@@ -484,8 +589,14 @@ export const init = async(hasdata, apikey, caption, xaxis = 'time', yaxis = 'eff
                 right: 10,
             },
         },
-        plugins: [fallbackMessagePlugin],
     });
+
+    // Name the canvas for assistive technology and offer the same data as a table (1.1.1, 2.1.1).
+    const chartName = () => chart.options.plugins.title.text || caption || '';
+    canvasEl.setAttribute('role', 'img');
+    canvasEl.setAttribute('aria-label', chartName());
+    const tableControls = createTableControls(canvasEl, strings);
+    tableControls.refresh(datasets, hasPoints);
 
     // -----------------------------------------------------------------------
     // Axis Submit handler — updates chart without page reload
@@ -516,6 +627,7 @@ export const init = async(hasdata, apikey, caption, xaxis = 'time', yaxis = 'eff
             chart.options.plugins.title.text = buildChartTitle(caption, newX, newY, chart.data.datasets, strings);
 
             chart.update();
+            canvasEl.setAttribute('aria-label', chartName());
 
             // Persist the new preference for the next page load.
             saveAxisPref(newX, newY);

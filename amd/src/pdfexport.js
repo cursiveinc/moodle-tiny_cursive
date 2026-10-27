@@ -70,10 +70,18 @@ export const init = (data) => {
                    return str;
                 });
 
-               return setTimeout(() => {
-                    document.getElementById('pdfexportLoader').remove();
-                    window.history.back();
-                }, 4000);
+                document.querySelector('#pdfexportLoader .icon')?.remove();
+                // eslint-disable-next-line promise/no-nesting
+                return str.get_string('back_to_report', 'tiny_cursive').then(text => {
+                    const back = document.createElement('button');
+                    back.type = 'button';
+                    back.className = 'btn btn-primary mt-3';
+                    back.textContent = text;
+                    back.addEventListener('click', () => window.history.back());
+                    document.getElementById('pdfexportLoader')?.appendChild(back);
+                    back.focus();
+                    return text;
+                });
 
             });
 

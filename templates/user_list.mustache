@@ -17,7 +17,7 @@
 {{!
     @template tiny_cursive/user_list
 
-    Template to display a dropdown list of users for the tiny_cursive plugin.
+    Options for the users filter select of the tiny_cursive report (rendered into the page's own labelled select).
 
     Example context (json):
     {
@@ -32,9 +32,8 @@
     }
 }}
 
-<select>
     <option value="">{{#str}}selectuser, tiny_cursive{{/str}}</option>
     {{#tabledata.userlist}}
         <option class="user_class" value="{{id}}">{{name}}</option>
     {{/tabledata.userlist}}
-</select>
+</select>
