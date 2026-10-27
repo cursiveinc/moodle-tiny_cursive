@@ -31,9 +31,10 @@ define(["core/ajax", "core/str"], function(AJAX, str) {
         });
     },
     getToken: function() {
-      const approveTokenBtn = document.getElementById("approve_token");
+      const approveTokenBtn = document.getElementById("tiny_cursive_approve_token");
       if (approveTokenBtn) {
-        approveTokenBtn.addEventListener("click", function() {
+        approveTokenBtn.addEventListener("click", function(e) {
+          e.preventDefault();
           const tokenInput = document.getElementById("id_s_tiny_cursive_secretkey");
           var token = tokenInput ? tokenInput.value : "";
           var promise1 = AJAX.call([
@@ -58,7 +59,7 @@ define(["core/ajax", "core/str"], function(AJAX, str) {
                 data.message +
                 "</span>";
             }
-            const tokenMessage = document.getElementById("token_message");
+            const tokenMessage = document.getElementById("cursive_token_message");
             if (tokenMessage) {
               tokenMessage.innerHTML = messageAlert;
             }

@@ -159,10 +159,11 @@ export default class AnalyticEvents {
 
     analytics(userid, templates, context, questionid = '', replayInstances = null, authIcon) {
         document.body.addEventListener('click', function(e) {
-            if (e.target && e.target.id === 'analytic' + userid + questionid) {
+            const target = e.target instanceof Element ? e.target.closest('#analytic' + userid + questionid) : null;
+            if (target) {
                 e.preventDefault();
 
-                if (e.target.disabled) {
+                if (target.disabled) {
                     return;
                 }
 
@@ -201,7 +202,7 @@ export default class AnalyticEvents {
                 }
 
                 document.querySelectorAll('.tiny_cursive-nav-tab .active').forEach(el => el.classList.remove('active'));
-                e.target.classList.add('active');
+                target.classList.add('active');
 
                 getGuidanceState().then(function(state) {
                     context.canviewguidance = state.canviewguidance;
@@ -241,10 +242,11 @@ export default class AnalyticEvents {
         }).catch(error => window.console.log(error));
 
         document.body.addEventListener('click', function(e) {
-            if (e.target && e.target.id === 'diff' + userid + questionid) {
+            const target = e.target instanceof Element ? e.target.closest('#diff' + userid + questionid) : null;
+            if (target) {
                 e.preventDefault();
 
-                if (e.target.disabled) {
+                if (target.disabled) {
                     return;
                 }
 
@@ -282,7 +284,7 @@ export default class AnalyticEvents {
 
                 // Update active tab
                 document.querySelectorAll('.tiny_cursive-nav-tab .active').forEach(el => el.classList.remove('active'));
-                e.target.classList.add('active');
+                target.classList.add('active');
 
                 // Stop replay if applicable
                 if (replayInstances && replayInstances[userid]) {
@@ -529,7 +531,8 @@ export default class AnalyticEvents {
 
     replyWriting(userid, filepath, questionid = '', replayInstances = null) {
         document.body.addEventListener('click', function(e) {
-            if (e.target && e.target.id === 'rep' + userid + questionid) {
+            const target = e.target instanceof Element ? e.target.closest('#rep' + userid + questionid) : null;
+            if (target) {
                 e.preventDefault();
 
                 const replyBtn = document.getElementById('rep' + userid + questionid);
@@ -572,7 +575,7 @@ export default class AnalyticEvents {
                 document
                     .querySelectorAll('.tiny_cursive-nav-tab .active')
                     .forEach(el => el.classList.remove('active'));
-                e.target.classList.add('active');
+                target.classList.add('active');
 
                 if (replayInstances && replayInstances[userid]) {
                     replayInstances[userid].stopReplay();
