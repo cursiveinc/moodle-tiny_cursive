@@ -61,6 +61,9 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics,
     let shouldBlockPaste = false;
     let isPasteAllowed = false;
     let pendingPasteContent = null;
+    // Set when a cite-source dialog was dismissed, so the next Redo (which re-applies the paste)
+    // asks for the citation again. Ordinary redo is left alone.
+    let redoNeedsCite = false;
 
     if (ur.includes('pdfannotator')) {
         document.addEventListener('click', e => {
@@ -86,12 +89,12 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics,
                     localStorage.removeItem(filename);
                 }
                 setTimeout(() => {
-                    Autosave.updateSavingState('saved');
+                    Autosave.updateSavingState('saved', editorid);
                 }, 1000);
             }
             return response;
         } catch (error) {
-            Autosave.updateSavingState('offline');
+            Autosave.updateSavingState('offline', editorid);
             window.console.error('Error in postOne:', error);
             throw error;
         }
@@ -157,9 +160,12 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics,
         ]).then(function([title, titledes, placeholder]) {
             // eslint-disable-next-line promise/no-nesting
             return SaveCancelModal.create({
-                title: `<div><div class="tiny-cursive-title-text">${title}</div>
-                <span class="tiny-cursive-title-description ">${titledes}</span></div>`,
-                body: `<textarea  class="form-control inputUrl" value="" id="inputUrl" placeholder="${placeholder}"></textarea>`,
+                title: title,
+                body: `<p id="inputUrl_desc" class="tiny-cursive-title-description">${titledes}</p>
+                <label for="inputUrl" class="sr-only visually-hidden">${title}</label>
+                <textarea class="form-control inputUrl" id="inputUrl" rows="3" placeholder="${placeholder}"
+                    aria-describedby="inputUrl_desc"></textarea>
+                <div id="inputUrl_error" class="invalid-feedback d-none" role="alert"></div>`,
                 removeOnClose: true,
                 show: true,
             })
@@ -167,15 +173,29 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics,
                     modal.getRoot().addClass('tiny-cursive-modal');
                     var lastEvent = '';
 
-                    modal.getRoot().on(save, function() {
+                    modal.getRoot().on(save, function(saveEvent) {
+                        const field = document.getElementById("inputUrl");
+                        var number = field.value.trim();
 
-                        var number = document.getElementById("inputUrl").value.trim();
+                        if (number === "") {
+                            // Keep the dialog (and the paste) and explain inline instead of undoing.
+                            saveEvent.preventDefault();
+                            const errorEl = document.getElementById('inputUrl_error');
+                            field.classList.add('is-invalid');
+                            field.setAttribute('aria-invalid', 'true');
+                            field.setAttribute('aria-describedby', 'inputUrl_desc inputUrl_error');
+                            // eslint-disable-next-line promise/no-nesting
+                            getString('pastewarning', 'tiny_cursive').then(str => {
+                                errorEl.textContent = str;
+                                errorEl.classList.remove('d-none');
+                                errorEl.classList.add('d-block');
+                                return str;
+                            }).catch(error => window.console.error(error));
+                            field.focus();
+                            return;
+                        }
 
-                        if (number === "" || number === null || number === undefined) {
-                            editor.execCommand('Undo');
-                            // eslint-disable-next-line
-                            getString('pastewarning', 'tiny_cursive').then(str => alert(str));
-                        } else {
+                        {
                             if (pendingPasteContent) {
                                 editor.execCommand('Undo');
                                 editor.execCommand('mceInsertContent', false, {
@@ -212,11 +232,13 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics,
                     modal.getRoot().on(cancel, function() {
                         editor.execCommand('Undo');
                         lastEvent = 'cancel';
+                        redoNeedsCite = true;
                     });
 
                     modal.getRoot().on(hidden, function() {
                         if (lastEvent != 'cancel' && lastEvent != 'save') {
                             editor.execCommand('Undo');
+                            redoNeedsCite = true;
                         }
                     });
                     return modal;
@@ -352,7 +374,9 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics,
     });
     editor.on('Redo', async(e) => {
         customTooltip();
-        if (!canBypassPaste && intervention) {
+        // Only a redo that re-applies a paste whose citation was dismissed needs the dialog.
+        if (!canBypassPaste && intervention && redoNeedsCite) {
+            redoNeedsCite = false;
             getModal(e);
         }
     });
@@ -399,6 +423,10 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics,
     editor.on('SetContent', () => {
         customTooltip();
     });
+    // The config call usually resolves after the editor's init event has fired, so build the indicator now.
+    if (editor.initialized) {
+        customTooltip();
+    }
     editor.on('FullscreenStateChanged', (e) => {
         let view = new DocumentView(user, Rubrics, submission, modulename, editor, quizInfo);
         isFullScreen = e.state;
@@ -408,6 +436,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics,
             } else {
                 view.fullPageMode();
             }
+            placeIndicator();
         } catch (error) {
             if (errorAlert) {
                 errorAlert = false;
@@ -467,6 +496,9 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics,
                         srcElement: {baseURI: window.location.href}
                     });
                     editor.undoManager.undo();
+                    getString('paste_blocked', 'tiny_cursive').then(str => {
+                        return editor.windowManager.alert(str);
+                    }).catch(error => window.console.error(error));
                     return;
                 }
 
@@ -713,7 +745,7 @@ function sentMobileInput(key) {
 
         if (!data || data.length === 0 || !navigator.onLine) {
             if (!navigator.onLine) {
-                Autosave.updateSavingState('offline');
+                Autosave.updateSavingState('offline', editorid);
             }
             return;
         } else {
@@ -722,7 +754,7 @@ function sentMobileInput(key) {
                 originalText = getRawText(editor);
             }
             try {
-                Autosave.updateSavingState('saving');
+                Autosave.updateSavingState('saving', editorid);
                 // eslint-disable-next-line
                 return await postOne('tiny_cursive_write_local_to_json', {
                     key: ed.key,
@@ -755,7 +787,8 @@ function sentMobileInput(key) {
     function getRawText(editor) {
         let editorId = editor?.id;
         if (editorId) {
-            let iframe = document.querySelector(`#${editorId}_ifr`);
+            // Quiz editor ids contain colons, which a selector cannot carry unescaped.
+            let iframe = document.getElementById(`${editorId}_ifr`);
             let iframeBody = iframe.contentDocument?.body || iframe.contentWindow?.document?.body;
             return iframeBody?.textContent;
         }
@@ -770,48 +803,57 @@ function sentMobileInput(key) {
      */
     function customTooltip() {
         try {
-            // The indicator only needs to be built once per editor. customTooltip runs on
-            // every keystroke, so bail out if it already exists; otherwise it would be torn
-            // down and rebuilt empty, making the saved icon flicker/disappear while typing.
-            if (document.querySelector('#tiny_cursive_StateIcon0')) {
+            // One indicator per editor, keyed by the editor id so two editors on a page never clash.
+            const safeId = String(editorid || 'editor').replace(/[^a-zA-Z0-9_-]/g, '_');
+            const elementId = `tiny_cursive_StateIcon_${safeId}`;
+            const tooltipId = `tiny_cursive_tooltip_${safeId}`;
+
+            // Bail out once the indicator exists (customTooltip runs on every keystroke); otherwise
+            // it would be torn down and rebuilt empty, making the saved icon flicker while typing.
+            if (document.getElementById(elementId)) {
                 return;
             }
-            const tooltipText = getTooltipText();
-            const menubarDiv = document.querySelectorAll('div[role="menubar"].tox-menubar');
-            let classArray = [];
-
-            if (menubarDiv.length) {
-                menubarDiv.forEach(function(element, index) {
-                    index += 1;
-                    let className = 'cursive-menu-' + index;
-                    element.classList.add(className);
-                    classArray.push(className);
-                });
+            const menubar = editor?.container?.querySelector('div[role="menubar"].tox-menubar');
+            if (!menubar) {
+                return;
             }
+            menubar.classList.add(`cursive-menu-${safeId}`);
+            const tooltipText = getTooltipText();
 
             const cursiveIcon = document.createElement('img');
             cursiveIcon.src = hasApiKey ? iconUrl : iconGrayUrl;
-
+            // Decorative: the surrounding button carries the name.
+            cursiveIcon.alt = '';
             cursiveIcon.setAttribute('class', 'tiny_cursive_StateButton');
             cursiveIcon.style.display = 'inline-block';
 
-            cursiveState(cursiveIcon, menubarDiv, classArray);
+            cursiveState(cursiveIcon, menubar, elementId, tooltipId);
 
-            for (let index in classArray) {
-                const elementId = "tiny_cursive_StateIcon" + index;
-                const tooltipId = `tiny_cursive_tooltip${index}`;
+            tooltipText.then((text) => {
+                return setTooltip(text, document.getElementById(elementId), tooltipId);
+            }).catch(error => window.console.error(error));
 
-                tooltipText.then((text) => {
-                    return setTooltip(text, document.querySelector(`#${elementId}`), tooltipId);
-                }).catch(error => window.console.error(error));
-
-                $(`#${elementId}`).on('mouseenter', function() {
-                    $(this).css('position', 'relative');
+            // The disclosure shows on hover and on keyboard focus, and Escape dismisses it (1.4.13).
+            const disclosure = document.getElementById(elementId);
+            if (disclosure) {
+                const show = () => {
                     $(`#${tooltipId}`).css(tooltipCss);
-                });
-
-                $(`#${elementId}`).on('mouseleave', function() {
+                    disclosure.setAttribute('aria-expanded', 'true');
+                };
+                const hide = () => {
                     $(`#${tooltipId}`).css('display', 'none');
+                    disclosure.setAttribute('aria-expanded', 'false');
+                };
+                disclosure.addEventListener('mouseenter', show);
+                disclosure.addEventListener('mouseleave', hide);
+                disclosure.addEventListener('focus', show);
+                disclosure.addEventListener('blur', hide);
+                disclosure.addEventListener('click', show);
+                disclosure.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        hide();
+                        e.stopPropagation();
+                    }
                 });
             }
         } catch (error) {
@@ -829,99 +871,105 @@ function sentMobileInput(key) {
         const [
             buttonTitle,
             buttonDes,
+            noApiKey,
         ] = await Promise.all([
             getString('cursive:state:active', 'tiny_cursive'),
             getString('cursive:state:active:des', 'tiny_cursive'),
+            getString('cursive:state:noapikey', 'tiny_cursive'),
         ]);
-        return {buttonTitle, buttonDes};
+        return {buttonTitle, buttonDes, noApiKey};
     }
 
     /**
-     * Updates the Cursive icon state and positions it in the menubar
-     * @param {HTMLElement} cursiveIcon - The Cursive icon element to modify
-     * @param {HTMLElement} menubarDiv - The menubar div element
-     * @param {Array} classArray - Array of class names for the menubar div elements
+     * Move this editor's existing indicator to where the current mode shows it: the document-mode
+     * sidebar when fullscreen, otherwise back beside the editor's menubar.
      */
-    function cursiveState(cursiveIcon, menubarDiv, classArray) {
-        if (!menubarDiv) {
+    function placeIndicator() {
+        const safeId = String(editorid || 'editor').replace(/[^a-zA-Z0-9_-]/g, '_');
+        const wrapper = document.getElementById(`tiny_cursive_StateIcon_${safeId}`)?.closest('.tiny_cursive_state_wrapper');
+        if (!wrapper) {
+            // Leaving document mode tears the sidebar (and the indicator in it) down: rebuild it.
+            customTooltip();
+            return;
+        }
+        const fullpage = isFullScreen ? document.querySelector('#tiny_cursive-fullpage-right-wrapper') : null;
+        if (fullpage) {
+            wrapper.style.height = '';
+            wrapper.style.marginTop = '3px';
+            fullpage.prepend(wrapper);
+            return;
+        }
+        const menubar = editor?.container?.querySelector('div[role="menubar"].tox-menubar');
+        if (menubar && wrapper.previousElementSibling !== menubar) {
+            wrapper.style.marginTop = '';
+            if (menubar.offsetHeight > 0) {
+                wrapper.style.height = `${menubar.offsetHeight}px`;
+            }
+            menubar.parentElement?.classList.add('tiny_cursive_has_state');
+            menubar.insertAdjacentElement('afterend', wrapper);
+        }
+    }
+
+    /**
+     * Builds this editor's indicator (capture disclosure + Saved Content control) and places it
+     * beside the menubar, or in the document-mode sidebar when the editor is fullscreen.
+     *
+     * @param {HTMLElement} cursiveIcon - The Cursive icon element to clone into the disclosure
+     * @param {HTMLElement} menubar - This editor's menubar
+     * @param {string} elementId - Id for the disclosure button
+     * @param {string} tooltipId - Id for the tooltip it describes itself with
+     */
+    function cursiveState(cursiveIcon, menubar, elementId, tooltipId) {
+        const rightWrapper = document.createElement('div');
+        // The capture disclosure is a real button: focusable, named, with the tooltip as its description.
+        const imgWrapper = document.createElement('button');
+        const iconClone = cursiveIcon.cloneNode(true);
+
+        rightWrapper.className = 'tiny_cursive_state_wrapper';
+        rightWrapper.style.cssText = `
+                    margin-inline-start: auto;
+                    display: flex;
+                    align-items: center;
+                `;
+
+        imgWrapper.type = 'button';
+        imgWrapper.id = elementId;
+        imgWrapper.className = 'tiny_cursive_StateButtonWrap';
+        imgWrapper.setAttribute('aria-describedby', tooltipId);
+        imgWrapper.setAttribute('aria-expanded', 'false');
+        imgWrapper.appendChild(iconClone);
+        rightWrapper.appendChild(imgWrapper);
+
+        const moduleIds = {
+            resourceId: resourceId,
+            cmid: cmid,
+            modulename: modulename,
+            questionid: questionid,
+            userid: userid,
+            courseid: courseid};
+
+        const fullpage = isFullScreen ? document.querySelector('#tiny_cursive-fullpage-right-wrapper') : null;
+        if (fullpage) {
+            // Document mode: the indicator lives in the sidebar, not the editor header.
+            editor.container?.querySelector('.tiny_cursive_state_wrapper')?.remove();
+            if (!document.getElementById(elementId)) {
+                rightWrapper.style.marginTop = '3px';
+                fullpage.prepend(rightWrapper);
+            }
+            Autosave.getInstance(editor, rightWrapper, moduleIds, isFullScreen);
             return;
         }
 
-        for (let index in classArray) {
-            const rightWrapper = document.createElement('div');
-            const imgWrapper = document.createElement('span');
-            const iconClone = cursiveIcon.cloneNode(true);
-            const targetMenu = document.querySelector('.' + classArray[index]);
-            let elementId = "tiny_cursive_StateIcon" + index;
-
-            rightWrapper.style.cssText = `
-                        margin-left: auto;
-                        display: flex;
-                        align-items: center;
-                    `;
-
-            imgWrapper.id = elementId;
-            imgWrapper.style.marginLeft = '.2rem';
-            imgWrapper.appendChild(iconClone);
-            rightWrapper.appendChild(imgWrapper);
-
-            let moduleIds = {
-                resourceId: resourceId,
-                cmid: cmid,
-                modulename: modulename,
-                questionid: questionid,
-                userid: userid,
-                courseid: courseid};
-            // Document mode, other modules single editor instances
-            if (isFullScreen && ['assign', 'forum', 'lesson', 'workshop', 'diary'].includes(modulename)) {
-                let existsElement = document.querySelector('.tox-menubar[class*="cursive-menu-"] > div');
-                if (existsElement) {
-                    existsElement.remove();
-                }
-
-                if (!document.querySelector(`#${elementId}`)) {
-                    rightWrapper.style.marginTop = '3px';
-                    document.querySelector('#tiny_cursive-fullpage-right-wrapper').prepend(rightWrapper);
-                }
-
-                Autosave.destroyInstance();
-                Autosave.getInstance(editor, rightWrapper, moduleIds, isFullScreen);
-            } else if (isFullScreen && modulename === 'quiz') { // Document mode, quiz multiple editor instances
-                let existingElement = editor.container?.childNodes[1]?.childNodes[0]?.childNodes[0]?.childNodes[7];
-                let newHeader = editor.container?.childNodes[0];
-                if (existingElement) {
-                    existingElement.remove();
-                }
-
-                if (newHeader && !newHeader.querySelector(`span[id*=tiny_cursive_StateIcon]`)) {
-                    rightWrapper.style.marginTop = '3px';
-                    document.querySelector('#tiny_cursive-fullpage-right-wrapper').prepend(rightWrapper);
-                }
-                Autosave.destroyInstance();
-                Autosave.getInstance(editor, rightWrapper, moduleIds, isFullScreen);
-            } else { // Regular view
-                let menubar = editor?.container?.children[0]?.childNodes[0]?.childNodes[0];
-                if (!menubar?.matches('div[role="menubar"].tox-menubar')) {
-                    menubar = editor?.container?.querySelector('div[role="menubar"].tox-menubar');
-                }
-
-                if (targetMenu && !targetMenu.querySelector(`#${elementId}`)) {
-                    targetMenu.appendChild(rightWrapper);
-                }
-                // Regular view, multiple editor instances
-                if (modulename === 'quiz' && menubar) {
-                    let wrapper = menubar.querySelector('span[id*="tiny_cursive_StateIcon"]');
-
-                    if (wrapper) {
-                        Autosave.destroyInstance();
-                        Autosave.getInstance(editor, wrapper?.parentElement, moduleIds, isFullScreen);
-                    }
-                } else {
-                    Autosave.destroyInstance();
-                    Autosave.getInstance(editor, rightWrapper, moduleIds, isFullScreen);
-                }
+        // Regular view: beside the menubar, not inside it (a menubar may only own menu items).
+        const header = menubar.parentElement;
+        if (header && !header.querySelector(`#${elementId}`)) {
+            header.classList.add('tiny_cursive_has_state');
+            if (menubar.offsetHeight > 0) {
+                rightWrapper.style.height = `${menubar.offsetHeight}px`;
             }
+            menubar.insertAdjacentElement('afterend', rightWrapper);
         }
+        Autosave.getInstance(editor, rightWrapper, moduleIds, isFullScreen);
     }
 
     /**
@@ -938,6 +986,9 @@ function sentMobileInput(key) {
             return;
         }
         if (cursiveIcon) {
+            // Name the disclosure button; the tooltip body becomes its description via aria-describedby.
+            const name = text.buttonTitle.replace(/[:\s]+$/, '');
+            cursiveIcon.setAttribute('aria-label', hasApiKey ? name : `${name}. ${text.noApiKey}`);
 
             const tooltipSpan = document.createElement('span');
             const description = document.createElement('span');
@@ -946,17 +997,17 @@ function sentMobileInput(key) {
 
             tooltipSpan.style.display = 'none';
             tooltipTitle.textContent = text.buttonTitle;
-            tooltipTitle.style.fontSize = '16px';
-            tooltipTitle.style.fontWeight = 'bold';
             description.textContent = text.buttonDes;
-            description.style.fontSize = '14px';
 
             tooltipSpan.id = tooltipId;
-            tooltipSpan.classList.add(`shadow`);
+            tooltipSpan.setAttribute('role', 'tooltip');
+            tooltipSpan.classList.add(`shadow`, 'tiny_cursive_state_tooltip');
             tooltipSpan.appendChild(tooltipTitle);
             tooltipSpan.appendChild(linebreak);
             tooltipSpan.appendChild(description);
-            cursiveIcon.appendChild(tooltipSpan);
+            // A sibling of the button, not a child: the button's tight line-height would collapse the lines,
+            // and button children are presentational for assistive technology.
+            (cursiveIcon.parentElement || cursiveIcon).appendChild(tooltipSpan);
         }
     }
 

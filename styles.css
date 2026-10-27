@@ -582,12 +582,6 @@ body#page-cws #region-main > div {
     z-index: 2;
 }
 
-.tiny-cursive-title-text {
-    color: #000;
-    font-weight: 500;
-    line-height: 0.5;
-}
-
 .tiny-cursive-title-description {
     color: var(--tiny-cursive-text-muted);
     font-weight: 400;
@@ -700,20 +694,21 @@ body#page-cws #region-main > div {
     top: 0.5%;
 }
 
-/* Styles scoped to tiny_cursive plugin modal */
+/* Styles scoped to tiny_cursive plugin modal (cite-source dialog inside TinyMCE fullscreen). */
 body.tox-fullscreen .tiny-cursive-modal .modal-dialog {
     max-width: 500px;
-    max-height: 300px;
+    max-height: 90vh;
     padding: 1rem;
+}
+
+body.tox-fullscreen .tiny-cursive-modal .modal-dialog .modal-content {
+    max-height: calc(90vh - 2rem);
+    overflow: auto;
 }
 
 body.tox-fullscreen .tiny-cursive-modal .modal-dialog .modal-header {
     height: auto;
     padding: 1rem;
-}
-
-body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
-    display: none;
 }
 
 .tiny_cursive_outputElement {
@@ -1832,24 +1827,95 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     border-bottom: 1px solid #f8f9fa !important;
     cursor: pointer !important;
     transition: background-color 0.2s;
-    overflow-y: auto;
-    scrollbar-width: thin;
-    /* Firefox */
-    scrollbar-color: #bbb #f1f1f1;
-    /* Firefox */
-
-}
-
-.tiny_cursive-saved-item::-webkit-scrollbar {
-    width: 6px;
-}
-
-.tiny_cursive-saved-item::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(180deg, #666, #444);
 }
 
 .tiny_cursive-saved-item:hover {
     background: #f8f9fa;
+}
+
+.tiny_cursive-saved-item:focus-visible,
+.tiny_cursive-saved-dropdown .tiny_cursive-close-btn:focus-visible,
+.tiny_cursive-dropdown-title:focus-visible,
+.tiny_cursive_savingState:focus-visible,
+.tiny_cursive_StateButtonWrap:focus-visible {
+    outline: 2px solid var(--tiny-cursive-action);
+    outline-offset: 2px;
+}
+
+/* The Saved Content control and the capture disclosure sit beside TinyMCE's menubar, not inside it. */
+.tiny_cursive_has_state {
+    position: relative;
+}
+
+/* `.tox` prefix: TinyMCE's skin sets 16px / dark text on every descendant, so these need the higher specificity. */
+.tox .tox-editor-header > .tiny_cursive_state_wrapper {
+    position: absolute;
+    top: 0;
+    inset-inline-end: .75rem;
+    height: 39px; /* TinyMCE menubar row height in Boost; JS overrides with the measured value. */
+    z-index: 2;
+    gap: .5rem;
+}
+
+.tox .tiny_cursive_StateButtonWrap {
+    background: none;
+    border: 0;
+    padding: 0 .2rem;
+    margin-inline-start: .25rem;
+    cursor: pointer;
+    line-height: 0;
+}
+
+.tox .tiny_cursive_savingState_wrapper {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+}
+
+.tox .tiny_cursive_savingState {
+    padding: .25rem .3rem;
+    line-height: 1;
+    min-width: auto;
+}
+
+.tox .tiny_cursive_savingState_text {
+    font-size: .75rem;
+    line-height: 1.2;
+    color: var(--tiny-cursive-text-muted);
+    white-space: nowrap;
+}
+
+/* Capture disclosure tooltip: anchored under the indicator, readable line-height whatever TinyMCE's skin inherits. */
+/* `.tox` variant outranks the skin reset (`.tox :not(svg):not(rect) { position: static }`) inside the editor. */
+.tox .tiny_cursive_state_wrapper,
+.tiny_cursive_state_wrapper {
+    position: relative;
+}
+
+.tiny_cursive_state_wrapper .tiny_cursive_state_tooltip {
+    position: absolute;
+    top: 100%;
+    inset-inline-end: 0;
+    z-index: 10000;
+    width: max-content;
+    min-width: 12.5rem;
+    max-width: 20rem;
+    margin-top: .25rem;
+    padding: .625rem;
+    border: 1px solid #ccc;
+    border-radius: 2px;
+    background-color: #fff;
+    color: var(--tiny-cursive-text-dark);
+    font-size: .875rem;
+    line-height: 1.4;
+    text-align: start;
+    white-space: normal;
+    pointer-events: none;
+}
+
+.tiny_cursive_state_wrapper .tiny_cursive_state_tooltip strong {
+    font-size: 1rem;
+    font-weight: 700;
 }
 
 .tiny_cursive-saved-item:last-child {
@@ -1862,8 +1928,12 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .close {
     margin-bottom: 4px;
 }
 
+/* Long drafts are clamped instead of scrolling inside the button (a button cannot be scrolled by keyboard). */
 .tiny_cursive-item-preview {
-    display: block;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+    overflow: hidden;
     font-size: 12px !important;
     line-height: 1.4 !important;
     overflow-wrap: anywhere;

@@ -24,158 +24,207 @@
 import templates from 'core/templates';
 import {call} from 'core/ajax';
 import Icons from 'tiny_cursive/svg_repo';
-import {get_string as getString} from 'core/str';
+import {get_string as getString, get_strings as getStrings} from 'core/str';
 
 export default class CursiveAutosave {
 
-    static instance = null;
+    /** @type {Map<string, CursiveAutosave>} One instance per editor on the page, keyed by editor id. */
+    static instances = new Map();
 
+    /** @type {Object<string, string>} Translated labels shared by every instance on the page. */
+    static strings = {};
+
+    /**
+     * Fallbacks used until the strings have loaded (and if loading fails).
+     *
+     * @type {Object<string, string>}
+     */
+    static defaults = {
+        savedcontent: 'Saved content',
+        nosavedcontent: 'No saved content yet',
+        'autosave_saving': 'Saving…',
+        'autosave_saved': 'Saved',
+        'autosave_offline': 'Offline. Changes will be saved when you reconnect.',
+    };
 
     constructor(editor, rightWrapper, modules, isFullScreen) {
-        if (CursiveAutosave.instance) {
-            return CursiveAutosave.instance;
-        }
-
         this.editor = editor;
         this.module = modules;
         this.savingState = '';
         this.rightWrapper = rightWrapper;
         this.isFullScreen = isFullScreen;
+        this.ids = CursiveAutosave.elementIds(editor, modules);
         // Bind methods that will be used as event listener
         this.fetchSavedContent = this.fetchSavedContent.bind(this);
         this.handleEscapeKey = this.handleEscapeKey.bind(this);
         this.handleDocumentClick = this.handleDocumentClick.bind(this);
         this.repositionSavedDropdown = this.repositionSavedDropdown.bind(this);
         this._savingTimer = null;
-        CursiveAutosave.instance = this;
+        CursiveAutosave.instances.set(CursiveAutosave.keyFor(editor), this);
         this.fetchStrings();
     }
 
+    /**
+     * Map key for an editor.
+     *
+     * @param {Object|string} editor TinyMCE editor or its id.
+     * @returns {string}
+     */
+    static keyFor(editor) {
+        return String((editor && editor.id) || editor || 'editor');
+    }
+
+    /**
+     * Element ids for one editor, so two Cursive editors on a page never share an id.
+     *
+     * @param {Object} editor TinyMCE editor.
+     * @param {Object} modules Module ids (modulename, questionid, ...).
+     * @returns {{button: string, icon: string, text: string, dropdown: string}}
+     */
+    static elementIds(editor, modules) {
+        const raw = modules?.modulename === 'quiz' && modules.questionid
+            ? `q${modules.questionid}`
+            : (editor?.id || 'editor');
+        const suffix = String(raw).replace(/[^a-zA-Z0-9_-]/g, '_');
+        return {
+            button: `tiny_cursive_savingState_${suffix}`,
+            icon: `CursiveCloudIcon_${suffix}`,
+            text: `CursiveStateText_${suffix}`,
+            dropdown: `tiny_cursive_savedDropdown_${suffix}`,
+        };
+    }
+
+    /**
+     * Get (or create) the instance for an editor and make sure its control is in the given wrapper.
+     *
+     * @param {Object} editor TinyMCE editor.
+     * @param {HTMLElement} rightWrapper Container the control is prepended to.
+     * @param {Object} modules Module ids.
+     * @param {boolean} isFullScreen Document mode flag.
+     * @returns {CursiveAutosave}
+     */
     static getInstance(editor, rightWrapper, modules, isFullScreen) {
-        if (!this.instance) {
-            this.instance = new CursiveAutosave(editor, rightWrapper, modules, isFullScreen);
+        let instance = this.instances.get(this.keyFor(editor));
+        if (!instance) {
+            instance = new CursiveAutosave(editor, rightWrapper, modules, isFullScreen);
         }
-        this.instance.isFullScreen = isFullScreen;
-        const hasState = modules.modulename === 'quiz'
-            ? document.querySelector(`#tiny_cursive_savingState${modules.questionid}`)
-            : document.querySelector('#tiny_cursive_savingState');
-        if (!hasState) {
-            this.instance.init();
+        instance.isFullScreen = isFullScreen;
+        instance.rightWrapper = rightWrapper;
+        if (!document.getElementById(instance.ids.button)) {
+            instance.init();
         }
 
-        return this.instance;
+        return instance;
     }
 
     init() {
         const stateWrapper = this.cursiveSavingState(this.savingState);
-        stateWrapper.classList.add('tiny_cursive_savingState', 'btn');
-        if (this.module.modulename === 'quiz') {
-            stateWrapper.id = `tiny_cursive_savingState${this.module.questionid}`;
-        } else {
-            stateWrapper.id = 'tiny_cursive_savingState';
-        }
-
         this.rightWrapper.prepend(stateWrapper);
-        stateWrapper.addEventListener('click', this.fetchSavedContent);
+        stateWrapper.querySelector('button').addEventListener('click', this.fetchSavedContent);
     }
 
     destroy() {
-        this.closeSavedDropdown();
-        const el = this.module?.modulename === 'quiz'
-            ? document.querySelector(`#tiny_cursive_savingState${this.module.questionid}`)
-            : document.querySelector('#tiny_cursive_savingState');
-        el?.remove();
-        CursiveAutosave.instance = null;
-    }
-
-    static destroyInstance() {
-        if (this.instance) {
-            this.instance.destroy();
-            this.instance = null;
-        }
+        this.closeSavedDropdown(false);
+        document.getElementById(this.ids.button)?.closest('.tiny_cursive_savingState_wrapper')?.remove();
+        CursiveAutosave.instances.delete(CursiveAutosave.keyFor(this.editor));
     }
 
     /**
-     * Creates a wrapper div containing an icon and text to display the saving state
+     * Destroy one editor's instance, or every instance when no editor is given.
+     *
+     * @param {Object|string} [editor] TinyMCE editor or its id.
+     */
+    static destroyInstance(editor) {
+        if (editor) {
+            this.instances.get(this.keyFor(editor))?.destroy();
+            return;
+        }
+        Array.from(this.instances.values()).forEach(instance => instance.destroy());
+    }
+
+    /**
+     * Translated label with a fallback.
+     *
+     * @param {string} key String key.
+     * @returns {string}
+     */
+    str(key) {
+        return CursiveAutosave.strings[key] || CursiveAutosave.defaults[key] || key;
+    }
+
+    /**
+     * Builds the Saved Content control: a named button (icon only) and, beside it, a status
+     * region that announces Saving / Saved / Offline without being part of the button's name.
+     *
      * @param {string} state - The current saving state ('saving', 'saved', or 'offline')
-     * @returns {HTMLElement} A div element containing the state icon and text
-     * @description Creates and returns a div element with an icon and text span to show the current saving state.
-     * The icon and text are updated based on the provided state parameter.
+     * @returns {HTMLElement} Wrapper containing the button and the status text
      */
     cursiveSavingState(state) {
-        let wrapperDiv = document.createElement('div');
-        let textSpan = document.createElement('span');
-        let button = document.createElement('button');
-        let iconSpan = document.createElement('span');
+        const wrapper = document.createElement('span');
+        wrapper.className = 'tiny_cursive_savingState_wrapper';
 
-        button.style.padding = '.3rem';
-        textSpan.style.fontSize = '0.75rem';
-        textSpan.style.color = '#595959';
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.id = this.ids.button;
+        button.classList.add('tiny_cursive_savingState', 'btn');
+        button.setAttribute('aria-haspopup', 'dialog');
+        button.setAttribute('aria-expanded', 'false');
+        button.setAttribute('aria-controls', this.ids.dropdown);
+        button.setAttribute('aria-label', this.str('savedcontent'));
+        button.title = this.str('savedcontent');
 
-        if (this.module.modulename === 'quiz') {
-            iconSpan.id = `CursiveCloudIcon${this.module.questionid}`;
-            textSpan.id = `CursiveStateText${this.module.questionid}`;
-        } else {
-            iconSpan.id = 'CursiveCloudIcon';
-            textSpan.id = 'CursiveStateText';
-        }
+        const iconSpan = document.createElement('span');
+        iconSpan.id = this.ids.icon;
+        iconSpan.setAttribute('aria-hidden', 'true');
+        button.appendChild(iconSpan);
+
+        const textSpan = document.createElement('span');
+        textSpan.id = this.ids.text;
+        textSpan.className = 'tiny_cursive_savingState_text';
+        textSpan.setAttribute('role', 'status');
+        textSpan.setAttribute('aria-live', 'polite');
+
+        // The cloud is always drawn, so the Saved Content button is visible before the first save too.
+        iconSpan.innerHTML = this.getStateIcon(state || 'saved');
         if (state) {
             textSpan.textContent = this.getStateText(state);
-            iconSpan.innerHTML = this.getStateIcon(state);
         }
 
-        wrapperDiv.style.verticalAlign = 'middle';
+        wrapper.appendChild(button);
+        wrapper.appendChild(textSpan);
 
-        wrapperDiv.appendChild(iconSpan);
-        wrapperDiv.appendChild(textSpan);
-        button.appendChild(wrapperDiv);
-
-        return button;
+        return wrapper;
     }
 
     /**
-     * Updates the saving state icon and text in the editor
+     * Updates the saving state icon and text of one editor's indicator.
+     *
      * @param {string} state - The state to update to ('saving', 'saved', or 'offline')
-     * @description Updates the global saving state and modifies the UI elements to reflect the new state
+     * @param {Object|string} [editor] - TinyMCE editor or its id; defaults to the first instance.
      */
-    static updateSavingState(state) {
-        const instance = this.instance;
+    static updateSavingState(state, editor) {
+        const instance = editor
+            ? this.instances.get(this.keyFor(editor))
+            : this.instances.values().next().value;
         if (!instance) {
             return;
         }
         instance.savingState = state;
-        let stateWrapper = null;
-        if (instance.module.modulename === 'quiz') {
-            stateWrapper = document.querySelector(`#tiny_cursive_savingState${instance.module.questionid}`);
-        } else {
-            stateWrapper = document.querySelector('#tiny_cursive_savingState');
-        }
 
-        let iconSpan = '';
-        let stateTextEl = '';
-
-        if (!stateWrapper) {
-            return;
-        }
-
-        if (instance.module.modulename === 'quiz') {
-            iconSpan = stateWrapper.querySelector(`#CursiveCloudIcon${instance.module.questionid}`);
-            stateTextEl = stateWrapper.querySelector(`#CursiveStateText${instance.module.questionid}`);
-        } else {
-            iconSpan = stateWrapper.querySelector('#CursiveCloudIcon');
-            stateTextEl = stateWrapper.querySelector('#CursiveStateText');
-        }
+        const iconSpan = document.getElementById(instance.ids.icon);
+        const stateTextEl = document.getElementById(instance.ids.text);
 
         if (stateTextEl && iconSpan) {
             stateTextEl.textContent = instance.getStateText(state);
+            stateTextEl.dataset.state = state;
             iconSpan.innerHTML = instance.getStateIcon(state);
         }
-
 
         if (instance._savingTimer) {
             clearTimeout(instance._savingTimer);
         }
 
+        // "Saved" fades after a while; "Offline" stays until the next save attempt replaces it.
         if (state === 'saved' && stateTextEl) {
             instance._savingTimer = setTimeout(() => {
                 stateTextEl.textContent = '';
@@ -187,26 +236,24 @@ export default class CursiveAutosave {
      * Gets the display text for a given saving state
      * @param {string} state - The state to get text for ('saving', 'saved', or 'offline')
      * @returns {string} The text to display for the given state
-     * @description Returns appropriate text label based on the current saving state
      */
     getStateText(state) {
-        const [saving, saved, offline] = this.getText('state');
         switch (state) {
-            case 'saving': return saving;
-            case 'saved': return saved;
-            case 'offline': return offline;
+            case 'saving': return this.str('autosave_saving');
+            case 'saved': return this.str('autosave_saved');
+            case 'offline': return this.str('autosave_offline');
             default: return '';
         }
     }
+
     /**
-     * Gets the icon URL for a given saving state
+     * Gets the icon markup for a given saving state (each state has its own shape, not just a colour)
      * @param {string} state - The state to get icon for ('saving', 'saved', or 'offline')
-     * @returns {string} The URL of the icon image for the given state
-     * @description Returns appropriate icon URL based on the current saving state
+     * @returns {string} Inline SVG for the state
      */
     getStateIcon(state) {
         switch (state) {
-            case 'saving': return Icons.cloudSave;
+            case 'saving': return Icons.saving;
             case 'saved': return Icons.cloudSave;
             case 'offline': return Icons.offline;
             default: return '';
@@ -219,20 +266,19 @@ export default class CursiveAutosave {
      * @param {Event} e - The event object
      * @description Handles fetching and displaying saved content when the save state button is clicked.
      * If the dropdown is already visible, it will be closed. Otherwise it will fetch saved content
-     * from the server (or use cached content if available) and display it in a dropdown panel.
-     * @throws {Error} Logs error to console if fetching content fails
+     * from the server and display it in a panel.
      */
     async fetchSavedContent(e) {
         e.preventDefault();
 
-        let dropdown = document.querySelector('#savedDropdown');
-        let isVisible = dropdown?.classList?.contains('show');
+        const dropdown = document.getElementById(this.ids.dropdown);
+        const isVisible = dropdown?.classList?.contains('show');
 
         if (isVisible) {
-            this.closeSavedDropdown();
+            this.closeSavedDropdown(true);
             return;
         }
-        const editorWrapper = e.currentTarget;
+        const trigger = e.currentTarget;
 
         let args = {
             id: this.module.resourceId,
@@ -247,11 +293,14 @@ export default class CursiveAutosave {
             methodname: "tiny_cursive_get_autosave_content",
             args: args
         }])[0].done((data) => {
-            let context = {comments: JSON.parse(data)};
-            Object.values(context.comments).forEach(content => {
-                content.time = this.timeAgo(content.timemodified);
+            const comments = Object.values(JSON.parse(data) || {});
+            comments.forEach(content => {
+                const formatted = this.formatTime(content.timemodified);
+                content.time = formatted.relative;
+                content.absolutetime = formatted.absolute;
+                content.isotime = formatted.iso;
             });
-            this.renderCommentList(context, editorWrapper);
+            this.renderCommentList({comments, hascomments: comments.length > 0}, trigger);
 
         }).fail((error) => {
             this.throwWarning('fullmodeerrorr', this.editor);
@@ -261,31 +310,28 @@ export default class CursiveAutosave {
 
     /**
      * Toggles the visibility of the saved content dropdown
-     * @description Checks if the saved content dropdown is currently visible and either closes or opens it accordingly.
-     * If visible, calls closeSavedDropdown(). If hidden, calls openSavedDropdown().
      */
     toggleSavedDropdown() {
-        const dropdown = document.querySelector('#savedDropdown');
+        const dropdown = document.getElementById(this.ids.dropdown);
         const isVisible = dropdown?.classList?.contains('show');
 
         if (isVisible) {
-            this.closeSavedDropdown();
+            this.closeSavedDropdown(true);
         } else {
             this.openSavedDropdown();
         }
     }
 
     /**
-     * Opens the saved content dropdown panel
-     * @description Shows the saved content dropdown by adding the 'show' class and sets up an event listener
-     * for the Escape key to allow closing the dropdown. This  is called when toggling the dropdown open.
+     * Opens the saved content panel, marks the trigger expanded and moves focus to its heading.
      */
     openSavedDropdown() {
-        const dropdown = document.querySelector('#savedDropdown');
+        const dropdown = document.getElementById(this.ids.dropdown);
         if (!dropdown) {
             return;
         }
         dropdown.classList.add('show');
+        this.savedDropdownAnchor?.setAttribute('aria-expanded', 'true');
 
         // Add event listeners for keyboard, outside-click, and viewport changes.
         document.removeEventListener('keydown', this.handleEscapeKey);
@@ -294,23 +340,35 @@ export default class CursiveAutosave {
         document.addEventListener('click', this.handleDocumentClick);
         window.addEventListener('resize', this.repositionSavedDropdown);
         window.addEventListener('scroll', this.repositionSavedDropdown, true);
+
+        const heading = dropdown.querySelector('.tiny_cursive-dropdown-title');
+        if (heading) {
+            heading.focus();
+        }
     }
 
     /**
-     * Closes the saved content dropdown panel
-     * @description Removes the 'show' class from the dropdown to hide it, removes the dropdown element from the DOM,
-     * and removes the Escape key event listener. This  is called when toggling the dropdown closed or when
-     * clicking outside the dropdown.
+     * Closes the saved content panel and removes it from the DOM.
+     *
+     * @param {boolean} restoreFocus Move focus back to the control that opened the panel.
      */
-    closeSavedDropdown() {
-        const dropdown = document.querySelector('#savedDropdown');
+    closeSavedDropdown(restoreFocus = true) {
+        const dropdown = document.getElementById(this.ids.dropdown);
         if (dropdown) {
+            const hadFocus = dropdown.contains(document.activeElement);
             dropdown.classList.remove('show');
             dropdown.remove();
             document.removeEventListener('keydown', this.handleEscapeKey);
             document.removeEventListener('click', this.handleDocumentClick);
             window.removeEventListener('resize', this.repositionSavedDropdown);
             window.removeEventListener('scroll', this.repositionSavedDropdown, true);
+            const anchor = this.savedDropdownAnchor;
+            if (anchor) {
+                anchor.setAttribute('aria-expanded', 'false');
+                if (restoreFocus && hadFocus && document.contains(anchor)) {
+                    anchor.focus();
+                }
+            }
             this.savedDropdownAnchor = null;
         }
     }
@@ -318,11 +376,10 @@ export default class CursiveAutosave {
     /**
      * Handles the Escape key press event for closing the saved content dropdown
      * @param {KeyboardEvent} event - The keyboard event object
-     * @description Event handler that checks if the Escape key was pressed and closes the saved content dropdown if it was
      */
     handleEscapeKey(event) {
         if (event.key === 'Escape') {
-            this.closeSavedDropdown();
+            this.closeSavedDropdown(true);
         }
     }
 
@@ -332,9 +389,9 @@ export default class CursiveAutosave {
      * @param {MouseEvent} event Click event.
      */
     handleDocumentClick(event) {
-        const dropdown = document.querySelector('#savedDropdown');
+        const dropdown = document.getElementById(this.ids.dropdown);
         if (dropdown && !dropdown.contains(event.target) && !this.savedDropdownAnchor?.contains(event.target)) {
-            this.closeSavedDropdown();
+            this.closeSavedDropdown(false);
         }
     }
 
@@ -342,7 +399,7 @@ export default class CursiveAutosave {
      * Positions the saved-content panel beside its toolbar control without clipping.
      */
     repositionSavedDropdown() {
-        const dropdown = document.querySelector('#savedDropdown');
+        const dropdown = document.getElementById(this.ids.dropdown);
         const anchor = this.savedDropdownAnchor;
         if (!dropdown || !anchor) {
             return;
@@ -369,78 +426,67 @@ export default class CursiveAutosave {
         dropdown.style.top = `${Math.max(edge, top)}px`;
     }
 
-    timeAgo(unixTime) {
-        const seconds = Math.floor(Date.now() / 1000) - unixTime;
-
-        if (seconds < 5) {
-            return "just now";
+    /**
+     * Relative and absolute wording for a draft's save time, in the page language.
+     *
+     * Uses the browser's Intl formatters, so there are no hardcoded English units or plurals.
+     *
+     * @param {number} unixTime Seconds since the epoch.
+     * @returns {{relative: string, absolute: string, iso: string}}
+     */
+    formatTime(unixTime) {
+        const lang = (document.documentElement.lang || 'en').replace('_', '-');
+        const date = new Date(unixTime * 1000);
+        const iso = date.toISOString();
+        let absolute = iso;
+        let relative = '';
+        try {
+            absolute = new Intl.DateTimeFormat(lang, {dateStyle: 'medium', timeStyle: 'short'}).format(date);
+        } catch (e) {
+            absolute = date.toLocaleString();
         }
-        if (seconds < 60) {
-            return `${seconds} sec ago`;
+        try {
+            const rtf = new Intl.RelativeTimeFormat(lang, {numeric: 'auto'});
+            const seconds = Math.round(unixTime - Date.now() / 1000);
+            const units = [
+                ['year', 31536000], ['month', 2592000], ['week', 604800],
+                ['day', 86400], ['hour', 3600], ['minute', 60], ['second', 1],
+            ];
+            const [unit, size] = units.find(([, s]) => Math.abs(seconds) >= s) || ['second', 1];
+            relative = rtf.format(Math.round(seconds / size), unit);
+        } catch (e) {
+            relative = absolute;
         }
-
-        const minutes = Math.floor(seconds / 60);
-        if (minutes < 60) {
-            return `${minutes} min ago`;
-        }
-
-        const hours = Math.floor(minutes / 60);
-        if (hours < 24) {
-            return `${hours} hour${hours > 1 ? "s" : ""} ago`;
-        }
-
-        const days = Math.floor(hours / 24);
-        if (days < 7) {
-            return `${days} day${days > 1 ? "s" : ""} ago`;
-        }
-
-        const weeks = Math.floor(days / 7);
-        if (weeks < 4) {
-            return `${weeks} week${weeks > 1 ? "s" : ""} ago`;
-        }
-
-        const months = Math.floor(days / 30);
-        if (months < 12) {
-            return `${months} month${months > 1 ? "s" : ""} ago`;
-        }
-
-        const years = Math.floor(days / 365);
-        return `${years} year${years > 1 ? "s" : ""} ago`;
+        return {relative, absolute, iso};
     }
 
-
     /**
-     * Renders the saved content dropdown list using a template
-     * @param {Object} context - The context object containing saved comments data to render
-     * @param {HTMLElement} editorWrapper - The wrapper element to attach the dropdown to
-     * @description Renders the saved content dropdown using the tiny_cursive/saved_content template.
-     * Creates and positions the dropdown relative to the editor wrapper element.
-     * Handles toggling visibility and caching of the saved content.
-     * @throws {Error} Logs error to console if template rendering fails
+     * Renders the saved content panel from the template, positions it and moves focus into it.
+     *
+     * @param {Object} context - Template context ({comments, hascomments})
+     * @param {HTMLElement} trigger - The control that opened the panel (focus returns here on close)
      */
-    renderCommentList(context, editorWrapper) {
+    renderCommentList(context, trigger) {
         templates.render('tiny_cursive/saved_content', context).then(html => {
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = html.trim();
-            tempDiv.id = 'savedDropdown';
+            tempDiv.id = this.ids.dropdown;
             tempDiv.classList.add('tiny_cursive-saved-dropdown');
 
-            // Add to DOM if not already added
-            let existingPanel = document.querySelector('#savedDropdown');
-
+            let existingPanel = document.getElementById(this.ids.dropdown);
             if (!existingPanel) {
                 document.body.appendChild(tempDiv);
                 existingPanel = tempDiv;
             }
 
-            this.savedDropdownAnchor = editorWrapper;
+            this.savedDropdownAnchor = trigger;
             this.openSavedDropdown();
             this.repositionSavedDropdown();
 
             existingPanel.querySelector('.tiny_cursive-close-btn')?.addEventListener('click', event => {
                 event.preventDefault();
                 event.stopPropagation();
-                this.closeSavedDropdown();
+                this.closeSavedDropdown(true);
             });
 
             this.insertSavedItems(this.editor, existingPanel);
@@ -450,17 +496,22 @@ export default class CursiveAutosave {
         }).catch(error => window.console.error(error));
     }
 
+    /**
+     * Load the labels once per page through core/str (cached per language by core).
+     */
     fetchStrings() {
-        if (!localStorage.getItem('state')) {
-
-            Promise.all([
-                getString('saving', 'tiny_cursive'),
-                getString('saved', 'tiny_cursive'),
-                getString('offline', 'tiny_cursive')
-            ]).then(function(strings) {
-               return localStorage.setItem('state', JSON.stringify(strings));
-            }).catch(error => window.console.error(error));
-        }
+        const keys = Object.keys(CursiveAutosave.defaults);
+        getStrings(keys.map(key => ({key, component: 'tiny_cursive'}))).then(values => {
+            keys.forEach((key, i) => {
+                CursiveAutosave.strings[key] = values[i];
+            });
+            const button = document.getElementById(this.ids.button);
+            if (button) {
+                button.setAttribute('aria-label', this.str('savedcontent'));
+                button.title = this.str('savedcontent');
+            }
+            return true;
+        }).catch(error => window.console.error(error));
     }
 
     throwWarning(str, editor) {
@@ -469,15 +520,8 @@ export default class CursiveAutosave {
         }).catch(error => window.console.error(error));
     }
 
-    getText(key) {
-        return JSON.parse(localStorage.getItem(key));
-    }
-
     /**
      * Adds click event listeners to saved content items to insert them into the editor
-     * @description Finds all elements with class 'tiny_cursive-item-preview' and adds click handlers that will
-     * insert the element's text content into the editor when clicked. The text is inserted with
-     * a leading space.
      * @param {Object} editor - The TinyMCE editor instance
      * @param {HTMLElement} dropdown - Saved content dropdown element.
      * @returns {void}
@@ -488,7 +532,8 @@ export default class CursiveAutosave {
             element.addEventListener('click', () => {
                 const content = element.querySelector('.tiny_cursive-item-preview')?.textContent ?? '';
                 editor.insertContent(' ' + content);
-                this.closeSavedDropdown();
+                this.closeSavedDropdown(false);
+                editor.focus();
             });
         });
     }
