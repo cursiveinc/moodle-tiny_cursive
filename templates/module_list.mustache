@@ -17,7 +17,8 @@
 {{!
     @template tiny_cursive/module_list
 
-    Options for the modules filter select of the tiny_cursive report (rendered into the page's own labelled select).
+    Option list for the modules filter of the tiny_cursive report. The script copies the options into the
+    page's own labelled select, so this select is only a valid container for rendering.
 
     Example context (json):
     {
@@ -35,8 +36,9 @@
         }
     }
 }}
+<select>
     <option value="">{{#str}}selectmodule, tiny_cursive{{/str}}</option>
     {{#tabledata.userlist}}
         <option class="user_class" value="{{id}}" {{#selected}}selected{{/selected}}>{{name}}</option>
     {{/tabledata.userlist}}
-</select>
+</select>

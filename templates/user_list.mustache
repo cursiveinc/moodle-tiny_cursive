@@ -17,7 +17,8 @@
 {{!
     @template tiny_cursive/user_list
 
-    Options for the users filter select of the tiny_cursive report (rendered into the page's own labelled select).
+    Option list for the users filter of the tiny_cursive report. The script copies the options into the
+    page's own labelled select, so this select is only a valid container for rendering.
 
     Example context (json):
     {
@@ -32,8 +33,9 @@
     }
 }}
 
+<select>
     <option value="">{{#str}}selectuser, tiny_cursive{{/str}}</option>
     {{#tabledata.userlist}}
         <option class="user_class" value="{{id}}">{{name}}</option>
     {{/tabledata.userlist}}
-</select>
+</select>

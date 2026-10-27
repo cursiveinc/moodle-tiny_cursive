@@ -319,9 +319,9 @@ export const init = (page, hasApiKey, csvOption) => {
                 templates
                     .render("tiny_cursive/user_list", context)
                     .then(function(html) {
-
+                        // Only the options move into the page's own labelled select (no nested select).
                         var filteredUser = $("#id_userid");
-                        filteredUser.html(html);
+                        filteredUser.html($("<div>").html(html).find("select").html());
                         return true;
                     });
             });
@@ -345,9 +345,8 @@ export const init = (page, hasApiKey, csvOption) => {
                 templates
                     .render("tiny_cursive/module_list", context)
                     .then(function(html) {
-
                         var filteredUser = $("#id_moduleid");
-                        filteredUser.html(html);
+                        filteredUser.html($("<div>").html(html).find("select").html());
                         return true;
                     });
             });
