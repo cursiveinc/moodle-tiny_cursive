@@ -103,8 +103,23 @@ export default class DashboardChart {
         this.ctx.width = this.ctx.parentElement.offsetWidth;
         this.ctx.height = this.ctx.parentElement.offsetHeight;
 
-        // Empty states are text in the DOM, not paint on the canvas (4.1.3).
-        this.setStatus(this.dataType === 'draw' ? this.strings.freemium : '');
+        // Empty states are text in the DOM, not paint on the canvas (4.1.3). With nothing to plot the canvas
+        // and its (empty) title are hidden, so no nameless image or empty heading is exposed.
+        const title = document.getElementById('CursiveChartTitle');
+        if (this.dataType === 'draw') {
+            this.ctx.hidden = true;
+            if (title) {
+                title.hidden = !title.textContent.trim();
+            }
+            this.setStatus(this.strings.freemium);
+            this.renderTable();
+            return;
+        }
+        this.ctx.hidden = false;
+        if (title) {
+            title.hidden = false;
+        }
+        this.setStatus('');
 
         const hoverSegment = {
             id: 'hoverSegment',
