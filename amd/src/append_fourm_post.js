@@ -104,6 +104,7 @@ define(["core/ajax", "core/str", "core/templates", "./replay", "./analytic_butto
                             formattime: myEvents.formatedTime(data.data),
                             page: scoreSetting,
                             showcomment: showcomment,
+                            userid: ids,
                             apikey: hasApiKey
                         };
 
