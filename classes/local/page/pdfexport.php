@@ -236,7 +236,6 @@ class pdfexport {
                 "legend"     => [
                     "pasted" => (bool) preg_match('/tiny_cursive-pasted[-_]content/', $submitted),
                     "ai"     => (bool) preg_match('/tiny_cursive-ai[-_]/', $submitted),
-                    "edited" => (bool) preg_match('/tiny_cursive(_added|-inserted)/', $submitted),
                 ],
                 "auth_state" => $this->get_auth_state($analytics->score),
             ];

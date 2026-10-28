@@ -40,7 +40,7 @@ Example context (json):
         }
     ],
     "submitted": "Essay content with <span class=\"tiny_cursive-pasted_content\">pasted text</span>",
-    "legend": {"pasted": true, "ai": false, "edited": false},
+    "legend": {"pasted": true, "ai": false},
     "reportdate": "2023-12-01 15:30"
 }
 }}
@@ -151,7 +151,6 @@ Example context (json):
             <span class="tiny_cursive-legend-sample tiny_cursive-attributed">{{#str}}original_text, tiny_cursive{{/str}}</span>
             {{#legend.pasted}}<mark class="tiny_cursive-legend-sample tiny_cursive-pasted_content">{{#str}}replay_legend_pasted, tiny_cursive{{/str}}</mark>{{/legend.pasted}}
             {{#legend.ai}}<ins class="tiny_cursive-legend-sample tiny_cursive-ai_inserted">{{#str}}replay_legend_ai, tiny_cursive{{/str}}</ins>{{/legend.ai}}
-            {{#legend.edited}}<ins class="tiny_cursive-legend-sample tiny_cursive_added">{{#str}}diff_legend_edited, tiny_cursive{{/str}}</ins>{{/legend.edited}}
         </div>
 
         <div class="tiny_cursive-submission-box">

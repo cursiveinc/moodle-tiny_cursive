@@ -283,17 +283,14 @@ export default class AnalyticEvents {
                             {key: 'comments', component: 'tiny_cursive'},
                             {key: 'diff_prefix_pasted', component: 'tiny_cursive'},
                             {key: 'diff_prefix_ai', component: 'tiny_cursive'},
-                            {key: 'diff_prefix_edited', component: 'tiny_cursive'},
-                            {key: 'replay_legend_ai', component: 'tiny_cursive'},
-                            {key: 'diff_legend_edited', component: 'tiny_cursive'}
+                            {key: 'replay_legend_ai', component: 'tiny_cursive'}
                         ]).done(strings => {
                             const originalTextString = strings[0];
                             const pastedLegendString = strings[1];
                             const pasteCountString = strings[2];
                             const commentsString = strings[3];
-                            const prefixes = {pasted: strings[4], ai: strings[5], edited: strings[6]};
-                            const aiLegendString = strings[7];
-                            const editedLegendString = strings[8];
+                            const prefixes = {pasted: strings[4], ai: strings[5]};
+                            const aiLegendString = strings[6];
 
                             const commentBox = $('<div class="p-2 border rounded mb-2">');
                             var pasteCountDiv = $('<div></div>');
@@ -342,9 +339,6 @@ export default class AnalyticEvents {
                             if (used.has('ai')) {
                                 $legend.append(legendItem('ins', 'tiny_cursive-ai_inserted', aiLegendString));
                             }
-                            if (used.has('edited')) {
-                                $legend.append(legendItem('ins', 'tiny_cursive_added', editedLegendString));
-                            }
 
                             let contents = $('<div>').addClass('tiny_cursive-comparison-content');
                             let textBlock2 = $('<div>').addClass('tiny_cursive-text-block').append(reconstructedText);
@@ -378,18 +372,17 @@ export default class AnalyticEvents {
      * while assigning it directly to innerHTML would trust captured content. This
      * method copies text and a small allowlist of presentation elements only.
      *
-     * Pasted text becomes <mark>, AI-inserted and edited text <ins>, each with a visually hidden
+     * Pasted text becomes <mark> and AI-inserted text <ins>, each with a visually hidden
      * prefix, so attribution is conveyed by element and text as well as by colour (1.3.1, 1.4.1).
      *
      * @param {string} content Reconstructed submission content.
-     * @param {{pasted: string, ai: string, edited: string}} prefixes Spoken prefixes per attribution.
-     * @param {Set<string>} used Receives the kinds found ('pasted', 'ai', 'edited'), for the legend.
+     * @param {{pasted: string, ai: string}} prefixes Spoken prefixes per attribution.
+     * @param {Set<string>} used Receives the kinds found ('pasted', 'ai'), for the legend.
      * @returns {DocumentFragment} Sanitised content ready to append to the report.
      */
     renderComparisonContent(content, prefixes = {}, used = new Set()) {
-        // Attribution classes from the API: added / inserted (edits), pasted_content, and any ai_* variant
-        // (ai_inserted, ai_content, ...).
-        const allowedClass = /^tiny_cursive[-_](added|inserted|pasted[-_]content|ai[-_][a-z_-]+)$/;
+        // Attribution classes from the API: pasted_content and any ai_* variant (ai_inserted, ai_content, ...).
+        const allowedClass = /^tiny_cursive-(pasted[-_]content|ai[-_][a-z_-]+)$/;
         const allowedElements = new Set(['BR', 'DIV', 'P']);
         const template = document.createElement('template');
         const fragment = document.createDocumentFragment();
@@ -409,15 +402,9 @@ export default class AnalyticEvents {
                 let destination = target;
                 if (node.tagName === 'SPAN' && classes.length > 0) {
                     const pasted = classes.some(className => /pasted/.test(className));
-                    const ai = classes.some(className => /[-_]ai[-_]/.test(className));
                     destination = document.createElement(pasted ? 'mark' : 'ins');
                     destination.classList.add(...classes);
-                    let kind = 'edited';
-                    if (pasted) {
-                        kind = 'pasted';
-                    } else if (ai) {
-                        kind = 'ai';
-                    }
+                    const kind = pasted ? 'pasted' : 'ai';
                     used.add(kind);
                     const prefix = prefixes[kind];
                     if (prefix) {

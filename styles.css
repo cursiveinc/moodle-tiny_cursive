@@ -449,8 +449,6 @@ body#page-cws #region-main > div {
     transform: translateY(-5px);
 }
 
-.tiny_cursive_added,
-.tiny_cursive-inserted,
 .tiny_cursive-pasted_content,
 .tiny_cursive-ai_inserted,
 .tiny_cursive-ai_content,
@@ -463,13 +461,6 @@ body#page-cws #region-main > div {
 }
 
 /* Attribution is also conveyed by the element (mark / ins) and a distinct underline per kind (1.4.1). */
-.tiny_cursive_added,
-.tiny_cursive-inserted {
-    background-color: #e8f5e8;
-    text-decoration: underline;
-    text-decoration-thickness: 2px;
-}
-
 .tiny_cursive-pasted_content {
     background-color: #fff2cc;
     text-decoration: underline dotted;
@@ -1367,8 +1358,6 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .modal-header {
     vertical-align: middle;
 }
 
-.tiny_cursive-export-pdf .tiny_cursive_added,
-.tiny_cursive-export-pdf .tiny_cursive-inserted,
 .tiny_cursive-export-pdf .tiny_cursive-pasted_content,
 .tiny_cursive-export-pdf .tiny_cursive-ai_inserted,
 .tiny_cursive-export-pdf .tiny_cursive-ai_content,
