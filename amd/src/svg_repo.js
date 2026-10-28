@@ -22,7 +22,8 @@
  */
 
 export default {
-    people: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+    people: `<svg aria-hidden="true" focusable="false"
+        xmlns="http://www.w3.org/2000/svg" width="18" height="18"
                     viewBox="0 0 24 24" fill="none" stroke="currentColor"
                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                     class="me-2 small">
@@ -31,7 +32,8 @@ export default {
                     <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
                     <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                 </svg>`,
-    assignment: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+    assignment: `<svg aria-hidden="true" focusable="false"
+        xmlns="http://www.w3.org/2000/svg" width="18" height="18"
                     viewBox="0 0 24 24" fill="none" stroke="currentColor"
                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                     class="me-2 small">
@@ -39,20 +41,23 @@ export default {
                     <path d="M14 2v4a2 2 0 0 0 2 2h4"></path>
                     <path d="M10 9H8"></path><path d="M16 13H8"></path><path d="M16 17H8"></path>
                 </svg>`,
-    time: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+    time: `<svg aria-hidden="true" focusable="false"
+        xmlns="http://www.w3.org/2000/svg" width="18" height="18"
                     viewBox="0 0 24 24" fill="none" stroke="currentColor"
                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                     class="me-2 small">
                     <circle cx="12" cy="12" r="10"></circle>
                     <polyline points="12 6 12 12 16 14"></polyline>
                 </svg>`,
-    offline: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+    offline: `<svg aria-hidden="true" focusable="false"
+        xmlns="http://www.w3.org/2000/svg" width="18" height="18"
                 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" 
                 stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-cloud-off me-1
                 w-5 h-5 text-gray-600"><path d="m2 2 20 20"></path><path d="M5.782 5.782A7 7 
                 0 0 0 9 19h8.5a4.5 4.5 0 0 0 1.307-.193"></path><path d="M21.532 16.5A4.5 4.5 0
                 0 0 17.5 10h-1.79A7.008 7.008 0 0 0 10 5.07"></path></svg>`,
-    forum: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" 
+    forum: `<svg aria-hidden="true" focusable="false"
+        xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" 
                 preserveAspectRatio="xMinYMid meet"><path fill-rule="evenodd" clip-rule="evenodd" d="M6.49609 2.98999C4.5631
                 2.98999 2.99609 4.55699 2.99609 6.48999V14.5561C2.99609 14.5635 2.99626 14.571 2.99658 14.5784V20.0092C2.99658
                 20.841 3.95298 21.3092 4.60994 20.799L8.21061 18.0027H17.5034C19.4364 18.0027 21.0034 16.4357 21.0034
@@ -67,7 +72,8 @@ export default {
                 12.9905C7.22776 12.9905 7.00391 13.2143 7.00391 13.4905C7.00391 13.7666 7.22776 13.9905 7.50391 
                 13.9905H13.5071C13.7832 13.9905 14.0071 13.7666 14.0071 3.4905C14.0071 13.2143 13.7832 12.9905 
                 13.5071 12.9905H7.50391Z" fill="#212529"/></svg>`,
-    close: `<svg width="16px" height="16px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g 
+    close: `<svg aria-hidden="true" focusable="false"
+        width="16px" height="16px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g 
         id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round">
         </g><g id="SVGRepo_iconCarrier"> <path fill-rule="evenodd" clip-rule="evenodd" d="M5.29289 5.29289C5.68342 4.90237 6.31658 
         4.90237 6.70711 5.29289L12 10.5858L17.2929 5.29289C17.6834 4.90237 18.3166 4.90237 18.7071 5.29289C19.0976 5.68342 19.0976 
@@ -75,12 +81,14 @@ export default {
         19.0976 17.2929 18.7071L12 13.4142L6.70711 18.7071C6.31658 19.0976 5.68342 19.0976 5.29289 18.7071C4.90237 18.3166 4.90237 
         17.6834 5.29289 17.2929L10.5858 12L5.29289 6.70711C4.90237 6.31658 4.90237 5.68342 5.29289 5.29289Z" fill="#0F1729"></path> 
             </g></svg>`,
-    hamburger: `<svg width="22px" height="22px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    hamburger: `<svg aria-hidden="true" focusable="false"
+        width="22px" height="22px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" 
         stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M20 7L4 7" stroke="#1C274C" stroke-width="1.5"
         stroke-linecap="round"></path> <path d="M20 12L4 12" stroke="#1C274C" stroke-width="1.5" stroke-linecap="round">
         </path> <path d="M20 17L4 17" stroke="#1C274C" stroke-width="1.5" stroke-linecap="round"></path> </g></svg>`,
-    quiz: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" 
+    quiz: `<svg aria-hidden="true" focusable="false"
+        xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" 
         preserveAspectRatio="xMinYMid meet"><path fill-rule="evenodd" clip-rule="evenodd" d="M5.49902 4C4.11831 
         4 2.99902 5.11929 2.99902 6.5V17.5C2.99902 18.8807 4.11831 20 5.49902 20H18.5007C19.8814 20 21.0007 18.8807 
         21.0007 17.5V6.5C21.0007 5.11929 19.8814 4 18.5007 4H5.49902ZM3.99902 6.5C3.99902 5.67157 4.6706 5 5.49902 
@@ -103,21 +111,24 @@ export default {
         15.5017C12.501 15.2256 12.2771 15.0017 12.001 15.0017L7.00098 15.0017ZM6.50098 12.0312C6.50098 11.7551 6.72483 
         11.5312 7.00098 11.5312L12.001 11.5313C12.2771 11.5313 12.501 11.7551 12.501 12.0313C12.501 12.3074 12.2771 
         12.5313 12.001 12.5313L7.00098 12.5312C6.72483 12.5312 6.50098 12.3074 6.50098 12.0312Z" fill="#0F1729"/></svg>`,
-    saving: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor"
+    saving: `<svg aria-hidden="true" focusable="false"
+        xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor"
         class="bi bi-arrow-repeat me-1" viewBox="0 0 16 16" aria-hidden="true">
         <path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25
         0 0 1 .192-.41m-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25
         0 0 0 .534 9"/><path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002
         6.002 0 0 1 13.917 7H12.9A5 5 0 0 0 8 3M3.1 9a5 5 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002
         0 0 1 2.083 9z"/></svg>`,
-    cloudSave: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-cloud-check me-1" 
+    cloudSave: `<svg aria-hidden="true" focusable="false"
+        xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-cloud-check me-1" 
         viewBox="0 0 16 16"><path fill-rule="evenodd" d="M10.354 6.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 
         0 1 1 .708-.708L7 8.793l2.646-2.647a.5.5 0 0 1 .708 0"/><path d="M4.406 3.342A5.53 5.53 0 0 1 8 2c2.69 0 4.923 2 5.166 
         4.579C14.758 6.804 16 8.137 16 9.773 16 11.569 14.502 13 12.687 13H3.781C1.708 13 0 11.366 0 9.318c0-1.763 1.266-3.223 
         2.942-3.593.143-.863.698-1.723 1.464-2.383m.653.757c-.757.653-1.153 1.44-1.153 2.056v.448l-.445.049C2.064 6.805 1 7.952 
         1 9.318 1 10.785 2.23 12 3.781 12h8.906C13.98 12 15 10.988 15 9.773c0-1.216-1.02-2.228-2.313-2.228h-.5v-.5C12.188 4.825 
         10.328 3 8 3a4.53 4.53 0 0 0-2.941 1.1z"/></svg>`,
-    lesson: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" 
+    lesson: `<svg aria-hidden="true" focusable="false"
+        width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" 
         preserveAspectRatio="xMinYMid meet"><path fill-rule="evenodd" clip-rule="evenodd" d="M3.99927 5.49438C3.99927 4.66596 
         4.67084 3.99438 5.49927 3.99438H8.50415C9.33258 3.99438 10.0042 4.66596 10.0042 5.49438V6.50087L14.048 6.49259C14.2857 
         5.07478 15.5187 3.99438 17.004 3.99438C18.6595 3.99438 20.0015 5.33638 20.0015 6.99182C20.0015 8.64726 18.6595 9.98926 
@@ -138,7 +149,8 @@ export default {
         15.0066 8.09497 15.0066 6.99182ZM6.99646 15.0007C8.09961 15.0007 8.9939 15.895 8.9939 16.9982C8.9939 18.1013 8.09961 
         18.9956 6.99646 18.9956C5.89331 18.9956 4.99902 18.1013 4.99902 16.9982C4.99902 15.895 5.89331 15.0007 6.99646 
         15.0007Z" fill="#212529"/></svg>`,
-    pdfannotator: `<svg width="24" height="24" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" 
+    pdfannotator: `<svg aria-hidden="true" focusable="false"
+        width="24" height="24" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" 
         xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg" 
         xmlns:svg="http://www.w3.org/2000/svg" id="Ebene_1" data-name="Ebene 1" viewBox="0 0 24 24" version="1.1" 
         sodipodi:docname="pdfannotator_1_24x24.svg" inkscape:version="1.4 (86a8ad7, 2024-10-11)">
@@ -186,7 +198,8 @@ export default {
             z" id="path5"/><path d="m 20.64,18.99 h 2.8 v 0.61 h -2.09 v 1.06 h 1.84 v 0.58 h -1.84 v 1.8 h -0.71 v -4.06 z" 
             id="path6"/></g></g>
         </svg>`,
-    workshop: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" 
+    workshop: `<svg aria-hidden="true" focusable="false"
+        width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" 
         preserveAspectRatio="xMinYMid meet"> <path fill-rule="evenodd" clip-rule="evenodd" d="M8.52074 6.27805C8.7899 6.34886
          8.95162 6.62105 8.88196 6.88599C8.8123 7.15093 8.53763 7.3083 8.26846 7.23749L5.68916 6.55889C5.55914 6.52468 5.44795
          6.44075 5.38033 6.32575C5.31271 6.21076 5.29428 6.07424 5.32912 5.94657L6.02024 3.41401C6.09236 3.14973 6.3685 2.99485

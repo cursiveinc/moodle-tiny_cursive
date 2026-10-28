@@ -107,9 +107,48 @@ export const gate = (editor) => new Promise((resolve, reject) => {
     editor.on('init', () => {
         hideEditor(editor);
         editor.mode.set('readonly');
-        renderGate(entry).catch(reject);
+        renderGate(entry).catch((error) => {
+            releaseUnrecorded(entry);
+            reject(error);
+        });
     });
 });
+
+/**
+ * Hand the editor back without capture and say why, when the notice itself could not be shown.
+ *
+ * @param {Object} entry
+ */
+const releaseUnrecorded = async(entry) => {
+    const message = document.createElement('div');
+    message.className = 'alert alert-warning';
+    message.setAttribute('role', 'alert');
+    message.textContent = await getString('notice_gate_unavailable', 'tiny_cursive');
+    entry.editor.getContainer().insertAdjacentElement('beforebegin', message);
+    if (entry.element) {
+        entry.element.remove();
+        entry.element = null;
+    }
+    showEditor(entry.editor);
+};
+
+/**
+ * Heading level for the gate: one below the nearest heading that precedes the editor, so the
+ * outline neither skips nor inverts under a quiz question or a form section.
+ *
+ * @param {HTMLElement} container
+ * @returns {number}
+ */
+const headingLevelFor = (container) => {
+    let level = 2;
+    document.querySelectorAll('h1, h2, h3, h4, h5, h6, [role="heading"][aria-level]').forEach((heading) => {
+        // eslint-disable-next-line no-bitwise
+        if (heading.compareDocumentPosition(container) & Node.DOCUMENT_POSITION_FOLLOWING) {
+            level = Number(heading.getAttribute('aria-level')) || Number(heading.tagName.slice(1)) || level;
+        }
+    });
+    return Math.min(level + 1, 6);
+};
 
 /**
  * Render the notice panel immediately after the (hidden) editor container.
@@ -124,12 +163,16 @@ const renderGate = async(entry) => {
     // itself would display; it is shown read-only so a draft never looks lost.
     const content = editor.getContent().trim();
 
+    const headinglevel = headingLevelFor(editor.getContainer());
     const {html, js} = await Templates.renderForPromise('tiny_cursive/notice_gate', {
         editorid: editor.id,
         noticetext: editor.options.get(textName),
         noticeversion: editor.options.get(versionName),
         hascontent: content !== '',
         content,
+        headinglevel,
+        subheadinglevel: Math.min(headinglevel + 1, 6),
+        editorprefsurl: `${M.cfg.wwwroot}/user/editor.php`,
     });
 
     const wrapper = document.createElement('div');
@@ -149,14 +192,22 @@ const renderGate = async(entry) => {
  *
  * @param {Object} entry The gate whose button was activated.
  */
-const acknowledge = (entry) => {
+const acknowledge = async(entry) => {
     const button = entry.element.querySelector('[data-action="acknowledge"]');
     const error = entry.element.querySelector('[data-region="error"]');
+    const status = entry.element.querySelector('[data-region="status"]');
     const noticeversion = entry.editor.options.get(versionName);
 
-    button.disabled = true;
-    button.setAttribute('aria-busy', 'true');
+    if (button.getAttribute('aria-disabled') === 'true') {
+        return;
+    }
+    // Using aria-disabled rather than disabled keeps focus on the button while the request runs (2.4.3).
+    button.setAttribute('aria-disabled', 'true');
+    button.classList.add('disabled');
     error.hidden = true;
+    if (status) {
+        status.textContent = await getString('notice_gate_recording', 'tiny_cursive');
+    }
 
     if (!submission) {
         submission = Ajax.call([{
@@ -177,8 +228,11 @@ const acknowledge = (entry) => {
             submission = null;
             error.textContent = exception.message || await getString('notice_error', 'tiny_cursive');
             error.hidden = false;
-            button.disabled = false;
-            button.removeAttribute('aria-busy');
+            if (status) {
+                status.textContent = '';
+            }
+            button.removeAttribute('aria-disabled');
+            button.classList.remove('disabled');
             button.focus();
         });
 };

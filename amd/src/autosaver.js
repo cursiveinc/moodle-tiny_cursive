@@ -25,7 +25,7 @@ import SaveCancelModal from 'core/modal_save_cancel';
 import {get_string as getString} from 'core/str';
 import {save, cancel, hidden} from 'core/modal_events';
 import $ from 'jquery';
-import {iconUrl, iconGrayUrl, tooltipCss} from 'tiny_cursive/common';
+import {iconUrl, iconGrayUrl, tooltipCss, stringCacheKey} from 'tiny_cursive/common';
 import Autosave from 'tiny_cursive/cursive_autosave';
 import DocumentView from 'tiny_cursive/document_view';
 import {call as getUser} from "core/ajax";
@@ -1072,7 +1072,7 @@ function sentMobileInput(key) {
      * Stores the fetched strings in localStorage under 'sbTitle' and 'docSideBar' keys
      */
     function fetchStrings() {
-        if (!localStorage.getItem('sbTitle')) {
+        if (!localStorage.getItem(stringCacheKey('sbTitle'))) {
             Promise.all([
                 getString('assignment', 'tiny_cursive'),
                 getString('discussion', 'tiny_cursive'),
@@ -1080,11 +1080,14 @@ function sentMobileInput(key) {
                 getString('pluginname', 'mod_lesson'),
                 getString('pluginname', 'mod_workshop'),
                 getString('description', 'tiny_cursive'),
+                getString('sbtitle_pdfannotator', 'tiny_cursive'),
+                getString('sbtitle_diary', 'tiny_cursive'),
+                getString('sbtitle_page', 'tiny_cursive'),
             ]).then(function(strings) {
-                return localStorage.setItem('sbTitle', JSON.stringify(strings));
+                return localStorage.setItem(stringCacheKey('sbTitle'), JSON.stringify(strings));
             }).catch(error => window.console.error(error));
         }
-        if (!localStorage.getItem('docSideBar')) {
+        if (!localStorage.getItem(stringCacheKey('docSideBar'))) {
             Promise.all([
                 getString('details', 'tiny_cursive'),
                 getString('student_info', 'tiny_cursive'),
@@ -1113,9 +1116,19 @@ function sentMobileInput(key) {
                 getString('remaining', 'tiny_cursive'),
                 getString('savechanges', 'tiny_cursive'),
                 getString('subjectnot', 'tiny_cursive'),
-                getString('remaining', 'tiny_cursive'),
+                getString('sidebar_close', 'tiny_cursive'),
+                getString('sidebar_open', 'tiny_cursive'),
+                getString('notavailable', 'core'),
+                getString('days', 'core'),
+                getString('hours', 'core'),
+                getString('timeleft_warning', 'tiny_cursive'),
+                getString('timer_hide', 'tiny_cursive'),
+                getString('timer_show', 'tiny_cursive'),
+                getString('rubric_band_low', 'tiny_cursive'),
+                getString('rubric_band_mid', 'tiny_cursive'),
+                getString('rubric_band_high', 'tiny_cursive'),
             ]).then(function(strings) {
-                return localStorage.setItem('docSideBar', JSON.stringify(strings));
+                return localStorage.setItem(stringCacheKey('docSideBar'), JSON.stringify(strings));
             }).catch(error => window.console.error(error));
         }
 

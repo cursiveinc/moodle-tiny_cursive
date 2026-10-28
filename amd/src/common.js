@@ -24,9 +24,20 @@
 export const component = 'tiny_cursive';
 export const pluginName = `${component}/plugin`;
 
+/**
+ * Key in localStorage for a cached string list: per language and versioned, so a language
+ * switch or a new string never reads a stale array.
+ *
+ * @param {string} name - Cache name, e.g. 'sbTitle'.
+ * @returns {string}
+ */
+export const stringCacheKey = (name) => `tiny_cursive_${name}_v2_${document.documentElement.lang || 'en'}`;
+
+// Moodle's AMD build hands importers this object, so every named export must also live here.
 export default {
     component,
     pluginName,
+    stringCacheKey,
     iconUrl: M.util.image_url('cursive', 'tiny_cursive'),
     iconSaving: M.util.image_url('rotate', 'tiny_cursive'),
     iconGrayUrl: M.util.image_url('cursive_gray', 'tiny_cursive'),
