@@ -30,6 +30,11 @@ import Autosave from 'tiny_cursive/cursive_autosave';
 import DocumentView from 'tiny_cursive/document_view';
 import {call as getUser} from "core/ajax";
 
+// Keystroke syncs still running when a quiz page navigation was requested, shared by every
+// editor on the page, and whether that navigation is already queued.
+let quizPendingSyncs = [];
+let quizNavigationQueued = false;
+
 export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics,
     submission, quizInfo, pasteSetting, canBypassPaste, intervention) => {
 
@@ -138,17 +143,34 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics,
         localStorage.removeItem('lastCopyCutContent');
     });
 
-    quizSubmit.on('click', async function(e) {
+    // Core's quiz navigation block (and its "Finish attempt..." link) changes page by setting the
+    // target page and then calling this button's click() method, so this handler runs inside a
+    // programmatic click as well as a real one. A browser ignores a nested click() on the element
+    // whose click is still being dispatched, so the re-click that follows the keystroke sync has
+    // to leave the current dispatch first. One navigation is queued per click however many
+    // editors share the page, and it waits for every editor's sync.
+    quizSubmit.on('click', function(e) {
         e.preventDefault();
         if (filename) {
-            // eslint-disable-next-line
-            syncData().then(() => {
-                quizSubmit.off('click').click();
-            });
-        } else {
-            quizSubmit.off('click').click();
+            quizPendingSyncs.push(syncData().catch((error) => window.console.error(error)));
         }
         localStorage.removeItem('lastCopyCutContent');
+        if (quizNavigationQueued) {
+            return;
+        }
+        quizNavigationQueued = true;
+        // A microtask later every editor's handler for this click has queued its sync.
+        Promise.resolve()
+            .then(() => Promise.all(quizPendingSyncs))
+            .catch((error) => window.console.error('Error syncing before quiz navigation:', error))
+            .then(() => {
+                quizPendingSyncs = [];
+                quizNavigationQueued = false;
+                quizSubmit.off('click');
+                setTimeout(() => quizSubmit.get(0).click(), 0);
+                return null;
+            })
+            .catch((error) => window.console.error(error));
     });
 
     const getModal = () => {
@@ -1037,6 +1059,16 @@ function sentMobileInput(key) {
 
         if (resourceId === null) {
             resourceId = 0;
+        }
+
+        // "Return to attempt" on the quiz summary page posts to a bare attempt.php, so the attempt
+        // id is then only on the form. Without it capture and autosave would be keyed on 0 and
+        // stored under the cmid, where the Saved Content panel never looks.
+        if (!resourceId && ur.includes('quiz')) {
+            const attemptField = document.querySelector('#responseform input[name="attempt"]');
+            if (attemptField?.value) {
+                resourceId = attemptField.value;
+            }
         }
 
         for (const module of MODULES) {
