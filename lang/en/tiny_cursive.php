@@ -211,7 +211,6 @@ $string['notice_enabled'] = 'Require notice acknowledgement';
 $string['notice_enabled_desc'] = 'Users must acknowledge the notice before the Cursive editor loads. There is no decline option: a user who does not acknowledge must pick another text editor in their preferences, so keep at least one other editor enabled. Turning this on mid-term gates every existing user immediately. Consent itself, withdrawals, objections and under-18 questions are handled by your institution, not Cursive. See the <a href="{$a->reporturl}">acknowledgement report</a> for who has and has not acknowledged.';
 $string['notice_error'] = 'Your acknowledgement could not be recorded. Please try again.';
 $string['notice_existingcontent'] = 'Your existing text (read-only until you acknowledge the notice)';
-$string['notice_gate_altedit'] = 'If you do not wish to consent, you can choose a different text editor in your <a href="{$a}">editor preferences</a>.';
 $string['notice_gate_heading'] = 'Notice about data collection';
 $string['notice_gate_recording'] = 'Recording your acknowledgement…';
 $string['notice_gate_unavailable'] = 'The data collection notice could not be displayed, so Cursive is not recording this editor. Reload the page to try again.';

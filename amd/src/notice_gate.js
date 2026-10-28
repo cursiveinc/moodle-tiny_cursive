@@ -172,7 +172,6 @@ const renderGate = async(entry) => {
         content,
         headinglevel,
         subheadinglevel: Math.min(headinglevel + 1, 6),
-        editorprefsurl: `${M.cfg.wwwroot}/user/editor.php`,
     });
 
     const wrapper = document.createElement('div');
