@@ -450,6 +450,7 @@ body#page-cws #region-main > div {
 }
 
 .tiny_cursive-pasted_content,
+.tiny_cursive-inserted,
 .tiny_cursive-ai_inserted,
 .tiny_cursive-ai_content,
 .tiny_cursive-ai-content {
@@ -467,6 +468,8 @@ body#page-cws #region-main > div {
     text-decoration-thickness: 2px;
 }
 
+/* The API marks AI-placed text as tiny_cursive-inserted; the ai_* names are kept for older payloads. */
+.tiny_cursive-inserted,
 .tiny_cursive-ai_inserted,
 .tiny_cursive-ai_content,
 .tiny_cursive-ai-content {
@@ -1359,6 +1362,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .modal-header {
 }
 
 .tiny_cursive-export-pdf .tiny_cursive-pasted_content,
+.tiny_cursive-export-pdf .tiny_cursive-inserted,
 .tiny_cursive-export-pdf .tiny_cursive-ai_inserted,
 .tiny_cursive-export-pdf .tiny_cursive-ai_content,
 .tiny_cursive-export-pdf .tiny_cursive-ai-content {

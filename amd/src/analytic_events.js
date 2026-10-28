@@ -337,7 +337,7 @@ export default class AnalyticEvents {
                                 $legend.append(legendItem('mark', 'tiny_cursive-pasted_content', pastedLegendString));
                             }
                             if (used.has('ai')) {
-                                $legend.append(legendItem('ins', 'tiny_cursive-ai_inserted', aiLegendString));
+                                $legend.append(legendItem('ins', 'tiny_cursive-inserted', aiLegendString));
                             }
 
                             let contents = $('<div>').addClass('tiny_cursive-comparison-content');
@@ -381,8 +381,8 @@ export default class AnalyticEvents {
      * @returns {DocumentFragment} Sanitised content ready to append to the report.
      */
     renderComparisonContent(content, prefixes = {}, used = new Set()) {
-        // Attribution classes from the API: pasted_content and any ai_* variant (ai_inserted, ai_content, ...).
-        const allowedClass = /^tiny_cursive-(pasted[-_]content|ai[-_][a-z_-]+)$/;
+        // Attribution classes from the API: pasted_content, inserted (AI) and any older ai_* variant.
+        const allowedClass = /^tiny_cursive-(pasted[-_]content|inserted|ai[-_][a-z_-]+)$/;
         const allowedElements = new Set(['BR', 'DIV', 'P']);
         const template = document.createElement('template');
         const fragment = document.createDocumentFragment();
