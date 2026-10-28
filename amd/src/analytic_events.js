@@ -378,12 +378,9 @@ export default class AnalyticEvents {
      * @returns {DocumentFragment} Sanitised content ready to append to the report.
      */
     renderComparisonContent(content, prefixes = {}) {
-        const allowedClasses = new Set([
-            'tiny_cursive_added',
-            'tiny_cursive-inserted',
-            'tiny_cursive-pasted_content',
-            'tiny_cursive-ai_inserted',
-        ]);
+        // Attribution classes from the API: added / inserted (edits), pasted_content, and any ai_* variant
+        // (ai_inserted, ai_content, ...).
+        const allowedClass = /^tiny_cursive[-_](added|inserted|pasted[-_]content|ai[-_][a-z_-]+)$/;
         const allowedElements = new Set(['BR', 'DIV', 'P']);
         const template = document.createElement('template');
         const fragment = document.createDocumentFragment();
@@ -399,11 +396,11 @@ export default class AnalyticEvents {
                     return;
                 }
 
-                const classes = Array.from(node.classList).filter(className => allowedClasses.has(className));
+                const classes = Array.from(node.classList).filter(className => allowedClass.test(className));
                 let destination = target;
                 if (node.tagName === 'SPAN' && classes.length > 0) {
-                    const pasted = classes.includes('tiny_cursive-pasted_content');
-                    const ai = classes.includes('tiny_cursive-ai_inserted');
+                    const pasted = classes.some(className => /pasted/.test(className));
+                    const ai = classes.some(className => /[-_]ai[-_]/.test(className));
                     destination = document.createElement(pasted ? 'mark' : 'ins');
                     destination.classList.add(...classes);
                     let prefix = prefixes.edited;

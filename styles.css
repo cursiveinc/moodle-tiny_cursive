@@ -452,7 +452,9 @@ body#page-cws #region-main > div {
 .tiny_cursive_added,
 .tiny_cursive-inserted,
 .tiny_cursive-pasted_content,
-.tiny_cursive-ai_inserted {
+.tiny_cursive-ai_inserted,
+.tiny_cursive-ai_content,
+.tiny_cursive-ai-content {
     color: rgb(0, 41, 0);
     font-weight: bold;
     padding: 2px 4px;
@@ -474,7 +476,9 @@ body#page-cws #region-main > div {
     text-decoration-thickness: 2px;
 }
 
-.tiny_cursive-ai_inserted {
+.tiny_cursive-ai_inserted,
+.tiny_cursive-ai_content,
+.tiny_cursive-ai-content {
     background-color: #fff2cc;
     text-decoration: underline dashed;
     text-decoration-thickness: 2px;
@@ -1366,7 +1370,9 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .modal-header {
 .tiny_cursive-export-pdf .tiny_cursive_added,
 .tiny_cursive-export-pdf .tiny_cursive-inserted,
 .tiny_cursive-export-pdf .tiny_cursive-pasted_content,
-.tiny_cursive-export-pdf .tiny_cursive-ai_inserted {
+.tiny_cursive-export-pdf .tiny_cursive-ai_inserted,
+.tiny_cursive-export-pdf .tiny_cursive-ai_content,
+.tiny_cursive-export-pdf .tiny_cursive-ai-content {
     background-color: transparent;
     color: var(--tiny-cursive-warning-text);
     font-weight: bold;
