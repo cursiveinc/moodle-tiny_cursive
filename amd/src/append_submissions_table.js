@@ -90,13 +90,21 @@ define([
                         hTr.children[3].insertAdjacentElement('afterend', th);
                     }
 
-                    const rows = document.querySelectorAll('table#submissions tbody tr, tbody tr');
+                    let table = document.querySelector('table#submissions') || document.querySelector('.generaltable');
+                    const rows = table ? table.querySelectorAll('tbody tr') : document.querySelectorAll('tbody tr');
                     rows.forEach(function(tr) {
                         let tdUser = tr.querySelector("td");
                         if (!tdUser) {
                             return;
                         }
-                        let userid = tdUser.querySelector("input[type='checkbox']")?.value;
+                        let userLink = tr.querySelector('td.username a')?.href;
+                        let userid = tdUser.querySelector("input[type='checkbox']")?.value
+                            || tr.className.match(/\buser(\d+)\b/)?.[1]
+                            || (userLink ? new URL(userLink, window.location.origin).searchParams.get('id') : null);
+                        if (!userid) {
+                            return;
+                        }
+
                         let cmid = parm.searchParams.get('id');
 
                         let args = {id: userid, modulename: "assign", cmid: cmid};
@@ -107,15 +115,20 @@ define([
                             com[0].done(function(json) {
                                 var data = JSON.parse(json);
                                 var filepath = '';
-                                if (data.res.filename) {
+                                if (data.res && data.res.filename) {
                                     filepath = data.res.filename;
                                 }
 
+                                if (tr.querySelector('#analytics' + userid)) {
+                                    return;
+                                }
+
                                 const tableCell = document.createElement('td');
+                                tableCell.className = "cell c4";
                                 if (!hasApiKey) {
-                                    tableCell.innerHTML = replayButton(userid).outerHTML;
+                                    tableCell.appendChild(replayButton(userid));
                                 } else {
-                                    tableCell.appendChild(analyticButton(data.res.effort_ratio, userid));
+                                    tableCell.appendChild(analyticButton(data.res?.effort_ratio, userid));
                                 }
                                 if (tr.children[3]) {
                                     tr.children[3].insertAdjacentElement('afterend', tableCell);
@@ -131,14 +144,15 @@ define([
                                     formattime: myEvents.formatedTime(data.res),
                                     page: scoreSetting,
                                     name: textContent,
+                                    userid: userid,
                                     apikey: hasApiKey
                                 };
 
                                 let authIcon = myEvents.authorshipStatus(data.res?.user_agent,
-                                    data.res.first_file, data.res.score, scoreSetting);
+                                    data.res?.first_file, data.res?.score, scoreSetting);
                                 myEvents.createModal(userid, context, '', replayInstances, authIcon);
                                 myEvents.analytics(userid, templates, context, '', replayInstances, authIcon);
-                                myEvents.checkDiff(userid, data.res.file_id, '', replayInstances, filepath);
+                                myEvents.checkDiff(userid, data.res?.file_id, '', replayInstances, filepath);
                                 myEvents.replyWriting(userid, filepath, '', replayInstances);
                             });
                         } catch (e) {

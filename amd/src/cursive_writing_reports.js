@@ -292,6 +292,20 @@ export const init = (page, hasApiKey, csvOption) => {
     }
 
     /**
+     * Returns only the option markup from a rendered select template, so it can be
+     * dropped into the page's existing select without nesting a second one.
+     *
+     * @param {string} html - Rendered template markup containing a select element
+     * @returns {string} The inner HTML of the first select, or the input when none is found
+     */
+    function extractOptions(html) {
+        const parsed = document.createElement('div');
+        parsed.innerHTML = html;
+        const rendered = parsed.querySelector('select');
+        return rendered ? rendered.innerHTML : html;
+    }
+
+    /**
      * Handles user selection and populates user and module lists based on course selection.
      *
      * @param {string} page - The current page identifier used for context in templates
@@ -319,9 +333,10 @@ export const init = (page, hasApiKey, csvOption) => {
                     templates
                         .render("tiny_cursive/user_list", context)
                         .then(function(html) {
-                            const filteredUser = document.getElementById("id_username");
+                            // Only the options move into the page's own labelled select (no nested select).
+                            const filteredUser = document.getElementById("id_userid");
                             if (filteredUser) {
-                                filteredUser.innerHTML = html;
+                                filteredUser.innerHTML = extractOptions(html);
                             }
                             return true;
                         }).catch(e => window.console.error(e));
@@ -347,7 +362,7 @@ export const init = (page, hasApiKey, csvOption) => {
                         .then(function(html) {
                             const filteredModule = document.getElementById("id_moduleid");
                             if (filteredModule) {
-                                filteredModule.innerHTML = html;
+                                filteredModule.innerHTML = extractOptions(html);
                             }
                             return true;
                         }).catch(e => window.console.error(e));

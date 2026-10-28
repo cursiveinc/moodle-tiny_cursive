@@ -311,7 +311,7 @@
             let cmid = "{{tabledata.cmid}}" ?? 0;
 
             AJAX.call([{
-                    methodname: "cursive_resubmit_payload_data",
+                    methodname: "tiny_cursive_resubmit_payload_data",
                      // eslint-disable-next-line camelcase
                     args: {file_id: fileid, cmid: cmid}
                 }])[0].done((data) => {

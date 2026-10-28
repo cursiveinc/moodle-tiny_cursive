@@ -920,6 +920,22 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics,
             return;
         }
 
+        // This runs on every keystroke, but the icon wrapper is only inserted into the page
+        // once. Later calls must hand the autosave control the wrapper that is actually in
+        // the document, otherwise the "saved content" button is rebuilt inside a detached
+        // element and disappears.
+        const liveWrapper = (elementId, fallback) => document.querySelector(`#${elementId}`)?.parentElement || fallback;
+        const ensureAutosave = (wrapper, moduleIds) => {
+            const stateId = moduleIds.modulename === 'quiz'
+                ? `tiny_cursive_savingState${moduleIds.questionid}`
+                : 'tiny_cursive_savingState';
+            if (!wrapper || wrapper.querySelector(`#${stateId}`)) {
+                return;
+            }
+            Autosave.destroyInstance();
+            Autosave.getInstance(editor, wrapper, moduleIds, isFullScreen);
+        };
+
         for (let index in classArray) {
             const rightWrapper = document.createElement('div');
             const imgWrapper = document.createElement('span');
@@ -959,8 +975,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics,
                     document.querySelector('#tiny_cursive-fullpage-right-wrapper').prepend(rightWrapper);
                 }
 
-                Autosave.destroyInstance();
-                Autosave.getInstance(editor, rightWrapper, moduleIds, isFullScreen);
+                ensureAutosave(liveWrapper(elementId, rightWrapper), moduleIds);
             } else if (isFullScreen && modulename === 'quiz') { // Document mode, quiz multiple editor instances
                 let existingElement = editor.container?.childNodes[1]?.childNodes[0]?.childNodes[0]?.childNodes[7];
                 let newHeader = editor.container?.childNodes[0];
@@ -972,8 +987,7 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics,
                     rightWrapper.style.marginTop = '3px';
                     document.querySelector('#tiny_cursive-fullpage-right-wrapper').prepend(rightWrapper);
                 }
-                Autosave.destroyInstance();
-                Autosave.getInstance(editor, rightWrapper, moduleIds, isFullScreen);
+                ensureAutosave(liveWrapper(elementId, rightWrapper), moduleIds);
             } else { // Regular view
                 let menubar = editor?.container?.children[0]?.childNodes[0]?.childNodes[0];
                 if (!menubar?.matches('div[role="menubar"].tox-menubar')) {
@@ -987,12 +1001,10 @@ export const register = (editor, interval, userId, hasApiKey, MODULES, Rubrics,
                 if (modulename === 'quiz' && menubar) {
                     let wrapper = menubar.querySelector('span[id*="tiny_cursive_StateIcon"]');
                     if (wrapper) {
-                        Autosave.destroyInstance();
-                        Autosave.getInstance(editor, wrapper?.parentElement, moduleIds, isFullScreen);
+                        ensureAutosave(wrapper.parentElement, moduleIds);
                     }
                 } else {
-                    Autosave.destroyInstance();
-                    Autosave.getInstance(editor, rightWrapper, moduleIds, isFullScreen);
+                    ensureAutosave(liveWrapper(elementId, rightWrapper), moduleIds);
                 }
             }
         }

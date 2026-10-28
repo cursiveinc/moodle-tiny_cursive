@@ -113,7 +113,8 @@ export const workshopView = (scoreSetting, hasApiKey, userid) => {
         submissionId = new URL(submissionId, window.location.origin).searchParams.get('cmid');
     }
 
-    const args = {resourceid: submissionId, userid: userid, modulename: "workshop", cmid: cmid};
+    // Cursive files for a workshop are keyed on the cmid; fall back to it when the page has no submission link yet.
+    const args = {resourceid: submissionId || cmid, userid: userid, modulename: "workshop", cmid: cmid};
     const studentData = getStudentData('tiny_cursive_get_workshop_submission', args);
     const target = document.querySelector('div[role="main"]');
     setStudentView(studentData, hasApiKey, userid, scoreSetting, target, "", "workshop");
