@@ -2059,7 +2059,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .modal-header {
 }
 
 .tiny_cursive-status-green {
-    color: green !important;
+    color: var(--tiny-cursive-success) !important;
 }
 
 /* 🌟 TINY_CURSIVE WORD COUNTER */
@@ -2128,7 +2128,8 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .modal-header {
     color: white;
 }
 
-.tiny_cursive-modal-header-custom h1 {
+.tiny_cursive-modal-header-custom .tiny_cursive-learnmore-heading {
+    color: #fff;
     font-size: 24px;
     font-weight: 600;
     margin-bottom: 6px;
@@ -2156,8 +2157,8 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .modal-header {
     position: relative;
 }
 
-.tiny_cursive-pricing-card.premium::before {
-    content: "MOST POPULAR";
+/* A real, translated badge element (was CSS content). */
+.tiny_cursive-pricing-badge {
     position: absolute;
     top: -12px;
     right: 20px;
@@ -2480,4 +2481,39 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .modal-header {
 .tiny_cursive-analytics-placeholder:focus-visible {
     outline: 2px solid var(--tiny-cursive-action);
     outline-offset: 2px;
+}
+
+/* Full-page mode sidebar controls are real buttons: reset the UA look, keep a visible focus ring. */
+#cursive-fullpagemode-sidebar-toggle {
+    border: 0;
+}
+
+#cursive-fullpagemode-sidebar-toggle:focus-visible,
+#cursive-collapse-sidebar:focus-visible,
+.tiny_cursive-timer-toggle:focus-visible {
+    outline: 2px solid var(--tiny-cursive-action);
+    outline-offset: 2px;
+}
+
+/* Collapsed sidebar: nothing inside it is reachable or visible. */
+#cursive-fullpagemode-sidebar[inert] {
+    visibility: hidden;
+}
+
+.tiny_cursive-rubric-band {
+    font-weight: 600;
+}
+
+.tiny_cursive-timer-toggle {
+    font-size: 12px;
+    vertical-align: baseline;
+}
+
+/* Sidebar card headings keep 4.5:1 on the tinted card backgrounds. */
+.tiny_cursive-fullpage-card-header.text-info {
+    color: var(--tiny-cursive-action) !important;
+}
+
+.tiny_cursive-fullpage-card-header.text-success {
+    color: var(--tiny-cursive-success) !important;
 }

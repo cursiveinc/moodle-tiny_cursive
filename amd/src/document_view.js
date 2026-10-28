@@ -22,6 +22,7 @@
  */
 
 import Icons from 'tiny_cursive/svg_repo';
+import {stringCacheKey} from 'tiny_cursive/common';
 export default class DocumentView {
 
     constructor(User, Rubrics, submission, modulename, editor, quizInfo) {
@@ -107,21 +108,38 @@ export default class DocumentView {
             overflow: 'auto'
         });
 
-        const crossBtn = this.create('span');
+        const crossBtn = this.create('button');
         Object.assign(crossBtn, {
             id: 'cursive-collapse-sidebar',
+            type: 'button',
             className: 'btn p-2',
             innerHTML: Icons.close
         });
+        crossBtn.setAttribute('aria-label', this.sidebarClose);
+        crossBtn.setAttribute('aria-controls', 'cursive-fullpagemode-sidebar');
+        crossBtn.setAttribute('aria-expanded', 'true');
 
+        // Collapsed: zero width, out of the Tab order (inert) and hidden from assistive technology.
         crossBtn.addEventListener('click', () => {
             container.style.transition = 'width 0.3s ease';
             container.style.width = '0';
-            toggle.style.display = 'flex';
+            container.inert = true;
+            container.setAttribute('aria-hidden', 'true');
+            crossBtn.setAttribute('aria-expanded', 'false');
+            if (toggle) {
+                toggle.style.display = 'flex';
+                toggle.setAttribute('aria-expanded', 'false');
+                toggle.focus();
+            }
         });
         toggle?.addEventListener('click', function() {
             toggle.style.display = 'none';
+            toggle.setAttribute('aria-expanded', 'true');
             container.style.width = '300px';
+            container.inert = false;
+            container.removeAttribute('aria-hidden');
+            crossBtn.setAttribute('aria-expanded', 'true');
+            crossBtn.focus();
         });
 
         const btnWrapper = this.create('div');
@@ -141,7 +159,9 @@ export default class DocumentView {
             top: '0'
         });
 
-        const headerTitle = this.create('h3');
+        // Heading levels follow the host page so the outline neither skips nor inverts (1.3.1).
+        this.levels = this.headingLevels();
+        const headerTitle = this.create(`h${this.levels.title}`);
         headerTitle.className = 'mb-3 d-flex align-items-center';
         headerTitle.textContent = `${headerInfo.title} ${this.details}`;
         headerTitle.style.fontWeight = '600';
@@ -356,7 +376,7 @@ export default class DocumentView {
         const box = this.create('div');
         box.className = `tiny_cursive-fullpage-card ${bg}`;
 
-        const heading = this.create('h4');
+        const heading = this.create(`h${this.levels?.card || 4}`);
         heading.className = `tiny_cursive-fullpage-card-header ${titleColor} d-flex align-items-center`;
         heading.innerHTML = `${icon} ${title}`;
 
@@ -375,7 +395,7 @@ export default class DocumentView {
             const rubricDiv = this.create('div');
             rubricDiv.className = 'tiny_cursive-rubric-card';
 
-            const title = this.create('h3');
+            const title = this.create(`h${this.levels?.rubric || 5}`);
             title.className = 'tiny_cursive-rubric-title';
             title.textContent = rubric.description;
             rubricDiv.appendChild(title);
@@ -384,16 +404,22 @@ export default class DocumentView {
                 const levelDiv = this.create('div');
                 const score = Number(level.score);
 
-                // Assign background color class based on score
+                // Band by score: a colour class plus a text label (1.4.1).
+                let band = 'high';
+                let bandText = this.bandHigh;
                 if (score === 0) {
-                    levelDiv.className = 'tiny_cursive-rubric-level tiny_cursive-rubric-low';
+                    band = 'low';
+                    bandText = this.bandLow;
                 } else if (score <= 2) {
-                    levelDiv.className = 'tiny_cursive-rubric-level tiny_cursive-rubric-mid';
-                } else {
-                    levelDiv.className = 'tiny_cursive-rubric-level tiny_cursive-rubric-high';
+                    band = 'mid';
+                    bandText = this.bandMid;
                 }
+                levelDiv.className = `tiny_cursive-rubric-level tiny_cursive-rubric-${band}`;
 
-                levelDiv.textContent = `${level.definition} / ${level.score}`;
+                const bandLabel = this.create('span');
+                bandLabel.className = 'tiny_cursive-rubric-band';
+                bandLabel.textContent = `${bandText}: `;
+                levelDiv.append(bandLabel, `${level.definition} / ${level.score}`);
                 rubricDiv.appendChild(levelDiv);
             });
 
@@ -430,7 +456,7 @@ export default class DocumentView {
             const date = new Date(submission.current.timemodified * 1000);
             modifiedValue.textContent = this.formatDate(date);
         } else {
-            modifiedValue.textContent = 'N/A';
+            modifiedValue.textContent = this.notAvailable;
         }
         modifiedWrapper.append(modifiedName, modifiedValue);
 
@@ -520,14 +546,41 @@ export default class DocumentView {
 
         label.textContent = `${this.timeleft}:`;
         value.textContent = '00:00:00';
+        value.id = `tiny_cursive-timer-${this.editor?.id || 'editor'}`;
+        value.setAttribute('role', 'timer');
         value.className = warningDiv ? 'text-danger' : 'text-primary';
         Object.assign(value.style, {
             fontWeight: '600',
             fontSize: '14px'
         });
 
+        if (warningDiv) {
+            // The warning state is said in words as well as shown in red (1.4.1).
+            const warning = this.create('span');
+            warning.className = 'text-danger d-block';
+            warning.textContent = this.timeleftWarning;
+            labelDiv.append(warning);
+        }
 
-        timerCount.append(labelDiv, value);
+        // The countdown can be hidden and shown from the keyboard (2.2.1 / NFR-A11Y-12).
+        const hideBtn = this.create('button');
+        hideBtn.type = 'button';
+        hideBtn.className = 'btn btn-link btn-sm p-0 ms-2 tiny_cursive-timer-toggle';
+        hideBtn.textContent = this.timerHide;
+        hideBtn.setAttribute('aria-expanded', 'true');
+        hideBtn.setAttribute('aria-controls', value.id);
+        hideBtn.addEventListener('click', () => {
+            const shown = value.hidden;
+            value.hidden = !shown;
+            hideBtn.textContent = shown ? this.timerHide : this.timerShow;
+            hideBtn.setAttribute('aria-expanded', shown ? 'true' : 'false');
+        });
+
+        const valueWrap = this.create('span');
+        valueWrap.className = 'd-flex align-items-center';
+        valueWrap.append(value, hideBtn);
+
+        timerCount.append(labelDiv, valueWrap);
         timerCount.style.fontSize = '12px';
         if (timer) {
             const observer = new MutationObserver(() => {
@@ -671,7 +724,7 @@ export default class DocumentView {
         }
 
         let options = {year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true};
-        return date.toLocaleString('en-US', options);
+        return date.toLocaleString(document.documentElement.lang || undefined, options);
     }
 
     extractDate(text) {
@@ -702,12 +755,12 @@ export default class DocumentView {
 
         // Convert to days, hours, minutes
         if (diffMs <= 0) {
-            return "Overdue";
+            return this.overdue;
         } else {
             const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
             const diffHours = Math.floor((diffMs / (1000 * 60 * 60)) % 24);
 
-            return `${diffDays} days, ${diffHours} hours`;
+            return `${diffDays} ${this.daysText}, ${diffHours} ${this.hoursText}`;
         }
 
     }
@@ -771,7 +824,15 @@ export default class DocumentView {
         Object.assign(rightSide.style, commonStyle);
 
         rightSide.appendChild(btn);
-        leftSide.appendChild(assignName.cloneNode(true));
+        // The cloned page header must not add a second h1: its heading becomes a styled paragraph.
+        const headerClone = assignName.cloneNode(true);
+        headerClone.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((heading) => {
+            const text = this.create('p');
+            text.className = heading.className;
+            text.innerHTML = heading.innerHTML;
+            heading.replaceWith(text);
+        });
+        leftSide.appendChild(headerClone);
 
         header.appendChild(leftSide);
         header.appendChild(rightSide);
@@ -806,9 +867,13 @@ export default class DocumentView {
         p2.style.position = 'relative';
         document.getElementById('cursive-fullpagemode-sidebar')?.remove();
 
-        let toggle = this.create('div');
+        let toggle = this.create('button');
         toggle.id = 'cursive-fullpagemode-sidebar-toggle';
+        toggle.type = 'button';
         toggle.innerHTML = Icons.hamburger;
+        toggle.setAttribute('aria-label', this.sidebarOpen);
+        toggle.setAttribute('aria-controls', 'cursive-fullpagemode-sidebar');
+        toggle.setAttribute('aria-expanded', 'true');
         p2.appendChild(toggle);
         p2.appendChild(this.docSideBar(statusBar));
     }
@@ -867,7 +932,7 @@ export default class DocumentView {
     }
 
     getSidebarTitle() {
-        const [assign, discus, quiz, lesson, workshop] = this.getText('sbTitle');
+        const [assign, discus, quiz, lesson, workshop, , pdfannotator, diary, page] = this.getText('sbTitle');
         switch (this.module) {
             case 'assign':
                 return {title: assign, icon: Icons.assignment};
@@ -878,14 +943,31 @@ export default class DocumentView {
             case 'quiz':
                 return {title: quiz, icon: Icons.quiz};
             case 'pdfannotator':
-                return {title: 'PDF Annotator', icon: Icons.pdfannotator};
+                return {title: pdfannotator, icon: Icons.pdfannotator};
             case 'workshop':
                 return {title: workshop, icon: Icons.pdfannotator};
             case 'diary':
-                return {title: 'Diary', icon: Icons.assignment};
+                return {title: diary, icon: Icons.assignment};
             default:
-                return {title: 'Page', icon: Icons.quiz};
+                return {title: page, icon: Icons.quiz};
         }
+    }
+
+    /**
+     * Heading levels for the sidebar: one below the nearest heading that precedes the editor.
+     *
+     * @returns {{title: number, card: number, rubric: number}}
+     */
+    headingLevels() {
+        let level = 2;
+        const anchor = this.editor?.getContainer?.() || document.body;
+        document.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((heading) => {
+            // eslint-disable-next-line no-bitwise
+            if (heading.compareDocumentPosition(anchor) & Node.DOCUMENT_POSITION_FOLLOWING) {
+                level = Number(heading.tagName.slice(1));
+            }
+        });
+        return {title: Math.min(level + 1, 6), card: Math.min(level + 2, 6), rubric: Math.min(level + 3, 6)};
     }
 
     getTimerBlock(module) {
@@ -943,12 +1025,23 @@ export default class DocumentView {
             this.overdue,
             this.remaining,
             this.savechanges,
-            this.subjectnot
+            this.subjectnot,
+            this.sidebarClose,
+            this.sidebarOpen,
+            this.notAvailable,
+            this.daysText,
+            this.hoursText,
+            this.timeleftWarning,
+            this.timerHide,
+            this.timerShow,
+            this.bandLow,
+            this.bandMid,
+            this.bandHigh
         ] = this.getText('docSideBar');
     }
 
     getText(key) {
-        return JSON.parse(localStorage.getItem(key)) || [];
+        return JSON.parse(localStorage.getItem(stringCacheKey(key))) || [];
     }
 
     create(tag) {

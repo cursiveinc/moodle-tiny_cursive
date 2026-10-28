@@ -20,7 +20,7 @@
     In-place data transparency notice rendered where a Cursive-enabled editor would
     otherwise appear. Ordinary page content in document order: no dialog role, no focus
     containment. The region is labelled by its heading and the confirm control is a real
-    button.
+    button. Heading levels follow the host page (one below the nearest preceding heading).
 
     Example context (json):
     {
@@ -28,7 +28,9 @@
         "noticetext": "<p>Cursive collects data about your writing style.</p>",
         "noticeversion": 1,
         "hascontent": true,
-        "content": "<p>My draft so far.</p>"
+        "content": "<p>My draft so far.</p>",
+        "headinglevel": 3,
+        "subheadinglevel": 4
     }
 }}
 <section class="tiny_cursive-notice-gate border rounded p-3 mb-3"
@@ -36,17 +38,19 @@
          aria-labelledby="tiny_cursive-notice-gate-heading-{{editorid}}"
          data-region="tiny_cursive-notice-gate"
          data-noticeversion="{{noticeversion}}">
-    <h3 class="h5" id="tiny_cursive-notice-gate-heading-{{editorid}}">{{#str}}notice_gate_heading, tiny_cursive{{/str}}</h3>
+    <div role="heading" aria-level="{{headinglevel}}" class="h5" id="tiny_cursive-notice-gate-heading-{{editorid}}">{{#str}}notice_gate_heading, tiny_cursive{{/str}}</div>
     <div class="tiny_cursive-notice-gate-text" data-region="notice-text">
         {{{noticetext}}}
     </div>
     {{#hascontent}}
     <div class="tiny_cursive-notice-gate-content mb-3">
-        <h4 class="h6">{{#str}}notice_existingcontent, tiny_cursive{{/str}}</h4>
-        <div class="border rounded p-2 bg-light" data-region="existing-content">{{{content}}}</div>
+        <div role="heading" aria-level="{{subheadinglevel}}" class="h6" id="tiny_cursive-notice-gate-content-heading-{{editorid}}">{{#str}}notice_existingcontent, tiny_cursive{{/str}}</div>
+        <div class="border rounded p-2 bg-light" data-region="existing-content" tabindex="0" role="region"
+             aria-labelledby="tiny_cursive-notice-gate-content-heading-{{editorid}}">{{{content}}}</div>
     </div>
     {{/hascontent}}
     <div class="alert alert-danger" role="alert" data-region="error" hidden></div>
+    <div class="sr-only visually-hidden" role="status" aria-live="polite" data-region="status"></div>
     <div>
         <button type="button" class="btn btn-primary" data-action="acknowledge">
             {{#str}}notice_consent_button, tiny_cursive{{/str}}
