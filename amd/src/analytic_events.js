@@ -326,17 +326,25 @@ export default class AnalyticEvents {
                                 const $sample = $('<' + tag + '>', {"class": 'tiny_cursive-legend-sample ' + className}).text(text);
                                 return $item.append($sample);
                             };
-                            $legend.append(
-                                legendItem('span', 'tiny_cursive-attributed', originalTextString),
-                                legendItem('mark', 'tiny_cursive-pasted_content', pastedLegendString),
-                                legendItem('ins', 'tiny_cursive-ai_inserted', aiLegendString),
-                                legendItem('ins', 'tiny_cursive_added', editedLegendString)
-                            );
-
+                            // Render first, so the legend lists only the kinds present in this submission.
+                            const used = new Set();
                             let reconstructedText = document.createElement('div');
                             reconstructedText.id = 'tiny_cursive-reconstructed_text';
                             reconstructedText.style.whiteSpace = 'pre-wrap';
-                            reconstructedText.appendChild(self.renderComparisonContent(JSON.parse(submittedText), prefixes));
+                            reconstructedText.appendChild(
+                                self.renderComparisonContent(JSON.parse(submittedText), prefixes, used)
+                            );
+
+                            $legend.append(legendItem('span', 'tiny_cursive-attributed', originalTextString));
+                            if (used.has('pasted')) {
+                                $legend.append(legendItem('mark', 'tiny_cursive-pasted_content', pastedLegendString));
+                            }
+                            if (used.has('ai')) {
+                                $legend.append(legendItem('ins', 'tiny_cursive-ai_inserted', aiLegendString));
+                            }
+                            if (used.has('edited')) {
+                                $legend.append(legendItem('ins', 'tiny_cursive_added', editedLegendString));
+                            }
 
                             let contents = $('<div>').addClass('tiny_cursive-comparison-content');
                             let textBlock2 = $('<div>').addClass('tiny_cursive-text-block').append(reconstructedText);
@@ -375,9 +383,10 @@ export default class AnalyticEvents {
      *
      * @param {string} content Reconstructed submission content.
      * @param {{pasted: string, ai: string, edited: string}} prefixes Spoken prefixes per attribution.
+     * @param {Set<string>} used Receives the kinds found ('pasted', 'ai', 'edited'), for the legend.
      * @returns {DocumentFragment} Sanitised content ready to append to the report.
      */
-    renderComparisonContent(content, prefixes = {}) {
+    renderComparisonContent(content, prefixes = {}, used = new Set()) {
         // Attribution classes from the API: added / inserted (edits), pasted_content, and any ai_* variant
         // (ai_inserted, ai_content, ...).
         const allowedClass = /^tiny_cursive[-_](added|inserted|pasted[-_]content|ai[-_][a-z_-]+)$/;
@@ -403,12 +412,14 @@ export default class AnalyticEvents {
                     const ai = classes.some(className => /[-_]ai[-_]/.test(className));
                     destination = document.createElement(pasted ? 'mark' : 'ins');
                     destination.classList.add(...classes);
-                    let prefix = prefixes.edited;
+                    let kind = 'edited';
                     if (pasted) {
-                        prefix = prefixes.pasted;
+                        kind = 'pasted';
                     } else if (ai) {
-                        prefix = prefixes.ai;
+                        kind = 'ai';
                     }
+                    used.add(kind);
+                    const prefix = prefixes[kind];
                     if (prefix) {
                         const label = document.createElement('span');
                         label.className = 'sr-only visually-hidden';

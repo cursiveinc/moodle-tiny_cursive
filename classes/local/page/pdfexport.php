@@ -232,6 +232,12 @@ class pdfexport {
                 "comments"   => $pastecount > 0 ? array_values($comments) : false,
                 "pastecount" => $pastecount,
                 "submitted"  => $submitted,
+                // Legend entries only for the attribution kinds this submission contains.
+                "legend"     => [
+                    "pasted" => (bool) preg_match('/tiny_cursive-pasted[-_]content/', $submitted),
+                    "ai"     => (bool) preg_match('/tiny_cursive-ai[-_]/', $submitted),
+                    "edited" => (bool) preg_match('/tiny_cursive(_added|-inserted)/', $submitted),
+                ],
                 "auth_state" => $this->get_auth_state($analytics->score),
             ];
         } else {

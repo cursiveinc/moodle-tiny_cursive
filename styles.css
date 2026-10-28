@@ -465,7 +465,7 @@ body#page-cws #region-main > div {
 /* Attribution is also conveyed by the element (mark / ins) and a distinct underline per kind (1.4.1). */
 .tiny_cursive_added,
 .tiny_cursive-inserted {
-    background-color: #fff2cc;
+    background-color: #e8f5e8;
     text-decoration: underline;
     text-decoration-thickness: 2px;
 }
@@ -479,7 +479,7 @@ body#page-cws #region-main > div {
 .tiny_cursive-ai_inserted,
 .tiny_cursive-ai_content,
 .tiny_cursive-ai-content {
-    background-color: #fff2cc;
+    background-color: #ede9fe;
     text-decoration: underline dashed;
     text-decoration-thickness: 2px;
 }
