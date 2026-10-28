@@ -460,20 +460,24 @@ body#page-cws #region-main > div {
     word-wrap: break-word;
 }
 
-.tiny_cursive_added {
-    background-color: #fff2cc;
-}
-
+/* Attribution is also conveyed by the element (mark / ins) and a distinct underline per kind (1.4.1). */
+.tiny_cursive_added,
 .tiny_cursive-inserted {
     background-color: #fff2cc;
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
 }
 
 .tiny_cursive-pasted_content {
     background-color: #fff2cc;
+    text-decoration: underline dotted;
+    text-decoration-thickness: 2px;
 }
 
 .tiny_cursive-ai_inserted {
     background-color: #fff2cc;
+    text-decoration: underline dashed;
+    text-decoration-thickness: 2px;
 }
 
 .tiny_cursive-legend-item {
@@ -576,8 +580,8 @@ body#page-cws #region-main > div {
 }
 
 .tiny_cursive_mod_assign_grader .cursive_grade-actions-panel_path_mod_assign {
-    /* stylelint-disable-next-line declaration-no-important */
-    height: 100px !important;
+    /* A minimum, not a fixed height: the panel grows at 200% zoom instead of clipping (1.4.4). */
+    min-height: 100px;
     background: #ddd;
     z-index: 2;
 }
@@ -1358,10 +1362,15 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .modal-header {
     vertical-align: middle;
 }
 
-.tiny_cursive-export-pdf .tiny_cursive_added {
+.tiny_cursive-export-pdf .tiny_cursive_added,
+.tiny_cursive-export-pdf .tiny_cursive-inserted,
+.tiny_cursive-export-pdf .tiny_cursive-pasted_content,
+.tiny_cursive-export-pdf .tiny_cursive-ai_inserted {
     background-color: transparent;
     color: var(--tiny-cursive-warning-text);
     font-weight: bold;
+    /* Survives greyscale printing. */
+    text-decoration: underline;
     padding: 2px 4px;
     border-radius: 4px;
     word-wrap: break-word;
@@ -1387,8 +1396,8 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .modal-header {
     margin-bottom: 5px;
 }
 
-.tiny_cursive-header h6 {
-    color: #6c757d;
+.tiny_cursive-header .tiny_cursive-subtitle {
+    color: var(--tiny-cursive-text-muted);
     margin-top: 0;
 }
 
@@ -1403,20 +1412,25 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .modal-header {
 
 .tiny_cursive-info-row {
     display: flex;
+    flex-wrap: wrap;
+    gap: 10px 20px;
     justify-content: space-between;
+    margin: 0;
 }
 
 .tiny_cursive-info-col {
-    flex: 1;
+    flex: 1 1 10rem;
 }
 
-.tiny_cursive-info-col h5 {
+.tiny_cursive-info-col dt {
     color: var(--tiny-cursive-action);
+    font-weight: 600;
     margin-bottom: 5px;
 }
 
-.tiny_cursive-info-col div {
+.tiny_cursive-info-col dd {
     font-size: 14px;
+    margin: 0;
 }
 
 /* Section Divider */
@@ -1484,21 +1498,22 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .modal-header {
 }
 
 .tiny_cursive-stats-card p.title {
-    color: #6c757d;
+    color: var(--tiny-cursive-text-muted);
     margin: 0 0 5px 0;
     font-size: 12px;
     font-weight: 600;
     text-transform: uppercase;
 }
 
-.tiny_cursive-stats-card h2 {
+.tiny_cursive-stats-card .value {
     color: var(--tiny-cursive-action);
     margin: 5px 0;
     font-size: 24px;
+    font-weight: 600;
 }
 
 .tiny_cursive-stats-card p.desc {
-    color: #6c757d;
+    color: var(--tiny-cursive-text-muted);
     margin: 5px 0 0 0;
     font-size: 11px;
 }
@@ -1573,10 +1588,10 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .modal-header {
     border: 1px solid #dee2e6;
     background-color: white;
     padding: 15px;
-    text-align: justify;
+    text-align: start;
 }
 
-.tiny_cursive-submission-box h2 {
+.tiny_cursive-submission-box h4 {
     margin-top: 0;
     margin-bottom: 10px;
 }
@@ -1594,7 +1609,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .modal-header {
 
 .tiny_cursive-footer div {
     margin: 15px 0;
-    color: #6c757d;
+    color: var(--tiny-cursive-text-muted);
 }
 
 .tiny_cursive-analytics-button {

@@ -79,14 +79,16 @@ define([
 
             Str.get_string('analytics', 'tiny_cursive')
                 .then(analyticString => {
-                    $(hTr).find('th').eq(3).after('<th class="header c4" scope="col">'
-                        + analyticString + '<div class="commands">' +
-                        '<i class="icon fa fa-minus fa-fw " aria-hidden="true"></i></div></th>');
+                    $(hTr).find('th').eq(3).after('<th class="header c4" scope="col">' + analyticString + '</th>');
                     $('table#submissions tbody').find("tr").get().forEach(function(tr) {
                         let tdUser = $(tr).find("td").get()[0];
                         let userid = $(tdUser).find("input[type='checkbox']")?.get()[0]?.value;
                         let cmid = parm.searchParams.get('id');
                         // Create the table cell element and append the anchor.
+
+                        // The cell exists whatever the request does, so no row ends up a column short.
+                        const tableCell = document.createElement('td');
+                        $(tr).find('td').eq(3).after(tableCell);
 
                         let args = {id: userid, modulename: "assign", cmid: cmid};
                         let methodname = 'tiny_cursive_user_list_submission_stats';
@@ -99,14 +101,12 @@ define([
                                     filepath = data.res.filename;
                                 }
 
-                                const tableCell = document.createElement('td');
 
                                 if (!hasApiKey) {
                                     $(tableCell).html(replayButton(userid));
                                 } else {
                                     tableCell.appendChild(analyticButton(data.res.effort_ratio, userid));
                                 }
-                                $(tr).find('td').eq(3).after(tableCell);
 
                                 // Get Module Name from element.
                                 let element = document.querySelector('.page-header-headings h1');
