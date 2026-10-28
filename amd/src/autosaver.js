@@ -1061,6 +1061,16 @@ function sentMobileInput(key) {
             resourceId = 0;
         }
 
+        // "Return to attempt" on the quiz summary page posts to a bare attempt.php, so the attempt
+        // id is then only on the form. Without it capture and autosave would be keyed on 0 and
+        // stored under the cmid, where the Saved Content panel never looks.
+        if (!resourceId && ur.includes('quiz')) {
+            const attemptField = document.querySelector('#responseform input[name="attempt"]');
+            if (attemptField?.value) {
+                resourceId = attemptField.value;
+            }
+        }
+
         for (const module of MODULES) {
             if (ur.includes(module)) {
                 modulename = module;
