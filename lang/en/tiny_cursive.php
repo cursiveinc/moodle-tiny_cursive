@@ -108,6 +108,7 @@ $string['data_visualization'] = 'Visualisation';
 $string['date'] = "Date";
 $string['description'] = "description";
 $string['details'] = 'details';
+$string['diff_legend_edited'] = 'Edited';
 $string['diff_prefix_ai'] = 'AI:';
 $string['diff_prefix_edited'] = 'Edited:';
 $string['diff_prefix_pasted'] = 'Pasted:';

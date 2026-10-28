@@ -487,14 +487,15 @@ body#page-cws #region-main > div {
     margin: 0 1rem;
 }
 
-.tiny_cursive-box {
-    width: 20px;
-    height: 20px;
-    border: 1px solid #ccc;
+/* Legend samples carry the same classes as the marks, so they always look like the text they explain. */
+.tiny_cursive-legend-sample {
+    padding: 2px 4px;
 }
 
 .tiny_cursive-attributed {
-    background-color: white;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
 }
 
 .tiny_cursive-legend-item span {
@@ -1369,8 +1370,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .modal-header {
     background-color: transparent;
     color: var(--tiny-cursive-warning-text);
     font-weight: bold;
-    /* Survives greyscale printing. */
-    text-decoration: underline;
+    /* The per-kind underline (dotted / dashed / solid) comes from the shared rules above and survives greyscale printing. */
     padding: 2px 4px;
     border-radius: 4px;
     word-wrap: break-word;
@@ -1573,13 +1573,8 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .modal-header {
     background-color: rgba(128, 128, 128, 0.15);
 }
 
-.tiny_cursive-legend span.tiny_cursive_added {
-    height: 15px;
-    width: 15px;
-    display: inline-block;
-    vertical-align: middle;
-    margin-right: 5px;
-    background-color: var(--tiny-cursive-warning-text);
+.tiny_cursive-legend .tiny_cursive-legend-sample {
+    margin-inline-end: 12px;
 }
 
 /* Submission Text Box */

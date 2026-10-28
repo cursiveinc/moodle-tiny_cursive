@@ -278,18 +278,22 @@ export default class AnalyticEvents {
                         // eslint-disable-next-line
                         return getStrings([
                             {key: 'original_text', component: 'tiny_cursive'},
-                            {key: 'editspastesai', component: 'tiny_cursive'},
+                            {key: 'replay_legend_pasted', component: 'tiny_cursive'},
                             {key: 'pastecount', component: 'tiny_cursive'},
                             {key: 'comments', component: 'tiny_cursive'},
                             {key: 'diff_prefix_pasted', component: 'tiny_cursive'},
                             {key: 'diff_prefix_ai', component: 'tiny_cursive'},
-                            {key: 'diff_prefix_edited', component: 'tiny_cursive'}
+                            {key: 'diff_prefix_edited', component: 'tiny_cursive'},
+                            {key: 'replay_legend_ai', component: 'tiny_cursive'},
+                            {key: 'diff_legend_edited', component: 'tiny_cursive'}
                         ]).done(strings => {
                             const originalTextString = strings[0];
-                            const editsPastesAIString = strings[1];
+                            const pastedLegendString = strings[1];
                             const pasteCountString = strings[2];
                             const commentsString = strings[3];
                             const prefixes = {pasted: strings[4], ai: strings[5], edited: strings[6]};
+                            const aiLegendString = strings[7];
+                            const editedLegendString = strings[8];
 
                             const commentBox = $('<div class="p-2 border rounded mb-2">');
                             var pasteCountDiv = $('<div></div>');
@@ -315,25 +319,19 @@ export default class AnalyticEvents {
                                 commentBox.append(commentsDiv).append(commentsList);
                             }
 
-                            const $legend = $('<div class="d-flex p-2 border rounded mb-2">');
-
-                            // Create the first legend item
-                            const $attributedItem = $('<div>', {"class": "tiny_cursive-legend-item"});
-                            const $attributedBox = $('<div>', {"class": "tiny_cursive-box attributed", "aria-hidden": "true"});
-                            const $attributedText = $('<span>').text(originalTextString);
-                            $attributedItem.append($attributedBox).append($attributedText);
-
-                            // Create the second legend item
-                            const $unattributedItem = $('<div>', {"class": 'tiny_cursive-legend-item'});
-                            const $unattributedBox = $('<div>', {
-                                "class": 'tiny_cursive-box tiny_cursive_added',
-                                "aria-hidden": "true"
-                            });
-                            const $unattributedText = $('<span>').text(editsPastesAIString);
-                            $unattributedItem.append($unattributedBox).append($unattributedText);
-
-                            // Append the legend items to the legend container.
-                            $legend.append($attributedItem).append($unattributedItem);
+                            // Legend: one sample per kind, styled exactly like the marks in the text (1.4.1).
+                            const $legend = $('<div class="d-flex flex-wrap p-2 border rounded mb-2 tiny_cursive-diff-legend">');
+                            const legendItem = (tag, className, text) => {
+                                const $item = $('<div>', {"class": 'tiny_cursive-legend-item'});
+                                const $sample = $('<' + tag + '>', {"class": 'tiny_cursive-legend-sample ' + className}).text(text);
+                                return $item.append($sample);
+                            };
+                            $legend.append(
+                                legendItem('span', 'tiny_cursive-attributed', originalTextString),
+                                legendItem('mark', 'tiny_cursive-pasted_content', pastedLegendString),
+                                legendItem('ins', 'tiny_cursive-ai_inserted', aiLegendString),
+                                legendItem('ins', 'tiny_cursive_added', editedLegendString)
+                            );
 
                             let reconstructedText = document.createElement('div');
                             reconstructedText.id = 'tiny_cursive-reconstructed_text';
