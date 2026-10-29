@@ -65,7 +65,7 @@ export const init = (scoreSetting, showcomment, hasApiKey) => {
 
     Str.get_string('analytics', 'tiny_cursive').then((strs) => {
         headcolumn.each(function() {
-            $(this).find('th:eq(1)').after(`<th class="header">${strs}</th>`);
+            $(this).find('th:eq(1)').after(`<th class="header" scope="col">${strs}</th>`);
         });
         return true;
     }).catch(e => window.console.error(e));
@@ -129,7 +129,7 @@ export const init = (scoreSetting, showcomment, hasApiKey) => {
             analyticsColumn.append(analyticButtonDiv);
             if (grade) {
                 analyticButtonDiv.classList.add('w-100');
-                $('#fitem_id_response_editor .felement').prepend(analyticButtonDiv);
+                $('#fitem_id_response_editor').before(analyticButtonDiv);
             } else {
                 $emailLink.closest('tr').find('td:eq(1)').after(analyticsColumn);
             }

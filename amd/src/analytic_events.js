@@ -278,14 +278,19 @@ export default class AnalyticEvents {
                         // eslint-disable-next-line
                         return getStrings([
                             {key: 'original_text', component: 'tiny_cursive'},
-                            {key: 'editspastesai', component: 'tiny_cursive'},
+                            {key: 'replay_legend_pasted', component: 'tiny_cursive'},
                             {key: 'pastecount', component: 'tiny_cursive'},
-                            {key: 'comments', component: 'tiny_cursive'}
+                            {key: 'comments', component: 'tiny_cursive'},
+                            {key: 'diff_prefix_pasted', component: 'tiny_cursive'},
+                            {key: 'diff_prefix_ai', component: 'tiny_cursive'},
+                            {key: 'replay_legend_ai', component: 'tiny_cursive'}
                         ]).done(strings => {
                             const originalTextString = strings[0];
-                            const editsPastesAIString = strings[1];
+                            const pastedLegendString = strings[1];
                             const pasteCountString = strings[2];
                             const commentsString = strings[3];
+                            const prefixes = {pasted: strings[4], ai: strings[5]};
+                            const aiLegendString = strings[6];
 
                             const commentBox = $('<div class="p-2 border rounded mb-2">');
                             var pasteCountDiv = $('<div></div>');
@@ -311,27 +316,29 @@ export default class AnalyticEvents {
                                 commentBox.append(commentsDiv).append(commentsList);
                             }
 
-                            const $legend = $('<div class="d-flex p-2 border rounded mb-2">');
-
-                            // Create the first legend item
-                            const $attributedItem = $('<div>', {"class": "tiny_cursive-legend-item"});
-                            const $attributedBox = $('<div>', {"class": "tiny_cursive-box attributed"});
-                            const $attributedText = $('<span>').text(originalTextString);
-                            $attributedItem.append($attributedBox).append($attributedText);
-
-                            // Create the second legend item
-                            const $unattributedItem = $('<div>', {"class": 'tiny_cursive-legend-item'});
-                            const $unattributedBox = $('<div>', {"class": 'tiny_cursive-box tiny_cursive_added'});
-                            const $unattributedText = $('<span>').text(editsPastesAIString);
-                            $unattributedItem.append($unattributedBox).append($unattributedText);
-
-                            // Append the legend items to the legend container.
-                            $legend.append($attributedItem).append($unattributedItem);
-
+                            // Legend: one sample per kind, styled exactly like the marks in the text (1.4.1).
+                            const $legend = $('<div class="d-flex flex-wrap p-2 border rounded mb-2 tiny_cursive-diff-legend">');
+                            const legendItem = (tag, className, text) => {
+                                const $item = $('<div>', {"class": 'tiny_cursive-legend-item'});
+                                const $sample = $('<' + tag + '>', {"class": 'tiny_cursive-legend-sample ' + className}).text(text);
+                                return $item.append($sample);
+                            };
+                            // Render first, so the legend lists only the kinds present in this submission.
+                            const used = new Set();
                             let reconstructedText = document.createElement('div');
                             reconstructedText.id = 'tiny_cursive-reconstructed_text';
                             reconstructedText.style.whiteSpace = 'pre-wrap';
-                            reconstructedText.appendChild(self.renderComparisonContent(JSON.parse(submittedText)));
+                            reconstructedText.appendChild(
+                                self.renderComparisonContent(JSON.parse(submittedText), prefixes, used)
+                            );
+
+                            $legend.append(legendItem('span', 'tiny_cursive-attributed', originalTextString));
+                            if (used.has('pasted')) {
+                                $legend.append(legendItem('mark', 'tiny_cursive-pasted_content', pastedLegendString));
+                            }
+                            if (used.has('ai')) {
+                                $legend.append(legendItem('ins', 'tiny_cursive-inserted', aiLegendString));
+                            }
 
                             let contents = $('<div>').addClass('tiny_cursive-comparison-content');
                             let textBlock2 = $('<div>').addClass('tiny_cursive-text-block').append(reconstructedText);
@@ -365,16 +372,17 @@ export default class AnalyticEvents {
      * while assigning it directly to innerHTML would trust captured content. This
      * method copies text and a small allowlist of presentation elements only.
      *
+     * Pasted text becomes <mark> and AI-inserted text <ins>, each with a visually hidden
+     * prefix, so attribution is conveyed by element and text as well as by colour (1.3.1, 1.4.1).
+     *
      * @param {string} content Reconstructed submission content.
+     * @param {{pasted: string, ai: string}} prefixes Spoken prefixes per attribution.
+     * @param {Set<string>} used Receives the kinds found ('pasted', 'ai'), for the legend.
      * @returns {DocumentFragment} Sanitised content ready to append to the report.
      */
-    renderComparisonContent(content) {
-        const allowedClasses = new Set([
-            'tiny_cursive_added',
-            'tiny_cursive-inserted',
-            'tiny_cursive-pasted_content',
-            'tiny_cursive-ai_inserted',
-        ]);
+    renderComparisonContent(content, prefixes = {}, used = new Set()) {
+        // Attribution classes from the API: pasted_content, inserted (AI) and any older ai_* variant.
+        const allowedClass = /^tiny_cursive-(pasted[-_]content|inserted|ai[-_][a-z_-]+)$/;
         const allowedElements = new Set(['BR', 'DIV', 'P']);
         const template = document.createElement('template');
         const fragment = document.createDocumentFragment();
@@ -390,11 +398,21 @@ export default class AnalyticEvents {
                     return;
                 }
 
-                const classes = Array.from(node.classList).filter(className => allowedClasses.has(className));
+                const classes = Array.from(node.classList).filter(className => allowedClass.test(className));
                 let destination = target;
                 if (node.tagName === 'SPAN' && classes.length > 0) {
-                    destination = document.createElement('span');
+                    const pasted = classes.some(className => /pasted/.test(className));
+                    destination = document.createElement(pasted ? 'mark' : 'ins');
                     destination.classList.add(...classes);
+                    const kind = pasted ? 'pasted' : 'ai';
+                    used.add(kind);
+                    const prefix = prefixes[kind];
+                    if (prefix) {
+                        const label = document.createElement('span');
+                        label.className = 'sr-only visually-hidden';
+                        label.textContent = `${prefix} `;
+                        destination.appendChild(label);
+                    }
                     target.appendChild(destination);
                 } else if (allowedElements.has(node.tagName)) {
                     destination = document.createElement(node.tagName.toLowerCase());

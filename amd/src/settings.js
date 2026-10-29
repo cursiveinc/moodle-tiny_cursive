@@ -36,7 +36,7 @@ define(["jquery", "core/str"], function(
     },
     getToken: function(showcomments, userRole) {
       $('#page-mod-forum-discuss').find("article").get().forEach(function() {
-          var replyButton = $('a[data-region="post-action"][title="Reply"]');
+          var replyButton = $('a[data-region="post-action"][href*="/post.php?reply="]');
           if (replyButton.length > 0) {
               replyButton.on('click', function(event) {
 

@@ -39,7 +39,8 @@ Example context (json):
             "usercomment": "Pasted from research notes"
         }
     ],
-    "submitted": "Essay content with <span class=\"tiny_cursive_added\">pasted text</span>",
+    "submitted": "Essay content with <span class=\"tiny_cursive-pasted_content\">pasted text</span>",
+    "legend": {"pasted": true, "ai": false},
     "reportdate": "2023-12-01 15:30"
 }
 }}
@@ -48,35 +49,29 @@ Example context (json):
     <!-- Main Header -->
     <div class="tiny_cursive-header">
         <h2>{{#str}}report_title, tiny_cursive{{/str}}</h2>
-        <h6>{{#str}}report_sub_title, tiny_cursive{{/str}}</h6>
+        <p class="tiny_cursive-subtitle">{{#str}}report_sub_title, tiny_cursive{{/str}}</p>
     </div>
 
     <!-- Student Info Box -->
     <div class="tiny_cursive-info-box">
-        <div class="tiny_cursive-info-row">
-            <!-- Student Name -->
+        <dl class="tiny_cursive-info-row">
             <div class="tiny_cursive-info-col">
-                <h5>{{#str}}student_name, tiny_cursive{{/str}}:</h5>
-                <div>{{fullname}}</div>
+                <dt>{{#str}}student_name, tiny_cursive{{/str}}:</dt>
+                <dd>{{fullname}}</dd>
             </div>
-
-            <!-- Assignment -->
             <div class="tiny_cursive-info-col">
-                <h5>{{#str}}assignment, tiny_cursive{{/str}}:</h5>
-                <div>{{modulename}}</div>
+                <dt>{{#str}}assignment, tiny_cursive{{/str}}:</dt>
+                <dd>{{modulename}}</dd>
             </div>
-
-            <!-- Report Date -->
             <div class="tiny_cursive-info-col">
-                <h5>{{#str}}report_date, tiny_cursive{{/str}}:</h5>
-                <div>{{date}}</div>
+                <dt>{{#str}}report_date, tiny_cursive{{/str}}:</dt>
+                <dd>{{date}}</dd>
             </div>
-
             <div class="tiny_cursive-info-col">
-                <h5>{{#str}}submission_date, tiny_cursive{{/str}}:</h5>
-                <div>{{sub_date}}</div>
+                <dt>{{#str}}submission_date, tiny_cursive{{/str}}:</dt>
+                <dd>{{sub_date}}</dd>
             </div>
-        </div>
+        </dl>
     </div>
 
     <hr class="tiny_cursive-section-divider">
@@ -98,32 +93,32 @@ Example context (json):
             {{#analytics}}
             <div class="tiny_cursive-stats-card">
                 <p class="title">{{#str}}character_verify, tiny_cursive{{/str}}</p>
-                <h2>{{analytics.effort}}%</h2>
+                <p class="value">{{analytics.effort}}%</p>
                 <p class="desc">{{#str}}effort_ratio_desc, tiny_cursive {{/str}}</p>
             </div>
 
             <div class="tiny_cursive-stats-card">
                 <p class="title">{{#str}}time_writing, tiny_cursive {{/str}}</p>
-                <h2>{{analytics.total_time_seconds}}</h2>
+                <p class="value">{{analytics.total_time_seconds}}</p>
                 <p class="desc">{{#str}}time_writing_desc, tiny_cursive {{/str}}</p>
             </div>
 
 
             <div class="tiny_cursive-stats-card">
                 <p class="title">{{#str}}words_per_minute, tiny_cursive {{/str}}</p>
-                <h2>{{analytics.words_per_minute}} {{#str}}wpm, tiny_cursive{{/str}}</h2>
+                <p class="value">{{analytics.words_per_minute}} {{#str}}wpm, tiny_cursive{{/str}}</p>
                 <p class="desc">{{#str}}words_per_minute_desc, tiny_cursive {{/str}}</p>
             </div>
 
             <div class="tiny_cursive-stats-card">
                 <p class="title">{{#str}}total_words, tiny_cursive {{/str}}</p>
-                <h2>{{analytics.word_count}}</h2>
+                <p class="value">{{analytics.word_count}}</p>
                 <p class="desc">{{#str}}total_words_desc, tiny_cursive {{/str}}</p>
             </div>
 
             <div class="tiny_cursive-stats-card">
                 <p class="title">{{#str}}backspace, tiny_cursive {{/str}}</p>
-                <h2>{{analytics.backspace_percent}}%</h2>
+                <p class="value">{{analytics.backspace_percent}}%</p>
                 <p class="desc">{{#str}}backspace_desc, tiny_cursive {{/str}}</p>
             </div>
             {{/analytics}}
@@ -143,7 +138,7 @@ Example context (json):
             <h4>{{#str}}paste_analysis, tiny_cursive {{/str}}</h4>
             <p><strong>{{#str}}pastecount, tiny_cursive {{/str}}:</strong> {{pastecount}}</p>
             <div>
-                <strong>{{#str}}comments, tiny_cursive {{/str}}:</strong> {{^comments}}None{{/comments}}
+                <strong>{{#str}}comments, tiny_cursive {{/str}}:</strong> {{^comments}}{{#str}}none, core{{/str}}{{/comments}}
                 {{#comments}}
                     <p class="tiny_cursive-comments">{{usercomment}}</p>
                 {{/comments}}
@@ -153,12 +148,13 @@ Example context (json):
 
         <div class="tiny_cursive-legend tiny_cursive-export-pdf">
             <strong>{{#str}}legend, tiny_cursive {{/str}}: </strong>
-            <span class="tiny_cursive_added"></span>
-            <span>{{#str}}editspastesai, tiny_cursive {{/str}}</span>
+            <span class="tiny_cursive-legend-sample tiny_cursive-attributed">{{#str}}original_text, tiny_cursive{{/str}}</span>
+            {{#legend.pasted}}<mark class="tiny_cursive-legend-sample tiny_cursive-pasted_content">{{#str}}replay_legend_pasted, tiny_cursive{{/str}}</mark>{{/legend.pasted}}
+            {{#legend.ai}}<ins class="tiny_cursive-legend-sample tiny_cursive-inserted">{{#str}}replay_legend_ai, tiny_cursive{{/str}}</ins>{{/legend.ai}}
         </div>
 
         <div class="tiny_cursive-submission-box">
-            <h2>{{#str}}fullsubmission, tiny_cursive {{/str}}:</h2>
+            <h4>{{#str}}fullsubmission, tiny_cursive {{/str}}:</h4>
             <div class="tiny_cursive-export-pdf">
                 {{{submitted}}}
             </div>

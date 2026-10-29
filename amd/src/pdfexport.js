@@ -37,7 +37,7 @@ export const init = (data) => {
 
     if (!Object.keys(data).length) {
         Alert.create({
-            title: str.get_string('message', 'tool_dataprivacy'),
+            title: str.get_string('message_title', 'tiny_cursive'),
             body: str.get_string('nopaylod', 'tiny_cursive'),
             cssClass: 'modal-dialog modal-dialog-centered',
             removeOnClose: true,

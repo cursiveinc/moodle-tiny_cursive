@@ -193,7 +193,7 @@ function tiny_cursive_coursemodule_standard_elements($formwrapper, $mform) {
     }
     // Constants::NAMES is cursive supported plugin list defined in tiny_cursive\constant class.
     if (in_array($module, constants::NAMES)) {
-        $mform->addElement('header', 'cursiveheader', 'Cursive', 'local_callbacks');
+        $mform->addElement('header', 'cursiveheader', get_string('pluginname', 'tiny_cursive'), 'local_callbacks');
         $options = [
             0 => get_string('disabled', 'tiny_cursive'),
             1 => get_string('enabled', 'tiny_cursive'),

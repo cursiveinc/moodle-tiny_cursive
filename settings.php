@@ -107,7 +107,7 @@ if ($ADMIN->fulltree) {
         new admin_setting_configtext(
             'tiny_cursive/confidence_threshold',
             get_string('confidence_thresholds', 'tiny_cursive'),
-            get_string('thresold_description', 'tiny_cursive'),
+            get_string('threshold_description', 'tiny_cursive'),
             '',
             PARAM_TEXT
         )

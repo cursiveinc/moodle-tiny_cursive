@@ -27,6 +27,7 @@ import replayButton from 'tiny_cursive/replay_button';
 import AnalyticEvents from 'tiny_cursive/analytic_events';
 import templates from 'core/templates';
 import Replay from 'tiny_cursive/replay';
+import {getString} from 'core/str';
 
 let submissionLinkingInitialized = false;
 
@@ -45,12 +46,12 @@ const linkSubmission = () => {
     const container = document.querySelector('.comment-list-container');
     const moduleName = document.body.id.split('-')[2];
     let pendingSubmit = false;
-    let buttonElement = '';
+    let editingExisting = false;
 
     document.addEventListener('click', event => {
         if (event.target.id === 'commentSubmit') {
             localStorage.removeItem('isEditing');
-            buttonElement = event.target.value;
+            editingExisting = Boolean(event.target.closest('form[id^="edit"]'));
             pendingSubmit = true;
         }
         if (event.target.id === 'commentCancel') {
@@ -79,7 +80,7 @@ const linkSubmission = () => {
      */
     function extractResourceId(id) {
         // Do not relink an existing comment while it is being edited.
-        if (buttonElement === 'Save') {
+        if (editingExisting) {
             pendingSubmit = false;
             return;
         }
@@ -136,7 +137,11 @@ export const init = (scoreSetting, comments, hasApiKey, userid, studentOnly = fa
 
     if (overviewTable) {
         let newChild = document.createElement('th');
-        newChild.textContent = 'Analytics';
+        newChild.scope = 'col';
+        getString('analytics', 'tiny_cursive').then((text) => {
+            newChild.textContent = text;
+            return text;
+        }).catch(error => window.console.error(error));
         let header = overviewTable.querySelector('thead>tr>th:first-child');
         header.insertAdjacentElement('afterend', newChild);
         setReplayButton(overviewTable);

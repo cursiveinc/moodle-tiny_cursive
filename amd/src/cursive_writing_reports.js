@@ -184,7 +184,7 @@ export const init = (page, hasApiKey, csvOption) => {
             if (!hasApiKey && !csvOption) {
                 try {
                     const noOptionText = await str.get_string('no_option', 'tiny_cursive');
-                    const messageText = await str.get_string('message', 'tool_dataprivacy');
+                    const messageText = await str.get_string('message_title', 'tiny_cursive');
                     modalTitle = messageText;
                     optionModal = Alert;
                     body = noOptionText;

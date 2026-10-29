@@ -96,7 +96,7 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
                         analyticButtonDiv.classList.add('text-center', 'my-2');
                         analyticButtonDiv.dataset.region = "analytic-div" + ids;
 
-                        $(target).prepend(analyticButtonDiv);
+                        $(target).after(analyticButtonDiv);
 
                         let myEvents = new AnalyticEvents();
                         var context = {

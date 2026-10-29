@@ -27,6 +27,7 @@ import AnalyticEvents from 'tiny_cursive/analytic_events';
 import Replay from 'tiny_cursive/replay';
 import templates from 'core/templates';
 import $ from 'jquery';
+import {get_string as getString} from 'core/str';
 
 const replayInstances = {};
 // eslint-disable-next-line camelcase
@@ -50,13 +51,16 @@ window.video_playback = function(mid, filepath, questionid = "") {
 };
 
 export const assignView = (scoreSetting, hasApiKey, userid) => {
-    const target = Array.from(document.querySelectorAll('.generaltable th'))
-        .find(th => th.textContent.trim().includes('Online text'));
-    let cmid = M.cfg.contextInstanceId;
-    let args = {id: userid, modulename: 'assign', cmid: cmid};
-    let studentData = getStudentData('tiny_cursive_user_list_submission_stats', args);
-    setStudentView(studentData, hasApiKey, userid, scoreSetting, target, "", "assign");
-
+    // The "Online text" row is found by the plugin's own translated name, never the English words.
+    getString('pluginname', 'assignsubmission_onlinetext').then((label) => {
+        const target = Array.from(document.querySelectorAll('.generaltable th'))
+            .find(th => th.textContent.trim().includes(label));
+        let cmid = M.cfg.contextInstanceId;
+        let args = {id: userid, modulename: 'assign', cmid: cmid};
+        let studentData = getStudentData('tiny_cursive_user_list_submission_stats', args);
+        setStudentView(studentData, hasApiKey, userid, scoreSetting, target, "", "assign");
+        return target;
+    }).catch(error => window.console.error(error));
 };
 
 export const quizView = (scoreSetting, hasApiKey, userid) => {
@@ -69,7 +73,7 @@ export const quizView = (scoreSetting, hasApiKey, userid) => {
             let attemptId = new URLSearchParams(window.location.search).get('attempt');
             let args = {id: attemptId, modulename: "quiz", cmid: cmid, questionid: questionid, userid: userid};
             let studentData = getStudentData('tiny_cursive_get_comment_link', args);
-            let target = queObject.querySelector('.content .qtext');
+            let target = queObject.querySelector('.info') || queObject.querySelector('.content .qtext');
             setStudentView(studentData, hasApiKey, userid, scoreSetting, target, questionid, "quiz");
 
         });
@@ -227,7 +231,7 @@ function setStudentView(data, hasApiKey, userid, scoreSetting, target, questioni
         $(container).find('#analytics' + userid + ' .tiny_cursive-replay-left').css('padding', '4px 14px');
 
         if (module === "forum") {
-            target.prepend(container);
+            target.after(container);
         } else if (module === "workshop") {
             $(target).find('.submission-full').after(container);
         } else if (module === "workshopassessment") {

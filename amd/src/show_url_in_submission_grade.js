@@ -14,8 +14,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Cursive analytics in the assign grader: the control is rendered for the user being graded
+ * and re-rendered when the grader moves to another user, without reloading the page.
+ *
  * @module     tiny_cursive/show_url_in_submission_grade
- * @category TinyMCE Editor
  * @copyright  CTI <info@cursivetechnology.com>
  * @author kuldeep singh <mca.kuldeep.sekhon@gmail.com>
  */
@@ -32,10 +34,11 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
     replayButton,
 ) {
     const replayInstances = {};
+    const REGION = 'tiny_cursive-grader-analytics';
+
     // eslint-disable-next-line
     window.video_playback = function (mid, filepath) {
         if (filepath !== '') {
-            // $("#playback" + mid).show();
             const replay = new Replay(
                 'content' + mid,
                 filepath,
@@ -70,82 +73,95 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
 
         appendSubmissionDetail: function(scoreSetting, showcomment, hasApiKey) {
             $(document).ready(function($) {
-
                 var divElement = $('.path-mod-assign [data-region="grade-panel"]')[0];
                 var previousContextId = window.location.href;
-                var observer = new MutationObserver(function(mutations) {
-                    mutations.forEach(function() {
 
-                        var currentContextId = window.location.href;
-                        if (currentContextId !== previousContextId) {
-                            window.location.reload();
-                            previousContextId = currentContextId;
-                        }
-                    });
+                $('div[data-region="review-panel"]').addClass('cursive_review_panel_path_mod_assign');
+                $('div[data-region="grading-navigation-panel"]').addClass('cursive_grading-navigation-panel_path_mod_assign');
+                $('div[data-region="grade-panel"]').addClass('cursive_grade-panel_path_mod_assign');
+                $('div[data-region="grade-actions-panel"]').addClass('cursive_grade-actions-panel_path_mod_assign');
+
+                usersTable.renderForCurrentUser(scoreSetting, hasApiKey);
+
+                // The grader swaps users in place (the URL changes without a page load). Re-render the
+                // control for the new user instead of reloading, so focus stays where the grader put it (2.4.3).
+                var observer = new MutationObserver(function() {
+                    var currentContextId = window.location.href;
+                    if (currentContextId !== previousContextId) {
+                        previousContextId = currentContextId;
+                        usersTable.renderForCurrentUser(scoreSetting, hasApiKey);
+                    }
                 });
-                // Configuration of the observer:
                 var config = {childList: true, subtree: true};
-                // Start observing the target node for configured mutations
-                observer.observe(divElement, config);
+                if (divElement) {
+                    observer.observe(divElement, config);
+                }
+            });
+        },
 
-                let subUrl = window.location.href;
-                let parm = new URL(subUrl);
-                let userid = parm.searchParams.get('userid');
-                var cmid = parm.searchParams.get('id');
+        /**
+         * Fetch the Cursive data for the user in the grader URL and place the control before the grade actions.
+         *
+         * @param {string} scoreSetting Authorship threshold.
+         * @param {boolean} hasApiKey Whether the site has a Cursive API key.
+         */
+        renderForCurrentUser: function(scoreSetting, hasApiKey) {
+            let parm = new URL(window.location.href);
+            let userid = parm.searchParams.get('userid');
+            var cmid = parm.searchParams.get('id');
 
-                let args = {id: userid, modulename: "assign", 'cmid': cmid};
-                let methodname = 'tiny_cursive_get_assign_grade_comment';
-                let com = AJAX.call([{methodname, args}]);
-                com[0].done(function(json) {
-                    var data = JSON.parse(json);
-                    var filepath = '';
-                    if (data.data.filename) {
-                        filepath = data.data.filename;
-                    }
+            $(`[data-region="${REGION}"]`).remove();
+            if (!userid) {
+                return;
+            }
 
-                    let analyticButtonDiv = document.createElement('div');
-                    analyticButtonDiv.classList.add('text-center', 'mt-2');
+            let args = {id: userid, modulename: "assign", 'cmid': cmid};
+            let methodname = 'tiny_cursive_get_assign_grade_comment';
+            let com = AJAX.call([{methodname, args}]);
+            com[0].done(function(json) {
+                // A later user change wins: drop a response that arrives for a user no longer shown.
+                if (new URL(window.location.href).searchParams.get('userid') !== userid) {
+                    return;
+                }
+                var data = JSON.parse(json);
+                var filepath = '';
+                if (data.data.filename) {
+                    filepath = data.data.filename;
+                }
 
-                    $('div[data-region="grade-actions"]').before(analyticButtonDiv);
+                let analyticButtonDiv = document.createElement('div');
+                analyticButtonDiv.classList.add('text-center', 'mt-2');
+                analyticButtonDiv.dataset.region = REGION;
 
-                    $('div[data-region="review-panel"]').addClass('cursive_review_panel_path_mod_assign');
+                $(`[data-region="${REGION}"]`).remove();
+                $('div[data-region="grade-actions"]').before(analyticButtonDiv);
 
-                    $('div[data-region="grading-navigation-panel"]').addClass('cursive_grading-navigation-panel_path_mod_assign');
+                if (!hasApiKey) {
+                    $(analyticButtonDiv).html(replayButton(userid));
+                } else {
+                    analyticButtonDiv.append(analyticButton(data.data.effort_ratio, userid));
+                }
 
-                    $('div[data-region="grade-panel"]').addClass('cursive_grade-panel_path_mod_assign');
+                let myEvents = new AnalyticEvents();
+                var context = {
+                    tabledata: data.data,
+                    formattime: myEvents.formatedTime(data.data),
+                    page: scoreSetting,
+                    userid: userid,
+                    apikey: hasApiKey
+                };
 
-                    $('div[data-region="grade-actions-panel"]').addClass('cursive_grade-actions-panel_path_mod_assign');
+                let authIcon = myEvents.authorshipStatus(data.data?.user_agent,
+                    data.data.first_file, data.data.score, scoreSetting);
 
-                    if (!hasApiKey) {
-                        $(analyticButtonDiv).html(replayButton(userid));
-                    } else {
-                        analyticButtonDiv.append(analyticButton(data.data.effort_ratio, userid));
-                    }
-
-                    let myEvents = new AnalyticEvents();
-                    var context = {
-                        tabledata: data.data,
-                        formattime: myEvents.formatedTime(data.data),
-                        page: scoreSetting,
-                        userid: userid,
-                        apikey: hasApiKey
-                    };
-
-                    let authIcon = myEvents.authorshipStatus(data.data?.user_agent,
-                        data.data.first_file, data.data.score, scoreSetting);
-
-                    myEvents.createModal(userid, context, '', replayInstances, authIcon);
-                    myEvents.analytics(userid, templates, context, '', replayInstances, authIcon);
-                    myEvents.checkDiff(userid, data.data.file_id, '', replayInstances, filepath);
-                    myEvents.replyWriting(userid, filepath, '', replayInstances);
-
-
-                });
-                return com.usercomment;
+                myEvents.createModal(userid, context, '', replayInstances, authIcon);
+                myEvents.analytics(userid, templates, context, '', replayInstances, authIcon);
+                myEvents.checkDiff(userid, data.data.file_id, '', replayInstances, filepath);
+                myEvents.replyWriting(userid, filepath, '', replayInstances);
+            }).fail(function(error) {
+                window.console.error('Error getting cursive grade data:', error);
             });
         },
     };
     return usersTable;
 });
-
-

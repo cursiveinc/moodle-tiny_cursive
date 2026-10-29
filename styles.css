@@ -449,10 +449,11 @@ body#page-cws #region-main > div {
     transform: translateY(-5px);
 }
 
-.tiny_cursive_added,
-.tiny_cursive-inserted,
 .tiny_cursive-pasted_content,
-.tiny_cursive-ai_inserted {
+.tiny_cursive-inserted,
+.tiny_cursive-ai_inserted,
+.tiny_cursive-ai_content,
+.tiny_cursive-ai-content {
     color: rgb(0, 41, 0);
     font-weight: bold;
     padding: 2px 4px;
@@ -460,20 +461,21 @@ body#page-cws #region-main > div {
     word-wrap: break-word;
 }
 
-.tiny_cursive_added {
-    background-color: #fff2cc;
-}
-
-.tiny_cursive-inserted {
-    background-color: #fff2cc;
-}
-
+/* Attribution is also conveyed by the element (mark / ins) and a distinct underline per kind (1.4.1). */
 .tiny_cursive-pasted_content {
     background-color: #fff2cc;
+    text-decoration: underline dotted;
+    text-decoration-thickness: 2px;
 }
 
-.tiny_cursive-ai_inserted {
-    background-color: #fff2cc;
+/* The API marks AI-placed text as tiny_cursive-inserted; the ai_* names are kept for older payloads. */
+.tiny_cursive-inserted,
+.tiny_cursive-ai_inserted,
+.tiny_cursive-ai_content,
+.tiny_cursive-ai-content {
+    background-color: #ede9fe;
+    text-decoration: underline dashed;
+    text-decoration-thickness: 2px;
 }
 
 .tiny_cursive-legend-item {
@@ -483,14 +485,15 @@ body#page-cws #region-main > div {
     margin: 0 1rem;
 }
 
-.tiny_cursive-box {
-    width: 20px;
-    height: 20px;
-    border: 1px solid #ccc;
+/* Legend samples carry the same classes as the marks, so they always look like the text they explain. */
+.tiny_cursive-legend-sample {
+    padding: 2px 4px;
 }
 
 .tiny_cursive-attributed {
-    background-color: white;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
 }
 
 .tiny_cursive-legend-item span {
@@ -576,8 +579,8 @@ body#page-cws #region-main > div {
 }
 
 .tiny_cursive_mod_assign_grader .cursive_grade-actions-panel_path_mod_assign {
-    /* stylelint-disable-next-line declaration-no-important */
-    height: 100px !important;
+    /* A minimum, not a fixed height: the panel grows at 200% zoom instead of clipping (1.4.4). */
+    min-height: 100px;
     background: #ddd;
     z-index: 2;
 }
@@ -1358,10 +1361,15 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .modal-header {
     vertical-align: middle;
 }
 
-.tiny_cursive-export-pdf .tiny_cursive_added {
+.tiny_cursive-export-pdf .tiny_cursive-pasted_content,
+.tiny_cursive-export-pdf .tiny_cursive-inserted,
+.tiny_cursive-export-pdf .tiny_cursive-ai_inserted,
+.tiny_cursive-export-pdf .tiny_cursive-ai_content,
+.tiny_cursive-export-pdf .tiny_cursive-ai-content {
     background-color: transparent;
     color: var(--tiny-cursive-warning-text);
     font-weight: bold;
+    /* The per-kind underline (dotted / dashed / solid) comes from the shared rules above and survives greyscale printing. */
     padding: 2px 4px;
     border-radius: 4px;
     word-wrap: break-word;
@@ -1387,8 +1395,8 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .modal-header {
     margin-bottom: 5px;
 }
 
-.tiny_cursive-header h6 {
-    color: #6c757d;
+.tiny_cursive-header .tiny_cursive-subtitle {
+    color: var(--tiny-cursive-text-muted);
     margin-top: 0;
 }
 
@@ -1403,20 +1411,25 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .modal-header {
 
 .tiny_cursive-info-row {
     display: flex;
+    flex-wrap: wrap;
+    gap: 10px 20px;
     justify-content: space-between;
+    margin: 0;
 }
 
 .tiny_cursive-info-col {
-    flex: 1;
+    flex: 1 1 10rem;
 }
 
-.tiny_cursive-info-col h5 {
+.tiny_cursive-info-col dt {
     color: var(--tiny-cursive-action);
+    font-weight: 600;
     margin-bottom: 5px;
 }
 
-.tiny_cursive-info-col div {
+.tiny_cursive-info-col dd {
     font-size: 14px;
+    margin: 0;
 }
 
 /* Section Divider */
@@ -1484,21 +1497,22 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .modal-header {
 }
 
 .tiny_cursive-stats-card p.title {
-    color: #6c757d;
+    color: var(--tiny-cursive-text-muted);
     margin: 0 0 5px 0;
     font-size: 12px;
     font-weight: 600;
     text-transform: uppercase;
 }
 
-.tiny_cursive-stats-card h2 {
+.tiny_cursive-stats-card .value {
     color: var(--tiny-cursive-action);
     margin: 5px 0;
     font-size: 24px;
+    font-weight: 600;
 }
 
 .tiny_cursive-stats-card p.desc {
-    color: #6c757d;
+    color: var(--tiny-cursive-text-muted);
     margin: 5px 0 0 0;
     font-size: 11px;
 }
@@ -1558,13 +1572,8 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .modal-header {
     background-color: rgba(128, 128, 128, 0.15);
 }
 
-.tiny_cursive-legend span.tiny_cursive_added {
-    height: 15px;
-    width: 15px;
-    display: inline-block;
-    vertical-align: middle;
-    margin-right: 5px;
-    background-color: var(--tiny-cursive-warning-text);
+.tiny_cursive-legend .tiny_cursive-legend-sample {
+    margin-inline-end: 12px;
 }
 
 /* Submission Text Box */
@@ -1573,10 +1582,10 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .modal-header {
     border: 1px solid #dee2e6;
     background-color: white;
     padding: 15px;
-    text-align: justify;
+    text-align: start;
 }
 
-.tiny_cursive-submission-box h2 {
+.tiny_cursive-submission-box h4 {
     margin-top: 0;
     margin-bottom: 10px;
 }
@@ -1594,7 +1603,7 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .modal-header {
 
 .tiny_cursive-footer div {
     margin: 15px 0;
-    color: #6c757d;
+    color: var(--tiny-cursive-text-muted);
 }
 
 .tiny_cursive-analytics-button {

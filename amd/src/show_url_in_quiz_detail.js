@@ -116,7 +116,9 @@ define(["jquery", "core/ajax", "core/str", "core/templates", "./replay", "./anal
                             analyticButtonDiv.append(analyticButton(data.data.effort_ratio, userid, questionid));
                         }
 
-                        content.parent().parent().parent().find('.qtext').append(analyticButtonDiv);
+                        // The question's info column, so a reader of the question text never meets a control mid-sentence.
+                        const que = content.closest('.que');
+                        (que.find('.info').length ? que.find('.info') : que.find('.qtext')).append(analyticButtonDiv);
 
                         let myEvents = new AnalyticEvents();
                         var context = {
