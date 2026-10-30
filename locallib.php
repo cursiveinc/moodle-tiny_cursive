@@ -466,18 +466,18 @@ function tiny_cursive_render_axis_selector(string $xaxis, string $yaxis): string
 
     $xlabel = html_writer::tag('label', get_string('xaxis', 'tiny_cursive'), [
         'for'   => 'cursive-xaxis',
-        'class' => 'mr-1 mb-0 font-weight-semibold text-nowrap',
+        'class' => 'tiny_cursive-me-1 mb-0 font-weight-semibold text-nowrap',
     ]);
 
     $ylabel = html_writer::tag('label', get_string('yaxis', 'tiny_cursive'), [
         'for'   => 'cursive-yaxis',
-        'class' => 'ml-3 mr-1 mb-0 font-weight-semibold text-nowrap',
+        'class' => 'tiny_cursive-ms-3 tiny_cursive-me-1 mb-0 font-weight-semibold text-nowrap',
     ]);
 
     $submitbtn = html_writer::tag('button', get_string('submit'), [
         'id'    => 'cursive-axis-submit',
         'type'  => 'button',
-        'class' => 'btn btn-primary btn-sm ml-3',
+        'class' => 'btn btn-primary btn-sm tiny_cursive-ms-3',
     ]);
 
     return html_writer::div(
