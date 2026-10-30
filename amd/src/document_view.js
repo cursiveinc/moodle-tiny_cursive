@@ -22,7 +22,7 @@
  */
 
 import Icons from 'tiny_cursive/svg_repo';
-import {stringCacheKey} from 'tiny_cursive/common';
+import {precedingHeadingLevel, stringCacheKey} from 'tiny_cursive/common';
 export default class DocumentView {
 
     constructor(User, Rubrics, submission, modulename, editor, quizInfo) {
@@ -959,14 +959,8 @@ export default class DocumentView {
      * @returns {{title: number, card: number, rubric: number}}
      */
     headingLevels() {
-        let level = 2;
         const anchor = this.editor?.getContainer?.() || document.body;
-        document.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((heading) => {
-            // eslint-disable-next-line no-bitwise
-            if (heading.compareDocumentPosition(anchor) & Node.DOCUMENT_POSITION_FOLLOWING) {
-                level = Number(heading.tagName.slice(1));
-            }
-        });
+        const level = precedingHeadingLevel(anchor);
         return {title: Math.min(level + 1, 6), card: Math.min(level + 2, 6), rubric: Math.min(level + 3, 6)};
     }
 

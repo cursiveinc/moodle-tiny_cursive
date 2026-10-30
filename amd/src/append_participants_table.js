@@ -94,7 +94,7 @@ define(["jquery", "core/config", "core/str", "core_table/local/dynamic/events"],
                 icon.setAttribute('aria-hidden', 'true');
 
                 const text = document.createElement('span');
-                text.className = 'ml-1 ms-1';
+                text.className = 'tiny_cursive-ms-1';
                 text.textContent = statsString;
 
                 link.appendChild(icon);

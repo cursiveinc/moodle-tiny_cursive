@@ -28,6 +28,7 @@ Feature: Data transparency notice gate
     And "I consent" "button" should not exist
     And ".tox-tinymce" "css_element" should be visible
 
+  @accessibility
   Scenario: The gate replaces the editor until the notice is acknowledged
     Given the following config values are set as admin:
       | notice_enabled     | 1                           | tiny_cursive |
@@ -39,6 +40,8 @@ Feature: Data transparency notice gate
     And I should see "your institution's privacy policy"
     And "I consent" "button" should exist
     And "Decline" "button" should not exist in the "[data-region='tiny_cursive-notice-gate']" "css_element"
+    And the "[data-region='tiny_cursive-notice-gate']" "css_element" should meet accessibility standards
+    And the "[data-region='tiny_cursive-notice-gate']" "css_element" should meet accessibility standards with "best-practice" extra tests
     And ".tox-tinymce" "css_element" should not be visible
     When I reload the page
     Then I should see "Notice about data collection"

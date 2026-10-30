@@ -230,7 +230,7 @@ class notice_report_table extends table_sql {
         }
 
         $badgeclass = $superseded ? 'badge bg-warning text-dark badge-warning' : 'badge bg-success badge-success';
-        $out .= ' ' . html_writer::span($status, $badgeclass . ' ml-1 ms-1');
+        $out .= ' ' . html_writer::span($status, $badgeclass . ' tiny_cursive-ms-1');
 
         return $out;
     }
