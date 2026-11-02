@@ -80,7 +80,7 @@ if ($ADMIN->fulltree) {
             get_string('secretkey_desc', 'tiny_cursive') . '' .
             "<br/><button type='button' id='tiny_cursive_approve_token' class='btn btn-primary'>" .
             get_string('test_token', 'tiny_cursive') . "</button> " .
-            "<span id='cursive_token_message' class='ml-2 ms-2' role='status' aria-live='polite'></span>",
+            "<span id='cursive_token_message' class='tiny_cursive-ms-2' role='status' aria-live='polite'></span>",
             "",
             PARAM_TEXT
         )
@@ -166,7 +166,7 @@ if ($ADMIN->fulltree) {
             get_string('cursivedisable', 'tiny_cursive'),
             "<button type='button' class='btn btn-primary mb-1' id='cursivedisable'>" .
             get_string('disable', 'tiny_cursive') . "</button>
-            <button type='button' class='btn btn-primary mb-1 ml-1 ms-1' id='cursiveenable'>" .
+            <button type='button' class='btn btn-primary mb-1 tiny_cursive-ms-1' id='cursiveenable'>" .
             get_string('enable', 'tiny_cursive') . "
             </button><br><span id='cursivedisable_' role='status' aria-live='polite'></span><br>" .
             get_string('cursivedisable_des', 'tiny_cursive'),

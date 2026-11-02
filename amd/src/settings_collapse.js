@@ -106,7 +106,7 @@ const makeCollapsible = (heading, index, labels) => {
 
     const button = document.createElement('button');
     button.type = 'button';
-    button.className = 'btn btn-link btn-sm p-0 ml-2 ms-2 align-baseline';
+    button.className = 'btn btn-link btn-sm p-0 tiny_cursive-ms-2 align-baseline';
     button.dataset.action = 'toggle-section';
     button.setAttribute('aria-controls', container.id);
     if (!heading.id) {

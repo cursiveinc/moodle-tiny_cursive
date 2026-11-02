@@ -1895,6 +1895,13 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .modal-header {
     white-space: nowrap;
 }
 
+/* TinyMCE's skin reset removes the outline from everything in .tox, so both header buttons need their own ring (2.4.7). */
+.tox .tiny_cursive_StateButtonWrap:focus-visible,
+.tox .tiny_cursive_savingState:focus-visible {
+    outline: 2px solid var(--tiny-cursive-action);
+    outline-offset: 2px;
+}
+
 /* Capture disclosure tooltip: anchored under the indicator, readable line-height whatever TinyMCE's skin inherits. */
 /* `.tox` variant outranks the skin reset (`.tox :not(svg):not(rect) { position: static }`) inside the editor. */
 .tox .tiny_cursive_state_wrapper,
@@ -2525,4 +2532,27 @@ body.tox-fullscreen .tiny-cursive-modal .modal-dialog .modal-header {
 
 .tiny_cursive-fullpage-card-header.text-success {
     color: var(--tiny-cursive-success) !important;
+}
+
+/* Spacing that works on Bootstrap 4 (Moodle 4.4/4.5) and 5 (Moodle 5.x) without the deprecated ml-* names. */
+.tiny_cursive-ms-1 {
+    margin-inline-start: .25rem;
+}
+
+.tiny_cursive-ms-2 {
+    margin-inline-start: .5rem;
+}
+
+.tiny_cursive-ms-3 {
+    margin-inline-start: 1rem;
+}
+
+.tiny_cursive-me-1 {
+    margin-inline-end: .25rem;
+}
+
+/* Links inside the plugin's settings descriptions sit in muted text, so colour alone cannot mark them (1.4.1). */
+body[id^="page-admin-setting-tiny_cursive"] .form-text a,
+body[id^="page-admin-setting-tiny_cursive"] .form-setting a {
+    text-decoration: underline;
 }

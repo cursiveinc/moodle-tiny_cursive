@@ -28,7 +28,7 @@
  */
 
 import {getPluginOptionName} from 'editor_tiny/options';
-import {pluginName} from './common';
+import {pluginName, precedingHeadingLevel} from './common';
 import Templates from 'core/templates';
 import Ajax from 'core/ajax';
 import {getString} from 'core/str';
@@ -139,16 +139,7 @@ const releaseUnrecorded = async(entry) => {
  * @param {HTMLElement} container
  * @returns {number}
  */
-const headingLevelFor = (container) => {
-    let level = 2;
-    document.querySelectorAll('h1, h2, h3, h4, h5, h6, [role="heading"][aria-level]').forEach((heading) => {
-        // eslint-disable-next-line no-bitwise
-        if (heading.compareDocumentPosition(container) & Node.DOCUMENT_POSITION_FOLLOWING) {
-            level = Number(heading.getAttribute('aria-level')) || Number(heading.tagName.slice(1)) || level;
-        }
-    });
-    return Math.min(level + 1, 6);
-};
+const headingLevelFor = (container) => Math.min(precedingHeadingLevel(container) + 1, 6);
 
 /**
  * Render the notice panel immediately after the (hidden) editor container.

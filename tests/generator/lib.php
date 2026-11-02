@@ -69,4 +69,84 @@ class tiny_cursive_generator extends component_generator_base {
 
         return $ack;
     }
+
+    /** @var string Plain text the student typed, as the capture reconstructs it. */
+    const RECONSTRUCTED_TEXT = "Steam rises gently from the cup.\n\nGreen leaves steep in warm water while I write this.";
+
+    /** @var string Submitted HTML as the Cursive API returns it, with one pasted and one AI-inserted passage. */
+    const SUBMITTED_HTML = '<p>Steam rises gently from the cup. <span class="tiny_cursive-pasted_content">A line pasted '
+        . 'from elsewhere.</span></p><p>Green leaves steep in warm water while I write this.</p>'
+        . '<p><span class="tiny_cursive-inserted">Quiet moments brew.</span></p>';
+
+    /**
+     * Create a captured submission: the files row with replay events, its writing analytics and its diff.
+     *
+     * @param array|stdClass $record Keys: userid and cmid (required); modulename, resourceid, courseid, questionid,
+     *     timemodified, uploaded, effort, score, total_time_seconds, word_count, submitted_html, reconstructed_text.
+     * @return stdClass The tiny_cursive_files record, with writingid and diffid added.
+     */
+    public function create_submission($record): stdClass {
+        global $CFG, $DB;
+
+        $record = (object) $record;
+        if (empty($record->userid) || empty($record->cmid)) {
+            throw new coding_exception('userid and cmid are required');
+        }
+
+        $cm = get_coursemodule_from_id('', $record->cmid, 0, false, MUST_EXIST);
+        $now = time();
+
+        $file = (object) [
+            'userid' => (int) $record->userid,
+            'cmid' => (int) $cm->id,
+            'modulename' => $record->modulename ?? $cm->modname,
+            'resourceid' => (int) ($record->resourceid ?? $cm->instance),
+            'courseid' => (int) ($record->courseid ?? $cm->course),
+            'questionid' => (int) ($record->questionid ?? 0),
+            'timemodified' => (int) ($record->timemodified ?? $now),
+            'uploaded' => (int) ($record->uploaded ?? $now),
+        ];
+        $file->filename = "{$file->userid}_{$file->resourceid}_{$file->cmid}_attempt.json";
+
+        // The replay events are a real capture, re-pointed at this user and activity.
+        $events = json_decode(file_get_contents(__DIR__ . '/../fixtures/replay_events.json'), true);
+        foreach ($events as &$event) {
+            $event['personId'] = $file->userid;
+            $event['resourceId'] = $file->resourceid;
+            $event['courseId'] = $file->courseid;
+            $event['clientId'] = $CFG->wwwroot;
+        }
+        unset($event);
+        $file->content = json_encode($events);
+        $file->original_content = $record->reconstructed_text ?? self::RECONSTRUCTED_TEXT;
+        $file->id = $DB->insert_record('tiny_cursive_files', $file);
+
+        $writing = (object) [
+            'file_id' => $file->id,
+            'total_time_seconds' => (int) ($record->total_time_seconds ?? 626),
+            'key_count' => 1807,
+            'keys_per_minute' => 173,
+            'character_count' => 1683,
+            'characters_per_minute' => 161,
+            'word_count' => (int) ($record->word_count ?? 306),
+            'words_per_minute' => 29,
+            'backspace_percent' => 6.87,
+            'score' => (float) ($record->score ?? 1),
+            'copy_behavior' => 0,
+            'user_agent' => 'Behat',
+        ];
+        $file->writingid = $DB->insert_record('tiny_cursive_user_writing', $writing);
+
+        // The API stores the submitted HTML as base64 of its JSON encoding; the readers decode it the same way.
+        $html = $record->submitted_html ?? self::SUBMITTED_HTML;
+        $diff = (object) [
+            'file_id' => $file->id,
+            'reconstructed_text' => $file->original_content,
+            'submitted_text' => base64_encode(json_encode($html)),
+            'meta' => (string) ($record->effort ?? '1.64'),
+        ];
+        $file->diffid = $DB->insert_record('tiny_cursive_writing_diff', $diff);
+
+        return $file;
+    }
 }
