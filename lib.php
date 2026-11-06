@@ -465,10 +465,10 @@ function tiny_cursive_file_urlcreate($context, $user) {
  * @throws dml_exception
  */
 function tiny_cursive_status($courseid = 0) {
-    if (get_config('tiny_cursive', 'disabled')) {
+    if (empty($courseid) || $courseid == SITEID || get_config('tiny_cursive', 'disabled')) {
         return false;
     }
-    return get_config('tiny_cursive', "cursive-$courseid");
+    return !empty(get_config('tiny_cursive', "cursive-$courseid"));
 }
 
 /**
