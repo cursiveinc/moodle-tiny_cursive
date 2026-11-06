@@ -51,12 +51,12 @@ class hook_callbacks {
     public static function before_footer_html_generation(before_footer_html_generation $hook) {
         global $PAGE, $COURSE, $USER, $CFG;
 
-        require_once($CFG->dirroot . '/lib/editor/tiny/plugins/cursive/locallib.php');
-        require_once($CFG->dirroot . '/lib/editor/tiny/plugins/cursive/lib.php');
-
-        if (empty($COURSE) || during_initial_install()) {
+        if (empty($COURSE->id) || $COURSE->id == SITEID || during_initial_install()) {
             return;
         }
+
+        require_once($CFG->dirroot . '/lib/editor/tiny/plugins/cursive/locallib.php');
+        require_once($CFG->dirroot . '/lib/editor/tiny/plugins/cursive/lib.php');
 
         $cursivestatus = tiny_cursive_status($COURSE->id);
         $context       = "";
